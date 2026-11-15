@@ -1,7 +1,7 @@
 import hashlib
 import errno
 import importlib.util
-from unittest.mock import patch
+from unittest.mock import patch, Mock, mock_open
 import json
 import socket
 import subprocess
@@ -200,6 +200,7 @@ class GuestInitTests(unittest.TestCase):
             self.assertIn(['/sbin/ip', 'link', 'set', 'dev', 'eth0', 'up'], commands)
             raise RuntimeError('stop after checked DHCP start')
         with patch.object(module.os, 'getpid', return_value=1), \
+             patch.dict(module.os.environ, {}), \
              patch.object(module, 'mount'), patch.object(module, 'ensure_nodes'), \
              patch.object(module, 'link_nodes'), patch.object(module.os, 'makedirs'), \
              patch.object(module.signal, 'signal'), \
@@ -207,6 +208,56 @@ class GuestInitTests(unittest.TestCase):
              patch.object(module.subprocess, 'Popen', side_effect=start_dhcp):
             with self.assertRaisesRegex(RuntimeError, 'stop after checked DHCP start'):
                 module.main()
+
+    def test_pid1_supplies_executable_search_paths_to_services(self):
+        path = Path(__file__).parents[1] / 'runtime/microvm/guest-init.py'
+        spec = importlib.util.spec_from_file_location('ashnazg_guest_environment_init', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        def start_child(args, **kwargs):
+            search = module.os.environ.get('PATH', '').split(':')
+            self.assertIn('/usr/bin', search)
+            self.assertIn('/sbin', search)
+            raise RuntimeError('stop after checked service environment')
+        with patch.object(module.os, 'getpid', return_value=1), \
+             patch.dict(module.os.environ, {'PATH': ''}), \
+             patch.object(module, 'mount'), patch.object(module, 'ensure_nodes'), \
+             patch.object(module, 'link_nodes'), patch.object(module.os, 'makedirs'), \
+             patch.object(module.signal, 'signal'), patch.object(module.subprocess, 'run'), \
+             patch.object(module.subprocess, 'Popen', side_effect=start_child):
+            with self.assertRaisesRegex(RuntimeError, 'stop after checked service environment'):
+                module.main()
+
+    def test_docker_starts_with_the_locked_alpine_proxy_binary(self):
+        path = Path(__file__).parents[1] / 'runtime/microvm/guest-init.py'
+        spec = importlib.util.spec_from_file_location('ashnazg_guest_docker_init', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        network = Mock(); network.wait.return_value = 0; network.poll.return_value = 0
+        def start_child(args, **kwargs):
+            if args[0] == '/sbin/udhcpc': return network
+            self.assertEqual(args[0], '/usr/bin/dockerd')
+            self.assertIn('--userland-proxy-path=/usr/bin/docker-proxy', args)
+            raise RuntimeError('stop after checked Docker start')
+        with patch.object(module.os, 'getpid', return_value=1), \
+             patch.dict(module.os.environ, {}), \
+             patch.object(module, 'mount'), patch.object(module, 'ensure_nodes'), \
+             patch.object(module, 'link_nodes'), patch.object(module.os, 'makedirs'), \
+             patch.object(module.signal, 'signal'), patch('builtins.open', mock_open()), \
+             patch.object(module.subprocess, 'run'), \
+             patch.object(module.subprocess, 'Popen', side_effect=start_child):
+            with self.assertRaisesRegex(RuntimeError, 'stop after checked Docker start'):
+                module.main()
+
+    def test_startup_log_tail_is_bounded(self):
+        path = Path(__file__).parents[1] / 'runtime/microvm/guest-init.py'
+        spec = importlib.util.spec_from_file_location('ashnazg_guest_boot_log', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'dockerd.log'
+            log.write_bytes(b'x' * 10000 + b'fatal startup error')
+            tail = module.boot_log_tail(str(log), 32)
+            self.assertLessEqual(len(tail.encode()), 32)
+            self.assertTrue(tail.endswith('fatal startup error'))
+            self.assertEqual(module.boot_log_tail(str(log.with_name('absent'))), 'startup log unavailable')
 
     def test_startup_failure_powers_off_instead_of_exiting_pid_one(self):
         path = Path(__file__).parents[1] / 'runtime/microvm/guest-init.py'

@@ -42,9 +42,22 @@ def stop_child(process, timeout):
         process.wait(timeout=5)
 
 
+def boot_log_tail(path: str, max_bytes: int = 8192) -> str:
+    try:
+        with open(path, 'rb') as stream:
+            stream.seek(0, os.SEEK_END)
+            stream.seek(max(0, stream.tell() - max_bytes))
+            return stream.read(max_bytes).decode('utf-8', 'replace').strip()
+    except OSError:
+        return 'startup log unavailable'
+
+
 def main() -> int:
     if os.getpid() != 1:
         raise RuntimeError('guest-init must run as PID 1')
+    # The kernel gives PID 1 a minimal environment. Service children such as
+    # containerd, runc and the Docker/ADB CLIs are resolved through PATH.
+    os.environ['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
     network = docker = child = None
     def stop(signum, _frame): raise RequestedShutdown(signum)
     for number in (signal.SIGHUP, signal.SIGINT, signal.SIGTERM): signal.signal(number, stop)
@@ -68,11 +81,13 @@ def main() -> int:
         if network.wait(timeout=30): raise RuntimeError('guest DHCP failed')
         with open('/var/log/dockerd.log', 'ab') as log:
             docker = subprocess.Popen(['/usr/bin/dockerd', '--host=unix:///run/docker.sock',
-                '--storage-driver=overlay2', '--iptables=true', '--bridge=docker0'],
+                '--storage-driver=overlay2', '--iptables=true', '--bridge=docker0',
+                '--userland-proxy-path=/usr/bin/docker-proxy'],
                 stdout=log, stderr=subprocess.STDOUT)
         deadline = time.monotonic() + 60
         while True:
-            if docker.poll() is not None: raise RuntimeError('Docker daemon exited before readiness')
+            if docker.poll() is not None:
+                raise RuntimeError('Docker daemon exited before readiness: ' + boot_log_tail('/var/log/dockerd.log'))
             try:
                 result = subprocess.run(['/usr/bin/docker', 'info', '--format', '{{.ServerVersion}}'],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=3, check=False)

@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "artifact_source_sha": "e1196e034507e408b62f3bccd7097949081ed62b",
+  "artifact_workflow_run": "https://github.com/edufelip/ashnazg/actions/runs/43755446706",
+  "archive_sha256": "2ee0c7bde9482647b08aaa7ebd752ca6e31cde7a415b9086ffb0ba8bfc5c2934",
+  "configuration_validation": "passed",
+  "rootfs_mount": "passed",
+  "dhcp_lease": "obtained",
+  "android_readiness": false,
+  "original_image_failure": "Docker daemon rejected an unset userland-proxy-path; pinned Alpine package provides /usr/bin/docker-proxy.",
+  "diagnostic_override_qualification": "Subsequent diagnostics modified only the owned stopped VM disk; these are not acceptance of the immutable CI image.",
+  "diagnostic_findings": [
+    "Explicit proxy path allowed Docker to start; a missing service PATH prevented containerd execution.",
+    "After adding service PATH, containerd started and Docker failed bridge creation with operation not supported."
+  ],
+  "resolved_kernel_config": {
+    "CONFIG_IPV6": "m",
+    "CONFIG_BRIDGE": "m",
+    "CONFIG_BRIDGE_NETFILTER": "m",
+    "CONFIG_LLC": "m",
+    "CONFIG_STP": "m"
+  },
+  "kernel_dependency": "Pinned Linux 6.12.117 BRIDGE depends on IPV6 || IPV6=n and selects LLC/STP; IPV6=m capped bridge at m.",
+  "qualification": "No Android, fixture, benchmark, or full v0.3 acceptance is claimed. Rebuild and repeat with verified immutable assets."
+}
