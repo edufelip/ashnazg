@@ -10,7 +10,7 @@ readonly ALPINE_VERSION="3.22.8"
 readonly ALPINE_URL="https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/aarch64/alpine-minirootfs-${ALPINE_VERSION}-aarch64.tar.gz"
 readonly ALPINE_CHECKSUM_URL="${ALPINE_URL}.sha256"
 readonly ALPINE_SHA256="36091efacd083c1cf5a8c837272530bff4fc72db1fbfdef559f52de0d890bca4"
-readonly REDROID_INDEX="sha256:81889852444606824d33eb0232fa5813bce3f0993afe871785120af0d7c991ad"
+readonly REDROID_INDEX="sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"
 readonly REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 
 OUTPUT_DIR=""

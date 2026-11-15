@@ -12,7 +12,7 @@ from pathlib import Path
 EXPECTED_GUEST = {
     "kernel_version": "6.12.117",
     "base": "alpine-3.22.8-aarch64",
-    "redroid_index": "sha256:81889852444606824d33eb0232fa5813bce3f0993afe871785120af0d7c991ad",
+    "redroid_index": "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
 }
 ARTIFACTS = ("kernel", "rootfs.ext4")
 

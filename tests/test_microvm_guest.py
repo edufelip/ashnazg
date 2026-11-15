@@ -3,6 +3,7 @@ import errno
 import importlib.util
 from unittest.mock import patch, Mock, mock_open
 import json
+import re
 import socket
 import subprocess
 import tempfile
@@ -15,7 +16,25 @@ from runtime.microvm.guest_bridge import (
     proxy_connection,
     serve_control_request,
 )
-from runtime.microvm.manifest import ManifestError, validate_manifest
+from runtime.microvm.manifest import EXPECTED_GUEST, ManifestError, validate_manifest
+from scripts import redroid
+
+
+class GuestImageContractTests(unittest.TestCase):
+    def test_runtime_profile_and_bundle_contract_declare_the_same_image(self):
+        root = Path(__file__).parents[1]
+        spec = importlib.util.spec_from_file_location('guest_init_contract', root / 'runtime/microvm/guest-init.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        profile = module.SUPERVISOR[module.SUPERVISOR.index('--image-profile') + 1]
+        self.assertEqual(EXPECTED_GUEST['redroid_index'], redroid.IMAGE_PROFILES[profile]['index'])
+
+    def test_builder_records_the_runtime_image_index_in_bundle_provenance(self):
+        root = Path(__file__).parents[1]
+        build = (root / 'scripts/build_microvm.sh').read_text()
+        pin = re.search(r'^readonly REDROID_INDEX="([^"]+)"$', build, re.M)
+        self.assertIsNotNone(pin)
+        self.assertEqual(pin.group(1), redroid.IMAGE_PROFILES['android15-64only']['index'])
 
 
 class ManifestTests(unittest.TestCase):
@@ -39,7 +58,7 @@ class ManifestTests(unittest.TestCase):
             "guest": {
                 "kernel_version": "6.12.117",
                 "base": "alpine-3.22.8-aarch64",
-                "redroid_index": "sha256:81889852444606824d33eb0232fa5813bce3f0993afe871785120af0d7c991ad",
+                "redroid_index": "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
             },
         }
         (self.assets / "manifest.json").write_text(json.dumps(self.manifest))
@@ -50,6 +69,12 @@ class ManifestTests(unittest.TestCase):
     def test_accepts_manifest_when_fixed_artifacts_match(self):
         validated = validate_manifest(self.assets, expected_architecture="aarch64")
         self.assertEqual(validated["guest"]["kernel_version"], "6.12.117")
+
+    def test_rejects_superseded_mixed_bitness_image_pin(self):
+        self.manifest['guest']['redroid_index'] = redroid.IMAGE_INDEX
+        (self.assets / 'manifest.json').write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(ManifestError, 'pinned ReDroid index'):
+            validate_manifest(self.assets, expected_architecture='aarch64')
 
     def test_rejects_digest_or_size_mismatch(self):
         (self.assets / "kernel").write_bytes(b"tampered")

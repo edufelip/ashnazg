@@ -13,6 +13,6 @@ license and copyright files remain in `/usr/share/licenses` when supplied by
 the package. The Alpine release source archive and its SHA256 are recorded in
 `provenance.json`.
 
-The Android guest image is `redroid/redroid` pinned by the immutable OCI index
-digest `sha256:81889852444606824d33eb0232fa5813bce3f0993afe871785120af0d7c991ad`.
+The Android guest uses the Android 15 64-bit-only `redroid/redroid` profile, pinned by the immutable OCI index
+digest `sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee`.
 It is downloaded at guest first boot and is not redistributed in this bundle.

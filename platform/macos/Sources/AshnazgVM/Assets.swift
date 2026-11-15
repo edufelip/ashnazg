@@ -52,7 +52,7 @@ struct ValidatedAssets {
         guard manifest.version == "0.3.0",
               manifest.guest.kernel_version == "6.12.117",
               manifest.guest.base == "alpine-3.22.8-aarch64",
-              manifest.guest.redroid_index == "sha256:81889852444606824d33eb0232fa5813bce3f0993afe871785120af0d7c991ad" else {
+              manifest.guest.redroid_index == "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee" else {
             throw AssetError.invalid("manifest guest metadata does not match the pinned v0.3 Android 15 artifact contract")
         }
         guard manifest.architecture == "aarch64", manifest.source_sha.range(of: "^[0-9a-f]{40}$", options: .regularExpression) != nil else {
