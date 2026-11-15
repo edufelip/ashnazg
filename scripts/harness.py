@@ -10,6 +10,7 @@ import socket
 import subprocess
 import tempfile
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -117,6 +118,49 @@ class DeviceHarness:
         self.instrument_log.flush()
         self.instrument_log.seek(0)
         return self.instrument_log.read().decode("utf-8", "replace")[-4000:]
+
+    def collect_failure_diagnostics(self, output_dir: Path) -> Path | None:
+        """Collect bounded selected-emulator diagnostics only with explicit opt-in."""
+        if os.environ.get("ASHNAZG_CI_DIAGNOSTICS") != "1":
+            return None
+
+        commands = [
+            ("activity_last_anr", ["shell", "dumpsys", "activity", "lastanr"], 24_000),
+            ("logcat_tail", ["logcat", "-d", "-t", "2000", "-v", "brief"], 64_000),
+            ("android_meminfo", ["shell", "cat", "/proc/meminfo"], 16_000),
+            ("android_loadavg", ["shell", "cat", "/proc/loadavg"], 2_000),
+            ("process_list", ["shell", "ps", "-A"], 24_000),
+            ("agent_meminfo", ["shell", "dumpsys", "meminfo", "dev.ashnazg.agent"], 24_000),
+            ("fixture_meminfo", ["shell", "dumpsys", "meminfo", "dev.ashnazg.fixture"], 24_000),
+        ]
+
+        def safe_output(value: str | bytes | None, limit: int) -> str:
+            if isinstance(value, bytes):
+                value = value.decode("utf-8", "replace")
+            output = value or ""
+            if self.token:
+                output = output.replace(self.token, "<redacted>")
+            return output[-limit:]
+
+        captured = {}
+        for name, argv, max_chars in commands:
+            try:
+                result = self.adb_cmd(*argv, check=False, timeout=20)
+                captured[name] = {"exit_code": result.returncode,
+                                  "stdout": safe_output(result.stdout, max_chars),
+                                  "stderr": safe_output(result.stderr, 4_000)}
+            except subprocess.TimeoutExpired as exc:
+                captured[name] = {"error": safe_output(f"{type(exc).__name__}: {exc}", 4_000),
+                                  "stdout": safe_output(exc.stdout, max_chars),
+                                  "stderr": safe_output(exc.stderr, 4_000)}
+            except (OSError, subprocess.SubprocessError) as exc:
+                captured[name] = {"error": safe_output(f"{type(exc).__name__}: {exc}", 4_000)}
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        path = output_dir / "failure-diagnostics.json"
+        path.write_text(json.dumps({"collected_at_utc": datetime.now(timezone.utc).isoformat(),
+                                    "device": self.serial, "diagnostics": captured}, indent=2) + "\n")
+        return path
 
     @property
     def cold_setup_ms(self) -> float:

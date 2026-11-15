@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import tempfile
@@ -11,6 +12,13 @@ from scripts.integration import (FIXTURE_LOG_TAG, IntegrationFailure, artifact_e
 
 
 class DeviceOwnershipTests(unittest.TestCase):
+    @staticmethod
+    def bare_harness(token="ci-test-secret-token"):
+        harness = DeviceHarness.__new__(DeviceHarness)
+        harness.token = token
+        harness.serial = "emulator-5554"
+        return harness
+
     def test_forward_collision_refuses_before_install_and_cleanup(self):
         devices = subprocess.CompletedProcess([], 0, "List of devices attached\nemulator-5554 device\n", "")
         forwards = subprocess.CompletedProcess([], 0, "emulator-5556 tcp:7777 tcp:8888\n", "")
@@ -56,6 +64,43 @@ class DeviceOwnershipTests(unittest.TestCase):
             screenshots, diagnostics = artifact_evidence(current)
             self.assertEqual([Path(p).name for p in screenshots], ["fixture-overlay.png"])
             self.assertEqual([Path(p).name for p in diagnostics], ["failure-logs.json"])
+
+    def test_failure_diagnostics_are_disabled_without_explicit_opt_in(self):
+        harness = self.bare_harness()
+        with tempfile.TemporaryDirectory() as temporary, \
+             patch.dict(os.environ, {"ASHNAZG_CI_DIAGNOSTICS": "0"}), \
+             patch.object(harness, "adb_cmd") as adb:
+            output = Path(temporary) / "diagnostics"
+            self.assertIsNone(harness.collect_failure_diagnostics(output))
+            self.assertFalse(output.exists())
+            adb.assert_not_called()
+
+    def test_opted_in_failure_diagnostics_are_bounded_and_token_redacted(self):
+        token = "private-ci-session-token"
+        harness = self.bare_harness(token)
+        fake = subprocess.CompletedProcess([], 0, "x" * 100_000 + token + "tail",
+                                           "e" * 10_000 + token + "stderr-tail")
+        timeout = subprocess.TimeoutExpired(["adb", "logcat"], 20,
+                                            output="timeout-start " + token + " timeout-end",
+                                            stderr="timeout-stderr " + token)
+        with tempfile.TemporaryDirectory() as temporary, \
+             patch.dict(os.environ, {"ASHNAZG_CI_DIAGNOSTICS": "1"}), \
+             patch.object(harness, "adb_cmd", side_effect=[timeout] + [fake] * 6) as adb:
+            path = harness.collect_failure_diagnostics(Path(temporary))
+            self.assertEqual(adb.call_count, 7)
+            self.assertIsNotNone(path)
+            content = path.read_text()
+            diagnostic = json.loads(content)["diagnostics"]
+            self.assertNotIn(token, content)
+            self.assertIn("<redacted>", content)
+            self.assertIn("activity_last_anr", content)
+            self.assertIn("logcat_tail", content)
+            self.assertIn("agent_meminfo", content)
+            self.assertIn("<redacted>", diagnostic["activity_last_anr"]["stdout"])
+            self.assertIn("<redacted>", diagnostic["activity_last_anr"]["stderr"])
+            self.assertLessEqual(len(diagnostic["logcat_tail"]["stdout"]), 64_000)
+            self.assertLessEqual(len(diagnostic["logcat_tail"]["stderr"]), 4_000)
+            self.assertLessEqual(len(diagnostic["activity_last_anr"]["stderr"]), 4_000)
 
     def test_button_state_label_is_bound_to_test_id_not_globally_unique_text(self):
         snapshot = {"nodes": [

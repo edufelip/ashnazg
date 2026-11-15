@@ -704,6 +704,14 @@ def main() -> int:
         if client is not None:
             failure_snapshot = client.last_snapshot
             failure_logs = client.last_logs
+        diagnostic_collection_error = None
+        if harness is not None:
+            try:
+                harness.collect_failure_diagnostics(artifact_dir)
+            except Exception as diagnostic_exc:
+                # Do not let optional diagnostics replace the original acceptance failure.
+                message = str(diagnostic_exc).replace(harness.token, "<redacted>") if harness.token else str(diagnostic_exc)
+                diagnostic_collection_error = f"{type(diagnostic_exc).__name__}: {message[:300]}"
         if failure_snapshot is not None:
             artifact_dir.mkdir(parents=True, exist_ok=True)
             (artifact_dir / "failure-snapshot.json").write_text(json.dumps(safe_snapshot(failure_snapshot), indent=2) + "\n")
@@ -715,6 +723,8 @@ def main() -> int:
                    "framework_fixtures": args.framework_fixtures,
                    "source": source_metadata(args.root), "error": f"{type(exc).__name__}: {str(exc)[:500]}",
                    "diagnostic_evidence": relative_artifact_paths(list(artifact_dir.glob("*.json")))}
+        if diagnostic_collection_error:
+            summary["diagnostic_collection_error"] = diagnostic_collection_error
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(json.dumps(summary, indent=2) + "\n")
