@@ -7,7 +7,11 @@ final class SelectorResolver {
     enum Failure { INVALID_SELECTOR, STALE, NOT_FOUND, AMBIGUOUS, DISABLED }
     static final class SelectorException extends RuntimeException {
         final Failure failure;
-        SelectorException(Failure failure, String message) { super(message); this.failure = failure; }
+        final boolean preInputInvalidation;
+        SelectorException(Failure failure, String message) { this(failure, message, false); }
+        SelectorException(Failure failure, String message, boolean preInputInvalidation) {
+            super(message); this.failure = failure; this.preInputInvalidation = preInputInvalidation;
+        }
     }
     static final class Node {
         final int id;

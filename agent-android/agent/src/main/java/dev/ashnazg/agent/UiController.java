@@ -89,7 +89,7 @@ final class UiController {
         if (target != null && target.id != null) {
             if (current == null) throw new SelectorResolver.SelectorException(SelectorResolver.Failure.STALE, "stale target: no prior snapshot exists");
             before = current;
-        } else if (target != null) before = capture(false);
+        } else if (target != null) before = ("tap".equals(action) || "long_press".equals(action)) ? null : capture(false);
         else before = current;
 
         boolean acted = false;
@@ -97,10 +97,13 @@ final class UiController {
         boolean mutationObserved = true;
         switch (action) {
             case "tap": case "long_press": case "type": case "clear": {
-                Record record = resolve(before, target);
-                if ("tap".equals(action)) tap(record, false);
-                else if ("long_press".equals(action)) tap(record, true);
-                else mutationObserved = edit(record, "type".equals(action), stringParam(params, "text", null));
+                if ("tap".equals(action) || "long_press".equals(action)) {
+                    PointerCoordinates pointer = preparePointerInput(before, target);
+                    injectTap(pointer.x, pointer.y, "long_press".equals(action) ? 800 : 80);
+                } else {
+                    Record record = resolve(before, target);
+                    mutationObserved = edit(record, "type".equals(action), stringParam(params, "text", null));
+                }
                 acted = true;
                 break;
             }
@@ -190,7 +193,7 @@ final class UiController {
         int id = nextSnapshotId++;
         Snapshot snap = new Snapshot(id);
         AccessibilityNodeInfo root = automation.getRootInActiveWindow();
-        if (root == null) throw new IllegalStateException("no active accessibility window");
+        if (root == null) throw new NoActiveWindowException();
         walk(root, 0, snap, includeInvisible);
         root.recycle();
         snap.json = toJson(snap);
@@ -223,7 +226,9 @@ final class UiController {
             int nodeId = snap.records.size() + 1;
             AccessibilityNodeInfo retained = AccessibilityNodeInfo.obtain(node);
             Rect rect = new Rect(); node.getBoundsInScreen(rect);
-            Record record = new Record(nodeId, viewId, text, role(node, editable), rect, enabled, node.isFocused(), clickable,
+            CharSequence rawPackage = node.getPackageName();
+            String packageName = rawPackage == null ? null : rawPackage.toString();
+            Record record = new Record(nodeId, viewId, text, role(node, editable), packageName, rect, enabled, node.isFocused(), clickable,
                     editable, password, node.isCheckable(), node.isChecked(), node.isSelected(), node.isScrollable(), node.isLongClickable(),
                     hint, contentDescription, retained);
             snap.records.add(record);
@@ -252,19 +257,23 @@ final class UiController {
     }
 
     private Record resolve(Snapshot snap, SelectorResolver.Target target) {
+        Record record = selectRecord(snap, target);
+        refreshRecord(record);
+        return record;
+    }
+
+    private Record selectRecord(Snapshot snap, SelectorResolver.Target target) {
         if (snap == null) throw new SelectorResolver.SelectorException(SelectorResolver.Failure.STALE, "take a snapshot before using an ID selector");
         List<SelectorResolver.Node> nodes = new ArrayList<>();
         Map<Integer, Record> byId = new HashMap<>();
         for (Record record : snap.records) { nodes.add(new SelectorResolver.Node(record.id, record.testId, record.text, record.enabled)); byId.put(record.id, record); }
         SelectorResolver.Node selected = SelectorResolver.resolve(nodes, target, snap.id);
-        Record record = byId.get(selected.id);
-        refreshRecord(record);
-        return record;
+        return byId.get(selected.id);
     }
 
     private Rect refreshRecord(Record record) {
-        if (!record.node.refresh() || !record.node.isVisibleToUser())
-            throw new SelectorResolver.SelectorException(SelectorResolver.Failure.STALE, "stale target is no longer visible");
+        if (!record.node.refresh()) throw preInputInvalidation("stale target accessibility node was invalidated");
+        if (!record.node.isVisibleToUser()) throw preInputInvalidation("stale target is no longer visible");
         if (!record.node.isEnabled()) throw new SelectorResolver.SelectorException(SelectorResolver.Failure.DISABLED, "target node is disabled");
         boolean freshPassword = record.node.isPassword();
         boolean showingHint = record.node.isShowingHintText();
@@ -281,7 +290,7 @@ final class UiController {
         SemanticIdentity fresh = new SemanticIdentity(freshId, freshText, role(record.node, record.node.isEditable()), freshPassword);
         if (!captured.matches(fresh)) throw new SelectorResolver.SelectorException(SelectorResolver.Failure.STALE, "stale target identity changed since the snapshot");
         record.node.getBoundsInScreen(record.rect);
-        if (record.rect.isEmpty()) throw new SelectorResolver.SelectorException(SelectorResolver.Failure.STALE, "target has no actionable bounds");
+        if (record.rect.isEmpty()) throw preInputInvalidation("target has no actionable bounds");
         return record.rect;
     }
 
@@ -294,10 +303,54 @@ final class UiController {
         return new SelectorResolver.Target(testId, text, id, snapshotId);
     }
 
-    private void tap(Record record, boolean longPress) {
-        stabilizeBounds(record);
-        float x = record.rect.centerX(), y = record.rect.centerY();
-        injectTap(x, y, longPress ? 800 : 80);
+    private PointerCoordinates preparePointerInput(Snapshot initial, SelectorResolver.Target target) throws JSONException {
+        long deadline = SystemClock.elapsedRealtime() + 2000;
+        Record record = selectRecord(initial == null ? capturePointerSnapshot(deadline) : initial, target);
+        SemanticIdentity originalIdentity = identity(record);
+        String originalPackage = record.packageName;
+        int reacquisitions = 0;
+        while (true) {
+            try {
+                Rect bounds = stabilizeBounds(record, deadline);
+                if (!SemanticPreInputRecovery.beforeDeadline(SystemClock.elapsedRealtime(), deadline))
+                    throw new IllegalStateException("target preparation exceeded its two-second deadline before input");
+                return new PointerCoordinates(bounds.centerX(), bounds.centerY());
+            } catch (SelectorResolver.SelectorException invalidated) {
+                if (!invalidated.preInputInvalidation) throw invalidated;
+                long now = SystemClock.elapsedRealtime();
+                if (!SemanticPreInputRecovery.canBeginReacquisition(target, reacquisitions, now, deadline)) throw invalidated;
+                reacquisitions++;
+                Snapshot fresh = capturePointerSnapshot(deadline);
+                // Resolver failures (missing, ambiguous, disabled) are final. Never use the old record.
+                record = selectRecord(fresh, target);
+                if (SystemClock.elapsedRealtime() >= deadline ||
+                        !SemanticPreInputRecovery.sameIdentityAndPackage(originalIdentity, originalPackage,
+                                identity(record), record.packageName))
+                    throw new SelectorResolver.SelectorException(SelectorResolver.Failure.STALE,
+                            "stale target semantic identity or package changed before input");
+            }
+        }
+    }
+
+    private Snapshot capturePointerSnapshot(long deadline) throws JSONException {
+        while (SemanticPreInputRecovery.beforeDeadline(SystemClock.elapsedRealtime(), deadline)) {
+            try {
+                return capture(false);
+            } catch (NoActiveWindowException unavailable) {
+                long remaining = deadline - SystemClock.elapsedRealtime();
+                if (remaining <= 0) throw unavailable;
+                SystemClock.sleep(Math.min(16, remaining));
+            }
+        }
+        throw new IllegalStateException("target preparation exceeded its two-second deadline before input");
+    }
+
+    private SemanticIdentity identity(Record record) {
+        return new SemanticIdentity(record.testId, record.text, record.role, record.password);
+    }
+
+    private SelectorResolver.SelectorException preInputInvalidation(String message) {
+        return new SelectorResolver.SelectorException(SelectorResolver.Failure.STALE, message, true);
     }
 
     private boolean edit(Record record, boolean append, String value) throws Exception {
@@ -359,7 +412,10 @@ final class UiController {
     }
 
     private Rect stabilizeBounds(Record record) {
-        long deadline = SystemClock.elapsedRealtime() + 2000;
+        return stabilizeBounds(record, SystemClock.elapsedRealtime() + 2000);
+    }
+
+    private Rect stabilizeBounds(Record record, long deadline) {
         WindowGeometryStability stability = new WindowGeometryStability(lastReadyWindowId, lastReadyWindowGeneration, lastReadyWindowBounds);
         while (SystemClock.elapsedRealtime() <= deadline) {
             long generationBefore = windowEventGeneration.get();
@@ -368,7 +424,7 @@ final class UiController {
             Rect nodeWindowRect = new Rect();
             record.node.getBoundsInWindow(nodeWindowRect);
             WindowSnapshot window = findWindow(record.node.getWindowId());
-            if (window == null) throw new SelectorResolver.SelectorException(SelectorResolver.Failure.STALE,
+            if (window == null) throw preInputInvalidation(
                     "target accessibility window is no longer available");
             long generationAfter = windowEventGeneration.get();
             long now = SystemClock.elapsedRealtime();
@@ -543,6 +599,13 @@ final class UiController {
         final int id; final List<Record> records = new ArrayList<>(); int visited; boolean truncated; JSONObject json;
         Snapshot(int id) { this.id = id; }
     }
+    private static final class PointerCoordinates {
+        final float x, y;
+        PointerCoordinates(float x, float y) { this.x = x; this.y = y; }
+    }
+    private static final class NoActiveWindowException extends IllegalStateException {
+        NoActiveWindowException() { super("no active accessibility window"); }
+    }
     private static final class WindowSnapshot {
         final int id;
         final WindowGeometryStability.Bounds bounds;
@@ -552,9 +615,9 @@ final class UiController {
         }
     }
     private static final class Record {
-        final int id; final String testId, text, role, hint, contentDescription; final Rect rect; final boolean enabled, focused, clickable, editable, password, checkable, checked, selected, scrollable, longClickable; final AccessibilityNodeInfo node;
-        Record(int id, String testId, String text, String role, Rect rect, boolean enabled, boolean focused, boolean clickable, boolean editable, boolean password, boolean checkable, boolean checked, boolean selected, boolean scrollable, boolean longClickable, String hint, String contentDescription, AccessibilityNodeInfo node) {
-            this.id=id; this.testId=testId; this.text=text; this.role=role; this.rect=rect; this.enabled=enabled; this.focused=focused; this.clickable=clickable; this.editable=editable; this.password=password; this.checkable=checkable; this.checked=checked; this.selected=selected; this.scrollable=scrollable; this.longClickable=longClickable; this.hint=hint; this.contentDescription=contentDescription; this.node=node;
+        final int id; final String testId, text, role, packageName, hint, contentDescription; final Rect rect; final boolean enabled, focused, clickable, editable, password, checkable, checked, selected, scrollable, longClickable; final AccessibilityNodeInfo node;
+        Record(int id, String testId, String text, String role, String packageName, Rect rect, boolean enabled, boolean focused, boolean clickable, boolean editable, boolean password, boolean checkable, boolean checked, boolean selected, boolean scrollable, boolean longClickable, String hint, String contentDescription, AccessibilityNodeInfo node) {
+            this.id=id; this.testId=testId; this.text=text; this.role=role; this.packageName=packageName; this.rect=rect; this.enabled=enabled; this.focused=focused; this.clickable=clickable; this.editable=editable; this.password=password; this.checkable=checkable; this.checked=checked; this.selected=selected; this.scrollable=scrollable; this.longClickable=longClickable; this.hint=hint; this.contentDescription=contentDescription; this.node=node;
         }
     }
 }

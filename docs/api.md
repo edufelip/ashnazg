@@ -35,6 +35,8 @@ Qualified resource IDs preserve their package. Unqualified native ID aliases mus
 
 The result contains `{ "snapshot": ..., "settled": true }`. Before tapping or long-pressing a target, a new or changed window must expose stable target and window bounds for 500 ms; an already stable window uses 120 ms. The geometry check is bounded to two seconds and requires an active or focused target window. Settling after input uses bounded state/navigation checks and a 120 ms accessibility quiet window. These are observed stability checks; they do not establish that network requests, future animations or every asynchronous task have finished. A false `settled` value or transport error may follow an action that already executed: inspect the state before taking another action. The host never automatically replays mutations.
 
+If an Activity relaunch invalidates a node during pointer preparation, a semantic `testId` or `text` selector may be reacquired once within that same two-second budget. The fresh match must be unique, enabled, and retain the original package and semantic identity. Numeric ID/snapshot targets remain bound to their original snapshot. Input is dispatched once after preparation succeeds.
+
 ## Screenshots and logs
 
 `ui_screenshot` accepts `{ "format": "webp", "somOverlay": true }`; PNG is also supported. MCP returns image content plus JSON metadata (`snapshotId`, marks, width, height, MIME type). Numbered marks refer to that screenshot's snapshot ID. The implementation uses public bitmap capture/encoding, including copies.
