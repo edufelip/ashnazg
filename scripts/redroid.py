@@ -32,6 +32,19 @@ PLATFORM_DIGESTS = {
     "amd64": "sha256:25879821f13ffd38d5d6047d832379b96cf72ec520508b45036dca25cdc3737f",
     "arm64": "sha256:b21c57533662275928832602f7c09b83cb198aa9b271135ae49d978857d6795f",
 }
+IMAGE_PROFILES = {
+    "default": {
+        "index": IMAGE_INDEX,
+        "platform_digests": PLATFORM_DIGESTS,
+    },
+    "android15-64only": {
+        "index": "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
+        "platform_digests": {
+            "amd64": "sha256:58e548d78c4854f032912757dc0782d7a86b9d602ffc10b2f09fb9e86731adf3",
+            "arm64": "sha256:dc2024a999dd0acb1112a23cddc9537ec8cb60a0dbe5a87ce9fbd75a2f5e94d2",
+        },
+    },
+}
 DISPLAY = {"width": 720, "height": 1280, "dpi": 320, "fps": 30, "renderer": "software", "ashmem": "memfd"}
 MAX_LOG_BYTES = 16_384
 SERIAL_PREFIX = "127.0.0.1:"
@@ -134,8 +147,11 @@ def validate_host(system: str, architecture: str, binder_available: bool) -> str
     return normalized
 
 
-def verify_image_index(raw: str, index_digest: str, architecture: str) -> str:
-    if index_digest != IMAGE_INDEX:
+def verify_image_index(raw: str, index_digest: str, architecture: str, *, profile: str = "default") -> str:
+    selected = IMAGE_PROFILES.get(profile)
+    if selected is None:
+        raise RedroidError(f"unknown image profile: {profile}")
+    if index_digest != selected["index"]:
         raise RedroidError("pinned image index digest does not match the contract")
     try:
         document = json.loads(raw)
@@ -145,7 +161,7 @@ def verify_image_index(raw: str, index_digest: str, architecture: str) -> str:
     matches = [m.get("digest") for m in manifests
                if m.get("platform", {}).get("os") == "linux"
                and m.get("platform", {}).get("architecture") == architecture]
-    expected = PLATFORM_DIGESTS.get(architecture)
+    expected = selected["platform_digests"].get(architecture)
     if len(matches) != 1 or matches[0] != expected:
         raise RedroidError(f"pinned image has an unexpected linux/{architecture} platform digest")
     return matches[0]
@@ -180,7 +196,12 @@ class RedroidSupervisor:
                  runner: Callable = subprocess.run, host_system: str | None = None,
                  host_arch: str | None = None, binder_path: Path = Path("/dev/binder"),
                  docker_path: str | None = None, adb_path: str | None = None,
-                 binder_available: bool | None = None, image_provenance: Path | None = None):
+                 binder_available: bool | None = None, image_provenance: Path | None = None,
+                 image_profile: str = "default"):
+        if image_profile not in IMAGE_PROFILES:
+            raise RedroidError(f"unknown image profile: {image_profile}")
+        if image_profile != "default" and image_provenance:
+            raise RedroidError("image profiles cannot be combined with image provenance until that contract exists")
         self.output_dir = Path(output_dir)
         self.adb_port = adb_port
         self.timeout = timeout
@@ -193,7 +214,10 @@ class RedroidSupervisor:
         self.docker_path = docker_path
         self.adb_path = adb_path
         self.image_provenance = Path(image_provenance) if image_provenance else None
-        self.image = IMAGE
+        self.image_profile = image_profile
+        self.image_index = IMAGE_PROFILES[image_profile]["index"]
+        self.platform_digests = IMAGE_PROFILES[image_profile]["platform_digests"]
+        self.image = f"redroid/redroid@{self.image_index}"
         self.display = DISPLAY
         self.architecture = ""
         self.run_id = str(uuid.uuid4())
@@ -289,9 +313,13 @@ class RedroidSupervisor:
             self.receipt["image"] = self.image
             self.receipt["requested_display"] = self.display
         else:
-            raw_index = self._command([self.docker_path, "buildx", "imagetools", "inspect", "--raw", IMAGE],
+            raw_index = self._command([self.docker_path, "buildx", "imagetools", "inspect", "--raw", self.image],
                                       timeout=30).stdout
-            platform_digest = verify_image_index(raw_index, IMAGE_INDEX, self.architecture)
+            platform_digest = verify_image_index(raw_index, self.image_index, self.architecture,
+                                                 profile=self.image_profile)
+            self.receipt["image_index"] = self.image_index
+            self.receipt["image"] = self.image
+            self.receipt["image_profile"] = self.image_profile
             self.receipt["platform_digest"] = platform_digest
 
     def _write_metadata(self) -> None:
@@ -312,7 +340,8 @@ class RedroidSupervisor:
             "schema": 1, "run_id": self.run_id, "source_sha": source_sha,
             "source_dirty": source_dirty,
             "github_sha": os.environ.get("GITHUB_SHA"),
-            "image_index": IMAGE_INDEX if not self.image_provenance else None, "image": self.image, "host": {
+            "image_index": self.image_index if not self.image_provenance else None, "image": self.image,
+            "image_profile": self.image_profile, "host": {
                 "system": self.host_system, "kernel": platform.release(),
                 "architecture": self.host_arch, "runner_image": os.environ.get("ImageOS") or os.environ.get("RUNNER_OS_IMAGE"),
             }, "requested_display": self.display, "adb_port": self.adb_port, "serial": self.serial,
@@ -544,6 +573,8 @@ def build_parser() -> argparse.ArgumentParser:
                      help="command deadline in seconds; 0 explicitly allows a persistent service")
     run.add_argument("--image-provenance", type=Path,
                      help="opt in to a locally built image with a verified provenance descriptor")
+    run.add_argument("--image-profile", choices=tuple(IMAGE_PROFILES), default="default",
+                     help="select a known digest-pinned upstream image profile")
     run.add_argument("command", nargs=argparse.REMAINDER)
     return parser
 
@@ -563,7 +594,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         return RedroidSupervisor(output_dir=args.output_dir, adb_port=args.adb_port,
                                  timeout=args.timeout, command_timeout=args.command_timeout,
-                                 image_provenance=args.image_provenance).run(command)
+                                 image_provenance=args.image_provenance,
+                                 image_profile=args.image_profile).run(command)
     except RedroidError as exc:
         print(f"redroid: {exc}", file=sys.stderr)
         return 1

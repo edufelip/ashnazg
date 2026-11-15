@@ -132,6 +132,72 @@ class RedroidValidationTests(unittest.TestCase):
         with self.assertRaises(redroid.RedroidError):
             redroid.verify_image_index(raw, "sha256:" + "0" * 64, "amd64")
 
+    def test_android15_64only_index_and_platform_digests_are_pinned(self):
+        profile = "android15-64only"
+        index = "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"
+        for architecture, digest in {
+            "amd64": "sha256:58e548d78c4854f032912757dc0782d7a86b9d602ffc10b2f09fb9e86731adf3",
+            "arm64": "sha256:dc2024a999dd0acb1112a23cddc9537ec8cb60a0dbe5a87ce9fbd75a2f5e94d2",
+        }.items():
+            raw = json.dumps({"manifests": [
+                {"digest": digest, "platform": {"os": "linux", "architecture": architecture}}
+            ]})
+            self.assertEqual(redroid.verify_image_index(raw, index, architecture, profile=profile), digest)
+            with self.assertRaises(redroid.RedroidError):
+                redroid.verify_image_index(raw, redroid.IMAGE_INDEX, architecture, profile=profile)
+
+    def test_android15_64only_profile_selects_verified_pin_in_receipt(self):
+        index = "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"
+        digest = "sha256:dc2024a999dd0acb1112a23cddc9537ec8cb60a0dbe5a87ce9fbd75a2f5e94d2"
+        supervisor = redroid.RedroidSupervisor(output_dir=Path("unused"), image_profile="android15-64only")
+        supervisor.architecture = "arm64"
+        supervisor.deadline = redroid.time.monotonic() + 30
+        commands = []
+
+        def command(args, **kwargs):
+            commands.append(args)
+            if args[1:3] == ["context", "inspect"]:
+                return redroid.CommandResult(0, "unix:///var/run/docker.sock", "")
+            if args[1:3] == ["devices", "-l"]:
+                return redroid.CommandResult(0, "List of devices attached", "")
+            if "--raw" in args:
+                return redroid.CommandResult(0, json.dumps({"manifests": [
+                    {"digest": digest, "platform": {"os": "linux", "architecture": "arm64"}}
+                ]}), "")
+            return redroid.CommandResult(0, "", "")
+
+        supervisor.docker_path = "docker"
+        supervisor.adb_path = "adb"
+        supervisor.host_system = "Linux"
+        supervisor.host_arch = "aarch64"
+        supervisor.binder_available = True
+        with patch.object(supervisor, "_command", command), patch.object(redroid, "check_port_available"):
+            # Exercise the exact preflight contract after the non-Docker host checks.
+            supervisor._preflight()
+        self.assertEqual(supervisor.image, f"redroid/redroid@{index}")
+        self.assertEqual(supervisor.receipt["image_index"], index)
+        self.assertEqual(supervisor.receipt["platform_digest"], digest)
+        self.assertEqual(supervisor.receipt["image"], f"redroid/redroid@{index}")
+        self.assertTrue(any(args[-1] == f"redroid/redroid@{index}" for args in commands if "--raw" in args))
+
+    def test_64only_profile_rejects_derived_image_provenance(self):
+        with tempfile.TemporaryDirectory() as temp:
+            with self.assertRaisesRegex(redroid.RedroidError, "provenance"):
+                redroid.RedroidSupervisor(output_dir=Path(temp), image_profile="android15-64only",
+                                          image_provenance=Path(temp) / "provenance.json")
+
+    def test_default_profile_keeps_existing_pins(self):
+        with tempfile.TemporaryDirectory() as temp:
+            supervisor = redroid.RedroidSupervisor(output_dir=Path(temp))
+            self.assertEqual(supervisor.image_profile, "default")
+            self.assertEqual(supervisor.image, redroid.IMAGE)
+            self.assertEqual(supervisor.image_index, redroid.IMAGE_INDEX)
+            self.assertIs(supervisor.platform_digests, redroid.PLATFORM_DIGESTS)
+            supervisor._write_metadata()
+            self.assertEqual(supervisor.receipt["image_index"], redroid.IMAGE_INDEX)
+            self.assertEqual(supervisor.receipt["image"], redroid.IMAGE)
+            self.assertEqual(supervisor.receipt["image_profile"], "default")
+
     def test_port_check_binds_loopback_only_and_reports_busy_port(self):
         with patch.object(redroid.socket, "socket") as create_socket:
             sock = create_socket.return_value.__enter__.return_value
@@ -361,6 +427,21 @@ class RedroidRegressionTests(unittest.TestCase):
         result = subprocess.run([sys.executable, str(Path(redroid.__file__)), '--help'],
                                 cwd=tempfile.gettempdir(), capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_cli_forwards_explicit_image_profile(self):
+        calls = []
+
+        class FakeSupervisor:
+            def __init__(self, **kwargs): calls.append(("init", kwargs))
+            def run(self, command):
+                calls.append(("run", command))
+                return 17
+
+        with patch.object(redroid, "RedroidSupervisor", FakeSupervisor):
+            code = redroid.main(["run", "--output-dir", "out", "--image-profile", "android15-64only",
+                                 "--", "true"])
+        self.assertEqual(code, 17)
+        self.assertEqual(calls[0][1]["image_profile"], "android15-64only")
 
     def test_failed_ownership_probe_never_removes_container(self):
         commands = []

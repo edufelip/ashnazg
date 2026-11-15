@@ -186,6 +186,13 @@ class GuestBridgeTests(unittest.TestCase):
 
 
 class GuestInitTests(unittest.TestCase):
+    def test_supervisor_selects_explicit_native_guest_compatible_image_profile(self):
+        path = Path(__file__).parents[1] / 'runtime/microvm/guest-init.py'
+        spec = importlib.util.spec_from_file_location('ashnazg_guest_redroid_profile', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        index = module.SUPERVISOR.index('--image-profile')
+        self.assertEqual(module.SUPERVISOR[index + 1], 'android15-64only')
+
     def test_interfaces_are_brought_up_before_dhcp_starts(self):
         path = Path(__file__).parents[1] / 'runtime/microvm/guest-init.py'
         spec = importlib.util.spec_from_file_location('ashnazg_guest_network_init', path)

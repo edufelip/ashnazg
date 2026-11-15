@@ -15,7 +15,8 @@ from scripts.linux_binder import ensure_nodes, link_nodes
 SUPERVISOR = [
     '/usr/bin/python3', '/usr/local/lib/ashnazg/scripts/redroid.py', 'run',
     '--output-dir', '/var/lib/ashnazg/redroid', '--adb-port', '5555', '--timeout', '600',
-    '--command-timeout', '0', '--', '/usr/bin/python3', '/usr/local/bin/guest_bridge.py',
+    '--command-timeout', '0', '--image-profile', 'android15-64only',
+    '--', '/usr/bin/python3', '/usr/local/bin/guest_bridge.py',
 ]
 
 
