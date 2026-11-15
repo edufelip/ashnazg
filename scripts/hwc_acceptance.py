@@ -183,20 +183,39 @@ def read_hwc_telemetry(serial: str, *, deadline: float | None = None) -> dict[st
     return parse_hwc_dump(run_adb(serial, ["shell", "dumpsys", "SurfaceFlinger"], deadline=deadline))
 
 
-def parse_surfaceflinger_mode(text: str, *, expected_config: int) -> int:
-    """Validate the live SF mode table and return the ID matching HWC config."""
-    modes_match = re.search(r"supportedModes\s*=\s*\[(.*?)\]", text, re.S)
-    active_match = re.search(r"activeMode\s*=\s*\{[^}]*\bid\s*=\s*(\d+)[^}]*\bfps\s*=\s*([0-9.]+)", text)
-    if not modes_match or not active_match:
+def _surfaceflinger_modes(text: str) -> tuple[dict[int, tuple[int, int, int, float]], int]:
+    """Read SF scheduler IDs, rather than DisplayManager's distinct mode IDs."""
+    primary = re.search(r"^Pacesetter Display 0\n(.*?)(?=^\S|\Z)", text, re.M | re.S)
+    if not primary:
         raise AcceptanceError("SurfaceFlinger supported/active mode map is unavailable")
-    modes = {int(mode_id): float(fps) for mode_id, fps in re.findall(
-        r"\{[^}]*\bid\s*=\s*(\d+)[^}]*\bfps\s*=\s*([0-9.]+)[^}]*\}", modes_match.group(1))}
-    expected_rate = 1.0 if expected_config == 0 else 60.0
-    if expected_config not in (0, 1) or not modes or not any(abs(rate - expected_rate) < 0.1 for rate in modes.values()):
-        raise AcceptanceError(f"SurfaceFlinger mode map does not contain expected config {expected_config} rate")
-    active_id, active_rate = int(active_match.group(1)), float(active_match.group(2))
-    if modes.get(active_id) != active_rate:
+    record = (r"\{id=(\d+), hwcId=(\d+), resolution=(\d+)x(\d+), "
+              r"vsyncRate=([0-9.]+) Hz,[^\r\n]*\}")
+    section = primary.group(1)
+    active = re.search(r"^\s+activeMode=" + record, section, re.M)
+    table = re.search(r"^\s+displayModes=\n(.*?)(?=^    \S|\Z)", section, re.M | re.S)
+    if not active or not table:
+        raise AcceptanceError("SurfaceFlinger supported/active mode map is unavailable")
+    modes = {}
+    for values in re.findall(r"^\s+" + record + r"$", table.group(1), re.M):
+        mode_id, hwc_id, width, height = map(int, values[:4])
+        if mode_id in modes:
+            raise AcceptanceError("SurfaceFlinger mode map contains duplicate IDs")
+        modes[mode_id] = (hwc_id, width, height, float(values[4]))
+    active_id = int(active.group(1))
+    active_values = (*map(int, active.groups()[1:4]), float(active.group(5)))
+    if modes.get(active_id) != active_values:
         raise AcceptanceError("SurfaceFlinger active mode is inconsistent with its supported mode map")
+    return modes, active_id
+
+
+def parse_surfaceflinger_mode(text: str, *, expected_config: int) -> int:
+    """Validate the primary SF mode table and return its currently active ID."""
+    modes, active_id = _surfaceflinger_modes(text)
+    expected_rate = 1.0 if expected_config == 0 else 60.0
+    matches = [mode for mode, (hwc, width, height, rate) in modes.items()
+               if (hwc, width, height) == (expected_config, 720, 1280) and abs(rate - expected_rate) < 0.1]
+    if expected_config not in (0, 1) or len(matches) != 1:
+        raise AcceptanceError(f"SurfaceFlinger mode map does not contain expected config {expected_config} rate")
     return active_id
 
 
@@ -247,9 +266,8 @@ def wait_for_config(serial: str, config: int, *, deadline: float,
         state = read_mode_state(serial, deadline=deadline)
         sf_id = parse_surfaceflinger_mode(state["dump"], expected_config=config)
         telemetry = state["telemetry"]
-        expected_rate = 1.0 if config == 0 else 60.0
         if (telemetry["selected_config"] == config and
-                abs(_mode_rate(state["dump"], sf_id) - expected_rate) < 0.1):
+                sf_id == _mode_id_for_config(state["dump"], config)):
             return {**telemetry, "surfaceflinger_mode_id": sf_id}
         remaining = deadline - time.monotonic()
         if remaining <= 0:
@@ -258,14 +276,10 @@ def wait_for_config(serial: str, config: int, *, deadline: float,
 
 
 def _mode_rate(text: str, mode_id: int) -> float:
-    modes_match = re.search(r"supportedModes\s*=\s*\[(.*?)\]", text, re.S)
-    if not modes_match:
-        raise AcceptanceError("SurfaceFlinger supported mode map is unavailable")
-    modes = {int(key): float(value) for key, value in re.findall(
-        r"\{[^}]*\bid\s*=\s*(\d+)[^}]*\bfps\s*=\s*([0-9.]+)[^}]*\}", modes_match.group(1))}
+    modes, _ = _surfaceflinger_modes(text)
     if mode_id not in modes:
         raise AcceptanceError("SurfaceFlinger active mode ID is absent from supported mode map")
-    return modes[mode_id]
+    return modes[mode_id][3]
 
 
 def _request_mode(serial: str, mode_id: int, *, deadline: float | None = None) -> None:
@@ -286,12 +300,10 @@ def transition_to_config(serial: str, config: int, *, timeout: float,
 
 def _mode_id_for_config(text: str, config: int) -> int:
     parse_surfaceflinger_mode(text, expected_config=config)
-    modes_match = re.search(r"supportedModes\s*=\s*\[(.*?)\]", text, re.S)
-    assert modes_match
-    rates = {int(key): float(value) for key, value in re.findall(
-        r"\{[^}]*\bid\s*=\s*(\d+)[^}]*\bfps\s*=\s*([0-9.]+)[^}]*\}", modes_match.group(1))}
+    modes, _ = _surfaceflinger_modes(text)
     expected = 1.0 if config == 0 else 60.0
-    return next(key for key, rate in rates.items() if abs(rate - expected) < 0.1)
+    return next(key for key, (hwc, width, height, rate) in modes.items()
+                if (hwc, width, height) == (config, 720, 1280) and abs(rate - expected) < 0.1)
 
 
 def run_acceptance(serial: str, provenance_path: Path, *, timeout: float = 30.0,

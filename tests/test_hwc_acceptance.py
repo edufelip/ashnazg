@@ -9,7 +9,29 @@ from unittest import mock
 from scripts import hwc_acceptance
 
 
+def sf_dump(active=1, ids=(7, 9)):
+    modes = [f"{{id={ids[c]}, hwcId={c}, resolution=720x1280, vsyncRate={rate:.2f} Hz, group=-1}}"
+             for c, rate in enumerate((1.0, 60.0))]
+    return ("Pacesetter Display 0\n    activeMode=" + modes[active] +
+            "\n    displayModes=\n        " + "\n        ".join(modes) +
+            "\n    displayManagerPolicy={}\n")
+
+
 class HwcAcceptanceTests(unittest.TestCase):
+    def test_mode_parser_accepts_the_captured_android_15_scheduler_dump(self):
+        # Exact scheduler lines from CI run 43760516609, before the mode request.
+        dump = """Pacesetter Display 0
+    renderRate=60.00 Hz
+    activeMode={id=1, hwcId=1, resolution=720x1280, vsyncRate=60.00 Hz, dpi=320.00x320.00, group=-1, vrrConfig=N/A, supportedHdrTypes=INVALID}
+    displayModes=
+        {id=0, hwcId=0, resolution=720x1280, vsyncRate=1.00 Hz, dpi=320.00x320.00, group=-1, vrrConfig=N/A, supportedHdrTypes=INVALID}
+        {id=1, hwcId=1, resolution=720x1280, vsyncRate=60.00 Hz, dpi=320.00x320.00, group=-1, vrrConfig=N/A, supportedHdrTypes=INVALID}
+    displayManagerPolicy={defaultModeId=1}
+"""
+        self.assertEqual(hwc_acceptance.parse_surfaceflinger_mode(dump, expected_config=0), 1)
+        self.assertEqual(hwc_acceptance._mode_id_for_config(dump, 0), 0)
+        self.assertEqual(hwc_acceptance._mode_id_for_config(dump, 1), 1)
+
     def test_cli_requires_disposable_guest_opt_in_before_any_adb_mutation(self):
         with tempfile.TemporaryDirectory() as temporary, \
                 mock.patch.dict(os.environ, {"ANDROID_SERIAL": "owned"}), \
@@ -27,13 +49,22 @@ class HwcAcceptanceTests(unittest.TestCase):
         root.assert_not_called()
 
     def test_sf_mode_parser_requires_expected_rate_map_and_active_id(self):
-        dump = "Display 0: supportedModes=[{id=7, fps=1.000}, {id=9, fps=60.000}] activeMode={id=9, fps=60.000}"
+        dump = sf_dump()
         self.assertEqual(hwc_acceptance.parse_surfaceflinger_mode(dump, expected_config=1), 9)
         with self.assertRaisesRegex(hwc_acceptance.AcceptanceError, "mode map"):
-            hwc_acceptance.parse_surfaceflinger_mode(dump.replace("fps=1.000", "fps=2.000"), expected_config=0)
+            hwc_acceptance.parse_surfaceflinger_mode(dump.replace("vsyncRate=1.00", "vsyncRate=2.00"), expected_config=0)
+
+    def test_sf_mode_parser_refuses_wrong_display_geometry_and_hwc_mapping(self):
+        for dump in (sf_dump().replace("Display 0", "Display 1"),
+                     sf_dump().replace("720x1280", "1080x1920"),
+                     sf_dump().replace("hwcId=0", "hwcId=3"),
+                     sf_dump().replace("id=7,", "id=9,")):
+            with self.subTest(dump=dump):
+                with self.assertRaises(hwc_acceptance.AcceptanceError):
+                    hwc_acceptance.parse_surfaceflinger_mode(dump, expected_config=0)
 
     def test_mode_transition_rejects_surfaceflinger_and_hwc_mismatch(self):
-        dump = "supportedModes=[{id=7, fps=1.000}, {id=9, fps=60.000}] activeMode={id=7, fps=1.000}"
+        dump = sf_dump(active=0)
         state = {"dump": dump, "telemetry": {"selected_config": 0}}
         with mock.patch.object(hwc_acceptance, "read_mode_state", return_value=state), \
                 mock.patch.object(hwc_acceptance.time, "monotonic", side_effect=[99.0, 100.0]), \
@@ -155,8 +186,8 @@ class HwcAcceptanceTests(unittest.TestCase):
         with mock.patch.object(hwc_acceptance.time, "monotonic", side_effect=lambda: next(now)), \
                 mock.patch.object(hwc_acceptance.time, "sleep") as sleep, \
                 mock.patch.object(hwc_acceptance, "read_mode_state", side_effect=[
-                    {"dump": "supportedModes=[{id=7, fps=1.0}, {id=9, fps=60.0}] activeMode={id=7, fps=1.0}", "telemetry": {"selected_config": 0}},
-                    {"dump": "supportedModes=[{id=7, fps=1.0}, {id=9, fps=60.0}] activeMode={id=7, fps=1.0}", "telemetry": {"selected_config": 0}}]):
+                    {"dump": sf_dump(active=0), "telemetry": {"selected_config": 0}},
+                    {"dump": sf_dump(active=0), "telemetry": {"selected_config": 0}}]):
             with self.assertRaisesRegex(hwc_acceptance.AcceptanceError, "deadline"):
                 hwc_acceptance.wait_for_config("serial", 1, deadline=deadline, poll_interval=0.5)
         sleep.assert_called_once_with(0.5)
@@ -164,7 +195,7 @@ class HwcAcceptanceTests(unittest.TestCase):
     def test_restore_60_hz_is_attempted_after_transition_failure(self):
         with mock.patch.object(hwc_acceptance, "require_root_adb"), \
                 mock.patch.object(hwc_acceptance, "verify_installed_module", return_value={"path": "module"}), \
-                mock.patch.object(hwc_acceptance, "run_adb", return_value="supportedModes=[{id=0, fps=1.0}, {id=1, fps=60.0}] activeMode={id=1, fps=60.0}"), \
+                mock.patch.object(hwc_acceptance, "run_adb", return_value=sf_dump(ids=(0, 1))), \
                 mock.patch.object(hwc_acceptance, "read_hwc_telemetry",
                                   return_value={"selected_config": 1, "callback_total": 0}), \
                 mock.patch.object(hwc_acceptance, "display_evidence", return_value={}), \
