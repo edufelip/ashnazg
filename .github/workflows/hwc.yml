@@ -115,16 +115,25 @@ jobs:
             --fixture-apk agent-android/fixture/build/outputs/apk/debug/fixture-debug.apk \
             --hwc-module "$module" \
             --output artifacts/hwc/provenance.json
-      - name: Qualify loaded HWC module, then run integration and benchmark
+      - name: Qualify loaded HWC module in a disposable rooted guest
         uses: ./
         with:
-          output-directory: artifacts/hwc/runtime
+          output-directory: artifacts/hwc/qualifier-guest
           adb-port: '5555'
           boot-timeout: '180'
           image-provenance: artifacts/hwc/provenance.json
           command: |
             set -euo pipefail
-            python3 scripts/hwc_acceptance.py --provenance artifacts/hwc/provenance.json --output artifacts/hwc/qualification.json
+            python3 scripts/hwc_acceptance.py --disposable-guest --provenance artifacts/hwc/provenance.json --output artifacts/hwc/qualification.json
+      - name: Run integration and benchmark in a fresh guest
+        uses: ./
+        with:
+          output-directory: artifacts/hwc/integration-guest
+          adb-port: '5555'
+          boot-timeout: '180'
+          image-provenance: artifacts/hwc/provenance.json
+          command: |
+            set -euo pipefail
             python3 scripts/integration.py --preinstalled-agent --framework-fixtures --output artifacts/hwc/integration.json --artifacts artifacts/hwc/integration
             python3 scripts/benchmark.py --iterations 10 --output artifacts/hwc/benchmark.json
       - name: Clean up the owned Binderfs test fixture

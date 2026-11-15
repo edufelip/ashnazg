@@ -10,14 +10,54 @@ from scripts import hwc_acceptance
 
 
 class HwcAcceptanceTests(unittest.TestCase):
-    def test_mode_requests_target_primary_display_instead_of_global_settings(self):
+    def test_cli_requires_disposable_guest_opt_in_before_any_adb_mutation(self):
+        with tempfile.TemporaryDirectory() as temporary, \
+                mock.patch.dict(os.environ, {"ANDROID_SERIAL": "owned"}), \
+                mock.patch.object(hwc_acceptance, "run_acceptance") as run:
+            output = Path(temporary) / "receipt.json"
+            code = hwc_acceptance.main(["--provenance", "missing.json", "--output", str(output)])
+            self.assertEqual(code, 1)
+            self.assertIn("--disposable-guest", json.loads(output.read_text())["error"])
+            run.assert_not_called()
+
+    def test_acceptance_api_requires_disposable_guest_opt_in_before_adb(self):
+        with mock.patch.object(hwc_acceptance, "require_root_adb") as root:
+            with self.assertRaisesRegex(hwc_acceptance.AcceptanceError, "--disposable-guest"):
+                hwc_acceptance.run_acceptance("serial", Path("missing.json"))
+        root.assert_not_called()
+
+    def test_sf_mode_parser_requires_expected_rate_map_and_active_id(self):
+        dump = "Display 0: supportedModes=[{id=7, fps=1.000}, {id=9, fps=60.000}] activeMode={id=9, fps=60.000}"
+        self.assertEqual(hwc_acceptance.parse_surfaceflinger_mode(dump, expected_config=1), 9)
+        with self.assertRaisesRegex(hwc_acceptance.AcceptanceError, "mode map"):
+            hwc_acceptance.parse_surfaceflinger_mode(dump.replace("fps=1.000", "fps=2.000"), expected_config=0)
+
+    def test_mode_transition_rejects_surfaceflinger_and_hwc_mismatch(self):
+        dump = "supportedModes=[{id=7, fps=1.000}, {id=9, fps=60.000}] activeMode={id=7, fps=1.000}"
+        state = {"dump": dump, "telemetry": {"selected_config": 0}}
+        with mock.patch.object(hwc_acceptance, "read_mode_state", return_value=state), \
+                mock.patch.object(hwc_acceptance.time, "monotonic", side_effect=[99.0, 100.0]), \
+                mock.patch.object(hwc_acceptance.time, "sleep"):
+            with self.assertRaisesRegex(hwc_acceptance.AcceptanceError, "timed out.*config 1"):
+                hwc_acceptance.wait_for_config("serial", 1, deadline=100.0)
+
+    def test_root_gate_runs_before_surfaceflinger_requests(self):
+        with mock.patch.object(hwc_acceptance, "run_adb", side_effect=["restarting adbd as root", "", "0"] ) as adb:
+            hwc_acceptance.require_root_adb("serial", deadline=100)
+        self.assertEqual([call.args[1] for call in adb.call_args_list], [
+            ["root"], ["wait-for-device"], ["shell", "id", "-u"]])
+        with mock.patch.object(hwc_acceptance, "run_adb", side_effect=["", "", "2000"]):
+            with self.assertRaisesRegex(hwc_acceptance.AcceptanceError, "root"):
+                hwc_acceptance.require_root_adb("serial", deadline=100)
+
+    def test_mode_requests_use_surfaceflinger_backdoor_with_validated_mode_id(self):
         with mock.patch.object(hwc_acceptance, "run_adb") as adb:
-            hwc_acceptance._request_mode("serial", 0, deadline=100.0)
-            hwc_acceptance._request_mode("serial", 1, deadline=100.0)
+            hwc_acceptance._request_mode("serial", 7, deadline=100.0)
+            hwc_acceptance._request_mode("serial", 9, deadline=100.0)
         self.assertEqual(adb.call_args_list, [
-            mock.call("serial", ["shell", "cmd", "display", "set-user-preferred-display-mode",
-                                 "720", "1280", rate, "0"], deadline=100.0)
-            for rate in ("1.0", "60.0")
+            mock.call("serial", ["shell", "service", "call", "SurfaceFlinger", "1035", "i32", str(mode_id)],
+                      deadline=100.0)
+            for mode_id in (7, 9)
         ])
 
     def test_provenance_requires_allowed_module_paths_and_matching_hash(self):
@@ -114,31 +154,38 @@ class HwcAcceptanceTests(unittest.TestCase):
         now = iter([99.0, 99.5, 100.1])
         with mock.patch.object(hwc_acceptance.time, "monotonic", side_effect=lambda: next(now)), \
                 mock.patch.object(hwc_acceptance.time, "sleep") as sleep, \
-                mock.patch.object(hwc_acceptance, "read_hwc_telemetry", side_effect=[{"selected_config": 0},
-                                                                                       {"selected_config": 0}]):
+                mock.patch.object(hwc_acceptance, "read_mode_state", side_effect=[
+                    {"dump": "supportedModes=[{id=7, fps=1.0}, {id=9, fps=60.0}] activeMode={id=7, fps=1.0}", "telemetry": {"selected_config": 0}},
+                    {"dump": "supportedModes=[{id=7, fps=1.0}, {id=9, fps=60.0}] activeMode={id=7, fps=1.0}", "telemetry": {"selected_config": 0}}]):
             with self.assertRaisesRegex(hwc_acceptance.AcceptanceError, "deadline"):
                 hwc_acceptance.wait_for_config("serial", 1, deadline=deadline, poll_interval=0.5)
         sleep.assert_called_once_with(0.5)
 
     def test_restore_60_hz_is_attempted_after_transition_failure(self):
-        with mock.patch.object(hwc_acceptance, "verify_installed_module", return_value={"path": "module"}), \
+        with mock.patch.object(hwc_acceptance, "require_root_adb"), \
+                mock.patch.object(hwc_acceptance, "verify_installed_module", return_value={"path": "module"}), \
+                mock.patch.object(hwc_acceptance, "run_adb", return_value="supportedModes=[{id=0, fps=1.0}, {id=1, fps=60.0}] activeMode={id=1, fps=60.0}"), \
                 mock.patch.object(hwc_acceptance, "read_hwc_telemetry",
                                   return_value={"selected_config": 1, "callback_total": 0}), \
                 mock.patch.object(hwc_acceptance, "display_evidence", return_value={}), \
                 mock.patch.object(hwc_acceptance, "_request_mode") as request, \
+                mock.patch.object(hwc_acceptance, "_mode_id_for_config", side_effect=[0, 1]), \
                 mock.patch.object(hwc_acceptance, "wait_for_config", side_effect=[
                     hwc_acceptance.AcceptanceError("transition failed"), {"selected_config": 1}]), \
                 mock.patch.object(hwc_acceptance, "validate_provenance", return_value={"image_id": "image", "paths": [], "sha256": "hash"}):
-            with self.assertRaisesRegex(hwc_acceptance.AcceptanceError, "transition failed"):
-                hwc_acceptance.run_acceptance("serial", Path("ignored"), timeout=1)
+            with self.assertRaisesRegex(hwc_acceptance.AcceptanceError, "transition failed") as failure:
+                hwc_acceptance.run_acceptance("serial", Path("ignored"), timeout=1, disposable_guest=True)
         self.assertEqual([call.args[:2] for call in request.call_args_list],
                          [("serial", 0), ("serial", 1)])
+        self.assertIn("failure_before_restore", failure.exception.receipt["evidence"])
+        self.assertIn("destroy this disposable guest", failure.exception.receipt["test_only_override"])
+        self.assertEqual(failure.exception.receipt["restore"]["selected_config"], 1)
 
     def test_cli_writes_machine_readable_failure_when_serial_is_missing(self):
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "receipt.json"
             with mock.patch.dict(os.environ, {}, clear=True):
-                code = hwc_acceptance.main(["--provenance", str(Path(temporary) / "missing.json"),
+                code = hwc_acceptance.main(["--disposable-guest", "--provenance", str(Path(temporary) / "missing.json"),
                                             "--output", str(output)])
             self.assertEqual(code, 1)
             receipt = json.loads(output.read_text())

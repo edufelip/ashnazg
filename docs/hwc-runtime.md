@@ -4,7 +4,9 @@ The existing ReDroid image and CI lanes remain the defaults. This separate,
 local-only recipe builds an experimental derived image with the project HWC2
 module and the same Agent and Fixture APK bytes. The image keeps the pinned
 Android 15 ReDroid base, upstream `/init` entrypoint, and the known 720x1280,
-320 dpi, 60 fps, guest-GPU and memfd boot arguments.
+320 dpi, guest-GPU and memfd boot arguments. The derived HWC module exposes a
+static 1 Hz / 60 Hz mode profile; that profile is not a governor or a claim
+about production display policy.
 
 ## HAL layout and loading
 
@@ -103,15 +105,28 @@ The dedicated [`hwc.yml`](../.github/workflows/hwc.yml) workflow runs on
 relevant pull requests or manual dispatch. It runs host ABI/state tests and
 builds both NDK variants, builds the Rust target, APKs and framework fixtures,
 provisions its owned Binder fixture, and builds only a local x64 derived image.
-The running action uses the existing `image-provenance` input. Before normal
-integration begins, `scripts/hwc_acceptance.py` must verify the loaded module
-marker and byte hash and record HWC mode telemetry. It then runs preinstalled
-Agent/framework integration and a 10-iteration benchmark into separate HWC
-artifacts. Binder cleanup runs even on failure. No OCI image is published,
-and the default upstream and derived image workflows are unchanged.
+The workflow uses two sequential ReDroid action invocations with the same
+immutable image ID from provenance. The first owns a disposable guest solely
+for qualification; its action cleanup destroys that guest before the second
+action creates a fresh guest for integration and benchmarking. The qualifier
+requires `--disposable-guest`, runs bounded `adb root` and `wait-for-device`,
+then verifies `id -u` is zero. It keeps the loaded-module marker and SHA checks,
+validates the live SurfaceFlinger mode table, requests mode IDs through the
+internal SurfaceFlinger transaction 1035, and requires both SurfaceFlinger’s
+active mode rate and project HWC `selected_config` to match. A zero command
+status alone is never accepted. The qualifier receipt records that the
+test-only override remains and the guest must be destroyed; it does not claim
+that display policy was restored. Cleanup failure stops the job. Binder
+cleanup runs even on failure. No OCI image is published, and the default
+upstream and derived image workflows are unchanged.
 
-The prototype reports two static configurations, supports client composition,
-and does not implement an activity governor. Runtime acceptance does not make
-a performance or power claim and does not establish redistribution clearance.
+SurfaceFlinger transaction 1035 is an unstable internal test backdoor pinned to
+the Android 15 `frameworks/native` source revision in
+[`UPSTREAM.md`](../runtime/hwc/UPSTREAM.md). It latches
+`mDebugDisplayModeSetByBackdoor` after a successful request. It is used only in
+the disposable qualifier guest and must never be treated as supported runtime
+control. The prototype reports two static configurations, supports client
+composition, and does not implement an activity governor. Runtime acceptance
+does not make a performance or power claim and does not establish redistribution clearance.
 The source and upstream component licenses remain applicable; see
 [`runtime/hwc-image/NOTICES.md`](../runtime/hwc-image/NOTICES.md).

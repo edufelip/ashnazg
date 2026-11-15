@@ -21,6 +21,7 @@ The Android 15 framework control path was also checked at these source revisions
 
 - [`DisplayManagerShellCommand.java`](https://android.googlesource.com/platform/frameworks/base/+/cc8bb19595c661f5cf42f330457000e643c67d1b/services/core/java/com/android/server/display/DisplayManagerShellCommand.java) documents `cmd display set-user-preferred-display-mode WIDTH HEIGHT REFRESH-RATE [DISPLAY_ID]` as a user preference.
 - [`SurfaceFlinger/DisplayHardware/HWC2.cpp`](https://android.googlesource.com/platform/frameworks/native/+/9224694e64b2464dcdc03fe42740d06c08b27a88/services/surfaceflinger/DisplayHardware/HWC2.cpp) falls back to legacy `setActiveConfig` when constrained HWC2.4 mode switching is unavailable.
+- [`SurfaceFlinger.cpp`](https://android.googlesource.com/platform/frameworks/native/+/9224694e64b2464dcdc03fe42740d06c08b27a88/services/surfaceflinger/SurfaceFlinger.cpp) transaction case 1035 reads an `i32` display mode ID, calls `setActiveModeFromBackdoor`, and sets `mDebugDisplayModeSetByBackdoor` on success. This is an internal, unstable debug control. The runtime qualifier uses it only after explicit `--disposable-guest` opt-in, in an owned guest whose ADB root identity was verified; the action destroys that guest before any normal integration run. The control does not restore display policy and is not a production API or governor.
 
 The AOSP header declarations retain their upstream Apache License 2.0 terms.
 The adapter and state machine are project-authored. No ReDroid/vendor HWC

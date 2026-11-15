@@ -183,6 +183,37 @@ def read_hwc_telemetry(serial: str, *, deadline: float | None = None) -> dict[st
     return parse_hwc_dump(run_adb(serial, ["shell", "dumpsys", "SurfaceFlinger"], deadline=deadline))
 
 
+def parse_surfaceflinger_mode(text: str, *, expected_config: int) -> int:
+    """Validate the live SF mode table and return the ID matching HWC config."""
+    modes_match = re.search(r"supportedModes\s*=\s*\[(.*?)\]", text, re.S)
+    active_match = re.search(r"activeMode\s*=\s*\{[^}]*\bid\s*=\s*(\d+)[^}]*\bfps\s*=\s*([0-9.]+)", text)
+    if not modes_match or not active_match:
+        raise AcceptanceError("SurfaceFlinger supported/active mode map is unavailable")
+    modes = {int(mode_id): float(fps) for mode_id, fps in re.findall(
+        r"\{[^}]*\bid\s*=\s*(\d+)[^}]*\bfps\s*=\s*([0-9.]+)[^}]*\}", modes_match.group(1))}
+    expected_rate = 1.0 if expected_config == 0 else 60.0
+    if expected_config not in (0, 1) or not modes or not any(abs(rate - expected_rate) < 0.1 for rate in modes.values()):
+        raise AcceptanceError(f"SurfaceFlinger mode map does not contain expected config {expected_config} rate")
+    active_id, active_rate = int(active_match.group(1)), float(active_match.group(2))
+    if modes.get(active_id) != active_rate:
+        raise AcceptanceError("SurfaceFlinger active mode is inconsistent with its supported mode map")
+    return active_id
+
+
+def read_mode_state(serial: str, *, deadline: float | None = None) -> dict[str, Any]:
+    dump = run_adb(serial, ["shell", "dumpsys", "SurfaceFlinger"], deadline=deadline)
+    telemetry = parse_hwc_dump(dump)
+    return {"dump": dump, "telemetry": telemetry}
+
+
+def require_root_adb(serial: str, *, deadline: float) -> None:
+    run_adb(serial, ["root"], deadline=deadline)
+    run_adb(serial, ["wait-for-device"], deadline=deadline)
+    uid = run_adb(serial, ["shell", "id", "-u"], deadline=deadline).strip()
+    if uid != "0":
+        raise AcceptanceError(f"owned disposable guest adb is not root (id -u={uid!r})")
+
+
 def verify_installed_module(serial: str, provenance: dict[str, Any]) -> dict[str, Any]:
     checked: list[dict[str, str]] = []
     with tempfile.TemporaryDirectory(prefix="ashnazg-hwc-pull-") as temporary:
@@ -213,48 +244,83 @@ def wait_for_config(serial: str, config: int, *, deadline: float,
     while True:
         if time.monotonic() >= deadline:
             raise AcceptanceError(f"timed out before HWC selected config {config} (deadline)")
-        telemetry = read_hwc_telemetry(serial, deadline=deadline)
-        if telemetry["selected_config"] == config:
-            return telemetry
+        state = read_mode_state(serial, deadline=deadline)
+        sf_id = parse_surfaceflinger_mode(state["dump"], expected_config=config)
+        telemetry = state["telemetry"]
+        expected_rate = 1.0 if config == 0 else 60.0
+        if (telemetry["selected_config"] == config and
+                abs(_mode_rate(state["dump"], sf_id) - expected_rate) < 0.1):
+            return {**telemetry, "surfaceflinger_mode_id": sf_id}
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise AcceptanceError(f"timed out before HWC selected config {config} (deadline)")
         time.sleep(min(poll_interval, remaining))
 
 
-def _request_mode(serial: str, config: int, *, deadline: float | None = None) -> None:
-    rate = "1.0" if config == 0 else "60.0"
-    # Without a display ID Android writes global Settings, whose shell attribution
-    # is rejected by this image. Qualify only the owned primary display (ID 0).
-    run_adb(serial, ["shell", "cmd", "display", "set-user-preferred-display-mode",
-                     "720", "1280", rate, "0"], deadline=deadline)
+def _mode_rate(text: str, mode_id: int) -> float:
+    modes_match = re.search(r"supportedModes\s*=\s*\[(.*?)\]", text, re.S)
+    if not modes_match:
+        raise AcceptanceError("SurfaceFlinger supported mode map is unavailable")
+    modes = {int(key): float(value) for key, value in re.findall(
+        r"\{[^}]*\bid\s*=\s*(\d+)[^}]*\bfps\s*=\s*([0-9.]+)[^}]*\}", modes_match.group(1))}
+    if mode_id not in modes:
+        raise AcceptanceError("SurfaceFlinger active mode ID is absent from supported mode map")
+    return modes[mode_id]
 
 
-def transition_to_config(serial: str, config: int, *, timeout: float) -> dict[str, Any]:
+def _request_mode(serial: str, mode_id: int, *, deadline: float | None = None) -> None:
+    run_adb(serial, ["shell", "service", "call", "SurfaceFlinger", "1035", "i32", str(mode_id)],
+            deadline=deadline)
+
+
+def transition_to_config(serial: str, config: int, *, timeout: float,
+                         disposable_guest: bool = False) -> dict[str, Any]:
+    if not disposable_guest:
+        raise AcceptanceError("--disposable-guest is required before using the internal SurfaceFlinger test control")
     deadline = time.monotonic() + timeout
-    _request_mode(serial, config, deadline=deadline)
+    initial = run_adb(serial, ["shell", "dumpsys", "SurfaceFlinger"], deadline=deadline)
+    target_mode_id = _mode_id_for_config(initial, config)
+    _request_mode(serial, target_mode_id, deadline=deadline)
     return wait_for_config(serial, config, deadline=deadline)
 
 
-def run_acceptance(serial: str, provenance_path: Path, *, timeout: float = 30.0) -> dict[str, Any]:
+def _mode_id_for_config(text: str, config: int) -> int:
+    parse_surfaceflinger_mode(text, expected_config=config)
+    modes_match = re.search(r"supportedModes\s*=\s*\[(.*?)\]", text, re.S)
+    assert modes_match
+    rates = {int(key): float(value) for key, value in re.findall(
+        r"\{[^}]*\bid\s*=\s*(\d+)[^}]*\bfps\s*=\s*([0-9.]+)[^}]*\}", modes_match.group(1))}
+    expected = 1.0 if config == 0 else 60.0
+    return next(key for key, rate in rates.items() if abs(rate - expected) < 0.1)
+
+
+def run_acceptance(serial: str, provenance_path: Path, *, timeout: float = 30.0,
+                   disposable_guest: bool = False) -> dict[str, Any]:
+    if not disposable_guest:
+        raise AcceptanceError("--disposable-guest is required before qualifying with the internal SurfaceFlinger test control")
     provenance = validate_provenance(provenance_path)
-    installed = verify_installed_module(serial, provenance)
-    initial_telemetry = read_hwc_telemetry(serial)
+    require_root_adb(serial, deadline=time.monotonic() + timeout)
     receipt: dict[str, Any] = {
         "schema": 1,
         "status": "running",
         "serial": serial,
         "image_id": provenance["image_id"],
-        "module": installed,
-        "evidence": {"before": display_evidence(serial)},
+        "test_only_override": "SurfaceFlinger transaction 1035 is an internal test control; destroy this disposable guest after qualification. Display policy is not restored.",
+        "evidence": {},
         "transitions": [],
     }
     primary_error: Exception | None = None
+    initial_telemetry: dict[str, Any] | None = None
     try:
+        installed = verify_installed_module(serial, provenance)
+        receipt["module"] = installed
+        initial_telemetry = read_hwc_telemetry(serial)
+        receipt["evidence"]["before"] = display_evidence(serial)
         for config in (0, 1):
             deadline = time.monotonic() + timeout
             baseline = read_hwc_telemetry(serial, deadline=deadline)
-            _request_mode(serial, config, deadline=deadline)
+            initial_dump = run_adb(serial, ["shell", "dumpsys", "SurfaceFlinger"], deadline=deadline)
+            _request_mode(serial, _mode_id_for_config(initial_dump, config), deadline=deadline)
             telemetry = wait_for_config(serial, config, deadline=deadline)
             receipt["transitions"].append({
                 "requested_config": config,
@@ -266,21 +332,28 @@ def run_acceptance(serial: str, provenance_path: Path, *, timeout: float = 30.0)
             })
     except Exception as exc:
         primary_error = exc
+        try:
+            receipt["evidence"]["failure_before_restore"] = display_evidence(serial)
+        except Exception as evidence_error:
+            receipt["evidence"]["failure_before_restore_error"] = bounded_text(str(evidence_error), 1200)
     finally:
-        restore: dict[str, Any] = {"requested_config": 1}
+        restore: dict[str, Any] = {"requested_config": 1, "test_only_override": True}
         try:
             deadline = time.monotonic() + timeout
-            _request_mode(serial, 1, deadline=deadline)
+            dump = run_adb(serial, ["shell", "dumpsys", "SurfaceFlinger"], deadline=deadline)
+            _request_mode(serial, _mode_id_for_config(dump, 1), deadline=deadline)
             telemetry = wait_for_config(serial, 1, deadline=deadline)
             restore["selected_config"] = telemetry["selected_config"]
             restore["telemetry"] = telemetry
             receipt["evidence"]["after"] = display_evidence(serial)
+            restore["note"] = "SurfaceFlinger test-only backdoor override remains; destroy this disposable guest. Display policy was not restored."
         except Exception as exc:
             restore["error"] = str(exc)
             if primary_error is None:
                 primary_error = exc
         receipt["restore"] = restore
-    receipt["initial_telemetry"] = initial_telemetry
+    if initial_telemetry is not None:
+        receipt["initial_telemetry"] = initial_telemetry
     receipt["status"] = "passed" if primary_error is None else "failed"
     if primary_error is not None:
         receipt["error"] = str(primary_error)
@@ -304,15 +377,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--provenance", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--serial", help="explicit device serial (otherwise ANDROID_SERIAL is required)")
+    parser.add_argument("--disposable-guest", action="store_true",
+                        help="required: explicitly confirm this is an owned disposable test guest")
     parser.add_argument("--timeout", type=float, default=30.0,
                         help="absolute deadline budget in seconds for each mode transition")
     args = parser.parse_args(argv)
     receipt: dict[str, Any]
     try:
+        if not args.disposable_guest:
+            raise AcceptanceError("--disposable-guest is required before qualifying; this uses an internal test-only SurfaceFlinger control")
         serial = require_serial(args.serial)
         if args.timeout <= 0:
             raise AcceptanceError("--timeout must be positive")
-        receipt = run_acceptance(serial, args.provenance, timeout=args.timeout)
+        receipt = run_acceptance(serial, args.provenance, timeout=args.timeout,
+                                 disposable_guest=args.disposable_guest)
     except Exception as exc:
         try:
             # A failed precondition still produces a machine-readable failure receipt.
