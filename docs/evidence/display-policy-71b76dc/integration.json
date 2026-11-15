@@ -1,0 +1,70 @@
+{
+  "device": "127.0.0.1:5556",
+  "cold_setup_ms": 469.002,
+  "rpc_checks": [
+    "ping",
+    "semantic_snapshot",
+    "password_redaction_and_clear_type",
+    "persistent_correlation",
+    "tap_and_updated_count",
+    "screenshot_mark_freshness",
+    "long_press",
+    "type_unicode",
+    "clear",
+    "scroll_to",
+    "stale_id_rejected",
+    "ambiguous_selector_rejected",
+    "back",
+    "deep_link",
+    "logs_shape_literal_since",
+    "authentication",
+    "unknown_method_and_invalid_params",
+    "malformed_envelope",
+    "oversized_request_bounded",
+    "png_webp_screenshots_and_overlay_freshness",
+    "com.ashnazg.fixture.compose_semantic_id",
+    "com.ashnazg.fixture.compose_tap_count",
+    "com.ashnazg.fixture.compose_unicode_type_clear",
+    "com.ashnazg.fixture.compose_screenshot",
+    "com.ashnazg.fixture.reactnative_semantic_id",
+    "com.ashnazg.fixture.reactnative_tap_count",
+    "com.ashnazg.fixture.reactnative_unicode_type_clear",
+    "com.ashnazg.fixture.reactnative_screenshot"
+  ],
+  "mcp_checks": [
+    "mcp_http_rejects_unauthenticated_request",
+    "mcp_http_authenticated_initialize_list_snapshot",
+    "mcp_initialize_and_tools_list",
+    "mcp_snapshot",
+    "mcp_ui_act_type_clear_deep_link_back",
+    "mcp_app_logs",
+    "mcp_app_install_without_launch",
+    "mcp_app_install_autodetect_and_launch",
+    "mcp_invalid_action_and_unknown_tool",
+    "mcp_screenshot_image"
+  ],
+  "run_mode": {
+    "mcp": true,
+    "framework_fixtures": true
+  },
+  "preinstalled_agent": true,
+  "preinstalled_apk_sha256": {
+    "agent": "a02b7d2c808dceabb06c6937cdab54c5e0d4d23a9b84767b0c9c78b183899160",
+    "fixture": "2911dffa30b558378a21c14051f0f69d546a0302e22da4b54bf2810571421504"
+  },
+  "framework_fixtures": true,
+  "run_id": "20261115T234054.304906Z-11579",
+  "source": {
+    "head": "71b76dc9e68d9dbc0d2f820e31044d2934dac197",
+    "dirty": false,
+    "github_sha": "19ab5b633ec13abd7016ebd22711d39880f0d73c"
+  },
+  "screenshot_evidence": [
+    "artifacts/hwc/integration/20261115T234054.304906Z-11579/compose.png",
+    "artifacts/hwc/integration/20261115T234054.304906Z-11579/fixture-overlay.png",
+    "artifacts/hwc/integration/20261115T234054.304906Z-11579/fixture.webp",
+    "artifacts/hwc/integration/20261115T234054.304906Z-11579/mcp-screenshot.png",
+    "artifacts/hwc/integration/20261115T234054.304906Z-11579/react-native.png"
+  ],
+  "diagnostic_evidence": []
+}

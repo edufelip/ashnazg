@@ -1,0 +1,14 @@
+{
+  "artifact_id": 14186815344,
+  "github_api_digest": "sha256:dc171a8c0a107c931c0ec42cdb35d800c101df9fb4f060cb7e7ba5401de6385b",
+  "downloaded_zip_sha256": "dc171a8c0a107c931c0ec42cdb35d800c101df9fb4f060cb7e7ba5401de6385b",
+  "size_bytes": 33057042,
+  "matches": true,
+  "workflow_run": {
+    "id": 43775444045,
+    "repository_id": 1458041489,
+    "head_repository_id": 1458041489,
+    "head_branch": "t3/hwc-policy-probe",
+    "head_sha": "71b76dc9e68d9dbc0d2f820e31044d2934dac197"
+  }
+}

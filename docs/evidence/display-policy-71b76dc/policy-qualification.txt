@@ -1,0 +1,15 @@
+stage=get-original-policy
+stage=copy-original-policy
+stage=request-1hz
+stage=observe-1hz
+stage=request-60hz
+stage=observe-60hz
+stage=restore-original-policy
+stage=verify-restoration
+status=available operation=qualify-modes physical_display_count=1
+display_id=0 active_mode_id=1 modes=0:720x1280@1.0;1:720x1280@60.0
+request_hz=1 set_return=true observed_active_mode_id=0
+request_hz=60 set_return=true observed_active_mode_id=1
+qualification=passed observation=SurfaceControl.DynamicDisplayInfo.activeDisplayModeId
+restore_success=true set_return=true verified=getDesiredDisplayModeSpecs.equals
+

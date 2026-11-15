@@ -1,0 +1,32 @@
+{
+  "source_sha": "71b76dc9e68d9dbc0d2f820e31044d2934dac197",
+  "workflow_run": "https://github.com/edufelip/ashnazg/actions/runs/43775444045",
+  "artifact_id": 14186815344,
+  "image_id": "sha256:d6a3494537b974ae0f3de07fd123a715ad3a5ff62b10cdfc990b1822008c5721",
+  "status": "passed",
+  "claims": [
+    "Clean inspect process exit",
+    "Desired display policy requests observed as active mode0/1 at1Hz/60Hz",
+    "Original desired policy equality readback restored",
+    "Three separate owned guests exited0 with successful cleanup",
+    "28RPC and10MCP checks plus100successfulbenchmark samples"
+  ],
+  "limits": [
+    "Not an activity governor or authenticated service",
+    "No sustained1Hzcallback or normalizedCPUqualification",
+    "Restoration is desired-policy equality, not a separate post-restore physical-mode assertion"
+  ],
+  "files": {
+    "benchmark.json": "861805ad521644429b014da696c085c13b5fbdf6686611112c7337bf067cb7e7",
+    "display-probe.provenance.txt": "914c749b95a272f6a0ad1ba8dc3576c247aacae6f7cb8365d8f5160ae5273c90",
+    "download-receipt.json": "2b363cdaf0800a4d10edf723775e417d1b7c678d5fbdac3757669839e7475db1",
+    "integration-guest-receipt.json": "c8331a1b8b46bd746f74eca3e2c51d53dab8902b217cebd2aa3d9ee3a76ed673",
+    "integration.json": "a64a2ffd477c4370b9d63052d658805b7b47643a527551b0b0ad6fc32082d0bc",
+    "policy-inspect.txt": "9a85d8dbdb01bf4e0cd18a8142b976f42a33d703ee4e5616dee1e972414b6423",
+    "policy-probe-guest-receipt.json": "d19022d065261358b81f5fae508fdc5e7404a2b25868d30175b2948d55d941b3",
+    "policy-qualification.txt": "e05445729b349b0554eb689f7083237942911be84d820fbdfa19e1de120aa239",
+    "qualifier-guest-receipt.json": "c9c8b6adad47266ac491658d664693bdae49c792721f7fe76078465ebb50adab",
+    "static-qualification.json": "e641b081ef59877f614eeb94c4c24a97f1b3046d9a999f73a0b797c6715cfabf",
+    "verification.json": "2b3e332e57ee328718c4bdabe6f564f6c66a2dbb0617a23dfb4f0455a08039bd"
+  }
+}

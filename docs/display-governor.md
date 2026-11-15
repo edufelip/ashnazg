@@ -3,8 +3,8 @@
 This is a bounded experiment for learning whether the platform SurfaceFlinger
 display policy can serve as a governor control point. It is a buildable
 read-only-by-default probe, not a governor, product feature, or performance
-result. Runtime operation remains **unavailable until a disposable owned Linux
-guest proves the bridge and the live display behavior**.
+result. The pinned Linux image has passed the one-shot framework-control
+qualification below; a production activity governor remains unimplemented.
 
 The probe is a one-shot Java `app_process` program. It caches reflection handles
 once, outside any rendering or frame loop. The pinned Android API evidence is
@@ -97,13 +97,34 @@ reaches `DestroyJavaVM` and native process teardown. This follows scrcpy's
 explicit process-exit pattern. The host regression keeps a non-daemon thread
 alive and checks that a completed invocation exits with status zero; errors
 retain status two. That test does not reproduce Android's native destructor
-fault. A new owned guest run must establish clean inspection exit before any
-mode-switch/restoration qualification can be claimed.
+fault. The subsequent owned-guest run below establishes clean inspection exit
+and the tested mode-switch/restoration path.
 
 This experiment is outside the existing HWC path and does not modify it. There
 is no frame hot loop, CPU governor call, scheduler tuning, power claim, latency
 claim, or performance claim. A governor and any agent/native integration require
 a separate task after platform control is proven.
+
+## Qualified framework-control path
+
+[Quality run 43775444045](https://github.com/edufelip/ashnazg/actions/runs/43775444045)
+passed on clean source `71b76dc9e68d9dbc0d2f820e31044d2934dac197`. The
+[retained evidence receipt](evidence/display-policy-71b76dc/receipt.json) identifies
+the API-digest-verified artifact and immutable image used by three separate
+owned guests. The [inspection output](evidence/display-policy-71b76dc/policy-inspect.txt)
+completed cleanly. In a fresh guest without the static qualifier's debug override,
+the [framework probe](evidence/display-policy-71b76dc/policy-qualification.txt)
+observed active mode 0 after requesting 1 Hz and active mode 1 after requesting
+60 Hz. It then restored the original desired specs and verified equality by
+readback. That restoration check does not separately assert the physical active
+mode after restoration.
+
+All three guest commands exited zero with successful owned cleanup. Normal
+fixture integration in another fresh guest passed 28 RPC and 10 MCP checks;
+the ten-path benchmark recorded 100 successful samples and zero errors.
+The probe is still experimental: this evidence does not establish authenticated
+leases, agent lifecycle hooks, sustained 1 Hz callbacks, lower normalized CPU,
+or service recovery. Those remain the production governor's acceptance work.
 
 ## Source references
 
