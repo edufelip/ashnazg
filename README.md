@@ -15,6 +15,10 @@ This repository is public and MIT licensed. The v0.1 control layer uses a Rust M
 
 These describe the release scope. See CI and [validation evidence](docs/validation.md) for what has actually passed. The original proposal's global performance figures are not release guarantees; snapshots, screenshots and settled actions are measured separately.
 
+## Install a packaged release
+
+See the [release installation guide](docs/releases.md) for supported host packages, the Android agent APK pair, checksum verification and source provenance. Building from source remains supported.
+
 ## Build and test
 
 Requirements: the pinned Rust toolchain (rustup), Java 17, Android SDK/platform-tools, SDK platform 35, Python 3.10+, and Node 24.15.0/npm for the framework fixtures (`.nvmrc`).

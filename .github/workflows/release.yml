@@ -1,0 +1,196 @@
+name: Release
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/release.yml
+      - scripts/package_release.py
+      - tests/test_package_release.py
+      - docs/releases.md
+  push:
+    tags: [v*]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing v0.1.0 tag pointing at a validated main commit
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-source:
+    name: Validate package source and publication eligibility
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      tag: ${{ steps.source.outputs.tag }}
+      source_sha: ${{ steps.source.outputs.source_sha }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Validate tag, version, main ancestry, and successful Quality run
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG_INPUT: ${{ inputs.tag }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "$SOURCE_SHA" ]]
+          version="$(sed -n 's/^version = "\([^"]*\)"$/\1/p' Cargo.toml | head -n1)"
+          [[ "$version" == "0.1.0" ]]
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            # Build packages for review; the publish job explicitly excludes PR events.
+            tag="v$version"
+          else
+            if [[ "$EVENT_NAME" == "push" ]]; then
+              [[ "$REF_NAME" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+              tag="${REF_NAME#refs/tags/}"
+            else
+              [[ "$EVENT_NAME" == "workflow_dispatch" && "$REF_NAME" == "refs/heads/main" ]]
+              tag="$RELEASE_TAG_INPUT"
+              [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            fi
+            [[ "$tag" == "v$version" ]]
+            git fetch --force origin main --tags
+            git merge-base --is-ancestor "$SOURCE_SHA" origin/main
+            [[ "$(git rev-parse "$tag^{commit}")" == "$SOURCE_SHA" ]]
+            workflow_id="$(gh api "repos/$REPOSITORY/actions/workflows/quality.yml" --jq .id)"
+            runs="$(gh api "repos/$REPOSITORY/actions/workflows/$workflow_id/runs?head_sha=$SOURCE_SHA&per_page=100")"
+            jq -e --arg sha "$SOURCE_SHA" '
+              [.workflow_runs[] | select(.head_sha == $sha and .event == "push" and
+                .head_branch == "main")] | sort_by(.run_number) | last |
+                .status == "completed" and .conclusion == "success"
+            ' <<< "$runs" >/dev/null
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+
+  android-build:
+    name: Build required Android instrumentation APKs
+    needs: validate-source
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.validate-source.outputs.source_sha }}
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+      - name: Build agent and fixture instrumentation APKs
+        run: cd agent-android && ./gradlew :agent:assembleDebug :fixture:assembleDebug
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: android-release-apks
+          if-no-files-found: error
+          path: |
+            agent-android/agent/build/outputs/apk/debug/agent-debug.apk
+            agent-android/fixture/build/outputs/apk/debug/fixture-debug.apk
+
+  package-host:
+    name: Package ${{ matrix.os }} host binary
+    needs: [validate-source, android-build]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.validate-source.outputs.source_sha }}
+      - name: Build native release binary
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          cargo build --release --locked
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: android-release-apks
+          path: android-apks
+      - name: Assemble documented reproducible package
+        env:
+          SOURCE_SHA: ${{ needs.validate-source.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          case "$(uname -s):$(uname -m)" in
+            Linux:x86_64) platform=linux-x86_64 ;;
+            Linux:aarch64|Linux:arm64) platform=linux-aarch64 ;;
+            Darwin:x86_64) platform=macos-x86_64 ;;
+            Darwin:arm64|Darwin:aarch64) platform=macos-aarch64 ;;
+            *) echo "Unsupported actual runner platform: $(uname -s) $(uname -m)" >&2; exit 1 ;;
+          esac
+          python3 scripts/package_release.py \
+            --version 0.1.0 --source-sha "$SOURCE_SHA" --platform "$platform" \
+            --output "ashnazg-v0.1.0-$platform.zip" \
+            --host-binary target/release/ashnazg \
+            --agent-apk android-apks/agent/build/outputs/apk/debug/agent-debug.apk \
+            --fixture-apk android-apks/fixture/build/outputs/apk/debug/fixture-debug.apk \
+            --license-file LICENSE --setup-file docs/releases.md
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-${{ matrix.os }}
+          if-no-files-found: error
+          path: ashnazg-v0.1.0-*.zip
+
+  publish:
+    if: github.event_name != 'pull_request'
+    name: Publish validated v0.1.0 release
+    needs: [validate-source, android-build, package-host]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.validate-source.outputs.source_sha }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: release-*
+          path: release-assets
+          merge-multiple: true
+      - name: Create GitHub release from validated tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.validate-source.outputs.tag }}
+          SOURCE_SHA: ${{ needs.validate-source.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "$SOURCE_SHA" ]]
+          git fetch origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          [[ "$(git rev-parse "$RELEASE_TAG^{commit}")" == "$SOURCE_SHA" ]]
+          remote_tag_sha="$(git ls-remote origin "refs/tags/$RELEASE_TAG" "refs/tags/$RELEASE_TAG^{}" | awk '$2 ~ /\^\{\}$/ { peeled=$1 } $2 !~ /\^\{\}$/ { direct=$1 } END { print peeled != "" ? peeled : direct }')"
+          [[ "$remote_tag_sha" == "$SOURCE_SHA" ]]
+          test "$(find release-assets -maxdepth 1 -type f -name '*.zip' | wc -l | tr -d ' ')" = 2
+          python3 - <<'PYTHON'
+          import hashlib
+          from pathlib import Path
+          root = Path("release-assets")
+          text = "".join(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}\n"
+                         for p in sorted(root.glob("*.zip")))
+          (root / "SHA256SUMS").write_text(text)
+          PYTHON
+          gh release create "$RELEASE_TAG" release-assets/*.zip release-assets/SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" --title "Ashnazg $RELEASE_TAG" \
+            --notes-file docs/releases.md --verify-tag
