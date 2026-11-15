@@ -21,20 +21,23 @@ from scripts import redroid
 
 
 class GuestImageContractTests(unittest.TestCase):
-    def test_runtime_profile_and_bundle_contract_declare_the_same_image(self):
+    def setUp(self):
         root = Path(__file__).parents[1]
         spec = importlib.util.spec_from_file_location('guest_init_contract', root / 'runtime/microvm/guest-init.py')
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         profile = module.SUPERVISOR[module.SUPERVISOR.index('--image-profile') + 1]
-        self.assertEqual(EXPECTED_GUEST['redroid_index'], redroid.IMAGE_PROFILES[profile]['index'])
+        self.runtime_index = redroid.IMAGE_PROFILES[profile]['index']
+
+    def test_runtime_profile_and_bundle_contract_declare_the_same_image(self):
+        self.assertEqual(EXPECTED_GUEST['redroid_index'], self.runtime_index)
 
     def test_builder_records_the_runtime_image_index_in_bundle_provenance(self):
         root = Path(__file__).parents[1]
         build = (root / 'scripts/build_microvm.sh').read_text()
         pin = re.search(r'^readonly REDROID_INDEX="([^"]+)"$', build, re.M)
         self.assertIsNotNone(pin)
-        self.assertEqual(pin.group(1), redroid.IMAGE_PROFILES['android15-64only']['index'])
+        self.assertEqual(pin.group(1), self.runtime_index)
 
 
 class ManifestTests(unittest.TestCase):
