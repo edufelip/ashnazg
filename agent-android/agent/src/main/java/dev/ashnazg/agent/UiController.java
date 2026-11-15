@@ -447,12 +447,21 @@ final class UiController {
 
     private WindowSnapshot findWindow(int windowId) {
         List<android.view.accessibility.AccessibilityWindowInfo> windows = automation.getWindows();
+        int[] firstWindowIds = new int[8];
+        int totalWindows = 0;
         try {
             for (android.view.accessibility.AccessibilityWindowInfo window : windows) {
-                if (window.getId() != windowId) continue;
+                int visibleWindowId = window.getId();
+                if (totalWindows < firstWindowIds.length) firstWindowIds[totalWindows] = visibleWindowId;
+                totalWindows++;
+                if (visibleWindowId != windowId) continue;
                 Rect bounds = new Rect();
                 window.getBoundsInScreen(bounds);
                 return new WindowSnapshot(window.getId(), geometry(bounds), window.isActive(), window.isFocused());
+            }
+            if (instrumentation instanceof AgentInstrumentation &&
+                    ((AgentInstrumentation) instrumentation).traceWindowLookupMissEnabled()) {
+                Log.w(TAG, WindowLookupMissDiagnostic.format(windowId, totalWindows, firstWindowIds));
             }
             return null;
         } finally {
