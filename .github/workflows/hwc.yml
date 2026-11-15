@@ -129,7 +129,8 @@ jobs:
         uses: ./
         with:
           output-directory: artifacts/hwc/integration-guest
-          adb-port: '5555'
+          # Keep this guest's endpoint separate from the disposed rooted guest.
+          adb-port: '5556'
           boot-timeout: '180'
           image-provenance: artifacts/hwc/provenance.json
           command: |
