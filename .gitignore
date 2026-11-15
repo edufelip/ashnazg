@@ -1,0 +1,16 @@
+/target/
+/artifacts/
+**/.gradle/
+**/build/
+**/local.properties
+__pycache__/
+*.pyc
+.DS_Store
+**/node_modules/
+/fixtures/reactnative/src/main/assets/index.android.bundle
+/fixtures/reactnative/src/main/assets/index.android.bundle.map
+**/.cxx/
+**/.externalNativeBuild/
+.env
+.env.*
+!.env.example

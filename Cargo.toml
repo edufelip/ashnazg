@@ -1,0 +1,41 @@
+[package]
+name = "ashnazg"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.100"
+description = "Authenticated host and MCP control server for Ashnazg Android agent"
+license = "MIT"
+
+[lib]
+name = "ashnazg"
+path = "src/lib.rs"
+
+[[test]]
+name = "contract"
+path = "rust-tests/contract.rs"
+
+[[bin]]
+name = "ashnazg"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+axum = { version = "0.8", features = ["http1", "json", "tokio"] }
+base64 = "0.22"
+clap = { version = "4", features = ["derive", "env"] }
+rmcp = { version = "3.10", features = ["server", "macros", "transport-io", "transport-streamable-http-server"] }
+schemars = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+subtle = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal", "time"] }
+tokio-util = "0.7"
+thiserror = "2"
+zeroize = "1"
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["limit"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tempfile = "3"
