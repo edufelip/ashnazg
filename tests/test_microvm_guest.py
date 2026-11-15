@@ -97,7 +97,12 @@ class GuestBridgeTests(unittest.TestCase):
             # Invalid frames may be rejected and closed before this half-close.
             if exc.errno != errno.ENOTCONN:
                 raise
-        response = client.recv(2048)
+        try:
+            response = client.recv(2048)
+        except ConnectionResetError:
+            # Closing an oversized frame with unread bytes is a reset on Linux.
+            # Both reset and EOF reject the request without returning a response.
+            response = b''
         client.close()
         worker.join(timeout=2)
         self.assertFalse(worker.is_alive())

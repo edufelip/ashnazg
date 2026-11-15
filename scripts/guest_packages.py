@@ -350,11 +350,12 @@ def _native_bootstrap(output_dir):
                 "sha256": sha256_file(index_files[0]),
             })
 
+        frozen_indexes = {p.name: sha256_file(p) for p in common_cache.glob('APKINDEX.*')}
         catalog_flags = ['--repositories-file', '/tmp/guest-package-repositories',
                          '--cache-dir', '/tmp/guest-package-index-cache']
         url_result = _run_chroot(
             rootfs,
-            ["/sbin/apk", *catalog_flags, "--no-network", "fetch", "--recursive", "--url", *requested],
+            ["/sbin/apk", *catalog_flags, "fetch", "--recursive", "--url", *requested],
             capture=True,
         )
         urls = [line.strip() for line in url_result.stdout.splitlines() if line.strip()]
@@ -371,6 +372,8 @@ def _native_bootstrap(output_dir):
         # --url lists sources; it deliberately does not download package bytes.
         _run_chroot(rootfs, ['/sbin/apk', *catalog_flags, 'fetch', '--recursive',
                              '--output', '/tmp/guest-package-apks', *requested])
+        if {p.name: sha256_file(p) for p in common_cache.glob('APKINDEX.*')} != frozen_indexes:
+            raise ValueError('authenticated repository indexes changed during package resolution')
         apk_files = sorted(apk_cache.glob("*.apk"))
         if len(apk_files) != len(by_filename) or {path.name for path in apk_files} != set(by_filename):
             raise ValueError("native apk fetch URL listing does not match the downloaded recursive closure")
