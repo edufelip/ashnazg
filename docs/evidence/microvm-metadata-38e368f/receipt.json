@@ -1,0 +1,8 @@
+{
+  "source_sha": "38e368f9ecfd2efbb61cfe4df0e18e7403e2bd1e",
+  "archive_sha256": "0005d58e7b6757c90bb5e98f450892800fb4db92c5d77bc4a88cb7764231e8f4",
+  "declared_index": "sha256:81889852444606824d33eb0232fa5813bce3f0993afe871785120af0d7c991ad",
+  "runtime_profile_index": "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
+  "qualification": "Verified immutable archive metadata mismatch; no VM boot or runtime acceptance performed.",
+  "workflow_run": "https://github.com/edufelip/ashnazg/actions/runs/43764570884"
+}
