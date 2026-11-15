@@ -35,6 +35,11 @@ final class WindowGeometryStability {
         this.previouslyReadyWindowBounds = previouslyReadyWindowBounds;
     }
 
+    void resetAfterMissingWindow() {
+        previous = null;
+        stableSinceMs = 0;
+    }
+
     boolean observe(int windowId, long generationBefore, long generationAfter,
                     Bounds nodeScreen, Bounds nodeWindow, Bounds windowScreen,
                     boolean active, boolean focused, long nowMs) {
