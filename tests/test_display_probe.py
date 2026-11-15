@@ -43,13 +43,42 @@ class DisplayProbeTests(unittest.TestCase):
         self.assertIn("--inspect", result.stdout)
         self.assertIn("--qualify-modes --disposable-guest", result.stdout)
 
+    def test_successful_entrypoint_explicitly_exits_with_framework_threads_alive(self):
+        # Android framework initialization can leave non-daemon threads alive.
+        # A one-shot app_process must exit explicitly after its operation finishes.
+        harness = self.classes / "ProbeExitTest.java"
+        harness.write_text(
+            """
+import com.ashnazg.displayprobe.DisplayProbe;
+public class ProbeExitTest {
+    public static void main(String[] args) {
+        Thread frameworkThread = new Thread(() -> {
+            try { new java.util.concurrent.CountDownLatch(1).await(); }
+            catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+        });
+        frameworkThread.setDaemon(false);
+        frameworkThread.start();
+        DisplayProbe.main(new String[]{"--help"});
+    }
+}
+""", encoding="utf-8")
+        subprocess.run([shutil.which("javac"), "-cp", str(self.classes), "-d",
+                        str(self.classes), str(harness)], check=True)
+        try:
+            result = subprocess.run([shutil.which("java"), "-cp", str(self.classes),
+                                     "ProbeExitTest"], text=True, capture_output=True, timeout=5)
+        except subprocess.TimeoutExpired:
+            self.fail("successful entrypoint returned without terminating framework threads")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Default: --inspect", result.stdout)
+
     def test_mode_qualification_requires_disposable_guest_acknowledgement(self):
         result = run_java(
             self.classes,
             "com.ashnazg.displayprobe.DisplayProbe",
             "--qualify-modes",
         )
-        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.returncode, 2)
         self.assertIn("--disposable-guest", result.stderr)
 
     def test_argument_parser_rejects_unbounded_timeout_and_unknown_options(self):

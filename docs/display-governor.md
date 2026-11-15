@@ -81,9 +81,24 @@ exists.
 Host tests cover CLI gates and bounds, mode-table validation, and absolute
 deadline behavior. A local build proves javac/D8 compilation only. It does not
 prove hidden API access, `android_servers` JNI initialization, permissions,
-mode switching, or restoration on the target guest. The probe has not yet been
-run on an owned Linux guest; do not enable it as a runtime governor until that
-separate qualification records the real API call and observed display state.
+mode switching, or restoration on the target guest. The owned Linux run on
+`1401fcd` printed valid display data, then exited with SIGSEGV. Its [crash
+receipt](evidence/display-probe-exit-1401fcd/receipt.json) identifies the command
+as `--inspect`, with `String16::~String16` called by `__cxa_finalize` and `exit`.
+No qualification-stage marker was emitted: this failure happened before the
+mode qualification command started. The exact invalid native object and any
+class-loader involvement remain unknown.
+
+The one-shot entrypoint now flushes output and explicitly calls
+`System.exit(status)` after the operation and its restoration block complete,
+including successful inspection. AOSP Android 15's `AndroidRuntime::exit` uses
+`_exit` in ordinary non-coverage builds, whereas returning from the Java main
+reaches `DestroyJavaVM` and native process teardown. This follows scrcpy's
+explicit process-exit pattern. The host regression keeps a non-daemon thread
+alive and checks that a completed invocation exits with status zero; errors
+retain status two. That test does not reproduce Android's native destructor
+fault. A new owned guest run must establish clean inspection exit before any
+mode-switch/restoration qualification can be claimed.
 
 This experiment is outside the existing HWC path and does not modify it. There
 is no frame hot loop, CPU governor call, scheduler tuning, power claim, latency
@@ -95,3 +110,6 @@ a separate task after platform control is proven.
 - [Pinned `SurfaceControl.java`](https://android.googlesource.com/platform/frameworks/base/+/cc8bb19595c661f5cf42f330457000e643c67d1b/core/java/android/view/SurfaceControl.java)
 - [Pinned `DisplayControl.java`](https://android.googlesource.com/platform/frameworks/base/+/cc8bb19595c661f5cf42f330457000e643c67d1b/services/core/java/com/android/server/display/DisplayControl.java)
 - [scrcpy `DisplayControl` reflection and JNI-loading wrapper](https://github.com/Genymobile/scrcpy/blob/master/server/src/main/java/com/genymobile/scrcpy/wrappers/DisplayControl.java)
+
+- [AOSP Android 15 VM return and explicit-exit paths](https://android.googlesource.com/platform/frameworks/base/+/android-15.0.0_r6/core/jni/AndroidRuntime.cpp)
+- [scrcpy one-shot entrypoint exit](https://github.com/Genymobile/scrcpy/blob/master/server/src/main/java/com/genymobile/scrcpy/Server.java)

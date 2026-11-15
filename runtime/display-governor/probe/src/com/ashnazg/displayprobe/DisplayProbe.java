@@ -32,6 +32,7 @@ public final class DisplayProbe {
     private DisplayProbe() {}
 
     public static void main(String[] args) {
+        int status = 0;
         try {
             Options options = parseArgs(args);
             if (options == null) {
@@ -48,7 +49,13 @@ public final class DisplayProbe {
             run(api, options);
         } catch (Throwable failure) {
             System.err.println("status=unavailable reason=" + safe(failure.getMessage()));
-            System.exit(2);
+            status = 2;
+        } finally {
+            // Use AndroidRuntime's explicit VM exit after operation/restoration,
+            // rather than returning into app_process native teardown.
+            System.out.flush();
+            System.err.flush();
+            System.exit(status);
         }
     }
 

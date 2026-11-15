@@ -1,0 +1,2 @@
+status=available operation=inspect physical_display_count=1
+display_id=0 active_mode_id=1 modes=0:720x1280@1.0;1:720x1280@60.0
