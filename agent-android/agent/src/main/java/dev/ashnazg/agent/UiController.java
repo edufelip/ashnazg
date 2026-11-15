@@ -312,9 +312,12 @@ final class UiController {
         SemanticIdentity originalIdentity = identity(record);
         String originalPackage = record.packageName;
         int reacquisitions = 0;
+        // Keep the first refreshed window pinned across the entire preparation,
+        // including any permitted same-identity node reacquisition.
+        TargetWindowWaitPolicy windowWait = new TargetWindowWaitPolicy(deadline);
         while (true) {
             try {
-                Rect bounds = stabilizeBounds(record, deadline);
+                Rect bounds = stabilizeBounds(record, deadline, windowWait);
                 if (!SemanticPreInputRecovery.beforeDeadline(SystemClock.elapsedRealtime(), deadline))
                     throw new IllegalStateException("target preparation exceeded its two-second deadline before input");
                 return new PointerCoordinates(bounds.centerX(), bounds.centerY());
@@ -419,18 +422,30 @@ final class UiController {
     }
 
     private Rect stabilizeBounds(Record record, long deadline) {
+        return stabilizeBounds(record, deadline, new TargetWindowWaitPolicy(deadline));
+    }
+
+    private Rect stabilizeBounds(Record record, long deadline, TargetWindowWaitPolicy windowWait) {
         WindowGeometryStability stability = new WindowGeometryStability(lastReadyWindowId, lastReadyWindowGeneration, lastReadyWindowBounds);
         while (SystemClock.elapsedRealtime() <= deadline) {
             long generationBefore = windowEventGeneration.get();
             automation.clearCache();
             Rect nodeScreen = refreshRecord(record);
+            int targetWindowId = windowWait.validateRefreshedWindowId(record.node.getWindowId());
             Rect nodeWindowRect = new Rect();
             record.node.getBoundsInWindow(nodeWindowRect);
-            WindowSnapshot window = findWindow(record.node.getWindowId());
-            if (window == null) throw preInputInvalidation(
-                    "target accessibility window is no longer available");
+            WindowSnapshot window = findWindow(targetWindowId);
             long generationAfter = windowEventGeneration.get();
             long now = SystemClock.elapsedRealtime();
+            TargetWindowWaitPolicy.Decision windowDecision = windowWait.observe(
+                    window == null ? null : window.id, now);
+            if (windowDecision == TargetWindowWaitPolicy.Decision.WAIT) {
+                stability.resetAfterMissingWindow();
+                SystemClock.sleep(Math.min(16, Math.max(1, deadline - now)));
+                continue;
+            }
+            if (windowDecision == TargetWindowWaitPolicy.Decision.EXPIRED)
+                throw new IllegalStateException("target accessibility window did not become available within 2 seconds");
             boolean ready = stability.observe(window.id, generationBefore, generationAfter,
                     geometry(nodeScreen), geometry(nodeWindowRect), window.bounds,
                     window.active, window.focused, now);
