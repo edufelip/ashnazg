@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.20)
+project(ashnazg_headless_hwc LANGUAGES CXX)
+
+include(CTest)
+find_package(Threads REQUIRED)
+
+add_library(ashnazg_hwc_state STATIC src/display_state.cpp)
+target_include_directories(ashnazg_hwc_state PUBLIC include)
+target_compile_features(ashnazg_hwc_state PUBLIC cxx_std_17)
+target_link_libraries(ashnazg_hwc_state PUBLIC Threads::Threads)
+target_compile_options(ashnazg_hwc_state PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
+add_library(ashnazg_hwc_hal SHARED src/hal.cpp)
+target_include_directories(ashnazg_hwc_hal PRIVATE include)
+target_compile_features(ashnazg_hwc_hal PRIVATE cxx_std_17)
+target_link_libraries(ashnazg_hwc_hal PRIVATE ashnazg_hwc_state)
+set_target_properties(ashnazg_hwc_state PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_compile_options(ashnazg_hwc_hal PRIVATE -Wall -Wextra -Wpedantic -Werror)
+set_target_properties(ashnazg_hwc_hal PROPERTIES PREFIX "" OUTPUT_NAME "hwcomposer.default" SUFFIX ".so")
+
+if(BUILD_TESTING)
+  add_executable(ashnazg_hwc_state_test tests/display_state_test.cpp)
+  target_link_libraries(ashnazg_hwc_state_test PRIVATE ashnazg_hwc_state)
+  target_compile_options(ashnazg_hwc_state_test PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME headless_hwc_state COMMAND ashnazg_hwc_state_test)
+
+  add_executable(ashnazg_hwc_abi_test tests/hal_abi_test.cpp)
+  target_include_directories(ashnazg_hwc_abi_test PRIVATE include)
+  target_compile_features(ashnazg_hwc_abi_test PRIVATE cxx_std_17)
+  target_link_libraries(ashnazg_hwc_abi_test PRIVATE ashnazg_hwc_hal)
+  target_compile_options(ashnazg_hwc_abi_test PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME headless_hwc_module_abi COMMAND ashnazg_hwc_abi_test)
+endif()
