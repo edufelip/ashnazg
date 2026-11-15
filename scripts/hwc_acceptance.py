@@ -224,8 +224,10 @@ def wait_for_config(serial: str, config: int, *, deadline: float,
 
 def _request_mode(serial: str, config: int, *, deadline: float | None = None) -> None:
     rate = "1.0" if config == 0 else "60.0"
+    # Without a display ID Android writes global Settings, whose shell attribution
+    # is rejected by this image. Qualify only the owned primary display (ID 0).
     run_adb(serial, ["shell", "cmd", "display", "set-user-preferred-display-mode",
-                     "720", "1280", rate], deadline=deadline)
+                     "720", "1280", rate, "0"], deadline=deadline)
 
 
 def transition_to_config(serial: str, config: int, *, timeout: float) -> dict[str, Any]:

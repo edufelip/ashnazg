@@ -10,6 +10,16 @@ from scripts import hwc_acceptance
 
 
 class HwcAcceptanceTests(unittest.TestCase):
+    def test_mode_requests_target_primary_display_instead_of_global_settings(self):
+        with mock.patch.object(hwc_acceptance, "run_adb") as adb:
+            hwc_acceptance._request_mode("serial", 0, deadline=100.0)
+            hwc_acceptance._request_mode("serial", 1, deadline=100.0)
+        self.assertEqual(adb.call_args_list, [
+            mock.call("serial", ["shell", "cmd", "display", "set-user-preferred-display-mode",
+                                 "720", "1280", rate, "0"], deadline=100.0)
+            for rate in ("1.0", "60.0")
+        ])
+
     def test_provenance_requires_allowed_module_paths_and_matching_hash(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
