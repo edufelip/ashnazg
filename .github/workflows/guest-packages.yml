@@ -1,0 +1,49 @@
+name: Authenticated guest package proposal
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/guest-packages.yml
+      - scripts/guest_packages.py
+      - tests/test_guest_packages.py
+      - docs/guest-packages.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guest-packages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  authenticated-package-proposal:
+    name: Create authenticated Alpine APK lock proposal
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    env:
+      PYTHONPYCACHEPREFIX: /tmp/ashnazg-guest-packages-python-cache
+      PROPOSAL_DIR: /tmp/ashnazg-guest-package-proposal
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify native ARM64 runner and run portable tests
+        run: |
+          set -euo pipefail
+          test "$(uname -s)" = Linux
+          case "$(uname -m)" in aarch64|arm64) ;; *) echo "native ARM64 runner required" >&2; exit 1 ;; esac
+          python3 -m unittest tests.test_guest_packages -v
+          python3 -m py_compile scripts/guest_packages.py tests/test_guest_packages.py
+      - name: Build authenticated lock proposal from Alpine repositories
+        run: sudo env GITHUB_ACTIONS=true python3 scripts/guest_packages.py bootstrap --output-dir "$PROPOSAL_DIR"
+      - name: Upload lock proposal and index proof
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: guest-packages-aarch64-${{ github.event.pull_request.head.sha || github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            /tmp/ashnazg-guest-package-proposal/packages.lock.json
+            /tmp/ashnazg-guest-package-proposal/summary.json
+            /tmp/ashnazg-guest-package-proposal/index-proof.json

@@ -137,10 +137,14 @@ jobs:
             artifacts/integration/**
             artifacts/emulator/**
 
+  microvm:
+    name: MicroVM validation
+    uses: ./.github/workflows/microvm.yml
+
   quality-gate:
     name: Quality gate
     if: always()
-    needs: [rust, android, android-integration]
+    needs: [rust, android, android-integration, microvm]
     runs-on: ubuntu-latest
     steps:
       - name: Require every quality job to succeed
@@ -148,8 +152,10 @@ jobs:
           RUST_RESULT: ${{ needs.rust.result }}
           ANDROID_RESULT: ${{ needs.android.result }}
           INTEGRATION_RESULT: ${{ needs.android-integration.result }}
+          MICROVM_RESULT: ${{ needs.microvm.result }}
         run: |
           printf 'rust=%s android=%s android-integration=%s\n' "$RUST_RESULT" "$ANDROID_RESULT" "$INTEGRATION_RESULT"
           test "$RUST_RESULT" = success
           test "$ANDROID_RESULT" = success
           test "$INTEGRATION_RESULT" = success
+          test "$MICROVM_RESULT" = success

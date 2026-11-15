@@ -4,6 +4,8 @@ use anyhow::{Context, bail};
 use clap::{Parser, Subcommand};
 use serde_json::Value;
 
+mod microvm;
+
 #[derive(Parser)]
 #[command(
     name = "ashnazg",
@@ -34,6 +36,8 @@ enum CommandLine {
         #[arg(long)]
         launch: Option<String>,
     },
+    /// Start the native macOS Apple Silicon Linux VM and loopback ADB relay.
+    Up(microvm::UpArgs),
 }
 
 #[tokio::main]
@@ -71,6 +75,11 @@ async fn main() -> anyhow::Result<()> {
             println!("{}", serde_json::to_string(&result)?);
             Ok(())
         }
+        Some(CommandLine::Up(args)) => match microvm::run(args) {
+            Ok(status) if status.success() => Ok(()),
+            Ok(status) => microvm::finish(status),
+            Err(error) => Err(error),
+        },
     }
 }
 
