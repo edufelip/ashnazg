@@ -337,34 +337,45 @@ class RedroidSupervisor:
 
     def _wait_ready(self) -> None:
         self.adb_connected = True
-        self._command([self.adb_path, "connect", self.serial], timeout=10, check=False)
+        connect_pending = True
         previous_window = None
         last_reason = "ADB device has not booted"
         while True:
             self.receipt["last_readiness"] = last_reason
             self._remaining()
-            state = self._adb("get-state", check=False, timeout=5)
-            if state.returncode != 0 or state.stdout.strip() != "device":
-                self._command([self.adb_path, "connect", self.serial], timeout=5, check=False)
-            if state.returncode == 0 and state.stdout.strip() == "device":
-                boot = self._adb("shell", "getprop", "sys.boot_completed", check=False, timeout=5)
-                if boot.returncode == 0 and boot.stdout.strip() == "1":
-                    anr = self._adb("shell", "dumpsys", "activity", "lastanr", check=False, timeout=10)
-                    if last_anr_status(anr.stdout) is True:
-                        raise RedroidError("ReDroid recorded an ANR during boot")
-                    input_state = self._adb("shell", "dumpsys", "input", check=False, timeout=10)
-                    windows = self._adb("shell", "dumpsys", "window", "-a", "windows", check=False, timeout=10)
-                    status, reason = readiness_status(input_state.stdout, windows.stdout, anr.stdout)
-                    if status and input_state.returncode == windows.returncode == anr.returncode == 0:
-                        window = focused_application_window(input_state.stdout)
-                        if window == previous_window:
-                            self.receipt["readiness"] = reason
-                            return
-                        previous_window = window
-                        last_reason = "focused, drawn app window has not persisted across readiness checks"
-                    else:
-                        previous_window = None
-                        last_reason = reason
+            try:
+                if connect_pending:
+                    self._command([self.adb_path, "connect", self.serial], timeout=10, check=False)
+                    connect_pending = False
+                state = self._adb("get-state", check=False, timeout=5)
+                if state.returncode != 0 or state.stdout.strip() != "device":
+                    self._command([self.adb_path, "connect", self.serial], timeout=5, check=False)
+                if state.returncode == 0 and state.stdout.strip() == "device":
+                    boot = self._adb("shell", "getprop", "sys.boot_completed", check=False, timeout=5)
+                    if boot.returncode == 0 and boot.stdout.strip() == "1":
+                        anr = self._adb("shell", "dumpsys", "activity", "lastanr", check=False, timeout=10)
+                        if last_anr_status(anr.stdout) is True:
+                            raise RedroidError("ReDroid recorded an ANR during boot")
+                        input_state = self._adb("shell", "dumpsys", "input", check=False, timeout=10)
+                        windows = self._adb("shell", "dumpsys", "window", "-a", "windows", check=False, timeout=10)
+                        status, reason = readiness_status(input_state.stdout, windows.stdout, anr.stdout)
+                        if status and input_state.returncode == windows.returncode == anr.returncode == 0:
+                            window = focused_application_window(input_state.stdout)
+                            if window == previous_window:
+                                self.receipt["readiness"] = reason
+                                return
+                            previous_window = window
+                            last_reason = "focused, drawn app window has not persisted across readiness checks"
+                        else:
+                            previous_window = None
+                            last_reason = reason
+            except RedroidError as exc:
+                # A slow boot can time out one ADB probe. Retry only that case;
+                # every probe and sleep still uses the original boot deadline.
+                if not isinstance(exc.__cause__, subprocess.TimeoutExpired):
+                    raise
+                previous_window = None
+                last_reason = "ADB readiness probe timed out; waiting within the boot deadline"
             time.sleep(min(1.0, self._remaining()))
 
     def _run_child(self, command: Sequence[str]) -> int:
