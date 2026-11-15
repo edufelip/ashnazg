@@ -1,0 +1,65 @@
+{
+  "device": "emulator-5554",
+  "cold_setup_ms": 494.58,
+  "rpc_checks": [
+    "ping",
+    "semantic_snapshot",
+    "password_redaction_and_clear_type",
+    "persistent_correlation",
+    "tap_and_updated_count",
+    "screenshot_mark_freshness",
+    "long_press",
+    "type_unicode",
+    "clear",
+    "scroll_to",
+    "stale_id_rejected",
+    "ambiguous_selector_rejected",
+    "back",
+    "deep_link",
+    "logs_shape_literal_since",
+    "authentication",
+    "unknown_method_and_invalid_params",
+    "malformed_envelope",
+    "oversized_request_bounded",
+    "png_webp_screenshots_and_overlay_freshness",
+    "com.ashnazg.fixture.compose_semantic_id",
+    "com.ashnazg.fixture.compose_tap_count",
+    "com.ashnazg.fixture.compose_unicode_type_clear",
+    "com.ashnazg.fixture.compose_screenshot",
+    "com.ashnazg.fixture.reactnative_semantic_id",
+    "com.ashnazg.fixture.reactnative_tap_count",
+    "com.ashnazg.fixture.reactnative_unicode_type_clear",
+    "com.ashnazg.fixture.reactnative_screenshot"
+  ],
+  "mcp_checks": [
+    "mcp_http_rejects_unauthenticated_request",
+    "mcp_http_authenticated_initialize_list_snapshot",
+    "mcp_initialize_and_tools_list",
+    "mcp_snapshot",
+    "mcp_ui_act_type_clear_deep_link_back",
+    "mcp_app_logs",
+    "mcp_app_install_without_launch",
+    "mcp_app_install_autodetect_and_launch",
+    "mcp_invalid_action_and_unknown_tool",
+    "mcp_screenshot_image"
+  ],
+  "run_mode": {
+    "mcp": true,
+    "framework_fixtures": true
+  },
+  "framework_fixtures": true,
+  "run_id": "20261115T160420.684955Z-6702",
+  "source": {
+    "head": "001b066721933c6f1ffe05a634888330351d6095",
+    "dirty": false,
+    "github_sha": "001b066721933c6f1ffe05a634888330351d6095"
+  },
+  "screenshot_evidence": [
+    "artifacts/integration/20261115T160420.684955Z-6702/compose.png",
+    "artifacts/integration/20261115T160420.684955Z-6702/fixture-overlay.png",
+    "artifacts/integration/20261115T160420.684955Z-6702/fixture.webp",
+    "artifacts/integration/20261115T160420.684955Z-6702/mcp-screenshot.png",
+    "artifacts/integration/20261115T160420.684955Z-6702/react-native.png"
+  ],
+  "diagnostic_evidence": []
+}

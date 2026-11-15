@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "timestamp_utc": "2026-11-15T16:04:43.158960+00:00",
+  "iterations_requested": 10,
+  "environment": {
+    "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+    "python": "3.14.4",
+    "adb": {
+      "basename": "adb",
+      "version_lines": [
+        "Android Debug Bridge version 1.0.41",
+        "Version 37.0.1-15733141"
+      ]
+    },
+    "host_binary": {
+      "basename": "ashnazg",
+      "profile": "release",
+      "sha256": "216f7612ece36fa815737e4fb2f7a30a17d9850c061a8b2777d6308ac5f7c72e"
+    },
+    "source": {
+      "head": "001b066721933c6f1ffe05a634888330351d6095",
+      "dirty": false,
+      "github_sha": "001b066721933c6f1ffe05a634888330351d6095"
+    },
+    "load_average_before": [
+      3.902,
+      3.157,
+      1.52
+    ],
+    "android_serial_source": "ANDROID_SERIAL",
+    "android_serial": "emulator-5554",
+    "load_average_after": [
+      3.47,
+      3.124,
+      1.577
+    ]
+  },
+  "device": {
+    "ro.build.version.sdk": "35",
+    "ro.product.model": "Android SDK built for x86_64",
+    "ro.product.cpu.abi": "x86_64",
+    "screen_size": "Physical size: 1080x2400",
+    "animation_scales": {
+      "window_animation_scale": "0",
+      "transition_animation_scale": "0",
+      "animator_duration_scale": "0"
+    }
+  },
+  "setup": {
+    "apk_install_and_fixture_launch_ms": 1386.8918420000114,
+    "agent_instrumentation_ready_ms": 311.2218079999707,
+    "ready_includes": [
+      "adb forward",
+      "instrumentation startup",
+      "authenticated ping readiness"
+    ],
+    "mcp_stdio_initialize_and_tools_list_ms": 2.0374059999994643
+  },
+  "benchmarks": {
+    "snapshot_adb_uiautomator_dump_pull": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 1957.558719,
+      "p95_ms": 2215.638819,
+      "mean_ms": 1985.1293783,
+      "samples_ms": [
+        2215.638819,
+        1959.346782,
+        1960.681096,
+        1962.637202,
+        1956.979428,
+        1956.505102,
+        1957.558719,
+        1972.394048,
+        1954.164226,
+        1955.388361
+      ]
+    },
+    "screenshot_adb_exec_out_screencap_png": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 203.077077,
+      "p95_ms": 229.890332,
+      "mean_ms": 206.1052131,
+      "samples_ms": [
+        229.890332,
+        204.583628,
+        200.152269,
+        201.111659,
+        202.313305,
+        209.020595,
+        203.077077,
+        206.463163,
+        200.906251,
+        203.533852
+      ]
+    },
+    "snapshot_persistent_tcp": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 8.202002,
+      "p95_ms": 18.129817,
+      "mean_ms": 9.761465099999999,
+      "samples_ms": [
+        18.129817,
+        8.202002,
+        9.477264,
+        8.551253,
+        8.609785,
+        13.811017,
+        7.841631,
+        7.367118,
+        7.579255,
+        8.045509
+      ]
+    },
+    "snapshot_mcp_stdio": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 3.530491,
+      "p95_ms": 7.541764,
+      "mean_ms": 4.4730232999999995,
+      "samples_ms": [
+        6.921695,
+        7.541764,
+        6.986326,
+        3.791801,
+        3.520066,
+        3.530491,
+        2.769702,
+        4.030446,
+        3.285476,
+        2.352466
+      ]
+    },
+    "screenshot_persistent_tcp_png": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 159.918956,
+      "p95_ms": 214.616468,
+      "mean_ms": 150.9623388,
+      "samples_ms": [
+        214.616468,
+        166.951366,
+        163.993749,
+        160.003342,
+        159.918956,
+        159.953237,
+        118.119927,
+        119.555395,
+        126.626783,
+        119.884165
+      ]
+    },
+    "screenshot_persistent_tcp_webp": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 148.660829,
+      "p95_ms": 157.795472,
+      "mean_ms": 149.1092693,
+      "samples_ms": [
+        149.856421,
+        157.795472,
+        148.679507,
+        148.660829,
+        144.616952,
+        146.750592,
+        151.94953,
+        146.545697,
+        147.372209,
+        148.865484
+      ]
+    },
+    "screenshot_mcp_stdio_png": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 128.680744,
+      "p95_ms": 171.809676,
+      "mean_ms": 144.5308444,
+      "samples_ms": [
+        126.250653,
+        162.974079,
+        171.809676,
+        164.201107,
+        159.848091,
+        163.942262,
+        118.494664,
+        125.829515,
+        123.277653,
+        128.680744
+      ]
+    },
+    "screenshot_mcp_stdio_webp": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 148.666617,
+      "p95_ms": 152.727389,
+      "mean_ms": 149.1377009,
+      "samples_ms": [
+        149.376395,
+        152.727389,
+        151.352811,
+        148.011271,
+        146.69556,
+        145.407781,
+        148.709181,
+        148.666617,
+        148.638085,
+        151.791919
+      ]
+    },
+    "action_tap_settled_persistent_tcp": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 380.180065,
+      "p95_ms": 828.854036,
+      "mean_ms": 422.61364729999997,
+      "samples_ms": [
+        828.854036,
+        361.935077,
+        387.431681,
+        361.491596,
+        381.123882,
+        384.428547,
+        373.417508,
+        380.180065,
+        373.70986,
+        393.564221
+      ]
+    },
+    "action_tap_settled_mcp_stdio": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 372.992245,
+      "p95_ms": 391.736527,
+      "mean_ms": 377.4715803,
+      "samples_ms": [
+        388.132641,
+        391.736527,
+        390.678259,
+        373.257519,
+        372.992245,
+        369.077381,
+        365.023049,
+        364.968647,
+        369.576855,
+        389.27268
+      ]
+    }
+  },
+  "errors": []
+}
