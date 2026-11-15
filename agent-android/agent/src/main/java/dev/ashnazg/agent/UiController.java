@@ -28,12 +28,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 final class UiController {
@@ -95,6 +96,7 @@ final class UiController {
         boolean acted = false;
         boolean navigationObserved = true;
         boolean mutationObserved = true;
+        long[] navigationDeadline = {0};
         switch (action) {
             case "tap": case "long_press": case "type": case "clear": {
                 if ("tap".equals(action) || "long_press".equals(action)) {
@@ -123,7 +125,7 @@ final class UiController {
             }
             case "back":
                 boolean[] backAccepted = new boolean[1];
-                navigationObserved = awaitNavigation(() -> backAccepted[0] = automation.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK));
+                navigationObserved = awaitNavigation(() -> backAccepted[0] = automation.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK), navigationDeadline);
                 if (!backAccepted[0]) throw new IllegalStateException("back action was not accepted");
                 acted = true;
                 break;
@@ -132,13 +134,14 @@ final class UiController {
                 Uri uri = Uri.parse(link);
                 if (uri.getScheme() == null) throw new IllegalArgumentException("deep_link text must be an absolute URI");
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                navigationObserved = awaitNavigation(() -> instrumentation.getTargetContext().startActivity(intent));
+                navigationObserved = awaitNavigation(() -> instrumentation.getTargetContext().startActivity(intent), navigationDeadline);
                 acted = true;
                 break;
             }
         }
         long actionCompletedAtMs = SystemClock.elapsedRealtime();
-        boolean quiet = !acted || awaitQuietWindow(actionCompletedAtMs);
+        long quietDeadline = navigationDeadline[0] == 0 ? actionCompletedAtMs + 2000 : navigationDeadline[0];
+        boolean quiet = !acted || awaitQuietWindow(actionCompletedAtMs, quietDeadline);
         boolean settled = !acted || (NavigationBarrier.settled(navigationObserved, true) &&
                 NavigationBarrier.afterMutation(mutationObserved, true) && quiet);
         automation.clearCache();
@@ -462,14 +465,17 @@ final class UiController {
     }
 
     private boolean awaitQuietWindow(long actionCompletedAtMs) {
-        long deadline = actionCompletedAtMs + 2000;
+        return awaitQuietWindow(actionCompletedAtMs, actionCompletedAtMs + 2000);
+    }
+
+    private boolean awaitQuietWindow(long actionCompletedAtMs, long deadline) {
         while (true) {
             long now = SystemClock.elapsedRealtime();
+            long remainingOverall = deadline - now;
+            if (remainingOverall <= 0) return false;
             long lastEvent = lastAccessibilityEventAtMs.get();
             long remainingQuiet = QuietWindowPolicy.remainingMs(actionCompletedAtMs, lastEvent, now, 120);
             if (remainingQuiet == 0) return true;
-            long remainingOverall = deadline - now;
-            if (remainingOverall <= 0) return false;
             synchronized (accessibilityEventMonitor) {
                 if (lastAccessibilityEventAtMs.get() != lastEvent) continue;
                 try { accessibilityEventMonitor.wait(Math.min(remainingQuiet, remainingOverall)); }
@@ -478,14 +484,130 @@ final class UiController {
         }
     }
 
-    private boolean awaitNavigation(Runnable action) {
+    private boolean awaitNavigation(Runnable action, long[] deadlineHolder) {
+        long deadline = SystemClock.elapsedRealtime() + 5000;
+        deadlineHolder[0] = deadline;
+        NavigationPostcondition.State before = null;
+        while (SystemClock.elapsedRealtime() < deadline) {
+            before = navigationState();
+            if (SystemClock.elapsedRealtime() >= deadline) return false;
+            if (before != null && before.coherent && before.rootReady()) break;
+            waitForNavigationSample(deadline);
+        }
+        if (before == null || !before.coherent || !before.rootReady() || SystemClock.elapsedRealtime() >= deadline)
+            return false;
+
+        // Invoke once. Accessibility events only wake the postcondition sampler.
+        action.run();
+        NavigationPostcondition postcondition = new NavigationPostcondition(before);
+        while (SystemClock.elapsedRealtime() < deadline) {
+            NavigationPostcondition.State candidate = navigationState();
+            long now = SystemClock.elapsedRealtime();
+            if (postcondition.observe(candidate, now, deadline)) return true;
+            if (now >= deadline) return false;
+            waitForNavigationSample(deadline);
+        }
+        return false;
+    }
+
+    private NavigationPostcondition.State navigationState() {
+        long generationBefore = windowEventGeneration.get();
+        automation.clearCache();
+        AccessibilityNodeInfo root = automation.getRootInActiveWindow();
+        if (root == null) return null;
+        int rootWindowId = root.getWindowId();
+        CharSequence rawPackage = root.getPackageName();
+        String packageName = rawPackage == null ? null : rawPackage.toString();
+        String fingerprint = semanticFingerprint(root);
+        root.recycle();
+
+        List<NavigationPostcondition.Window> windows = new ArrayList<>();
+        boolean rootActive = false, rootFocused = false;
+        List<android.view.accessibility.AccessibilityWindowInfo> infos = automation.getWindows();
         try {
-            AccessibilityEvent result = automation.executeAndWaitForEvent(action, event ->
-                    event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
-                            event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED, 5000);
-            result.recycle();
-            return true;
-        } catch (TimeoutException e) { return false; }
+            for (android.view.accessibility.AccessibilityWindowInfo info : infos) {
+                int type = info.getType();
+                if (type != android.view.accessibility.AccessibilityWindowInfo.TYPE_APPLICATION &&
+                        type != android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD) continue;
+                Rect bounds = new Rect();
+                info.getBoundsInScreen(bounds);
+                int policyType = type == android.view.accessibility.AccessibilityWindowInfo.TYPE_APPLICATION ?
+                        NavigationPostcondition.APPLICATION : NavigationPostcondition.INPUT_METHOD;
+                windows.add(new NavigationPostcondition.Window(info.getId(), policyType, info.isActive(), info.isFocused(),
+                        new NavigationPostcondition.Bounds(bounds.left, bounds.top, bounds.right, bounds.bottom)));
+                if (info.getId() == rootWindowId) {
+                    rootActive = info.isActive();
+                    rootFocused = info.isFocused();
+                }
+            }
+        } finally {
+            for (android.view.accessibility.AccessibilityWindowInfo info : infos) info.recycle();
+        }
+        Collections.sort(windows, Comparator.comparingInt(window -> window.id));
+        long generationAfter = windowEventGeneration.get();
+        return new NavigationPostcondition.State(rootWindowId, packageName, fingerprint, windows,
+                rootActive, rootFocused, generationAfter, generationBefore == generationAfter);
+    }
+
+    private String semanticFingerprint(AccessibilityNodeInfo root) {
+        StringBuilder fingerprint = new StringBuilder();
+        int[] visited = {0};
+        appendSemanticFingerprint(root, fingerprint, visited, 0);
+        return fingerprint.toString();
+    }
+
+    private void appendSemanticFingerprint(AccessibilityNodeInfo node, StringBuilder out, int[] visited, int depth) {
+        if (node == null || depth > MAX_DEPTH || visited[0] >= MAX_NODES) return;
+        visited[0]++;
+        if (node.isVisibleToUser()) {
+            boolean password = node.isPassword();
+            String text = NodeText.snapshotText(node.getText(), password, node.isShowingHintText());
+            CharSequence description = node.getContentDescription();
+            if (text.isEmpty() && !password && description != null) text = description.toString();
+            String safeDescription = description == null || password ? "" : description.toString();
+            CharSequence rawHint = node.getHintText();
+            String safeHint = rawHint == null || password ? "" : rawHint.toString();
+            CharSequence rawId = node.getViewIdResourceName();
+            String id = rawId == null ? "" : rawId.toString();
+            if (id.isEmpty()) {
+                Bundle extras = node.getExtras();
+                CharSequence tag = extras == null ? null : extras.getCharSequence("androidx.compose.ui.semantics.testTag");
+                if (tag != null) id = tag.toString();
+            }
+            appendFingerprintField(out, id);
+            appendFingerprintField(out, role(node, node.isEditable()));
+            appendFingerprintField(out, text);
+            appendFingerprintField(out, safeDescription);
+            appendFingerprintField(out, safeHint);
+            out.append(node.isEnabled() ? '1' : '0').append(node.isFocused() ? '1' : '0')
+                    .append(node.isCheckable() ? '1' : '0').append(node.isChecked() ? '1' : '0')
+                    .append(node.isSelected() ? '1' : '0').append(node.isClickable() ? '1' : '0')
+                    .append(node.isLongClickable() ? '1' : '0').append(node.isEditable() ? '1' : '0')
+                    .append(node.isScrollable() ? '1' : '0').append(password ? '1' : '0').append(';');
+        }
+        for (int i = 0; i < node.getChildCount() && visited[0] < MAX_NODES; i++) {
+            AccessibilityNodeInfo child = node.getChild(i);
+            if (child != null) {
+                try { appendSemanticFingerprint(child, out, visited, depth + 1); }
+                finally { child.recycle(); }
+            }
+        }
+    }
+
+    private void appendFingerprintField(StringBuilder out, String value) {
+        String safe = value == null ? "" : value;
+        out.append(safe.length()).append(':').append(safe).append('|');
+    }
+
+    private void waitForNavigationSample(long deadline) {
+        long remaining = deadline - SystemClock.elapsedRealtime();
+        if (remaining <= 0) return;
+        long observedEvent = lastAccessibilityEventAtMs.get();
+        synchronized (accessibilityEventMonitor) {
+            if (lastAccessibilityEventAtMs.get() != observedEvent) return;
+            try { accessibilityEventMonitor.wait(Math.min(50, remaining)); }
+            catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        }
     }
 
     private boolean awaitExpectedText(Record record, String expected) {

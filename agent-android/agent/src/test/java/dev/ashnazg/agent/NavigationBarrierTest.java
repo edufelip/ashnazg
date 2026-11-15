@@ -4,7 +4,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class NavigationBarrierTest {
-    @Test public void navigationSettlesOnlyAfterWindowEventAndQuietWindow() {
+    @Test public void navigationSettlesOnlyAfterObservedOutcomeAndQuietWindow() {
         assertTrue(NavigationBarrier.settled(true, true));
         assertFalse(NavigationBarrier.settled(false, true));
         assertFalse(NavigationBarrier.settled(true, false));

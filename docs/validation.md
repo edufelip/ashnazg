@@ -5,7 +5,7 @@ Local validation on 2026-11-15 uses the optimized Rust host, Android API 37 arm6
 ## Correctness
 
 - Rust: formatting, Clippy with warnings denied, 14 tests and locked release build.
-- Android agent: JVM tests for both debug/release variants, Android lint and APK build. There are 40 distinct JVM cases per variant.
+- Android agent: JVM tests for both debug/release variants, Android lint and APK build. There are 47 distinct JVM cases per variant.
 - Harness: Python unit tests, direct CLI invocation, actionlint, and real-device acceptance.
 - Actual Android acceptance: **28 RPC groups and 10 MCP groups passed**. Coverage includes every action, Unicode input, password redaction/clear/type, exact and ambiguous selectors, stale IDs, screenshot-mark selection, PNG/WebP, literal/time-filtered cross-app logs, auth, malformed/oversized frames, HTTP and stdio MCP, and APK install/launch.
 - Actual Compose and React Native checks confirm test IDs, taps, exact Unicode type/clear, and screenshots. The RN APK uses real Hermes bytecode, New Architecture and generated `libappmodules.so` for arm64/x86_64; local execution verifies arm64. Hosted CI is configured for API 35 x86_64; its required PR checks provide the hosted execution evidence.
@@ -15,7 +15,7 @@ Local validation on 2026-11-15 uses the optimized Rust host, Android API 37 arm6
 
 A follow-up regression pass applied the emulator’s Pixel 6 cutout profile on the local API 37 device. Three fresh launches of each real framework passed the same one-tap counter, Unicode type/clear and screenshot checks ([24 check groups](evidence/local-2026-11-15-window-guard/cutout-acceptance.json)). This covers the fixture inset correction and the pre-input window geometry guard; it is separate from hosted API 35 execution.
 
-A subsequent local fault injection replaced the native fixture Activity during pointer preparation by enabling the Pixel 6 overlay. The original implementation failed with a stale node and count zero; semantic reacquisition reached count one. Numeric/snapshot admission, package/identity changes, deadline expiry and the single-reacquisition limit are covered by JVM tests. The full acceptance and benchmark receipts below predate this additional recovery change; the current PR head still requires hosted integration validation.
+A subsequent local fault injection replaced the native fixture Activity during pointer preparation by enabling the Pixel 6 overlay. The original implementation failed with a stale node and count zero; semantic reacquisition reached count one. Numeric/snapshot admission, package/identity changes, deadline expiry and the single-reacquisition limit are covered by JVM tests. The full acceptance and benchmark receipts below predate the additional recovery and navigation changes; the current PR head still requires hosted integration validation.
 
 ## Performance
 
