@@ -101,7 +101,7 @@ jobs:
           cache-dependency-path: fixtures/reactnative/package-lock.json
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
         with:
-          packages: 'platform-tools platforms;android-35 build-tools;35.0.0 ndk;27.1.12297006 cmake;3.22.1'
+          packages: 'platform-tools emulator platforms;android-35 build-tools;35.0.0 ndk;27.1.12297006 cmake;3.22.1 system-images;android-35;default;x86_64'
       - name: Install React Native dependencies
         run: npm ci
         working-directory: fixtures/reactnative
@@ -123,17 +123,8 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
-        with:
-          api-level: 35
-          target: default
-          arch: x86_64
-          profile: pixel_6
-          disable-animations: true
-          script: |
-            python3 -m unittest discover -s tests -v
-            python3 scripts/integration.py --framework-fixtures --output artifacts/integration.json --artifacts artifacts/integration
-            python3 scripts/benchmark.py --iterations 10 --output artifacts/benchmark.json
+      - name: Launch owned emulator and run checks
+        run: python3 scripts/ci_emulator.py --port 5554 --output-dir artifacts/emulator
       - name: Upload benchmark evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -144,6 +135,7 @@ jobs:
             artifacts/benchmark.json
             artifacts/integration.json
             artifacts/integration/**
+            artifacts/emulator/**
 
   quality-gate:
     name: Quality gate
