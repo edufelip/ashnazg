@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "source_sha": "7b78929d6393249cf079f81fbb3a18ed8270c5c2",
+  "workflow_run": "https://github.com/edufelip/ashnazg/actions/runs/43760203244",
+  "archive_sha256": "52e2b4da0d52b1c772d6113b7e9dc9ce366ddcb7496acb71cfd3508f95565dbd",
+  "immutable_assets": true,
+  "fresh_state_disk": true,
+  "configuration_validation": "passed",
+  "kernel_fragment_verification": "passed",
+  "network_lease": "obtained",
+  "docker_bridge": "created",
+  "android_container": "started",
+  "android_readiness": false,
+  "terminal_failure": "Initial ADB connect probe timed out after 10 seconds, ending readiness before its overall 600-second deadline.",
+  "early_android_errors": [
+    "servicemanager could not open /dev/binder: ENOENT",
+    "vold could not open /dev/hwbinder: ENOENT"
+  ],
+  "binder_failure_qualification": "These errors were captured during the first ten seconds of Android startup; this run does not prove they persist through the full readiness deadline.",
+  "pinned_image_init_rc": {
+    "path": "/system/etc/init/hw/init.rc",
+    "sha256": "b360fb84a4b5f5962f969bd137e59c648f8f6a65e5a0688d35cdaab625c9f188",
+    "observed_bootstrap": "Mount Binderfs at /dev/binderfs, run binder_alloc for all three devices, then symlink /dev/{binder,hwbinder,vndbinder}."
+  },
+  "shutdown": "Guest supervisor cleaned up its container; PID1 powered off.",
+  "qualification": "No Android fixture, benchmark, or complete v0.3 runtime acceptance is claimed."
+}

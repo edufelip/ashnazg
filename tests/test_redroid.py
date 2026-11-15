@@ -143,6 +143,36 @@ class RedroidValidationTests(unittest.TestCase):
 
 
 class RedroidLifecycleTests(unittest.TestCase):
+    def test_initial_adb_timeout_retries_within_the_boot_deadline(self):
+        calls = []
+        def runner(args, **kwargs):
+            calls.append(args)
+            if len(calls) == 1:
+                raise subprocess.TimeoutExpired(args, kwargs['timeout'])
+            return redroid.CommandResult(0, 'device' if args[-1] == 'get-state' else '1', '')
+        supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'), runner=runner, adb_path='adb')
+        supervisor.deadline = redroid.time.monotonic() + 10
+        with patch.object(redroid.time, 'sleep'), \
+             patch.object(redroid, 'last_anr_status', return_value=False), \
+             patch.object(redroid, 'readiness_status', return_value=(True, 'ready')), \
+             patch.object(redroid, 'focused_application_window', return_value='owned-window'):
+            supervisor._wait_ready()
+        self.assertEqual(sum(args[1:2] == ['connect'] for args in calls), 2)
+        self.assertEqual(supervisor.receipt['readiness'], 'ready')
+
+    def test_repeated_adb_timeouts_still_stop_at_the_original_boot_deadline(self):
+        now = [10.0]
+        def runner(args, **kwargs):
+            raise subprocess.TimeoutExpired(args, kwargs['timeout'])
+        supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'), runner=runner, adb_path='adb')
+        supervisor.deadline = 12.0
+        with patch.object(redroid.time, 'monotonic', side_effect=lambda: now[0]), \
+             patch.object(redroid.time, 'sleep', side_effect=lambda interval: now.__setitem__(0, now[0] + interval)):
+            with self.assertRaisesRegex(redroid.RedroidError, 'timeout'):
+                supervisor._wait_ready()
+        self.assertEqual(now[0], 12.0)
+        self.assertIn('probe timed out', supervisor.receipt['last_readiness'])
+
     def test_anr_during_boot_fails_closed(self):
         calls = []
 
