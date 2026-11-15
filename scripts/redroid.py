@@ -41,6 +41,76 @@ class RedroidError(RuntimeError):
     pass
 
 
+def validate_image_provenance(path: Path, *, architecture: str, checkout_sha: str,
+                              checkout_dirty: bool, inspect_raw: str) -> str:
+    """Validate builder output and a fresh inspect of the local image ID."""
+    try:
+        # Import only for the opt-in derived-image path; the pinned default is independent.
+        if __package__:
+            from . import build_android_image as builder
+        else:
+            import build_android_image as builder
+        if Path(path).is_symlink() or not Path(path).is_file():
+            raise ValueError("provenance must be a regular file")
+        doc = json.loads(Path(path).read_text(encoding="utf-8"))
+        required = {"schema", "recipe_version", "source_sha", "source_dirty", "upstream_base",
+                    "platform", "apk_inputs", "image_inspect", "notices", "qualification"}
+        if not isinstance(doc, dict) or set(doc) != required:
+            raise ValueError("descriptor schema is incomplete")
+        if doc["schema"] != 1 or doc["recipe_version"] != builder.VERSION:
+            raise ValueError("unsupported descriptor schema or recipe version")
+        source_sha = doc.get("source_sha")
+        if (not isinstance(source_sha, str) or not builder.SHA_RE.fullmatch(source_sha) or
+                doc["source_dirty"] is not False or checkout_dirty or source_sha != checkout_sha):
+            raise ValueError("source provenance does not match a clean checkout HEAD")
+        platform_name = f"linux/{architecture}"
+        if doc["platform"] != platform_name:
+            raise ValueError("image platform does not match this host")
+        base = doc["upstream_base"]
+        if (base.get("image") != builder.BASE_IMAGE or base.get("index_digest") != builder.BASE_INDEX or
+                base.get("platform_digest") != builder.BASE_PLATFORM_DIGESTS[platform_name]):
+            raise ValueError("unknown upstream base provenance")
+        inspect = doc["image_inspect"]
+        if not isinstance(inspect, dict) or not {"id", "repo_tags", "os", "architecture", "variant",
+                                                  "config", "rootfs_layers"}.issubset(inspect):
+            raise ValueError("descriptor image inspect schema is incomplete")
+        image_id = inspect.get("id")
+        if not isinstance(image_id, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", image_id):
+            raise ValueError("descriptor image ID is invalid")
+        apks = doc["apk_inputs"]
+        labels = inspect.get("config", {}).get("labels")
+        if not isinstance(labels, dict) or not isinstance(apks, dict) or set(apks) != {"agent", "fixture"}:
+            raise ValueError("descriptor APK or label provenance is incomplete")
+        expected = {
+            "org.ashnazg.base-image": builder.BASE_IMAGE,
+            "org.ashnazg.version": builder.VERSION,
+            "org.ashnazg.source-sha": checkout_sha,
+            "org.ashnazg.platform": platform_name,
+        }
+        for name in ("agent", "fixture"):
+            digest = apks[name]["sha256"]
+            if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+                raise ValueError(f"invalid {name} APK digest")
+            expected[f"org.ashnazg.{name}-sha256"] = digest
+        if any(labels.get(key) != value for key, value in expected.items()):
+            raise ValueError("descriptor provenance labels do not match expected values")
+        actual = builder._inspect_metadata(
+            inspect_raw, platform=platform_name, tag=f"ashnazg-redroid:{builder.VERSION}",
+            source_sha=checkout_sha, version=builder.VERSION,
+            apk_sha256={name: apks[name]["sha256"] for name in ("agent", "fixture")},
+        )
+        # Tags are mutable aliases; the immutable image and its runtime configuration
+        # must match, while extra local aliases are irrelevant to the launched ID.
+        if any(actual[key] != inspect[key] for key in (
+                "id", "os", "architecture", "variant", "config", "rootfs_layers")):
+            raise ValueError("local image inspect does not match provenance descriptor")
+        return image_id
+    except RedroidError:
+        raise
+    except Exception as exc:
+        raise RedroidError(f"invalid local image provenance: {exc}") from exc
+
+
 class RunSignal(BaseException):
     def __init__(self, signum: int):
         self.signum = signum
@@ -110,7 +180,7 @@ class RedroidSupervisor:
                  runner: Callable = subprocess.run, host_system: str | None = None,
                  host_arch: str | None = None, binder_path: Path = Path("/dev/binder"),
                  docker_path: str | None = None, adb_path: str | None = None,
-                 binder_available: bool | None = None):
+                 binder_available: bool | None = None, image_provenance: Path | None = None):
         self.output_dir = Path(output_dir)
         self.adb_port = adb_port
         self.timeout = timeout
@@ -122,6 +192,9 @@ class RedroidSupervisor:
         self.binder_available = binder_available
         self.docker_path = docker_path
         self.adb_path = adb_path
+        self.image_provenance = Path(image_provenance) if image_provenance else None
+        self.image = IMAGE
+        self.display = DISPLAY
         self.architecture = ""
         self.run_id = str(uuid.uuid4())
         self.container_name = f"ashnazg-redroid-{self.run_id}"
@@ -188,10 +261,38 @@ class RedroidSupervisor:
         devices = self._command([self.adb_path, "devices", "-l"], check=True, timeout=10).stdout
         if re.search(rf"(?m)^{re.escape(self.serial)}\s+", devices):
             raise RedroidError(f"ADB serial {self.serial} is already in use")
-        raw_index = self._command([self.docker_path, "buildx", "imagetools", "inspect", "--raw", IMAGE],
-                                  timeout=30).stdout
-        platform_digest = verify_image_index(raw_index, IMAGE_INDEX, self.architecture)
-        self.receipt["platform_digest"] = platform_digest
+        if self.image_provenance:
+            repository = str(Path(__file__).resolve().parent.parent)
+            try:
+                source_sha = subprocess.run(["git", "-C", repository, "rev-parse", "HEAD"],
+                                            capture_output=True, text=True, timeout=5, check=True).stdout.strip()
+                dirty = bool(subprocess.run(["git", "-C", repository, "status", "--porcelain",
+                                             "--untracked-files=all"], capture_output=True, text=True,
+                                            timeout=5, check=True).stdout.strip())
+            except (OSError, subprocess.SubprocessError) as exc:
+                raise RedroidError("cannot verify local image source checkout") from exc
+            try:
+                descriptor = json.loads(self.image_provenance.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as exc:
+                raise RedroidError(f"invalid local image provenance: {exc}") from exc
+            image_id = descriptor.get("image_inspect", {}).get("id") if isinstance(descriptor, dict) else None
+            if not isinstance(image_id, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", image_id):
+                raise RedroidError("invalid local image provenance: descriptor image ID is invalid")
+            actual = self._command([self.docker_path, "image", "inspect", image_id], timeout=15).stdout
+            self.image = validate_image_provenance(self.image_provenance, architecture=self.architecture,
+                                                   checkout_sha=source_sha, checkout_dirty=dirty,
+                                                   inspect_raw=actual)
+            # The recipe's known runtime profile is fixed at 60 fps; no governor claim is made.
+            self.display = {**DISPLAY, "fps": 60, "renderer": "guest"}
+            self.receipt["image_provenance"] = str(self.image_provenance)
+            self.receipt["image_profile"] = self.display
+            self.receipt["image"] = self.image
+            self.receipt["requested_display"] = self.display
+        else:
+            raw_index = self._command([self.docker_path, "buildx", "imagetools", "inspect", "--raw", IMAGE],
+                                      timeout=30).stdout
+            platform_digest = verify_image_index(raw_index, IMAGE_INDEX, self.architecture)
+            self.receipt["platform_digest"] = platform_digest
 
     def _write_metadata(self) -> None:
         source_dirty = None
@@ -211,10 +312,10 @@ class RedroidSupervisor:
             "schema": 1, "run_id": self.run_id, "source_sha": source_sha,
             "source_dirty": source_dirty,
             "github_sha": os.environ.get("GITHUB_SHA"),
-            "image_index": IMAGE_INDEX, "image": IMAGE, "host": {
+            "image_index": IMAGE_INDEX if not self.image_provenance else None, "image": self.image, "host": {
                 "system": self.host_system, "kernel": platform.release(),
                 "architecture": self.host_arch, "runner_image": os.environ.get("ImageOS") or os.environ.get("RUNNER_OS_IMAGE"),
-            }, "requested_display": DISPLAY, "adb_port": self.adb_port, "serial": self.serial,
+            }, "requested_display": self.display, "adb_port": self.adb_port, "serial": self.serial,
             "started_at_unix": time.time(), "status": "running", "setup_timings_seconds": {},
         })
 
@@ -223,10 +324,11 @@ class RedroidSupervisor:
                 "--label", f"org.ashnazg.redroid.run-id={self.run_id}",
                 "--platform", f"linux/{self.architecture}", "--volume", "/data",
                 "--publish", f"127.0.0.1:{self.adb_port}:5555", "--device", "/dev/binder:/dev/binder",
-                "--env", "ANDROID_BINDER_DEVICES=binder,hwbinder,vndbinder", IMAGE,
-                "androidboot.redroid_width=720", "androidboot.redroid_height=1280",
-                "androidboot.redroid_dpi=320", "androidboot.redroid_fps=30",
-                "androidboot.redroid_gpu_mode=guest", "androidboot.use_memfd=true"]
+                "--env", "ANDROID_BINDER_DEVICES=binder,hwbinder,vndbinder", self.image]
+        if not self.image_provenance:
+            args.extend(["androidboot.redroid_width=720", "androidboot.redroid_height=1280",
+                         "androidboot.redroid_dpi=320", "androidboot.redroid_fps=30",
+                         "androidboot.redroid_gpu_mode=guest", "androidboot.use_memfd=true"])
         # A timed-out Docker client may already have created the container. Cleanup
         # inspects its unique label before acting, including this ambiguous path.
         self.container_started = True
@@ -429,6 +531,8 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--timeout", type=int, default=180)
     run.add_argument("--command-timeout", type=int, default=2400,
                      help="command deadline in seconds; 0 explicitly allows a persistent service")
+    run.add_argument("--image-provenance", type=Path,
+                     help="opt in to a locally built image with a verified provenance descriptor")
     run.add_argument("command", nargs=argparse.REMAINDER)
     return parser
 
@@ -447,7 +551,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.error("--command-timeout must be between 0 and 86400 seconds")
     try:
         return RedroidSupervisor(output_dir=args.output_dir, adb_port=args.adb_port,
-                                 timeout=args.timeout, command_timeout=args.command_timeout).run(command)
+                                 timeout=args.timeout, command_timeout=args.command_timeout,
+                                 image_provenance=args.image_provenance).run(command)
     except RedroidError as exc:
         print(f"redroid: {exc}", file=sys.stderr)
         return 1

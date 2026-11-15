@@ -30,6 +30,7 @@ jobs:
           mkdir -p artifacts/redroid
           {
             printf 'source_sha=%s\n' "$ASHNAZG_SOURCE_SHA"
+            printf 'profile_image=%s\n' 'redroid/redroid@sha256:81889852444606824d33eb0232fa5813bce3f0993afe871785120af0d7c991ad'
             printf 'github_sha=%s\n' "$GITHUB_SHA"
             printf 'runner_os=%s\n' "$RUNNER_OS"
             printf 'runner_arch=%s\n' "$RUNNER_ARCH"
@@ -71,6 +72,44 @@ jobs:
             set -euo pipefail
             python3 scripts/integration.py --framework-fixtures --output artifacts/integration.json --artifacts artifacts/integration
             python3 scripts/benchmark.py --iterations 10 --output artifacts/benchmark.json
+      - name: Build local derived Android image
+        run: |
+          mkdir -p artifacts/android-image
+          python3 scripts/build_android_image.py \
+            --source-sha "$ASHNAZG_SOURCE_SHA" \
+            --version 0.2.0 \
+            --platform linux/amd64 \
+            --tag ashnazg-redroid:0.2.0 \
+            --agent-apk agent-android/agent/build/outputs/apk/debug/agent-debug.apk \
+            --fixture-apk agent-android/fixture/build/outputs/apk/debug/fixture-debug.apk \
+            --output artifacts/android-image/provenance.json
+      - name: Run preinstalled image integration and 100-sample benchmark
+        uses: ./
+        with:
+          output-directory: artifacts/android-image/runtime
+          adb-port: '5555'
+          boot-timeout: '180'
+          image-provenance: artifacts/android-image/provenance.json
+          command: |
+            set -euo pipefail
+            mkdir -p artifacts/android-image
+            scales=(window_animation_scale transition_animation_scale animator_duration_scale)
+            deadline=$((SECONDS + 45))
+            while true; do
+              all_zero=true
+              for scale in "${scales[@]}"; do
+                remaining=$((deadline - SECONDS))
+                (( remaining > 0 )) || { echo 'animation initialization timed out before harness setup' >&2; exit 1; }
+                value="$(timeout "${remaining}s" adb shell settings get global "$scale" | tr -d '\r')" || value='<read failed>'
+                printf '%s=%s\n' "$scale" "$value" | tee -a artifacts/android-image/animation-scales-before-harness.txt
+                [[ "$value" == "0" ]] || all_zero=false
+              done
+              "$all_zero" && break
+              (( SECONDS < deadline )) || { echo 'animation initialization timed out before harness setup' >&2; exit 1; }
+              sleep 1
+            done
+            python3 scripts/integration.py --preinstalled-agent --framework-fixtures --output artifacts/android-image/integration.json --artifacts artifacts/android-image/integration
+            python3 scripts/benchmark.py --iterations 10 --output artifacts/android-image/benchmark.json
       - name: Clean up the owned Binderfs test fixture
         if: always()
         run: sudo env GITHUB_ACTIONS="$GITHUB_ACTIONS" python3 scripts/linux_binder.py --output-dir artifacts/redroid --cleanup
@@ -85,6 +124,7 @@ jobs:
             artifacts/integration.json
             artifacts/integration/**
             artifacts/benchmark.json
+            artifacts/android-image/**
             target/release/ashnazg
             agent-android/agent/build/outputs/apk/debug/*.apk
             agent-android/fixture/build/outputs/apk/debug/*.apk

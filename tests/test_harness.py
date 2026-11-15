@@ -9,6 +9,7 @@ from unittest.mock import patch
 from scripts.harness import DeviceHarness, HarnessError
 from scripts.integration import (FIXTURE_LOG_TAG, IntegrationFailure, artifact_evidence,
                                  assert_button_label, require_tagged_log_evidence, safe_snapshot,
+                                 verify_preinstalled_apks,
                                  wait_for_framework_ready)
 
 
@@ -24,6 +25,33 @@ class ReadinessClock:
 
 
 class DeviceOwnershipTests(unittest.TestCase):
+    def test_preinstalled_apks_require_system_paths_and_matching_bytes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            apks = [root / "agent.apk", root / "fixture.apk"]
+            for path, value in zip(apks, (b"agent build", b"fixture build")):
+                path.write_bytes(value)
+            class ApkHarness:
+                def __init__(self, wrong=False, absent=False):
+                    self.wrong, self.absent = wrong, absent
+                def adb_cmd(self, *args, **kwargs):
+                    if args[:3] == ("shell", "pm", "path"):
+                        if self.absent:
+                            return subprocess.CompletedProcess([], 0, "", "")
+                        package = args[3]
+                        name = "agent" if package.endswith("agent") else "fixture"
+                        return subprocess.CompletedProcess([], 0, f"package:/system/app/{name}/{name}.apk\n", "")
+                    target = Path(args[-1])
+                    value = b"wrong APK" if self.wrong else (b"agent build" if "agent" in args[-2] else b"fixture build")
+                    target.write_bytes(value)
+                    return subprocess.CompletedProcess([], 0, "", "")
+            verified = verify_preinstalled_apks(ApkHarness(), *apks)
+            self.assertEqual(len(verified), 2)
+            with self.assertRaisesRegex(IntegrationFailure, "not a preinstalled"):
+                verify_preinstalled_apks(ApkHarness(absent=True), *apks)
+            with self.assertRaisesRegex(IntegrationFailure, "hash"):
+                verify_preinstalled_apks(ApkHarness(wrong=True), *apks)
+
     @staticmethod
     def bare_harness(token="ci-test-secret-token"):
         harness = DeviceHarness.__new__(DeviceHarness)
