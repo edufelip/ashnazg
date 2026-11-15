@@ -1,0 +1,31 @@
+{
+  "mode": "cold",
+  "bundle_source_sha": "fc1fdbe1db758dde509d0d2f7c0e5290bfff1ee7",
+  "workflow_run": "https://github.com/edufelip/ashnazg/actions/runs/43766856094",
+  "archive_sha256": "c1cd4c5250f1f1a027fcd253f36dfc8b95a2df7d3f4d0b78cb2c4880a7f54c08",
+  "host_checkout_sha": "fc1fdbe1db758dde509d0d2f7c0e5290bfff1ee7",
+  "host_checkout_dirty": false,
+  "apk_artifact_source_sha": "fc1fdbe1db758dde509d0d2f7c0e5290bfff1ee7",
+  "adb_serial": "127.0.0.1:15555",
+  "status": "failed",
+  "helper_pid": 65931,
+  "error": "RuntimeError: VM helper exited before readiness; inspect retained stderr/serial logs",
+  "helper_exit_code": 1,
+  "final_runtime_receipt": {
+    "adb_listen": "127.0.0.1:15555",
+    "architecture": "aarch64",
+    "cpu_count": 2,
+    "error": "guest did not become ready within 600s: The operation couldn\u2019t be completed. Connection reset by peer",
+    "kernel_sha256": "e7deb3a9876e74ac631a687ba8cef56170aa8eec85175bd2c9b724b056c1bcb5",
+    "manifest_source_sha": "fc1fdbe1db758dde509d0d2f7c0e5290bfff1ee7",
+    "manifest_version": "0.3.0",
+    "memory_bytes": 2147483648,
+    "rootfs_template_sha256": "fb44c5a59052229361de41baf7ed34333edd09086e47770b5ee3a92b1fb691e0",
+    "schema_version": 1,
+    "status": "failed",
+    "timings": {
+      "total_startup_ms": 600135,
+      "vm_start_ms": 122
+    }
+  }
+}
