@@ -75,6 +75,11 @@ jobs:
       - name: Build local derived Android image
         run: |
           mkdir -p artifacts/android-image
+          git status --porcelain=v1 --untracked-files=all | tee artifacts/android-image/source-status-before-image.txt
+          if [[ -s artifacts/android-image/source-status-before-image.txt ]]; then
+            echo 'Source checkout changed during build or upstream acceptance; refusing derived-image qualification' >&2
+            exit 1
+          fi
           python3 scripts/build_android_image.py \
             --source-sha "$ASHNAZG_SOURCE_SHA" \
             --version 0.2.0 \

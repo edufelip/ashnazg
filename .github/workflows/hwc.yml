@@ -99,6 +99,11 @@ jobs:
           cd ../fixtures && ./gradlew :compose:assembleDebug :reactnative:assembleDebug
       - name: Build local experimental HWC image
         run: |
+          git status --porcelain=v1 --untracked-files=all | tee artifacts/hwc/source-status-before-image.txt
+          if [[ -s artifacts/hwc/source-status-before-image.txt ]]; then
+            echo 'Source checkout changed during build; refusing HWC image qualification' >&2
+            exit 1
+          fi
           if [[ "$RUNNER_ARCH" == "X64" ]]; then module=artifacts/hwc/modules/x86_64/hwcomposer.default.so; platform=linux/amd64
           else echo "HWC qualification requires an x64 Linux runner" >&2; exit 2; fi
           python3 scripts/build_hwc_image.py \
