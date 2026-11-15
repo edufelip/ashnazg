@@ -279,6 +279,6 @@ PYTHON
 tar -C "$RAW_ASSETS" -cJf "$OUTPUT_DIR/microvm-assets.tar.xz" \
   kernel rootfs.ext4 manifest.json provenance.json kernel.config kernel.generated.config \
   NOTICES.md packages.lock.json linux-${KERNEL_VERSION}.tar.xz
-sha256sum "$OUTPUT_DIR/microvm-assets.tar.xz" > "$OUTPUT_DIR/microvm-assets.tar.xz.sha256"
+(cd "$OUTPUT_DIR" && sha256sum microvm-assets.tar.xz > microvm-assets.tar.xz.sha256)
 printf 'Built guest artifact bundle: %s/microvm-assets.tar.xz\n' "$OUTPUT_DIR"
 printf 'Build output is not runtime boot validation.\n'

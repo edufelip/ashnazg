@@ -59,6 +59,11 @@ def main() -> int:
         ensure_nodes(Path('/dev/binderfs'))
         link_nodes(Path('/dev/binderfs'))
         os.makedirs('/var/lib/docker', exist_ok=True)
+        # A fresh kernel starts both links administratively down. DHCP does not
+        # raise them, and loopback is required by the guest's ADB bridge.
+        for interface in ('lo', 'eth0'):
+            subprocess.run(['/sbin/ip', 'link', 'set', 'dev', interface, 'up'],
+                           check=True, timeout=10)
         network = subprocess.Popen(['/sbin/udhcpc', '-i', 'eth0', '-n', '-q', '-t', '5'])
         if network.wait(timeout=30): raise RuntimeError('guest DHCP failed')
         with open('/var/log/dockerd.log', 'ab') as log:

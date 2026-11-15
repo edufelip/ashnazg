@@ -4,6 +4,7 @@ import importlib.util
 from unittest.mock import patch
 import json
 import socket
+import subprocess
 import tempfile
 import threading
 import unittest
@@ -185,6 +186,28 @@ class GuestBridgeTests(unittest.TestCase):
 
 
 class GuestInitTests(unittest.TestCase):
+    def test_interfaces_are_brought_up_before_dhcp_starts(self):
+        path = Path(__file__).parents[1] / 'runtime/microvm/guest-init.py'
+        spec = importlib.util.spec_from_file_location('ashnazg_guest_network_init', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        commands = []
+        def run_command(args, **kwargs):
+            commands.append(args)
+            return subprocess.CompletedProcess(args, 0)
+        def start_dhcp(args, **kwargs):
+            self.assertEqual(args[:3], ['/sbin/udhcpc', '-i', 'eth0'])
+            self.assertIn(['/sbin/ip', 'link', 'set', 'dev', 'lo', 'up'], commands)
+            self.assertIn(['/sbin/ip', 'link', 'set', 'dev', 'eth0', 'up'], commands)
+            raise RuntimeError('stop after checked DHCP start')
+        with patch.object(module.os, 'getpid', return_value=1), \
+             patch.object(module, 'mount'), patch.object(module, 'ensure_nodes'), \
+             patch.object(module, 'link_nodes'), patch.object(module.os, 'makedirs'), \
+             patch.object(module.signal, 'signal'), \
+             patch.object(module.subprocess, 'run', side_effect=run_command), \
+             patch.object(module.subprocess, 'Popen', side_effect=start_dhcp):
+            with self.assertRaisesRegex(RuntimeError, 'stop after checked DHCP start'):
+                module.main()
+
     def test_startup_failure_powers_off_instead_of_exiting_pid_one(self):
         path = Path(__file__).parents[1] / 'runtime/microvm/guest-init.py'
         spec = importlib.util.spec_from_file_location('ashnazg_guest_init', path)
