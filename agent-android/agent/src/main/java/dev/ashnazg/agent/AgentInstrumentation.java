@@ -11,12 +11,16 @@ public final class AgentInstrumentation extends Instrumentation {
     private volatile boolean stopped;
     private RpcServer server;
     private String token;
+    private boolean traceWindowLookupMiss;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         token = arguments == null ? null : arguments.getString("token");
+        traceWindowLookupMiss = arguments != null && Boolean.parseBoolean(arguments.getString("traceWindowLookupMiss", "false"));
         start();
     }
+
+    boolean traceWindowLookupMissEnabled() { return traceWindowLookupMiss; }
 
     @Override public void onStart() {
         super.onStart();

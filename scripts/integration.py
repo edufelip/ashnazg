@@ -6,11 +6,13 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import hashlib
 import os
 import select
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -22,10 +24,36 @@ from scripts.harness import DeviceHarness, HarnessError, artifact_apks
 
 MAX_MESSAGE = 8 * 1024 * 1024
 FIXTURE_LOG_TAG = "AshnazgFixture"
+PREINSTALLED_PACKAGES = {"agent": "dev.ashnazg.agent", "fixture": "dev.ashnazg.fixture"}
 
 
 class IntegrationFailure(RuntimeError):
     pass
+
+
+def verify_preinstalled_apks(harness: DeviceHarness, agent_apk: Path, fixture_apk: Path) -> dict[str, str]:
+    """Prove each expected system package resolves to bytes matching its build APK."""
+    verified = {}
+    for name, package, apk in (("agent", PREINSTALLED_PACKAGES["agent"], Path(agent_apk)),
+                               ("fixture", PREINSTALLED_PACKAGES["fixture"], Path(fixture_apk))):
+        if not apk.is_file():
+            raise IntegrationFailure(f"{name} build APK is missing: {apk}")
+        expected = hashlib.sha256(apk.read_bytes()).hexdigest()
+        result = harness.adb_cmd("shell", "pm", "path", package)
+        paths = [line.removeprefix("package:").strip() for line in result.stdout.splitlines()
+                 if line.startswith("package:")]
+        if len(paths) != 1 or not paths[0].startswith(("/system/", "/product/", "/system_ext/")):
+            raise IntegrationFailure(f"{package} is not a preinstalled system APK")
+        with tempfile.TemporaryDirectory(prefix="ashnazg-preinstalled-") as temp:
+            copied = Path(temp) / f"{name}.apk"
+            pulled = harness.adb_cmd("pull", paths[0], str(copied))
+            if pulled.returncode != 0 or not copied.is_file():
+                raise IntegrationFailure(f"could not retrieve preinstalled {package} APK for hash verification")
+            actual = hashlib.sha256(copied.read_bytes()).hexdigest()
+        if actual != expected:
+            raise IntegrationFailure(f"preinstalled {package} APK hash does not match its build output")
+        verified[name] = actual
+    return verified
 
 
 class RpcClient:
@@ -662,6 +690,8 @@ def main() -> int:
     parser.add_argument("--no-mcp", action="store_true", help="skip host MCP smoke (RPC checks still run)")
     parser.add_argument("--framework-fixtures", action="store_true",
                         help="also run the real Compose and React Native fixture APKs")
+    parser.add_argument("--preinstalled-agent", action="store_true",
+                        help="verify system agent and fixture APK bytes, then skip their installation")
     parser.add_argument("--output", type=Path, help="write the machine-readable acceptance summary")
     parser.add_argument("--artifacts", type=Path, default=Path("artifacts/integration"),
                         help="directory for screenshot evidence")
@@ -679,7 +709,8 @@ def main() -> int:
             raise HarnessError(f"host binary not found: {binary}; build it or set ASHNAZG_BIN")
         harness = DeviceHarness(args.readiness_timeout)
         agent, fixture = artifact_apks(args.root)
-        harness.start(agent, fixture)
+        preinstalled_hashes = verify_preinstalled_apks(harness, agent, fixture) if args.preinstalled_agent else None
+        harness.start(agent, fixture, install=not args.preinstalled_agent)
         client = RpcClient(harness.token)
         try:
             prepare_native_fixture(client, harness)
@@ -704,6 +735,8 @@ def main() -> int:
         summary = {"device": harness.serial, "cold_setup_ms": round(harness.cold_setup_ms, 3),
                    "rpc_checks": rpc_passed, "mcp_checks": mcp_passed,
                    "run_mode": {"mcp": not args.no_mcp, "framework_fixtures": args.framework_fixtures},
+                   "preinstalled_agent": args.preinstalled_agent,
+                   "preinstalled_apk_sha256": preinstalled_hashes,
                    "framework_fixtures": args.framework_fixtures,
                    "run_id": run_id, "source": source_metadata(args.root),
                    "screenshot_evidence": screenshots, "diagnostic_evidence": diagnostics}

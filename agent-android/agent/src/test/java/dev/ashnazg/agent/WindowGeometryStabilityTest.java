@@ -83,6 +83,16 @@ public class WindowGeometryStabilityTest {
         assertTrue(observe(stability, 7, 4, NODE_SCREEN, null, WINDOW_SCREEN, true, true, 120));
     }
 
+    @Test public void missingWindowGapResetsTheGeometryStabilityInterval() {
+        WindowGeometryStability stability = new WindowGeometryStability(7, 4, WINDOW_SCREEN);
+        assertFalse(observe(stability, 7, 4, NODE_SCREEN, NODE_WINDOW, WINDOW_SCREEN, true, true, 0));
+        stability.resetAfterMissingWindow();
+
+        assertFalse(observe(stability, 7, 4, NODE_SCREEN, NODE_WINDOW, WINDOW_SCREEN, true, true, 120));
+        assertFalse(observe(stability, 7, 4, NODE_SCREEN, NODE_WINDOW, WINDOW_SCREEN, true, true, 239));
+        assertTrue(observe(stability, 7, 4, NODE_SCREEN, NODE_WINDOW, WINDOW_SCREEN, true, true, 240));
+    }
+
     private static boolean observe(WindowGeometryStability stability, int id, long epoch,
                                    WindowGeometryStability.Bounds screen,
                                    WindowGeometryStability.Bounds inWindow,
