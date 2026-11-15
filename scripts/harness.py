@@ -87,10 +87,13 @@ class DeviceHarness:
             self.install(agent_apk, fixture_apk)
         self.adb_cmd("forward", "--no-rebind", "tcp:7777", "tcp:7777")
         self.forward_created = True
+        instrumentation_args = [self.adb, "-s", self.serial, "shell", "am", "instrument", "-w",
+                                "-e", "token", self.token]
+        if os.environ.get("ASHNAZG_CI_DIAGNOSTICS") == "1":
+            instrumentation_args.extend(["-e", "traceWindowLookupMiss", "true"])
+        instrumentation_args.append("dev.ashnazg.agent/dev.ashnazg.agent.AgentInstrumentation")
         self.instrumentation = subprocess.Popen(
-            [self.adb, "-s", self.serial, "shell", "am", "instrument", "-w",
-             "-e", "token", self.token,
-             "dev.ashnazg.agent/dev.ashnazg.agent.AgentInstrumentation"],
+            instrumentation_args,
             stdin=subprocess.DEVNULL, stdout=self.instrument_log, stderr=subprocess.STDOUT,
         )
         deadline = time.monotonic() + self.readiness_timeout
