@@ -484,15 +484,19 @@ class RedroidSupervisor:
     def _collect_diagnostics(self) -> None:
         if not self.container_started or os.environ.get("ASHNAZG_CI_DIAGNOSTICS") != "1":
             return
-        probes = (
-            ("logcat", ("/system/bin/logcat", "-b", "all", "-d", "-t", "250")),
+        container_probes = (
+            ("container_logcat", ("/system/bin/logcat", "-b", "all", "-d", "-t", "250")),
+            ("container_boot_completed", ("/system/bin/getprop", "sys.boot_completed")),
             ("lmk_use_psi", ("/system/bin/getprop", "ro.lmk.use_psi")),
             ("lmk_use_minfree_levels", ("/system/bin/getprop", "ro.lmk.use_minfree_levels")),
-            ("low_ram", ("/system/bin/getprop", "config.low_ram")),
+            ("low_ram", ("/system/bin/getprop", "ro.config.low_ram")),
             ("processes", ("/system/bin/pidof", "lmkd", "system_server", "surfaceflinger")),
-            ("kernel_cgroups", ("/system/bin/cat", "/proc/pressure/memory", "/proc/cgroups",
-                                 "/sys/fs/cgroup/cgroup.controllers", "/proc/self/mountinfo",
-                                 "/system/etc/cgroups.json", "/vendor/etc/cgroups.json")),
+            ("memory_pressure", ("/system/bin/cat", "/proc/pressure/memory")),
+            ("kernel_cgroups", ("/system/bin/cat", "/proc/cgroups")),
+            ("cgroup_controllers", ("/system/bin/cat", "/sys/fs/cgroup/cgroup.controllers")),
+            ("mountinfo", ("/system/bin/cat", "/proc/self/mountinfo")),
+            ("system_cgroup_config", ("/system/bin/cat", "/system/etc/cgroups.json")),
+            ("vendor_cgroup_config", ("/system/bin/cat", "/vendor/etc/cgroups.json")),
         )
         started = time.monotonic()
         try:
@@ -502,17 +506,29 @@ class RedroidSupervisor:
         except Exception:
             self.receipt["diagnostics_skipped"] = "container ownership could not be verified"
             return
+        # Keep the established ADB evidence as well as the container fallback.
+        adb_probes = (
+            ("boot_completed", ("shell", "getprop", "sys.boot_completed")),
+            ("last_anr", ("shell", "dumpsys", "activity", "lastanr")),
+            ("input", ("shell", "dumpsys", "input")),
+            ("windows", ("shell", "dumpsys", "window", "-a", "windows")),
+            ("logcat", ("shell", "logcat", "-d", "-t", "300")),
+        )
+        probes = [(name, [self.docker_path or "docker", "exec", self.container_name, *arguments])
+                  for name, arguments in container_probes]
+        probes.extend((name, [self.adb_path or "adb", "-s", self.serial, *arguments])
+                      for name, arguments in adb_probes)
         diagnostics = {}
-        for name, arguments in probes:
+        for name, command in probes:
             remaining = 45.0 - (time.monotonic() - started)
             if remaining <= 0:
                 diagnostics[name] = {"unavailable": "diagnostic collection budget exhausted"}
                 continue
             try:
-                result = self._command([self.docker_path or "docker", "exec", self.container_name, *arguments],
+                result = self._command(command,
                                        timeout=min(5.0, remaining), check=False, use_deadline=False)
                 diagnostics[name] = {"exit_code": result.returncode,
-                                     "output": _bounded(result.stdout + result.stderr, 4096)}
+                                     "output": _bounded(result.stdout + result.stderr)}
             except Exception as exc:
                 diagnostics[name] = {"unavailable": _bounded(str(exc), 1000)}
         self.receipt["diagnostics"] = diagnostics

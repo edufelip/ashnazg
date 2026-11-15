@@ -543,17 +543,33 @@ class RedroidRegressionTests(unittest.TestCase):
         self.assertTrue(all(kwargs['timeout'] == 5 and kwargs['use_deadline'] is False for _, kwargs in execs))
         expected = {
             ('/system/bin/logcat', '-b', 'all', '-d', '-t', '250'),
+            ('/system/bin/getprop', 'sys.boot_completed'),
             ('/system/bin/getprop', 'ro.lmk.use_psi'),
             ('/system/bin/getprop', 'ro.lmk.use_minfree_levels'),
-            ('/system/bin/getprop', 'config.low_ram'),
+            ('/system/bin/getprop', 'ro.config.low_ram'),
             ('/system/bin/pidof', 'lmkd', 'system_server', 'surfaceflinger'),
-            ('/system/bin/cat', '/proc/pressure/memory', '/proc/cgroups',
-             '/sys/fs/cgroup/cgroup.controllers', '/proc/self/mountinfo',
-             '/system/etc/cgroups.json', '/vendor/etc/cgroups.json'),
+            *(('/system/bin/cat', path) for path in (
+                '/proc/pressure/memory', '/proc/cgroups', '/sys/fs/cgroup/cgroup.controllers',
+                '/proc/self/mountinfo', '/system/etc/cgroups.json', '/vendor/etc/cgroups.json')),
         }
         self.assertEqual({tuple(args[3:]) for args, _ in execs}, expected)
         self.assertEqual(supervisor.receipt['diagnostics']['lmk_use_psi']['unavailable'], 'probe failed')
         self.assertTrue(all('/system/bin/sh' not in args for args, _ in execs))
+        self.assertTrue({'boot_completed', 'last_anr', 'input', 'windows', 'logcat'}.issubset(
+            supervisor.receipt['diagnostics']))
+
+    @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
+    def test_diagnostics_stop_probing_when_the_collection_budget_is_exhausted(self):
+        supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'))
+        supervisor.container_started = True
+        with patch.object(supervisor, '_owned_container', return_value=True), \
+             patch.object(supervisor, '_command') as command, \
+             patch.object(redroid.time, 'monotonic', side_effect=[0.0] + [46.0] * 17):
+            supervisor._collect_diagnostics()
+        command.assert_not_called()
+        self.assertTrue(supervisor.receipt['diagnostics'])
+        self.assertTrue(all('budget exhausted' in probe['unavailable']
+                            for probe in supervisor.receipt['diagnostics'].values()))
 
     def test_diagnostic_redaction_covers_json_and_flag_token_formats(self):
         output = redroid._bounded('{"refresh_token": "json-secret", --access-token=flag-secret, token plain-secret}')
