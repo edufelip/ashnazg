@@ -92,7 +92,8 @@ jobs:
         uses: ./
         with:
           output-directory: artifacts/android-image/runtime
-          adb-port: '5555'
+          # Use a different endpoint from the disposed upstream guest.
+          adb-port: '5556'
           boot-timeout: '180'
           image-provenance: artifacts/android-image/provenance.json
           command: |
