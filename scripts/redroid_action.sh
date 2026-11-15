@@ -10,6 +10,7 @@ command_text=${ASHNAZG_REDROID_COMMAND-}
 output_dir=${ASHNAZG_REDROID_OUTPUT_DIRECTORY-artifacts/redroid}
 adb_port=${ASHNAZG_REDROID_ADB_PORT-5555}
 boot_timeout=${ASHNAZG_REDROID_BOOT_TIMEOUT-180}
+image_provenance=${ASHNAZG_REDROID_IMAGE_PROVENANCE-}
 
 [[ -n "$command_text" ]] || fail 'command input is required'
 [[ -n "$output_dir" ]] || fail 'output-directory must not be empty'
@@ -50,10 +51,14 @@ trap 'forward_signal TERM 143' TERM
 printf '%s' "$command_text" > "$command_file"
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-python3 "$script_dir/redroid.py" run \
-  --output-dir "$output_dir" \
-  --adb-port "$adb_port" \
-  --timeout "$boot_timeout" \
+runtime_args=(run
+  --output-dir "$output_dir"
+  --adb-port "$adb_port"
+  --timeout "$boot_timeout")
+if [[ -n "$image_provenance" ]]; then
+  runtime_args+=(--image-provenance "$image_provenance")
+fi
+python3 "$script_dir/redroid.py" "${runtime_args[@]}" \
   -- bash --noprofile --norc -e -o pipefail "$command_file" &
 supervisor_pid=$!
 status=0

@@ -11,6 +11,92 @@ from scripts import redroid
 
 
 class RedroidValidationTests(unittest.TestCase):
+    def test_local_image_provenance_requires_matching_clean_checkout_and_inspect(self):
+        descriptor = {
+            "schema": 1, "recipe_version": "0.2.0", "source_sha": "a" * 40,
+            "source_dirty": False,
+            "upstream_base": {"image": redroid.IMAGE, "index_digest": redroid.IMAGE_INDEX,
+                              "platform_digest": redroid.PLATFORM_DIGESTS["amd64"]},
+            "platform": "linux/amd64",
+            "apk_inputs": {"agent": {"sha256": "b" * 64}, "fixture": {"sha256": "c" * 64}},
+            "notices": "runtime/redroid-image/NOTICES.md",
+            "qualification": "recipe build only",
+            "image_inspect": {"id": "sha256:" + "d" * 64, "repo_tags": ["ashnazg-redroid:0.2.0"],
+                              "os": "linux", "architecture": "amd64", "variant": None,
+                              "rootfs_layers": ["sha256:" + "f" * 64],
+                              "config": {"entrypoint": ["/init", "qemu=1", "androidboot.hardware=redroid"],
+                                                  "user": "", "working_dir": "",
+                                                  "cmd": ["androidboot.redroid_width=720", "androidboot.redroid_height=1280",
+                                                  "androidboot.redroid_dpi=320", "androidboot.redroid_fps=60",
+                                                  "androidboot.redroid_gpu_mode=guest", "androidboot.use_memfd=1"], "labels": {
+                                  "org.ashnazg.base-image": redroid.IMAGE,
+                                  "org.ashnazg.version": "0.2.0",
+                                  "org.ashnazg.source-sha": "a" * 40,
+                                  "org.ashnazg.platform": "linux/amd64",
+                                  "org.ashnazg.agent-sha256": "b" * 64,
+                                  "org.ashnazg.fixture-sha256": "c" * 64}}}}
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "provenance.json"
+            path.write_text(json.dumps(descriptor))
+            fresh = {
+                "Id": descriptor["image_inspect"]["id"], "Os": "linux", "Architecture": "amd64",
+                "RepoTags": ["ashnazg-redroid:0.2.0"],
+                "RootFS": {"Layers": descriptor["image_inspect"]["rootfs_layers"]},
+                "Config": {"Cmd": descriptor["image_inspect"]["config"]["cmd"],
+                           "Entrypoint": descriptor["image_inspect"]["config"]["entrypoint"],
+                           "User": "", "WorkingDir": "",
+                           "Labels": descriptor["image_inspect"]["config"]["labels"]}}
+            result = redroid.validate_image_provenance(path, architecture="amd64", checkout_sha="a" * 40,
+                                                        checkout_dirty=False, inspect_raw=json.dumps([fresh]))
+            for section, key, value in (
+                ("Config", "Entrypoint", ["/unexpected"]),
+                ("Config", "User", "unexpected"),
+                ("Config", "WorkingDir", "/unexpected"),
+                ("RootFS", "Layers", ["sha256:" + "e" * 64]),
+            ):
+                changed = json.loads(json.dumps(fresh))
+                changed[section][key] = value
+                with self.subTest(key=key), self.assertRaises(redroid.RedroidError):
+                    redroid.validate_image_provenance(path, architecture="amd64", checkout_sha="a" * 40,
+                                                     checkout_dirty=False, inspect_raw=json.dumps([changed]))
+            self.assertEqual(result, "sha256:" + "d" * 64)
+            supervisor = redroid.RedroidSupervisor(
+                output_dir=Path(temp), host_system="Linux", host_arch="x86_64",
+                binder_available=True, docker_path="docker", adb_path="adb", image_provenance=path)
+            supervisor.deadline = redroid.time.monotonic() + 30
+            supervisor._write_metadata()
+            def command(args, **kwargs):
+                if args[1:3] == ["context", "inspect"]:
+                    return redroid.CommandResult(0, "unix:///var/run/docker.sock", "")
+                if args[1:3] == ["devices", "-l"]:
+                    return redroid.CommandResult(0, "List of devices attached", "")
+                return redroid.CommandResult(0, json.dumps([fresh]), "")
+            with patch.object(supervisor, "_command", command), patch.object(redroid, "check_port_available"), \
+                    patch.object(redroid.subprocess, "run", side_effect=[
+                        subprocess.CompletedProcess([], 0, "a" * 40, ""),
+                        subprocess.CompletedProcess([], 0, "", "")]):
+                supervisor._preflight()
+            self.assertEqual(supervisor.receipt["image"], descriptor["image_inspect"]["id"])
+            self.assertEqual(supervisor.receipt["requested_display"]["fps"], 60)
+            self.assertIsNone(supervisor.receipt["image_index"])
+            descriptor["source_sha"] = "e" * 40
+            path.write_text(json.dumps(descriptor))
+            with self.assertRaisesRegex(redroid.RedroidError, "source"):
+                redroid.validate_image_provenance(path, architecture="amd64", checkout_sha="a" * 40,
+                                                   checkout_dirty=False, inspect_raw="[]")
+            descriptor["source_sha"] = "a" * 40
+            path.write_text(json.dumps(descriptor))
+            wrong_image = json.loads(json.dumps([{"Id": "sha256:" + "e" * 64, "Os": "linux",
+                                                  "Architecture": "amd64", "Config": {
+                                                      "Cmd": descriptor["image_inspect"]["config"]["cmd"],
+                                                      "Labels": descriptor["image_inspect"]["config"]["labels"]}}]))
+            with self.assertRaises(redroid.RedroidError):
+                redroid.validate_image_provenance(path, architecture="amd64", checkout_sha="a" * 40,
+                                                   checkout_dirty=False, inspect_raw=json.dumps(wrong_image))
+            with self.assertRaisesRegex(redroid.RedroidError, "clean checkout"):
+                redroid.validate_image_provenance(path, architecture="amd64", checkout_sha="a" * 40,
+                                                   checkout_dirty=True, inspect_raw="[]")
+
     def test_rejects_unsupported_os_and_architecture(self):
         with self.assertRaisesRegex(redroid.RedroidError, "Linux"):
             redroid.validate_host("Darwin", "x86_64", True)

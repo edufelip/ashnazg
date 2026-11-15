@@ -1,0 +1,7 @@
+on early-init
+    setprop debug.sf.nobootanimation 1
+
+on property:sys.boot_completed=1
+    exec_background u:r:shell:s0 shell -- /system/bin/settings put global window_animation_scale 0
+    exec_background u:r:shell:s0 shell -- /system/bin/settings put global transition_animation_scale 0
+    exec_background u:r:shell:s0 shell -- /system/bin/settings put global animator_duration_scale 0
