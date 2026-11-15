@@ -8,6 +8,9 @@ on:
       - 'runtime/hwc-image/**'
       - 'scripts/build_hwc.sh'
       - 'scripts/build_hwc_image.py'
+      - 'scripts/build_android_image.py'
+      - 'scripts/redroid_action.sh'
+      - 'scripts/harness.py'
       - 'scripts/hwc_acceptance.py'
       - 'scripts/linux_binder.py'
       - 'scripts/redroid.py'
@@ -20,6 +23,7 @@ on:
       - 'Cargo.lock'
       - 'action.yml'
       - 'tests/test_hwc_image.py'
+      - 'tests/test_hwc_acceptance.py'
   workflow_dispatch:
 
 permissions:
