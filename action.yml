@@ -1,0 +1,30 @@
+name: Run Ashnazg on ReDroid
+description: Run a multiline shell command on an owned ReDroid Android container
+inputs:
+  command:
+    description: Multiline shell command to run after Android is ready
+    required: true
+  output-directory:
+    description: Directory for ReDroid logs, receipt, and diagnostics
+    required: false
+    default: artifacts/redroid
+  adb-port:
+    description: Host loopback ADB port
+    required: false
+    default: '5555'
+  boot-timeout:
+    description: Android boot timeout in seconds
+    required: false
+    default: '180'
+runs:
+  using: composite
+  steps:
+    - name: Run command in ReDroid
+      shell: bash
+      env:
+        ASHNAZG_REDROID_COMMAND: ${{ inputs.command }}
+        ASHNAZG_REDROID_OUTPUT_DIRECTORY: ${{ inputs.output-directory }}
+        ASHNAZG_REDROID_ADB_PORT: ${{ inputs.adb-port }}
+        ASHNAZG_REDROID_BOOT_TIMEOUT: ${{ inputs.boot-timeout }}
+        ASHNAZG_REDROID_ACTION_PATH: ${{ github.action_path }}
+      run: bash "$ASHNAZG_REDROID_ACTION_PATH/scripts/redroid_action.sh"
