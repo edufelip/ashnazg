@@ -1,0 +1,25 @@
+{
+  "source_sha": "1401fcd877059337a8e4cb60bec7a4f4bc82f83f",
+  "workflow_run": "https://github.com/edufelip/ashnazg/actions/runs/43772171144",
+  "job_id": 132990346816,
+  "artifact_id": 14184054767,
+  "observed_operation": "--inspect",
+  "result": "printed display data, then SIGSEGV during native process finalization",
+  "exit_code": 139,
+  "qualification_started": false,
+  "backtrace": [
+    "libutils.so android::String16::~String16()+3",
+    "libc.so __cxa_finalize+287",
+    "libc.so exit+31",
+    "libc.so __libc_init+124"
+  ],
+  "limits": [
+    "The invalid native object and its ownership are not identified by this backtrace",
+    "Mode requests and policy restoration were not reached or qualified"
+  ],
+  "files": {
+    "download-receipt.json": "bbbd506d106ad42a9613f777c78b8cf3fb246e0a95a68a0daa6a998c7c75e458",
+    "policy-crash-logcat.txt": "ebf8b2a4de445ad7bccc598d348375d40d689cb58eb2087bdaf2da349fcaa503",
+    "policy-inspect.txt": "9a85d8dbdb01bf4e0cd18a8142b976f42a33d703ee4e5616dee1e972414b6423"
+  }
+}

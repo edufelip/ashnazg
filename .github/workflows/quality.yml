@@ -141,10 +141,14 @@ jobs:
     name: MicroVM validation
     uses: ./.github/workflows/microvm.yml
 
+  hwc:
+    name: HWC validation
+    uses: ./.github/workflows/hwc.yml
+
   quality-gate:
     name: Quality gate
     if: always()
-    needs: [rust, android, android-integration, microvm]
+    needs: [rust, android, android-integration, microvm, hwc]
     runs-on: ubuntu-latest
     steps:
       - name: Require every quality job to succeed
@@ -153,9 +157,11 @@ jobs:
           ANDROID_RESULT: ${{ needs.android.result }}
           INTEGRATION_RESULT: ${{ needs.android-integration.result }}
           MICROVM_RESULT: ${{ needs.microvm.result }}
+          HWC_RESULT: ${{ needs.hwc.result }}
         run: |
-          printf 'rust=%s android=%s android-integration=%s\n' "$RUST_RESULT" "$ANDROID_RESULT" "$INTEGRATION_RESULT"
+          printf 'rust=%s android=%s android-integration=%s microvm=%s hwc=%s\n' "$RUST_RESULT" "$ANDROID_RESULT" "$INTEGRATION_RESULT" "$MICROVM_RESULT" "$HWC_RESULT"
           test "$RUST_RESULT" = success
           test "$ANDROID_RESULT" = success
           test "$INTEGRATION_RESULT" = success
           test "$MICROVM_RESULT" = success
+          test "$HWC_RESULT" = success

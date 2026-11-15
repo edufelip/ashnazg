@@ -1,0 +1,23 @@
+--------- beginning of crash
+11-15 23:06:13.772  1862  1862 F libc    : Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x7241d91cd008 in tid 1862 (Shutdown thread), pid 1862 (Shutdown thread)
+11-15 23:06:13.813  1880  1880 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+11-15 23:06:13.813  1880  1880 F DEBUG   : Build fingerprint: 'redroid/redroid_x86_64/redroid_x86_64:15/BP1A.250505.005.D1/eng.root:userdebug/test-keys'
+11-15 23:06:13.813  1880  1880 F DEBUG   : Revision: '0'
+11-15 23:06:13.813  1880  1880 F DEBUG   : ABI: 'x86_64'
+11-15 23:06:13.813  1880  1880 F DEBUG   : Timestamp: 2026-11-15 23:06:13.784143618+0000
+11-15 23:06:13.813  1880  1880 F DEBUG   : Process uptime: 2s
+11-15 23:06:13.813  1880  1880 F DEBUG   : Cmdline: /system/bin/app_process /system/bin com.ashnazg.displayprobe.DisplayProbe --inspect
+11-15 23:06:13.813  1880  1880 F DEBUG   : pid: 1862, tid: 1862, name: Shutdown thread  >>> /system/bin/app_process <<<
+11-15 23:06:13.813  1880  1880 F DEBUG   : uid: 0
+11-15 23:06:13.813  1880  1880 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x00007241d91cd008
+11-15 23:06:13.813  1880  1880 F DEBUG   :     rax 0000000000000000  rbx 00007244aa731894  rcx 0000000000000001  rdx 0000000000000002
+11-15 23:06:13.813  1880  1880 F DEBUG   :     r8  0000000000000008  r9  0000000000008001  r10 0000000000008000  r11 0000000000000206
+11-15 23:06:13.813  1880  1880 F DEBUG   :     r12 0000000000001000  r13 0000000000000062  r14 00007244cd022c60  r15 0000000000000930
+11-15 23:06:13.813  1880  1880 F DEBUG   :     rdi 00007241d91cd00c  rsi 0000000000001000
+11-15 23:06:13.813  1880  1880 F DEBUG   :     rbp 00007fffb9968a70  rsp 00007fffb9968a08  rip 00007244cd022c63
+11-15 23:06:13.813  1880  1880 F DEBUG   : 4 total frames
+11-15 23:06:13.813  1880  1880 F DEBUG   : backtrace:
+11-15 23:06:13.813  1880  1880 F DEBUG   :       #00 pc 000000000001cc63  /system/lib64/libutils.so (android::String16::~String16()+3) (BuildId: ea42286e5ddb30c3eff30f5ef2019f29)
+11-15 23:06:13.813  1880  1880 F DEBUG   :       #01 pc 000000000005a22f  /apex/com.android.runtime/lib64/bionic/libc.so (__cxa_finalize+287) (BuildId: d93f4a4da04caa56f6bd98cce0756f9f)
+11-15 23:06:13.813  1880  1880 F DEBUG   :       #02 pc 000000000005e5ef  /apex/com.android.runtime/lib64/bionic/libc.so (exit+31) (BuildId: d93f4a4da04caa56f6bd98cce0756f9f)
+11-15 23:06:13.813  1880  1880 F DEBUG   :       #03 pc 000000000005400c  /apex/com.android.runtime/lib64/bionic/libc.so (__libc_init+124) (BuildId: d93f4a4da04caa56f6bd98cce0756f9f)
