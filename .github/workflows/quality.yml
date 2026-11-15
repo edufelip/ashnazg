@@ -56,6 +56,8 @@ jobs:
           cache: npm
           cache-dependency-path: fixtures/reactnative/package-lock.json
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0 ndk;27.1.12297006 cmake;3.22.1'
       - name: Build agent unit tests, lint, and APKs
         run: cd agent-android && ./gradlew test lint assembleDebug
       - name: Install React Native dependencies
@@ -97,6 +99,8 @@ jobs:
           cache: npm
           cache-dependency-path: fixtures/reactnative/package-lock.json
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0 ndk;27.1.12297006 cmake;3.22.1'
       - name: Install React Native dependencies
         run: npm ci
         working-directory: fixtures/reactnative
