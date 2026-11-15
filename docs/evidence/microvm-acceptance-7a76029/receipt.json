@@ -46,6 +46,7 @@
     "warm-screenshots/fixture-overlay.png": "f5afa47cb81bc7a4fcdde996d42da8a7e58bec768bd6c425cca67289c4c3e9a5",
     "warm-screenshots/fixture.webp": "1f22d172e97fe9080784a330e2f772adf2f5439d230d7863e594e2bd586a2b7c",
     "warm-screenshots/mcp-screenshot.png": "f7c220b999864f3bc31af545821c760bf621b9816b745304e72eb4ba15670776",
-    "warm-screenshots/react-native.png": "85581a76ee68eb2b9b2c2f98b75907fb4892251372d0afefc72927412deea8d6"
+    "warm-screenshots/react-native.png": "85581a76ee68eb2b9b2c2f98b75907fb4892251372d0afefc72927412deea8d6",
+    "post-shutdown-forwards.json": "b2aada6d1adb692ad5b578ce4a157d62cf980d3cbaf8f6e8e6cb1f0919c503bb"
   }
 }
