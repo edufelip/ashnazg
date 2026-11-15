@@ -214,6 +214,20 @@ class GuestBridgeTests(unittest.TestCase):
 
 
 class GuestInitTests(unittest.TestCase):
+    def test_diagnostics_kernel_token_is_exact_and_not_a_substring(self):
+        path = Path(__file__).parents[1] / 'runtime/microvm/guest-init.py'
+        spec = importlib.util.spec_from_file_location('ashnazg_guest_diagnostic_token', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        self.assertTrue(module.diagnostics_enabled('console=hvc0 ashnazg.diagnostics=1 root=/dev/vda'))
+        for cmdline in ('ashnazg.diagnostics=10', 'xashnazg.diagnostics=1',
+                        'ashnazg.diagnostics=1x', 'ashnazg.diagnostics=0'):
+            self.assertFalse(module.diagnostics_enabled(cmdline))
+        opted = module.supervisor_environment('ashnazg.diagnostics=1', {'PATH': '/bin'})
+        default = module.supervisor_environment('ashnazg.diagnostics=10', {
+            'PATH': '/bin', 'ASHNAZG_CI_DIAGNOSTICS': '1'})
+        self.assertEqual(opted['ASHNAZG_CI_DIAGNOSTICS'], '1')
+        self.assertNotIn('ASHNAZG_CI_DIAGNOSTICS', default)
+
     def test_supervisor_selects_explicit_native_guest_compatible_image_profile(self):
         path = Path(__file__).parents[1] / 'runtime/microvm/guest-init.py'
         spec = importlib.util.spec_from_file_location('ashnazg_guest_redroid_profile', path)
@@ -236,6 +250,7 @@ class GuestInitTests(unittest.TestCase):
             raise RuntimeError('stop after checked DHCP start')
         with patch.object(module.os, 'getpid', return_value=1), \
              patch.dict(module.os.environ, {}), \
+             patch.object(module, 'kernel_cmdline', return_value=''), \
              patch.object(module, 'mount'), patch.object(module, 'ensure_nodes'), \
              patch.object(module, 'link_nodes'), patch.object(module.os, 'makedirs'), \
              patch.object(module.signal, 'signal'), \
@@ -255,6 +270,7 @@ class GuestInitTests(unittest.TestCase):
             raise RuntimeError('stop after checked service environment')
         with patch.object(module.os, 'getpid', return_value=1), \
              patch.dict(module.os.environ, {'PATH': ''}), \
+             patch.object(module, 'kernel_cmdline', return_value=''), \
              patch.object(module, 'mount'), patch.object(module, 'ensure_nodes'), \
              patch.object(module, 'link_nodes'), patch.object(module.os, 'makedirs'), \
              patch.object(module.signal, 'signal'), patch.object(module.subprocess, 'run'), \
@@ -274,6 +290,7 @@ class GuestInitTests(unittest.TestCase):
             raise RuntimeError('stop after checked Docker start')
         with patch.object(module.os, 'getpid', return_value=1), \
              patch.dict(module.os.environ, {}), \
+             patch.object(module, 'kernel_cmdline', return_value=''), \
              patch.object(module, 'mount'), patch.object(module, 'ensure_nodes'), \
              patch.object(module, 'link_nodes'), patch.object(module.os, 'makedirs'), \
              patch.object(module.signal, 'signal'), patch('builtins.open', mock_open()), \

@@ -10,8 +10,10 @@ struct HelperOptions {
     var adbPort = 15555
     var timeout = 300
     var validateOnly = false
+    let diagnosticsEnabled: Bool
 
-    init(arguments: [String]) throws {
+    init(arguments: [String], environment: [String: String] = ProcessInfo.processInfo.environment) throws {
+        diagnosticsEnabled = environment["ASHNAZG_CI_DIAGNOSTICS"] == "1"
         var index = 0
         while index < arguments.count {
             let flag = arguments[index]
@@ -260,13 +262,19 @@ enum VZConfigFactory {
               memorySize <= VZVirtualMachineConfiguration.maximumAllowedMemorySize,
               memorySize.isMultiple(of: 1024 * 1024) else { throw AssetError.invalid("memory size is outside Virtualization.framework limits or is not 1 MiB aligned") }
     }
-    static func make(assets: ValidatedAssets, disk: URL, serialAttachment: VZSerialPortAttachment) throws -> VZVirtualMachineConfiguration {
+    static func kernelCommandLine(diagnosticsEnabled: Bool) -> String {
+        var commandLine = "console=hvc0 root=/dev/vda rw init=/sbin/ashnazg-init"
+        if diagnosticsEnabled { commandLine += " ashnazg.diagnostics=1" }
+        return commandLine
+    }
+    static func make(assets: ValidatedAssets, disk: URL, serialAttachment: VZSerialPortAttachment,
+                     diagnosticsEnabled: Bool = false) throws -> VZVirtualMachineConfiguration {
         guard VZVirtualMachine.isSupported else { throw AssetError.invalid("Apple Virtualization.framework is unavailable on this host") }
         try validateResourceBounds(cpuCount: cpuCount, memorySize: memorySize)
         let configuration = VZVirtualMachineConfiguration()
         configuration.cpuCount = cpuCount; configuration.memorySize = memorySize
         let bootLoader = VZLinuxBootLoader(kernelURL: assets.kernel)
-        bootLoader.commandLine = "console=hvc0 root=/dev/vda rw init=/sbin/ashnazg-init"
+        bootLoader.commandLine = kernelCommandLine(diagnosticsEnabled: diagnosticsEnabled)
         configuration.bootLoader = bootLoader; configuration.platform = VZGenericPlatformConfiguration()
         let serialPort = VZVirtioConsoleDeviceSerialPortConfiguration(); serialPort.attachment = serialAttachment
         configuration.serialPorts = [serialPort]
@@ -454,7 +462,7 @@ func runHelper(_ options: HelperOptions) async throws {
         try FileManager.default.createDirectory(at: temporary, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: temporary) }
         let disk = temporary.appendingPathComponent("rootfs.ext4"); try FileManager.default.copyItem(at: assets.rootfs, to: disk)
-        let configuration = try VZConfigFactory.make(assets: assets, disk: disk, serialAttachment: VZFileHandleSerialPortAttachment(fileHandleForReading: nil, fileHandleForWriting: nil))
+        let configuration = try VZConfigFactory.make(assets: assets, disk: disk, serialAttachment: VZFileHandleSerialPortAttachment(fileHandleForReading: nil, fileHandleForWriting: nil), diagnosticsEnabled: options.diagnosticsEnabled)
         try configuration.validate(); print("{\"status\":\"validated\",\"architecture\":\"aarch64\"}"); return
     }
     let start = DispatchTime.now().uptimeNanoseconds
@@ -479,7 +487,7 @@ func runHelper(_ options: HelperOptions) async throws {
         pipeHandles.0.readabilityHandler = { handle in let data = handle.availableData; if !data.isEmpty { log.append(data) } }
         let attachment = VZFileHandleSerialPortAttachment(fileHandleForReading: nil, fileHandleForWriting: pipeHandles.1)
         try signals.throwIfSignalled()
-        let configuration = try VZConfigFactory.make(assets: assets, disk: state.disk, serialAttachment: attachment)
+        let configuration = try VZConfigFactory.make(assets: assets, disk: state.disk, serialAttachment: attachment, diagnosticsEnabled: options.diagnosticsEnabled)
         vm = VZVirtualMachine(configuration: configuration)
         let machine = vm!
         let stopped = DispatchSemaphore(value: 0); let monitor = VMMonitor(stoppedSignal: stopped); machine.delegate = monitor

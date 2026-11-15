@@ -11,6 +11,16 @@ final class AshnazgVMTests: XCTestCase {
         XCTAssertNoThrow(try HelperOptions(arguments: ["--assets", "/tmp/a", "--adb-port", "5555", "--timeout", "300"]))
     }
 
+    func testDiagnosticsOptInIsExactAndOnlyChangesGuestKernelCommandLine() throws {
+        let optedIn = try HelperOptions(arguments: ["--assets", "/tmp/a"], environment: ["ASHNAZG_CI_DIAGNOSTICS": "1"])
+        let defaultOptions = try HelperOptions(arguments: ["--assets", "/tmp/a"], environment: ["ASHNAZG_CI_DIAGNOSTICS": "true"])
+        XCTAssertTrue(optedIn.diagnosticsEnabled)
+        XCTAssertFalse(defaultOptions.diagnosticsEnabled)
+        XCTAssertFalse(try HelperOptions(arguments: ["--assets", "/tmp/a"], environment: [:]).diagnosticsEnabled)
+        XCTAssertTrue(VZConfigFactory.kernelCommandLine(diagnosticsEnabled: true).split(separator: " ").contains("ashnazg.diagnostics=1"))
+        XCTAssertFalse(VZConfigFactory.kernelCommandLine(diagnosticsEnabled: false).split(separator: " ").contains("ashnazg.diagnostics=1"))
+    }
+
     func testVMResourceBoundsUseSupportedAlignedDefaults() throws {
         XCTAssertNoThrow(try VZConfigFactory.validateResourceBounds(cpuCount: VZConfigFactory.cpuCount, memorySize: VZConfigFactory.memorySize))
         XCTAssertThrowsError(try VZConfigFactory.validateResourceBounds(cpuCount: VZVirtualMachineConfiguration.maximumAllowedCPUCount + 1, memorySize: VZConfigFactory.memorySize))

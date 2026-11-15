@@ -20,6 +20,24 @@ SUPERVISOR = [
 ]
 
 
+def diagnostics_enabled(cmdline: str) -> bool:
+    return 'ashnazg.diagnostics=1' in cmdline.split()
+
+
+def supervisor_environment(cmdline: str, inherited: dict[str, str]) -> dict[str, str]:
+    environment = inherited.copy()
+    environment['PYTHONPATH'] = '/usr/local/lib/ashnazg'
+    if diagnostics_enabled(cmdline):
+        environment['ASHNAZG_CI_DIAGNOSTICS'] = '1'
+    else:
+        environment.pop('ASHNAZG_CI_DIAGNOSTICS', None)
+    return environment
+
+
+def kernel_cmdline() -> str:
+    return Path('/proc/cmdline').read_text(encoding='utf-8')
+
+
 class RequestedShutdown(Exception):
     def __init__(self, signum): self.signum = signum
 
@@ -64,6 +82,7 @@ def main() -> int:
     for number in (signal.SIGHUP, signal.SIGINT, signal.SIGTERM): signal.signal(number, stop)
     try:
         mount('proc', '/proc', 'proc')
+        cmdline = kernel_cmdline()
         mount('sysfs', '/sys', 'sysfs')
         mount('devtmpfs', '/dev', 'devtmpfs')
         mount('devpts', '/dev/pts', 'devpts', 'gid=5,mode=620')
@@ -96,8 +115,7 @@ def main() -> int:
             except subprocess.TimeoutExpired: pass
             if time.monotonic() >= deadline: raise RuntimeError('Docker readiness exceeded 60 seconds')
             time.sleep(0.5)
-        environment = os.environ.copy()
-        environment['PYTHONPATH'] = '/usr/local/lib/ashnazg'
+        environment = supervisor_environment(cmdline, os.environ)
         child = subprocess.Popen(SUPERVISOR, env=environment)
         while True:
             try:

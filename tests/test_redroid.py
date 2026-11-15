@@ -498,6 +498,69 @@ class RedroidRegressionTests(unittest.TestCase):
                 supervisor._collect_diagnostics()
                 command.assert_not_called()
 
+    @patch.dict(os.environ, {}, clear=True)
+    def test_diagnostics_are_not_collected_when_opt_in_is_unset(self):
+        supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'))
+        supervisor.container_started = True
+        with patch.object(supervisor, '_command') as command:
+            supervisor._collect_diagnostics()
+            command.assert_not_called()
+
+    @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
+    def test_diagnostic_collection_verifies_ownership_before_docker_exec(self):
+        calls = []
+        def command(args, **kwargs):
+            calls.append((args, kwargs))
+            return redroid.CommandResult(0, 'foreign-run-id')
+        with tempfile.TemporaryDirectory() as temp:
+            supervisor = redroid.RedroidSupervisor(output_dir=Path(temp), runner=lambda *a, **k: None,
+                docker_path='docker')
+            supervisor.container_started = True
+            with patch.object(supervisor, '_command', side_effect=command):
+                supervisor._collect_diagnostics()
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0][0][1], 'inspect')
+        self.assertNotIn('diagnostics', supervisor.receipt)
+
+    @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
+    def test_diagnostic_probes_are_static_bounded_and_failures_are_unavailable(self):
+        calls = []
+        def command(args, **kwargs):
+            calls.append((args, kwargs))
+            if args[1] == 'inspect':
+                return redroid.CommandResult(0, supervisor.run_id)
+            if any(arg.endswith('/getprop') for arg in args):
+                raise redroid.RedroidError('probe failed')
+            return redroid.CommandResult(0, 'ok')
+        with tempfile.TemporaryDirectory() as temp:
+            supervisor = redroid.RedroidSupervisor(output_dir=Path(temp), runner=lambda *a, **k: None,
+                docker_path='docker')
+            supervisor.container_started = True
+            with patch.object(supervisor, '_command', side_effect=command):
+                supervisor._collect_diagnostics()
+        execs = [(args, kwargs) for args, kwargs in calls if args[1:2] == ['exec']]
+        self.assertTrue(execs)
+        self.assertTrue(all(kwargs['timeout'] == 5 and kwargs['use_deadline'] is False for _, kwargs in execs))
+        expected = {
+            ('/system/bin/logcat', '-b', 'all', '-d', '-t', '250'),
+            ('/system/bin/getprop', 'ro.lmk.use_psi'),
+            ('/system/bin/getprop', 'ro.lmk.use_minfree_levels'),
+            ('/system/bin/getprop', 'config.low_ram'),
+            ('/system/bin/pidof', 'lmkd', 'system_server', 'surfaceflinger'),
+            ('/system/bin/cat', '/proc/pressure/memory', '/proc/cgroups',
+             '/sys/fs/cgroup/cgroup.controllers', '/proc/self/mountinfo',
+             '/system/etc/cgroups.json', '/vendor/etc/cgroups.json'),
+        }
+        self.assertEqual({tuple(args[3:]) for args, _ in execs}, expected)
+        self.assertEqual(supervisor.receipt['diagnostics']['lmk_use_psi']['unavailable'], 'probe failed')
+        self.assertTrue(all('/system/bin/sh' not in args for args, _ in execs))
+
+    def test_diagnostic_redaction_covers_json_and_flag_token_formats(self):
+        output = redroid._bounded('{"refresh_token": "json-secret", --access-token=flag-secret, token plain-secret}')
+        for secret in ('json-secret', 'flag-secret', 'plain-secret'):
+            self.assertNotIn(secret, output)
+        self.assertEqual(output.count('[REDACTED]'), 3)
+
     def test_structured_window_output_is_not_silently_truncated(self):
         content = 'Window #0 focused application\n' + ('x' * 100_000)
         with tempfile.TemporaryDirectory() as temp:

@@ -176,7 +176,11 @@ def check_port_available(port: int) -> None:
 
 
 def _bounded(value: str, limit: int = MAX_LOG_BYTES) -> str:
-    value = re.sub(r"(?i)(token|password|secret)(\s*[=:]\s*)\S+", r"\1\2[REDACTED]", value)
+    value = re.sub(
+        r"(?i)(--?[\w.-]*(?:token|password|secret)|[\"']?[\w.-]*(?:token|password|secret)[\"']?)"
+        r"(\s*(?:[:=]\s*|\s+))(?:(?:\"(?:\\.|[^\"])*\")|(?:'(?:\\.|[^'])*')|[^\s,;}]+)",
+        r"\1\2[REDACTED]", value,
+    )
     encoded = value.encode("utf-8", errors="replace")
     if len(encoded) > limit:
         encoded = b"[truncated]\n" + encoded[-(limit - 12):]
@@ -480,22 +484,37 @@ class RedroidSupervisor:
     def _collect_diagnostics(self) -> None:
         if not self.container_started or os.environ.get("ASHNAZG_CI_DIAGNOSTICS") != "1":
             return
-        probes = {
-            "boot_completed": ("shell", "getprop", "sys.boot_completed"),
-            "last_anr": ("shell", "dumpsys", "activity", "lastanr"),
-            "input": ("shell", "dumpsys", "input"),
-            "windows": ("shell", "dumpsys", "window", "-a", "windows"),
-            "logcat": ("shell", "logcat", "-d", "-t", "300"),
-        }
+        probes = (
+            ("logcat", ("/system/bin/logcat", "-b", "all", "-d", "-t", "250")),
+            ("lmk_use_psi", ("/system/bin/getprop", "ro.lmk.use_psi")),
+            ("lmk_use_minfree_levels", ("/system/bin/getprop", "ro.lmk.use_minfree_levels")),
+            ("low_ram", ("/system/bin/getprop", "config.low_ram")),
+            ("processes", ("/system/bin/pidof", "lmkd", "system_server", "surfaceflinger")),
+            ("kernel_cgroups", ("/system/bin/cat", "/proc/pressure/memory", "/proc/cgroups",
+                                 "/sys/fs/cgroup/cgroup.controllers", "/proc/self/mountinfo",
+                                 "/system/etc/cgroups.json", "/vendor/etc/cgroups.json")),
+        )
+        started = time.monotonic()
+        try:
+            if not self._owned_container():
+                self.receipt["diagnostics_skipped"] = "container ownership could not be verified"
+                return
+        except Exception:
+            self.receipt["diagnostics_skipped"] = "container ownership could not be verified"
+            return
         diagnostics = {}
-        for name, arguments in probes.items():
+        for name, arguments in probes:
+            remaining = 45.0 - (time.monotonic() - started)
+            if remaining <= 0:
+                diagnostics[name] = {"unavailable": "diagnostic collection budget exhausted"}
+                continue
             try:
-                result = self._command([self.adb_path or "adb", "-s", self.serial, *arguments],
-                                       timeout=3, check=False, use_deadline=False)
+                result = self._command([self.docker_path or "docker", "exec", self.container_name, *arguments],
+                                       timeout=min(5.0, remaining), check=False, use_deadline=False)
                 diagnostics[name] = {"exit_code": result.returncode,
                                      "output": _bounded(result.stdout + result.stderr, 4096)}
             except Exception as exc:
-                diagnostics[name] = {"error": _bounded(str(exc), 1000)}
+                diagnostics[name] = {"unavailable": _bounded(str(exc), 1000)}
         self.receipt["diagnostics"] = diagnostics
 
     def _save_receipt(self, status: str, failure: str | None = None, exit_code: int | None = None) -> None:
