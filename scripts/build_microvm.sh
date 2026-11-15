@@ -165,7 +165,7 @@ python3 "$REPO_ROOT/scripts/guest_packages.py" fetch \
 locked_apks=()
 for apk in "$ROOTFS/tmp/ashnazg-packages"/*.apk; do locked_apks+=("/tmp/ashnazg-packages/$(basename "$apk")"); done
 chroot "$ROOTFS" /sbin/apk --no-network add "${locked_apks[@]}"
-chroot "$ROOTFS" /sbin/apk info --exists android-tools ca-certificates docker docker-cli-buildx iproute2 iptables python3 util-linux
+chroot "$ROOTFS" /sbin/apk info --installed android-tools ca-certificates docker docker-cli-buildx iproute2 iptables python3 util-linux
 cp "$REPO_ROOT/runtime/microvm/packages.lock.json" "$RAW_ASSETS/packages.lock.json"
 rm -rf "$ROOTFS/tmp/ashnazg-packages"
 rm -f "$ROOTFS/etc/resolv.conf"
