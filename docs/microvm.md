@@ -36,7 +36,7 @@ SIGINT/SIGTERM closes and drains owned relays, requests guest shutdown, and wait
 
 ## Recorded native cold boot
 
-The clean `7a760294d3a485cc9f40308c791a58e160d620f1` source and its [hosted artifact build](https://github.com/edufelip/ashnazg/actions/runs/43771299927) were tested with an ad-hoc-signed helper on Apple Silicon macOS. Both artifact ZIP digests, the inner archive checksum, manifest asset hashes and every requested kernel setting were verified before creating a fresh state directory. The generated kernel has PSI and FUSE built in, with PSI enabled by default.
+The clean `7a760294d3a485cc9f40308c791a58e160d620f1` source and its [hosted artifact build](https://github.com/edufelip/ashnazg/actions/runs/43771299927) were tested with an ad-hoc-signed helper on Apple Silicon macOS. Both artifact ZIP digests, the inner archive checksum, manifest asset hashes and every requested kernel setting were verified before creating a fresh state directory. The retained [verification record](evidence/microvm-cold-boot-7a76029/verification.json) includes the two download receipts, API digest comparisons and all 79 kernel assignments; these checks were repeated when recording the evidence. The generated kernel has PSI and FUSE built in, with PSI enabled by default.
 
 The [runtime receipt](evidence/microvm-cold-boot-7a76029/runtime.json) records Android readiness in 103.971 seconds from VM startup and successful orderly shutdown. This includes a cold image pull; it is one observation, not a boot-time distribution. The serial log contains no observed LMKD exit cycles, and the opt-in guest receipt confirms `/proc/pressure/memory` and cgroup-v2 controllers are available.
 

@@ -12,13 +12,19 @@
   },
   "files": {
     "acceptance.json": "fcbe9e4472097ce0b82381e09ff3503509eb2dc8a620e5f49a6ea35f26f2c2bf",
+    "apks-download-receipt.json": "028a45370b5db0661b6f6c2a8abc2af78d1903508a7250e6fb26a3cf8b3902e0",
     "compose.png": "d7794100cb20049c68f809073f754413409c9726daf2c1c9de47c9a3acc1361a",
     "fixture-overlay.png": "8491adcd816cb4b0ed3ac7a4a96d35187cfbd28943d5982aa1c46406f81448cd",
     "guest-backend-receipt.json": "3bab1b1d6bccd16f6accb667ad312d633d03ec5aae27a28b5d80479ea566403e",
+    "guest-download-receipt.json": "183c02301631309ea357454e605c482898ad508344fda287c1aa4d1c875e0aaa",
     "integration-failure.json": "04a46552f17210c15bdb04aba9f91c6344f529772942ae3739b94ccba62122a7",
+    "kernel.config": "1d3f71c5cd4f4f5402136658877a4baa9c6973a55e236da26f03383b7d7967ae",
+    "kernel.generated.config": "70960e57afb670d381ffde6284c48faf7934be7e0acdfd6ccdadfcb789718694",
+    "manifest.json": "7e9c09edb52dda1b62ac9e3910c0b0dbae7147a476967b2535c06b615a3a602b",
     "mcp-screenshot.png": "ac95fbdd1e0dcbb8f9f27aa5adba819b28814ec145bfbb57d5802fd661e28258",
     "react-native.png": "7682fefce86831c7e348ee56af2e2e1ef4801ee41fd0a3123b0dce52153b56d5",
     "runtime.json": "0f4f8584ccb398e7fda649a595d835f22087a31ba718d622b7648e5dfd311d16",
-    "serial.log": "7d076288a35ac5a85faf99ea47ce969792f6b1ebe2e8b92645de56d6bdb2d635"
+    "serial.log": "7d076288a35ac5a85faf99ea47ce969792f6b1ebe2e8b92645de56d6bdb2d635",
+    "verification.json": "fda68c7fa138481969aa2c3f0d87efeec45074ca6f12a4f78b2cab421c68fab0"
   }
 }
