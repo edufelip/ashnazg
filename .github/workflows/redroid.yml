@@ -51,32 +51,8 @@ jobs:
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0 ndk;27.1.12297006 cmake;3.22.1'
-      - name: Probe Binder and load only an available module
-        run: |
-          {
-            cat /proc/modules | grep '^binder_linux ' || true
-            for device in /dev/binder /dev/hwbinder /dev/vndbinder; do
-              if test -e "$device"; then stat -c '%n %F %a %t:%T' "$device"; fi
-            done
-            if test -d /dev/binderfs; then find /dev/binderfs -maxdepth 1 -type c -print -exec stat -c '%n %a %t:%T' {} \;; fi
-          } | tee artifacts/redroid/binder-before.txt
-          if ! test -c /dev/binder || ! test -c /dev/hwbinder || ! test -c /dev/vndbinder; then
-            if ! modinfo binder_linux >/dev/null 2>&1; then
-              echo 'binder_linux is unavailable on this hosted kernel' >&2
-              exit 1
-            fi
-            sudo modprobe binder_linux devices=binder,hwbinder,vndbinder
-          fi
-          {
-            cat /proc/modules | grep '^binder_linux ' || true
-            for device in /dev/binder /dev/hwbinder /dev/vndbinder; do
-              if test -e "$device"; then stat -c '%n %F %a %t:%T' "$device"; fi
-            done
-            if test -d /dev/binderfs; then find /dev/binderfs -maxdepth 1 -type c -print -exec stat -c '%n %a %t:%T' {} \;; fi
-          } | tee artifacts/redroid/binder-after.txt
-          for device in binder hwbinder vndbinder; do
-            test -c "/dev/$device" || { echo "missing Binder device /dev/$device" >&2; exit 1; }
-          done
+      - name: Provision an owned Binderfs test fixture
+        run: sudo env GITHUB_ACTIONS="$GITHUB_ACTIONS" python3 scripts/linux_binder.py --output-dir artifacts/redroid
       - name: Install React Native dependencies
         run: npm ci
         working-directory: fixtures/reactnative
@@ -95,6 +71,9 @@ jobs:
             set -euo pipefail
             python3 scripts/integration.py --framework-fixtures --output artifacts/integration.json --artifacts artifacts/integration
             python3 scripts/benchmark.py --iterations 10 --output artifacts/benchmark.json
+      - name: Clean up the owned Binderfs test fixture
+        if: always()
+        run: sudo env GITHUB_ACTIONS="$GITHUB_ACTIONS" python3 scripts/linux_binder.py --output-dir artifacts/redroid --cleanup
       - name: Upload ReDroid evidence and diagnostics
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
