@@ -1,0 +1,92 @@
+name: ReDroid container acceptance
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: redroid-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  redroid:
+    name: ReDroid Linux x64 integration and benchmark
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      ASHNAZG_BIN: ${{ github.workspace }}/target/release/ashnazg
+      ASHNAZG_CI_DIAGNOSTICS: '1'
+      ASHNAZG_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Record runner and source provenance
+        run: |
+          mkdir -p artifacts/redroid
+          {
+            printf 'source_sha=%s\n' "$ASHNAZG_SOURCE_SHA"
+            printf 'github_sha=%s\n' "$GITHUB_SHA"
+            printf 'runner_os=%s\n' "$RUNNER_OS"
+            printf 'runner_arch=%s\n' "$RUNNER_ARCH"
+            printf 'runner_image=%s\n' "${ImageOS:-unknown}/${ImageVersion:-unknown}"
+            uname -a
+            cat /etc/os-release
+            docker version
+          } > artifacts/redroid/runner-provenance.txt
+          python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.15.0'
+          cache: npm
+          cache-dependency-path: fixtures/reactnative/package-lock.json
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0 ndk;27.1.12297006 cmake;3.22.1'
+      - name: Provision an owned Binderfs test fixture
+        run: sudo env GITHUB_ACTIONS="$GITHUB_ACTIONS" python3 scripts/linux_binder.py --output-dir artifacts/redroid
+      - name: Install React Native dependencies
+        run: npm ci
+        working-directory: fixtures/reactnative
+      - name: Build host and Android agent/framework fixtures
+        run: |
+          cargo build --release --locked
+          cd agent-android && ./gradlew test lint assembleDebug
+          cd ../fixtures && ./gradlew :compose:assembleDebug :reactnative:assembleDebug
+      - name: Run complete integration and 100-sample benchmark in ReDroid
+        uses: ./
+        with:
+          output-directory: artifacts/redroid
+          adb-port: '5555'
+          boot-timeout: '180'
+          command: |
+            set -euo pipefail
+            python3 scripts/integration.py --framework-fixtures --output artifacts/integration.json --artifacts artifacts/integration
+            python3 scripts/benchmark.py --iterations 10 --output artifacts/benchmark.json
+      - name: Clean up the owned Binderfs test fixture
+        if: always()
+        run: sudo env GITHUB_ACTIONS="$GITHUB_ACTIONS" python3 scripts/linux_binder.py --output-dir artifacts/redroid --cleanup
+      - name: Upload ReDroid evidence and diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: redroid-integration-evidence
+          if-no-files-found: warn
+          path: |
+            artifacts/redroid/**
+            artifacts/integration.json
+            artifacts/integration/**
+            artifacts/benchmark.json
+            target/release/ashnazg
+            agent-android/agent/build/outputs/apk/debug/*.apk
+            agent-android/fixture/build/outputs/apk/debug/*.apk
+            fixtures/compose/build/outputs/apk/debug/*.apk
+            fixtures/reactnative/build/outputs/apk/debug/*.apk
