@@ -559,6 +559,27 @@ class RedroidRegressionTests(unittest.TestCase):
             supervisor.receipt['diagnostics']))
 
     @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
+    def test_slow_container_probes_leave_time_for_every_retained_adb_probe(self):
+        now = [0.0]
+        calls = []
+        supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'), docker_path='docker', adb_path='adb')
+        supervisor.container_started = True
+        def command(args, **kwargs):
+            calls.append(args)
+            now[0] += kwargs['timeout']
+            if args[0] == 'docker':
+                raise redroid.RedroidError('container probe timed out')
+            return redroid.CommandResult(0, 'ADB evidence')
+        with patch.object(supervisor, '_owned_container', return_value=True), \
+             patch.object(supervisor, '_command', side_effect=command), \
+             patch.object(redroid.time, 'monotonic', side_effect=lambda: now[0]):
+            supervisor._collect_diagnostics()
+        self.assertEqual(len([args for args in calls if args[0] == 'adb']), 5)
+        self.assertLessEqual(now[0], 45.0)
+        for name in ('boot_completed', 'last_anr', 'input', 'windows', 'logcat'):
+            self.assertEqual(supervisor.receipt['diagnostics'][name]['output'], 'ADB evidence')
+
+    @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
     def test_diagnostics_stop_probing_when_the_collection_budget_is_exhausted(self):
         supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'))
         supervisor.container_started = True

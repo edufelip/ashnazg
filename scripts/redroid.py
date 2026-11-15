@@ -514,13 +514,17 @@ class RedroidSupervisor:
             ("windows", ("shell", "dumpsys", "window", "-a", "windows")),
             ("logcat", ("shell", "logcat", "-d", "-t", "300")),
         )
-        probes = [(name, [self.docker_path or "docker", "exec", self.container_name, *arguments])
+        deadline = started + 45.0
+        # Reserve a full five-second attempt for each established ADB probe.
+        container_deadline = deadline - 5.0 * len(adb_probes)
+        probes = [(name, [self.docker_path or "docker", "exec", self.container_name, *arguments],
+                   container_deadline)
                   for name, arguments in container_probes]
-        probes.extend((name, [self.adb_path or "adb", "-s", self.serial, *arguments])
+        probes.extend((name, [self.adb_path or "adb", "-s", self.serial, *arguments], deadline)
                       for name, arguments in adb_probes)
         diagnostics = {}
-        for name, command in probes:
-            remaining = 45.0 - (time.monotonic() - started)
+        for name, command, phase_deadline in probes:
+            remaining = min(deadline, phase_deadline) - time.monotonic()
             if remaining <= 0:
                 diagnostics[name] = {"unavailable": "diagnostic collection budget exhausted"}
                 continue
