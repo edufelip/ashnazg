@@ -137,10 +137,14 @@ jobs:
             artifacts/integration/**
             artifacts/emulator/**
 
+  hwc:
+    name: HWC validation
+    uses: ./.github/workflows/hwc.yml
+
   quality-gate:
     name: Quality gate
     if: always()
-    needs: [rust, android, android-integration]
+    needs: [rust, android, android-integration, hwc]
     runs-on: ubuntu-latest
     steps:
       - name: Require every quality job to succeed
@@ -148,8 +152,10 @@ jobs:
           RUST_RESULT: ${{ needs.rust.result }}
           ANDROID_RESULT: ${{ needs.android.result }}
           INTEGRATION_RESULT: ${{ needs.android-integration.result }}
+          HWC_RESULT: ${{ needs.hwc.result }}
         run: |
-          printf 'rust=%s android=%s android-integration=%s\n' "$RUST_RESULT" "$ANDROID_RESULT" "$INTEGRATION_RESULT"
+          printf 'rust=%s android=%s android-integration=%s hwc=%s\n' "$RUST_RESULT" "$ANDROID_RESULT" "$INTEGRATION_RESULT" "$HWC_RESULT"
           test "$RUST_RESULT" = success
           test "$ANDROID_RESULT" = success
           test "$INTEGRATION_RESULT" = success
+          test "$HWC_RESULT" = success

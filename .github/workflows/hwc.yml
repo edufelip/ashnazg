@@ -1,29 +1,7 @@
 name: Experimental HWC image qualification
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/hwc.yml'
-      - 'runtime/hwc/**'
-      - 'runtime/hwc-image/**'
-      - 'scripts/build_hwc.sh'
-      - 'scripts/build_hwc_image.py'
-      - 'scripts/build_android_image.py'
-      - 'scripts/redroid_action.sh'
-      - 'scripts/harness.py'
-      - 'scripts/hwc_acceptance.py'
-      - 'scripts/linux_binder.py'
-      - 'scripts/redroid.py'
-      - 'scripts/integration.py'
-      - 'scripts/benchmark.py'
-      - 'agent-android/**'
-      - 'fixtures/**'
-      - 'src/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - 'action.yml'
-      - 'tests/test_hwc_image.py'
-      - 'tests/test_hwc_acceptance.py'
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -34,7 +12,77 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  scope:
+    name: Determine HWC qualification scope
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.scope.outputs.required }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, re, subprocess, sys
+
+          event, base, head = (os.environ[name] for name in ('EVENT_NAME', 'BASE_SHA', 'HEAD_SHA'))
+          pattern = re.compile(r'[0-9a-f]{40}')
+          if not pattern.fullmatch(head):
+              sys.exit('invalid or unavailable HWC source SHA')
+          if subprocess.run(['git', 'cat-file', '-e', f'{head}^{{commit}}'], check=False).returncode:
+              sys.exit(f'HWC source commit is unavailable: {head}')
+
+          if event == 'workflow_dispatch':
+              required = True
+          elif event in ('pull_request', 'push'):
+              if not pattern.fullmatch(base):
+                  sys.exit('invalid or unavailable HWC comparison base SHA')
+              if event == 'push' and set(base) == {'0'}:
+                  required = True
+              else:
+                  if set(base) == {'0'}:
+                      sys.exit('invalid or unavailable HWC comparison base SHA')
+                  for sha in (base, head):
+                      if subprocess.run(['git', 'cat-file', '-e', f'{sha}^{{commit}}'], check=False).returncode:
+                          sys.exit(f'HWC comparison commit is unavailable: {sha}')
+                  result = subprocess.run(
+                      ['git', 'diff', '--name-only', '--no-renames', base, head],
+                      check=False, capture_output=True, text=True)
+                  if result.returncode:
+                      sys.exit('could not determine HWC changed paths')
+                  paths = result.stdout.splitlines()
+                  exact = {
+                      '.github/workflows/hwc.yml', '.github/workflows/quality.yml',
+                      'scripts/build_hwc.sh', 'scripts/build_hwc_image.py',
+                      'scripts/build_display_probe.sh', 'tests/test_display_probe.py',
+                      'scripts/build_android_image.py', 'scripts/redroid_action.sh',
+                      'scripts/harness.py', 'scripts/hwc_acceptance.py',
+                      'scripts/linux_binder.py', 'scripts/redroid.py',
+                      'scripts/integration.py', 'scripts/benchmark.py',
+                      'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', 'action.yml',
+                      'tests/test_hwc_image.py', 'tests/test_hwc_acceptance.py',
+                  }
+                  required = any(
+                      path in exact or path.startswith((
+                          'runtime/hwc/', 'runtime/hwc-image/', 'runtime/display-governor/', 'agent-android/',
+                          'fixtures/', 'src/'))
+                      for path in paths)
+          else:
+              sys.exit(f'unsupported HWC scope event: {event}')
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'required={str(required).lower()}\n')
+          print('HWC qualification required:', required)
+          PYTHON
   qualify:
+    needs: scope
+    if: needs.scope.outputs.required == 'true'
     name: Experimental HWC Linux x64 qualification
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -97,6 +145,8 @@ jobs:
           cargo build --release --locked
           cd agent-android && ./gradlew test lint assembleDebug
           cd ../fixtures && ./gradlew :compose:assembleDebug :reactnative:assembleDebug
+      - name: Build the experimental framework display-policy probe
+        run: scripts/build_display_probe.sh --output artifacts/hwc/display-probe.jar
       - name: Build local experimental HWC image
         run: |
           git status --porcelain=v1 --untracked-files=all | tee artifacts/hwc/source-status-before-image.txt
@@ -137,6 +187,30 @@ jobs:
             set -euo pipefail
             python3 scripts/integration.py --preinstalled-agent --framework-fixtures --output artifacts/hwc/integration.json --artifacts artifacts/hwc/integration
             python3 scripts/benchmark.py --iterations 10 --output artifacts/hwc/benchmark.json
+      - name: Qualify framework display policy in a separate disposable guest
+        uses: ./
+        with:
+          output-directory: artifacts/hwc/policy-probe-guest
+          adb-port: '5557'
+          boot-timeout: '180'
+          image-provenance: artifacts/hwc/provenance.json
+          command: |
+            set -euo pipefail
+            collect_probe_crash() {
+              status=$?
+              if (( status != 0 )); then
+                set +e
+                timeout 10s adb -s "$ANDROID_SERIAL" logcat -b crash -d -t 200 | head -c 32768 > artifacts/hwc/policy-crash-logcat.txt
+              fi
+              exit "$status"
+            }
+            trap collect_probe_crash EXIT
+            timeout 30s adb -s "$ANDROID_SERIAL" root
+            timeout 30s adb -s "$ANDROID_SERIAL" wait-for-device
+            test "$(timeout 10s adb -s "$ANDROID_SERIAL" shell id -u | tr -d '\r')" = 0
+            timeout 30s adb -s "$ANDROID_SERIAL" push artifacts/hwc/display-probe.jar /data/local/tmp/ashnazg-display-probe.jar
+            timeout 30s adb -s "$ANDROID_SERIAL" shell env CLASSPATH=/data/local/tmp/ashnazg-display-probe.jar /system/bin/app_process /system/bin com.ashnazg.displayprobe.DisplayProbe --inspect | tee artifacts/hwc/policy-inspect.txt
+            timeout 60s adb -s "$ANDROID_SERIAL" shell env CLASSPATH=/data/local/tmp/ashnazg-display-probe.jar /system/bin/app_process /system/bin com.ashnazg.displayprobe.DisplayProbe --qualify-modes --disposable-guest --timeout-ms 5000 | tee artifacts/hwc/policy-qualification.txt
       - name: Clean up the owned Binderfs test fixture
         if: always()
         run: sudo env GITHUB_ACTIONS="$GITHUB_ACTIONS" python3 scripts/linux_binder.py --output-dir artifacts/hwc --cleanup
@@ -153,3 +227,22 @@ jobs:
             agent-android/fixture/build/outputs/apk/debug/*.apk
             fixtures/compose/build/outputs/apk/debug/*.apk
             fixtures/reactnative/build/outputs/apk/debug/*.apk
+
+  hwc-gate:
+    name: HWC quality gate
+    if: always()
+    needs: [scope, qualify]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the applicable HWC qualification
+        env:
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          HWC_REQUIRED: ${{ needs.scope.outputs.required }}
+          HWC_RESULT: ${{ needs.qualify.result }}
+        run: |
+          test "$SCOPE_RESULT" = success
+          case "$HWC_REQUIRED" in
+            true) test "$HWC_RESULT" = success ;;
+            false) test "$HWC_RESULT" = skipped ;;
+            *) echo 'Missing HWC qualification scope decision' >&2; exit 1 ;;
+          esac
