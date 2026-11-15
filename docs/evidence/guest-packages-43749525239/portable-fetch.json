@@ -1,0 +1,6 @@
+{
+  "package_count": 133,
+  "architecture": "aarch64",
+  "lock_sha256": "3d7ffc8aee731e11df9edcbdee5efb8fbdf90bcb953177305133d0ac2b9b30d3",
+  "verification": "Independent HTTPS fetch plus exact size, SHA-256 and .PKGINFO identity checks for every locked APK; native signature validation is provided by the hosted proposal run, not this macOS check."
+}

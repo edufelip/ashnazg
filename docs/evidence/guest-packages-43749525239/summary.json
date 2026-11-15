@@ -1,0 +1,18 @@
+{
+  "architecture": "aarch64",
+  "base_sha256": "36091efacd083c1cf5a8c837272530bff4fc72db1fbfdef559f52de0d890bca4",
+  "index_count": 2,
+  "offline_signature_and_dependency_validation": "passed",
+  "package_count": 133,
+  "qualification": "authenticated package snapshot proposal; no kernel build or boot validation claimed",
+  "requested_packages": [
+    "android-tools",
+    "ca-certificates",
+    "docker",
+    "docker-cli-buildx",
+    "iproute2",
+    "iptables",
+    "python3",
+    "util-linux"
+  ]
+}

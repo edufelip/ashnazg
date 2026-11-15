@@ -16,6 +16,18 @@ package snapshot proposal only. It does not build a kernel, create a bootable
 guest, or claim boot validation. The generated proposal is an artifact and does
 not edit the repository or claim to be a reviewed lock.
 
+## Current authenticated snapshot
+
+`runtime/microvm/packages.lock.json` preserves the unaltered 133-package proposal
+from [native ARM64 run 43749525239](https://github.com/edufelip/ashnazg/actions/runs/43749525239)
+on source `25ac74901621aa856b24fda234fcdbcbfe0f2452`. Its SHA-256 is
+`3d7ffc8aee731e11df9edcbdee5efb8fbdf90bcb953177305133d0ac2b9b30d3`.
+The run authenticated both repository indexes and completed the offline signed
+installation. An independent portable fetch also verified every locked APK
+against its recorded size, SHA-256, and `.PKGINFO` identity. Raw summary and index evidence are retained under
+`docs/evidence/guest-packages-43749525239/`. This snapshot unblocks the guest build;
+it does not establish a successful kernel build or VM boot.
+
 ## Use a reviewed lock
 
 After maintainers review and add the generated lock to the repository, fetch its
