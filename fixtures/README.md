@@ -28,3 +28,8 @@ Compose exports test tags as Android resource IDs using
 `testTagsAsResourceId = true`. React Native uses actual `testID` props on a
 native `Pressable` and `TextInput`; the button also declares the accessible
 button role and a changing accessible label.
+
+Compose applies safe-drawing insets before its content padding so the controls
+remain below system bars and display cutouts when target SDK 35 enables
+edge-to-edge layout. The API 35 Pixel 6 CI profile exercises this layout with
+the same single-tap counter assertion used on local devices.

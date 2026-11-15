@@ -156,6 +156,29 @@ def assert_button_label(snapshot: dict, test_id: str, expected: str) -> None:
     raise IntegrationFailure(f"button {test_id!r} did not expose expected state label {expected!r}")
 
 
+def wait_for_framework_ready(client: RpcClient, button_id: str, initial: str,
+                             *, timeout_seconds: float = 15.0,
+                             poll_interval_seconds: float = 0.3) -> dict:
+    """Wait until a framework fixture exposes its enabled button and associated initial label."""
+    deadline = time.monotonic() + timeout_seconds
+    last_state_error = "button or initial label is not present"
+    while time.monotonic() < deadline:
+        # Transport/protocol failures are not readiness states and should fail immediately.
+        snapshot = client.call("ui_snapshot")
+        try:
+            button = find_node(snapshot, test_id=button_id)
+            if not button.get("enabled"):
+                raise IntegrationFailure(f"button {button_id!r} is disabled")
+            assert_button_label(snapshot, button_id, initial)
+            return snapshot
+        except IntegrationFailure as exc:
+            last_state_error = str(exc)
+            time.sleep(min(poll_interval_seconds, max(0.0, deadline - time.monotonic())))
+    raise IntegrationFailure(
+        f"framework fixture button {button_id!r} did not become ready within "
+        f"{timeout_seconds:g}s: {last_state_error}")
+
+
 def require_tagged_log_evidence(lines: list[str], tag: str, evidence: str) -> None:
     if not lines:
         raise IntegrationFailure(f"app_logs returned no lines for literal tag {tag!r}")
@@ -572,17 +595,7 @@ def verify_framework_fixture(client: RpcClient, harness: DeviceHarness, package:
     harness.adb_cmd("shell", "am", "force-stop", package)
     harness.adb_cmd("shell", "pm", "clear", package, timeout=30)
     harness.adb_cmd("shell", "am", "start", "-W", "-n", f"{package}/{activity}", timeout=60)
-    deadline = time.monotonic() + 15
-    snapshot = None
-    while time.monotonic() < deadline:
-        snapshot = client.call("ui_snapshot")
-        if any(node.get("testId") == button_id for node in snapshot.get("nodes", [])):
-            break
-        time.sleep(0.3)
-    else:
-        raise IntegrationFailure(f"{package} did not expose semantic test ID {button_id!r}: {snapshot}")
-    find_node(snapshot, test_id=button_id)
-    assert_button_label(snapshot, button_id, initial)
+    snapshot = wait_for_framework_ready(client, button_id, initial)
     changed = act(client, {"action": "tap", "target": {"testId": button_id}})
     assert_button_label(changed, button_id, updated)
     input_id = "compose-input" if package.endswith("compose") else "rn-input"

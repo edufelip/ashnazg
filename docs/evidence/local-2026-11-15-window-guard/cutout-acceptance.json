@@ -1,0 +1,72 @@
+{
+  "run_id": "20261115T131741Z",
+  "source": {
+    "head": "8b4f6be8c16378fa7478780a0e0aa4866bb2707b",
+    "dirty": true,
+    "github_sha": null
+  },
+  "emulator": "emulator-5554",
+  "profile": "com.android.internal.emulation.pixel_6",
+  "results": [
+    {
+      "launch": 1,
+      "framework": "compose",
+      "checks": [
+        "com.ashnazg.fixture.compose_semantic_id",
+        "com.ashnazg.fixture.compose_tap_count",
+        "com.ashnazg.fixture.compose_unicode_type_clear",
+        "com.ashnazg.fixture.compose_screenshot"
+      ]
+    },
+    {
+      "launch": 1,
+      "framework": "reactnative",
+      "checks": [
+        "com.ashnazg.fixture.reactnative_semantic_id",
+        "com.ashnazg.fixture.reactnative_tap_count",
+        "com.ashnazg.fixture.reactnative_unicode_type_clear",
+        "com.ashnazg.fixture.reactnative_screenshot"
+      ]
+    },
+    {
+      "launch": 2,
+      "framework": "compose",
+      "checks": [
+        "com.ashnazg.fixture.compose_semantic_id",
+        "com.ashnazg.fixture.compose_tap_count",
+        "com.ashnazg.fixture.compose_unicode_type_clear",
+        "com.ashnazg.fixture.compose_screenshot"
+      ]
+    },
+    {
+      "launch": 2,
+      "framework": "reactnative",
+      "checks": [
+        "com.ashnazg.fixture.reactnative_semantic_id",
+        "com.ashnazg.fixture.reactnative_tap_count",
+        "com.ashnazg.fixture.reactnative_unicode_type_clear",
+        "com.ashnazg.fixture.reactnative_screenshot"
+      ]
+    },
+    {
+      "launch": 3,
+      "framework": "compose",
+      "checks": [
+        "com.ashnazg.fixture.compose_semantic_id",
+        "com.ashnazg.fixture.compose_tap_count",
+        "com.ashnazg.fixture.compose_unicode_type_clear",
+        "com.ashnazg.fixture.compose_screenshot"
+      ]
+    },
+    {
+      "launch": 3,
+      "framework": "reactnative",
+      "checks": [
+        "com.ashnazg.fixture.reactnative_semantic_id",
+        "com.ashnazg.fixture.reactnative_tap_count",
+        "com.ashnazg.fixture.reactnative_unicode_type_clear",
+        "com.ashnazg.fixture.reactnative_screenshot"
+      ]
+    }
+  ]
+}

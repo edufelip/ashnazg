@@ -8,7 +8,19 @@ from unittest.mock import patch
 
 from scripts.harness import DeviceHarness, HarnessError
 from scripts.integration import (FIXTURE_LOG_TAG, IntegrationFailure, artifact_evidence,
-                                 assert_button_label, require_tagged_log_evidence, safe_snapshot)
+                                 assert_button_label, require_tagged_log_evidence, safe_snapshot,
+                                 wait_for_framework_ready)
+
+
+class ReadinessClock:
+    def __init__(self):
+        self.now = 0.0
+
+    def monotonic(self):
+        return self.now
+
+    def sleep(self, duration):
+        self.now += duration
 
 
 class DeviceOwnershipTests(unittest.TestCase):
@@ -111,6 +123,90 @@ class DeviceOwnershipTests(unittest.TestCase):
         assert_button_label(snapshot, "rn-button", "React Native count: 1")
         with self.assertRaisesRegex(IntegrationFailure, "expected state label"):
             assert_button_label(snapshot, "rn-button", "React Native count: 2")
+
+    def test_framework_readiness_waits_for_valid_button_label_association(self):
+        class FakeClient:
+            def __init__(self):
+                self.snapshots = [
+                    {"nodes": [
+                        {"testId": "compose-button", "enabled": True, "rect": [63, 192, 486, 318]},
+                        {"text": "Compose count: 0", "rect": [126, 281, 423, 334]},
+                    ]},
+                    {"nodes": [
+                        {"testId": "compose-button", "enabled": True, "rect": [63, 192, 486, 360]},
+                        {"text": "Compose count: 0", "rect": [126, 240, 423, 293]},
+                    ]},
+                ]
+                self.calls = 0
+
+            def call(self, method):
+                self.assert_snapshot_method(method)
+                snapshot = self.snapshots[self.calls]
+                self.calls += 1
+                return snapshot
+
+            @staticmethod
+            def assert_snapshot_method(method):
+                if method != "ui_snapshot":
+                    raise AssertionError(f"unexpected client call: {method}")
+
+        client = FakeClient()
+        clock = ReadinessClock()
+        with patch("scripts.integration.time.monotonic", clock.monotonic), \
+             patch("scripts.integration.time.sleep", clock.sleep):
+            ready = wait_for_framework_ready(client, "compose-button", "Compose count: 0")
+        self.assertEqual(client.calls, 2)
+        self.assertEqual(ready["nodes"][0]["testId"], "compose-button")
+
+    def test_framework_readiness_times_out_if_button_label_never_matches(self):
+        class FakeClient:
+            def __init__(self):
+                self.calls = 0
+
+            def call(self, method):
+                self.calls += 1
+                return {"nodes": [
+                    {"testId": "compose-button", "enabled": True, "rect": [63, 192, 486, 318]},
+                    {"text": "Compose count: 0", "rect": [126, 281, 423, 334]},
+                ]}
+
+        client = FakeClient()
+        clock = ReadinessClock()
+        with patch("scripts.integration.time.monotonic", clock.monotonic), \
+             patch("scripts.integration.time.sleep", clock.sleep), \
+             self.assertRaisesRegex(IntegrationFailure, "did not become ready"):
+            wait_for_framework_ready(client, "compose-button", "Compose count: 0",
+                                     timeout_seconds=0.003, poll_interval_seconds=0.001)
+        self.assertGreaterEqual(client.calls, 2)
+
+    def test_framework_readiness_requires_enabled_button(self):
+        class FakeClient:
+            def call(self, method):
+                return {"nodes": [
+                    {"testId": "compose-button", "enabled": False, "rect": [63, 192, 486, 360]},
+                    {"text": "Compose count: 0", "rect": [126, 240, 423, 293]},
+                ]}
+
+        clock = ReadinessClock()
+        with patch("scripts.integration.time.monotonic", clock.monotonic), \
+             patch("scripts.integration.time.sleep", clock.sleep), \
+             self.assertRaisesRegex(IntegrationFailure, "did not become ready"):
+            wait_for_framework_ready(FakeClient(), "compose-button", "Compose count: 0",
+                                     timeout_seconds=0.003, poll_interval_seconds=0.001)
+
+    def test_framework_readiness_propagates_rpc_failures(self):
+        class FakeClient:
+            calls = 0
+
+            def call(self, method):
+                self.calls += 1
+                raise IntegrationFailure("guest closed the RPC connection")
+
+        client = FakeClient()
+        with self.assertRaisesRegex(IntegrationFailure, "guest closed the RPC connection"):
+            wait_for_framework_ready(client, "compose-button", "Compose count: 0",
+                                     timeout_seconds=1, poll_interval_seconds=0.001)
+        self.assertEqual(client.calls, 1)
 
 
 if __name__ == "__main__":

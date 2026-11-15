@@ -46,11 +46,15 @@ final class UiController {
     private final Object logLock = new Object();
     private final Object accessibilityEventMonitor = new Object();
     private final AtomicLong lastAccessibilityEventAtMs = new AtomicLong();
+    private final AtomicLong windowEventGeneration = new AtomicLong();
     private ParcelFileDescriptor logPipe;
     private final LogSourceState logSource = new LogSourceState();
     private Thread logThread;
     private boolean logTruncated;
     private int nextSnapshotId = 1;
+    private int lastReadyWindowId = -1;
+    private long lastReadyWindowGeneration = -1;
+    private WindowGeometryStability.Bounds lastReadyWindowBounds;
     private Snapshot current;
 
     UiController(UiAutomation automation, Instrumentation instrumentation, String secretToken) {
@@ -59,6 +63,9 @@ final class UiController {
         this.secretToken = secretToken;
         automation.setOnAccessibilityEventListener(event -> {
             lastAccessibilityEventAtMs.set(SystemClock.elapsedRealtime());
+            int type = event.getEventType();
+            if (type == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED || type == AccessibilityEvent.TYPE_WINDOWS_CHANGED)
+                windowEventGeneration.incrementAndGet();
             synchronized (accessibilityEventMonitor) { accessibilityEventMonitor.notifyAll(); }
             event.recycle();
         });
@@ -353,15 +360,49 @@ final class UiController {
 
     private Rect stabilizeBounds(Record record) {
         long deadline = SystemClock.elapsedRealtime() + 2000;
-        TargetBoundsStability stability = new TargetBoundsStability();
+        WindowGeometryStability stability = new WindowGeometryStability(lastReadyWindowId, lastReadyWindowGeneration, lastReadyWindowBounds);
         while (SystemClock.elapsedRealtime() <= deadline) {
+            long generationBefore = windowEventGeneration.get();
             automation.clearCache();
-            Rect bounds = refreshRecord(record);
+            Rect nodeScreen = refreshRecord(record);
+            Rect nodeWindowRect = new Rect();
+            record.node.getBoundsInWindow(nodeWindowRect);
+            WindowSnapshot window = findWindow(record.node.getWindowId());
+            if (window == null) throw new SelectorResolver.SelectorException(SelectorResolver.Failure.STALE,
+                    "target accessibility window is no longer available");
+            long generationAfter = windowEventGeneration.get();
             long now = SystemClock.elapsedRealtime();
-            if (stability.observe(bounds.left, bounds.top, bounds.right, bounds.bottom, now)) return record.rect;
+            boolean ready = stability.observe(window.id, generationBefore, generationAfter,
+                    geometry(nodeScreen), geometry(nodeWindowRect), window.bounds,
+                    window.active, window.focused, now);
+            if (ready && windowEventGeneration.get() == generationAfter) {
+                lastReadyWindowId = window.id;
+                lastReadyWindowGeneration = generationAfter;
+                lastReadyWindowBounds = window.bounds;
+                return new Rect(record.rect);
+            }
             SystemClock.sleep(16);
         }
-        throw new IllegalStateException("target bounds did not stabilize within 2 seconds");
+        throw new IllegalStateException("target window geometry did not become stable and active/focused within 2 seconds");
+    }
+
+    private WindowSnapshot findWindow(int windowId) {
+        List<android.view.accessibility.AccessibilityWindowInfo> windows = automation.getWindows();
+        try {
+            for (android.view.accessibility.AccessibilityWindowInfo window : windows) {
+                if (window.getId() != windowId) continue;
+                Rect bounds = new Rect();
+                window.getBoundsInScreen(bounds);
+                return new WindowSnapshot(window.getId(), geometry(bounds), window.isActive(), window.isFocused());
+            }
+            return null;
+        } finally {
+            for (android.view.accessibility.AccessibilityWindowInfo window : windows) window.recycle();
+        }
+    }
+
+    private WindowGeometryStability.Bounds geometry(Rect rect) {
+        return new WindowGeometryStability.Bounds(rect.left, rect.top, rect.right, rect.bottom);
     }
 
     private boolean awaitQuietWindow(long actionCompletedAtMs) {
@@ -501,6 +542,14 @@ final class UiController {
     private static final class Snapshot {
         final int id; final List<Record> records = new ArrayList<>(); int visited; boolean truncated; JSONObject json;
         Snapshot(int id) { this.id = id; }
+    }
+    private static final class WindowSnapshot {
+        final int id;
+        final WindowGeometryStability.Bounds bounds;
+        final boolean active, focused;
+        WindowSnapshot(int id, WindowGeometryStability.Bounds bounds, boolean active, boolean focused) {
+            this.id = id; this.bounds = bounds; this.active = active; this.focused = focused;
+        }
     }
     private static final class Record {
         final int id; final String testId, text, role, hint, contentDescription; final Rect rect; final boolean enabled, focused, clickable, editable, password, checkable, checked, selected, scrollable, longClickable; final AccessibilityNodeInfo node;

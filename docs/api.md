@@ -33,7 +33,7 @@ Qualified resource IDs preserve their package. Unqualified native ID aliases mus
 
 `type` appends through accessibility text actions; it does not synthesize individual keyboard key events. Clear a nonempty password field before typing, because its existing value may be masked. Scroll direction defaults to down and search stops after twelve swipes.
 
-The result contains `{ "snapshot": ..., "settled": true }`. Settling uses bounded state/navigation checks and a 120 ms accessibility quiet window; it does not establish that network requests or every asynchronous task have finished. A false `settled` value or transport error may follow an action that already executed: inspect the state before taking another action. The host never automatically replays mutations.
+The result contains `{ "snapshot": ..., "settled": true }`. Before tapping or long-pressing a target, a new or changed window must expose stable target and window bounds for 500 ms; an already stable window uses 120 ms. The geometry check is bounded to two seconds and requires an active or focused target window. Settling after input uses bounded state/navigation checks and a 120 ms accessibility quiet window. These are observed stability checks; they do not establish that network requests, future animations or every asynchronous task have finished. A false `settled` value or transport error may follow an action that already executed: inspect the state before taking another action. The host never automatically replays mutations.
 
 ## Screenshots and logs
 
