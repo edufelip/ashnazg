@@ -196,6 +196,15 @@ jobs:
           image-provenance: artifacts/hwc/provenance.json
           command: |
             set -euo pipefail
+            collect_probe_crash() {
+              status=$?
+              if (( status != 0 )); then
+                set +e
+                timeout 10s adb -s "$ANDROID_SERIAL" logcat -b crash -d -t 200 | head -c 32768 > artifacts/hwc/policy-crash-logcat.txt
+              fi
+              exit "$status"
+            }
+            trap collect_probe_crash EXIT
             timeout 30s adb -s "$ANDROID_SERIAL" root
             timeout 30s adb -s "$ANDROID_SERIAL" wait-for-device
             test "$(timeout 10s adb -s "$ANDROID_SERIAL" shell id -u | tr -d '\r')" = 0

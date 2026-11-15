@@ -163,20 +163,26 @@ public final class DisplayProbe {
         } catch (IllegalArgumentException e) {
             throw new ProbeFailure(e.getMessage());
         }
+        stage("get-original-policy");
         Object original = api.invoke(api.getDesiredSpecs, null, token);
         if (original == null) throw new ProbeFailure("getDesiredDisplayModeSpecs returned null");
+        stage("copy-original-policy");
         Object saved = api.copyDesiredSpecs(original);
         boolean mutationAttempted = false;
         boolean restoreSuccess = false;
         String failure = null;
         try {
             mutationAttempted = true;
+            stage("request-1hz");
             boolean lowReturn = api.requestMode(token, pair.low, ProbePolicy.LOW_HZ);
+            stage("observe-1hz");
             int lowActive = api.awaitActiveMode(id, pair.low.id, timeoutMs);
             output.append("request_hz=1 set_return=").append(lowReturn)
                     .append(" observed_active_mode_id=").append(lowActive).append('\n');
 
+            stage("request-60hz");
             boolean highReturn = api.requestMode(token, pair.high, ProbePolicy.HIGH_HZ);
+            stage("observe-60hz");
             int highActive = api.awaitActiveMode(id, pair.high.id, timeoutMs);
             output.append("request_hz=60 set_return=").append(highReturn)
                     .append(" observed_active_mode_id=").append(highActive).append('\n');
@@ -187,7 +193,9 @@ public final class DisplayProbe {
         } finally {
             if (mutationAttempted) {
                 try {
+                    stage("restore-original-policy");
                     boolean restoreReturn = (Boolean) api.invoke(api.setDesiredSpecs, null, token, saved);
+                    stage("verify-restoration");
                     restoreSuccess = api.awaitDesiredSpecs(token, original, timeoutMs);
                     output.append("restore_success=").append(restoreSuccess)
                             .append(" set_return=").append(restoreReturn)
@@ -206,6 +214,11 @@ public final class DisplayProbe {
             throw new ProbeFailure(failure + "; restore_success=" + restoreSuccess);
         }
         if (!restoreSuccess) throw new ProbeFailure("mode checks passed but restoring original desired specs was not verified");
+    }
+
+    private static void stage(String name) {
+        emit("stage=" + name + "\n");
+        System.out.flush();
     }
 
     private static void emit(String text) {
