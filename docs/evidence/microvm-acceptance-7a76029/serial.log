@@ -1,0 +1,940 @@
+[    0.048955] loop: module loaded
+[    0.049037] virtio_blk virtio2: 1/0/0 default/read/poll queues
+[    0.049155] virtio_blk virtio2: [vda] 8388608 512-byte logical blocks (4.29 GB/4.00 GiB)
+[    0.049404] megasas: 07.727.03.00-rc1
+[    0.049740] tun: Universal TUN/TAP device driver, 1.6
+[    0.050438] thunder_xcv, ver 1.0
+[    0.050457] thunder_bgx, ver 1.0
+[    0.050480] nicpf, ver 1.0
+[    0.050544] hns3: Hisilicon Ethernet Network Driver for Hip08 Family - version
+[    0.050583] hns3: Copyright (c) 2017 Huawei Corporation.
+[    0.050628] hclge is initializing
+[    0.050654] e1000: Intel(R) PRO/1000 Network Driver
+[    0.050676] e1000: Copyright (c) 1999-2006 Intel Corporation.
+[    0.050741] e1000e: Intel(R) PRO/1000 Network Driver
+[    0.050766] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
+[    0.050777] igb: Intel(R) Gigabit Ethernet Network Driver
+[    0.050814] igb: Copyright (c) 2007-2014 Intel Corporation.
+[    0.050847] igbvf: Intel(R) Gigabit Virtual Function Network Driver
+[    0.050884] igbvf: Copyright (c) 2009 - 2012 Intel Corporation.
+[    0.050939] sky2: driver version 1.30
+[    0.051067] VFIO - User Level meta-driver version: 0.3
+[    0.051232] usbcore: registered new interface driver usb-storage
+[    0.051441] rtc-pl031 20050000.pl031: registered as rtc0
+[    0.051471] rtc-pl031 20050000.pl031: setting system clock to 2026-11-15T23:19:22 UTC (1794784762)
+[    0.051557] i2c_dev: i2c /dev entries driver
+[    0.051889] sdhci: Secure Digital Host Controller Interface driver
+[    0.051920] sdhci: Copyright(c) Pierre Ossman
+[    0.051969] Synopsys Designware Multimedia Card Interface Driver
+[    0.052037] sdhci-pltfm: SDHCI platform and OF driver helper
+[    0.052225] usbcore: registered new interface driver usbhid
+[    0.052252] usbhid: USB HID core driver
+[    0.052813] NET: Registered PF_INET6 protocol family
+[    0.052983] Segment Routing with IPv6
+[    0.053016] In-situ OAM (IOAM) with IPv6
+[    0.053052] NET: Registered PF_PACKET protocol family
+[    0.053082] Bridge firewalling registered
+[    0.053110] 9pnet: Installing 9P2000 support
+[    0.053139] Key type dns_resolver registered
+[    0.053194] NET: Registered PF_VSOCK protocol family
+[    0.054136] registered taskstats version 1
+[    0.054199] Loading compiled-in X.509 certificates
+[    0.054656] Demotion targets for Node 0: null
+[    0.054840] input: gpio-keys as /devices/platform/gpio-keys/input/input0
+[    0.054921] clk: Disabling unused clocks
+[    0.054943] PM: genpd: Disabling unused power domains
+[    0.054964] ALSA device list:
+[    0.054986]   No soundcards found.
+[    0.835321] EXT4-fs (vda): mounted filesystem 5b13dc59-1c32-4eaa-9748-9ee4888c2808 r/w with ordered data mode. Quota mode: none.
+[    0.835374] VFS: Mounted root (ext4 filesystem) on device 254:0.
+[    0.835599] devtmpfs: mounted
+[    0.835847] Freeing unused kernel memory: 10624K
+[    0.835896] Run /sbin/ashnazg-init as init process
+[    5.831337] random: crng init done
+udhcpc: started, v1.37.0
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 192.168.64.10, server 192.168.64.1
+udhcpc: lease of 192.168.64.10 obtained from 192.168.64.1, lease time 3600
+[   93.648402] docker0: port 1(veth3c9794a) entered blocking state
+[   93.648465] docker0: port 1(veth3c9794a) entered disabled state
+[   93.648493] veth3c9794a: entered allmulticast mode
+[   93.648540] veth3c9794a: entered promiscuous mode
+[   93.684785] eth0: renamed from veth7b9abd0
+[   93.685448] docker0: port 1(veth3c9794a) entered blocking state
+[   93.685486] docker0: port 1(veth3c9794a) entered forwarding state
+[   93.737429] init: mkdir("/dev/pts", 0755) failed File exists
+[   93.737465] init: mount("sysfs", "/sys", "sysfs", 0, NULL) failed Device or resource busy
+[   93.737489] init: mount("selinuxfs", "/sys/fs/selinux", "selinuxfs", 0, NULL) failed No such file or directory
+[   93.737511] init: mknod("/dev/kmsg", S_IFCHR | 0600, makedev(1, 11)) failed File exists
+[   93.737542] init: mknod("/dev/random", S_IFCHR | 0666, makedev(1, 8)) failed Invalid argument
+[   93.737570] init: mknod("/dev/urandom", S_IFCHR | 0666, makedev(1, 9)) failed File exists
+[   93.737602] init: mknod("/dev/ptmx", S_IFCHR | 0666, makedev(5, 2)) failed File exists
+[   93.737631] init: mknod("/dev/null", S_IFCHR | 0666, makedev(1, 3)) failed File exists
+[   93.737663] init: init first stage started!
+[   93.737694] init: Unable to open /lib/modules, skipping module loading.
+[   93.737948] printk: init: 5 output lines suppressed due to ratelimiting
+[   93.740120] init: init second stage started!
+[   93.741775] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   93.741812] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   93.743615] init: [libfstab] Using Android DT directory /proc/device-tree/firmware/android/
+[   93.743816] init: Overriding previous property 'ro.cp_system_other_odex':'1' with new value '0'
+[   93.744072] init: Could not set 'ro.hardware' to 'redroid' while loading .prop filesRead-only property was already set
+[   93.744232] init: Setting product property ro.product.brand to 'redroid' (from ro.product.product.brand)
+[   93.744268] init: Setting product property ro.product.device to 'redroid_arm64_only' (from ro.product.product.device)
+[   93.744303] init: Setting product property ro.product.manufacturer to 'redroid' (from ro.product.product.manufacturer)
+[   93.744343] init: Setting product property ro.product.model to 'redroid15_arm64_only' (from ro.product.product.model)
+[   93.748882] cgroup: Unknown subsys name 'memory'
+[   93.769364] ueventd: ueventd started!
+[   93.769670] selinux: SELinux: Loaded file context from:
+[   93.769692] selinux: 		/system/etc/selinux/plat_file_contexts
+[   93.769717] selinux: 		/system_ext/etc/selinux/system_ext_file_contexts
+[   93.769730] selinux: 		/product/etc/selinux/product_file_contexts
+[   93.769750] selinux: 		/vendor/etc/selinux/vendor_file_contexts
+[   93.769760] selinux: 		/odm/etc/selinux/odm_file_contexts
+[   93.769801] ueventd: Parsing file /system/etc/ueventd.rc...
+[   93.769820] ueventd: Added '/vendor/etc/ueventd.rc' to import list
+[   93.769846] ueventd: Added '/odm/etc/ueventd.rc' to import list
+[   93.773156] apexd: Started. subcommand = --bootstrap
+[   93.773214] cutils-trace: Error opening trace file: No such file or directory (2)
+[   93.773252] apexd-bootstrap: Scanning /odm/apex for pre-installed ApexFiles
+[   93.773277] apexd-bootstrap: /odm/apex does not exist. Skipping
+[   93.773304] apexd-bootstrap: Scanning /vendor/apex for pre-installed ApexFiles
+[   93.773360] apexd-bootstrap: Found pre-installed APEX /vendor/apex/com.android.hardware.cas.apex
+[   93.773521] apexd-bootstrap: Scanning /product/apex for pre-installed ApexFiles
+[   93.773551] apexd-bootstrap: /product/apex does not exist. Skipping
+[   93.773577] apexd-bootstrap: Scanning /system_ext/apex for pre-installed ApexFiles
+[   93.773611] apexd-bootstrap: /system_ext/apex does not exist. Skipping
+[   93.776306] loop0: detected capacity change from 0 to 15240
+[   93.776361] loop1: detected capacity change from 0 to 70840
+[   93.776473] loop2: detected capacity change from 0 to 1680
+[   93.811692] EXT4-fs (loop0): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   93.811793] EXT4-fs (loop1): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   93.820025] EXT4-fs (loop2): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   93.821170] printk: apexd: 117 output lines suppressed due to ratelimiting
+[   93.850112] prng_seeder: Hanging forever because setup failed: Unable to open hwrng /dev/hw_random
+[   93.850112] 
+[   93.850154] Caused by:
+[   93.850164]     No such file or directory (os error 2)
+[   93.868613] logd.auditd: start
+[   93.868645] logd.klogd: 93867306336
+[   93.868903] servicemanager: Starting sm instance on /dev/binder
+[   93.869289] SELinux: SELinux: Loaded service context from:
+[   93.869311] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   93.869336] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   93.869471] SELinux: 		/product/etc/selinux/product_service_contexts
+[   93.869499] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   93.869522] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   93.871649] logd: Loaded bug_map file: /system_ext/etc/selinux/bug_map
+[   93.871686] logd: Loaded bug_map file: /vendor/etc/selinux/selinux_denial_metadata
+[   93.871743] logd: Loaded bug_map file: /system/etc/selinux/bug_map
+[   93.872221] logd: SocketListener: Failed to start unbound listener
+[   93.877882] cutils-trace: Error opening trace file: No such file or directory (2)
+[   93.878252] SELinux: SELinux: Loaded service context from:
+[   93.878282] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   93.879692] vold: Failed to open default fstab: No such file or directory
+[   93.879724] vold: Error reading configuration... continuing anyways: No such file or directory
+[   93.919882] incfs: IncFs_Features: failed to open features dir, assuming v1/none.: No such file or directory
+[   93.968266] vold: keystore2 Keystore earlyBootEnded returned service specific error: -68
+[   94.017151] logd: logd reinit
+[   94.017201] logd: Cannot read /data/misc/logd/event-log-tags
+[   94.017504] logd: FrameworkListener: read() failed (Connection reset by peer)
+[   94.019822] apexd: Started. subcommand = (null)
+[   94.019912] cutils-trace: Error opening trace file: No such file or directory (2)
+[   94.020439] apexd: Scanning /odm/apex for pre-installed ApexFiles
+[   94.020476] apexd: /odm/apex does not exist. Skipping
+[   94.020510] apexd: Scanning /vendor/apex for pre-installed ApexFiles
+[   94.020564] apexd: Found pre-installed APEX /vendor/apex/com.android.hardware.cas.apex
+[   94.020680] apexd: Scanning /product/apex for pre-installed ApexFiles
+[   94.020719] apexd: /product/apex does not exist. Skipping
+[   94.020748] apexd: Scanning /system_ext/apex for pre-installed ApexFiles
+[   94.020782] apexd: /system_ext/apex does not exist. Skipping
+[   94.022605] loop3: detected capacity change from 0 to 1760
+[   94.022656] loop4: detected capacity change from 0 to 49776
+[   94.022701] loop5: detected capacity change from 0 to 21264
+[   94.022910] loop6: detected capacity change from 0 to 1560
+[   94.023090] loop7: detected capacity change from 0 to 45672
+[   94.023178] loop8: detected capacity change from 0 to 1680
+[   94.023252] loop9: detected capacity change from 0 to 9624
+[   94.063899] EXT4-fs (loop17): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.068451] EXT4-fs (loop18): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.068573] EXT4-fs (loop19): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.068616] EXT4-fs (loop26): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.068954] EXT4-fs (loop25): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.069104] EXT4-fs (loop27): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.069239] EXT4-fs (loop24): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.069442] EXT4-fs (loop23): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.069572] EXT4-fs (loop16): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.069675] EXT4-fs (loop20): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.073483] EXT4-fs (loop22): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.073578] EXT4-fs (loop21): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.073780] EXT4-fs (loop10): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.073935] EXT4-fs (loop8): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.074000] EXT4-fs (loop12): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.074070] EXT4-fs (loop11): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.074245] EXT4-fs (loop4): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.074590] EXT4-fs (loop9): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.074767] EXT4-fs (loop15): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.074869] EXT4-fs (loop5): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.074998] EXT4-fs (loop7): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.075019] EXT4-fs (loop3): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.075066] EXT4-fs (loop13): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.075163] EXT4-fs (loop14): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.075284] EXT4-fs (loop6): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.088163] EXT4-fs (loop34): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.088238] EXT4-fs (loop33): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.089380] EXT4-fs (loop28): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.089708] EXT4-fs (loop30): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.089968] EXT4-fs (loop32): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.090091] EXT4-fs (loop35): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.090151] EXT4-fs (loop29): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.090157] EXT4-fs (loop31): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.138092] cutils-trace: Error opening trace file: No such file or directory (2)
+[   94.374164] apexd: Started. subcommand = --snapshotde
+[   94.374270] cutils-trace: Error opening trace file: No such file or directory (2)
+[   94.374737] apexd-snapshotde: Marking APEXd as ready
+[   94.413625] NetBpfLoad: NetBpfLoad v0.46 (/apex/com.android.tethering/bin/netbpfload) api:35/35 kver:60c0075 (64-on-aarch64) uid:0 rc:01
+[   94.413753] NetBpfLoad: Tethering APEX version 352090000
+[   94.413812] NetBpfLoad: open('/proc/sys/net/core/bpf_jit_enable', O_WRONLY | O_CLOEXEC) -> No such file or directory
+[   94.413851] NetBpfLoad: write 1 to /proc/sys/net/core/bpf_jit_enable FAILED
+[   94.413883] NetBpfLoad: open('/proc/sys/net/core/bpf_jit_kallsyms', O_WRONLY | O_CLOEXEC) -> No such file or directory
+[   94.413912] NetBpfLoad: write 1 to /proc/sys/net/core/bpf_jit_kallsyms FAILED
+[   94.466081] printk: netbpfload: 371 output lines suppressed due to ratelimiting
+[   94.540397] healthd: No battery devices found
+[   94.541313] HealthLoop: Successfully attached the BPF filter to the uevent socket
+[   94.541434] healthd: battery none chg=
+[   97.706756] healthd: battery none chg=
+[   98.269795] binder: 782:782 ioctl c00c620f ffffcb52e11c returned -22
+[   98.873389] servicemanager: Notifying apexservice they don't (previously: do) have clients when we now have no record of a client
+[   98.912222] SELinux: SELinux: Loaded service context from:
+[   98.912282] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   98.912356] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   98.912401] SELinux: 		/product/etc/selinux/product_service_contexts
+[   98.912450] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   98.912506] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   99.021704] SELinux: SELinux: Loaded service context from:
+[   99.021757] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   99.021790] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  101.707121] AidlLazyServiceRegistrar: Process has 1 (of 1 available) client(s) in use after notification apexservice has clients: 1
+[  101.707129] apexd: getSessions() received by ApexService
+[  101.707189] AidlLazyServiceRegistrar: Shutdown prevented by forcePersist override flag.
+[  103.294431] apexd: markBootCompleted() received by ApexService
+[  103.314260] init: processing action (sys.boot_completed=1) from (/system/etc/init/hw/init.rc:1225)
+[  103.314341] init: starting service 'exec 21 (/bin/rm -rf /data/per_boot)'...
+[  103.324409] init: ... started service 'exec 21 (/bin/rm -rf /data/per_boot)' has pid 1003
+[  103.324478] init: SVC_EXEC service 'exec 21 (/bin/rm -rf /data/per_boot)' pid 1003 (uid 1000 gid 1000+0 context default) started; waiting...
+[  103.334755] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  103.336225] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  103.337370] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  103.346942] init: Service 'exec 21 (/bin/rm -rf /data/per_boot)' (pid 1003) exited with status 0 waiting took 0.029000 seconds
+[  103.346999] init: Sending signal 9 to service 'exec 21 (/bin/rm -rf /data/per_boot)' (pid 1003) process group...
+[  103.347158] init: processing action (sys.boot_completed=1 && sys.bootstat.first_boot_completed=0) from (/system/etc/init/bootstat.rc:67)
+[  103.358956] binder: release 610:610 transaction 16014 in, still active
+[  103.358992] binder: send failed reply for transaction 16014 to 1309:1544
+[  103.359006] binder: undelivered TRANSACTION_COMPLETE
+[  103.359016] binder: undelivered transaction 16019, process died.
+[  103.485987] apexd: destroyCeSnapshotsNotSpecified() received by ApexService user_id : 0 retain_rollback_ids : []
+[  103.488900] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  103.869637] AidlLazyServiceRegistrar: Process has 0 (of 1 available) client(s) in use after notification apexservice has clients: 0
+[  103.869708] AidlLazyServiceRegistrar: Shutdown prevented by forcePersist override flag.
+[  103.886746] SELinux: SELinux: Loaded service context from:
+[  103.886789] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  103.886816] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  103.886842] SELinux: 		/product/etc/selinux/product_service_contexts
+[  103.886867] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  103.886893] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  103.892147] SELinux: SELinux: Loaded service context from:
+[  103.892201] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  103.892235] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  103.892273] SELinux: 		/product/etc/selinux/product_service_contexts
+[  104.095134] apexd: DM_LIST_DEVICES failed: Bad file descriptor
+[  104.095182] apexd: Failed to fetch dm devices
+[  104.095197] AidlLazyServiceRegistrar: Trying to shut down the service. No clients in use for any service in process.
+[  104.096550] printk: binder:59_3: 151 output lines suppressed due to ratelimiting
+[  104.303467] logd: logdr: UID=1002 GID=1002 PID=1061 n tail=500 logMask=8 pid=805 start=0ns deadline=0ns
+[  104.310176] logd: logdr: UID=1002 GID=1002 PID=1061 n tail=500 logMask=1 pid=805 start=0ns deadline=0ns
+[  104.368002] binder: undelivered death notification, b400f43d74034dc0
+[  104.923325] logd: logdr: UID=1002 GID=1002 PID=1483 n tail=500 logMask=8 pid=1441 start=0ns deadline=0ns
+[  104.924372] logd: logdr: UID=1002 GID=1002 PID=1483 n tail=500 logMask=1 pid=1441 start=0ns deadline=0ns
+[  104.943237] binder: undelivered death notification, b400f43d740351e0
+[  105.888374] binder: 782:834 ioctl 400c620e f43c2f1f956c returned -22
+[  105.948388] binder: undelivered transaction 47933, process died.
+[  105.948453] binder: undelivered transaction 47931, process died.
+[  106.257636] binder: 782:834 ioctl 400c620e f43c2f1f96bc returned -22
+[  106.268350] binder: undelivered TRANSACTION_COMPLETE
+[  106.268394] binder: undelivered transaction 54107, process died.
+[  106.577947] logd: logdr: UID=1002 GID=1002 PID=1763 n tail=500 logMask=8 pid=1534 start=0ns deadline=0ns
+[  106.579280] logd: logdr: UID=1002 GID=1002 PID=1763 n tail=500 logMask=1 pid=1534 start=0ns deadline=0ns
+[  108.368937] init: starting service 'vendor.bluetooth-1-1'...
+[  108.391558] init: ... started service 'vendor.bluetooth-1-1' has pid 1894
+[  108.406094] binder_debug: 2 callbacks suppressed
+[  108.406096] binder: release 2445:2445 transaction 66361 in, still active
+[  108.406210] binder: send failed reply for transaction 66361 to 2409:2440
+[  108.406460] init: Service 'vendor.bluetooth-1-1' (pid 1894) received signal 4
+[  108.406515] init: Sending signal 9 to service 'vendor.bluetooth-1-1' (pid 1894) process group...
+[  108.480591] logd: logdr: UID=1002 GID=1002 PID=1897 n tail=500 logMask=8 pid=1858 start=0ns deadline=0ns
+[  108.481871] logd: logdr: UID=1002 GID=1002 PID=1897 n tail=500 logMask=1 pid=1858 start=0ns deadline=0ns
+[  108.489032] init: Untracked pid 1897 exited with status 0
+[  108.489103] init: Untracked pid 1897 did not have an associated service entry and will not be reaped
+[  108.491776] init: Untracked pid 1899 exited with status 0
+[  108.491815] init: Untracked pid 1899 did not have an associated service entry and will not be reaped
+[  108.493526] binder: undelivered death notification, b400f43d74036050
+[  110.132749] SELinux: SELinux: Loaded service context from:
+[  110.132887] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  110.132943] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  110.132987] SELinux: 		/product/etc/selinux/product_service_contexts
+[  110.133020] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  110.133070] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  110.154979] SELinux: SELinux: Loaded service context from:
+[  110.155046] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  110.155085] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  110.155111] SELinux: 		/product/etc/selinux/product_service_contexts
+[  110.194446] init: Control message: Could not find 'android.hardware.bluetooth@1.1::IBluetoothHci/default' for ctl.interface_start from pid: 24 (/system/system_ext/bin/hwservicemanager)
+[  110.194686] init: Control message: Could not find 'android.hardware.bluetooth@1.1::IBluetoothHci/default' for ctl.interface_start from pid: 24 (/system/system_ext/bin/hwservicemanager)
+[  110.808417] logd: logdr: UID=1002 GID=1002 PID=1952 n tail=500 logMask=8 pid=1911 start=0ns deadline=0ns
+[  110.809753] logd: logdr: UID=1002 GID=1002 PID=1952 n tail=500 logMask=1 pid=1911 start=0ns deadline=0ns
+[  113.372149] init: starting service 'vendor.bluetooth-1-1'...
+[  113.391515] init: ... started service 'vendor.bluetooth-1-1' has pid 2025
+[  113.408207] binder: release 2582:2582 transaction 69167 in, still active
+[  113.408384] binder: send failed reply for transaction 69167 to 2535:2577
+[  113.409884] init: Service 'vendor.bluetooth-1-1' (pid 2025) received signal 4
+[  113.409975] init: Sending signal 9 to service 'vendor.bluetooth-1-1' (pid 2025) process group...
+[  113.508687] logd: logdr: UID=1002 GID=1002 PID=2029 n tail=500 logMask=8 pid=1978 start=0ns deadline=0ns
+[  113.510067] logd: logdr: UID=1002 GID=1002 PID=2029 n tail=500 logMask=1 pid=1978 start=0ns deadline=0ns
+[  113.518519] init: Untracked pid 2029 exited with status 0
+[  113.518568] init: Untracked pid 2029 did not have an associated service entry and will not be reaped
+[  113.519527] init: Untracked pid 2031 exited with status 0
+[  113.519557] init: Untracked pid 2031 did not have an associated service entry and will not be reaped
+[  113.519762] binder: undelivered death notification, b400f43d740351e0
+[  114.115152] init: Sending signal 9 to service 'idmap2d' (pid 225) process group...
+[  114.116771] init: Control message: Processed ctl.stop for 'idmap2d' from pid: 296 (system_server)
+[  118.378861] init: starting service 'vendor.bluetooth-1-1'...
+[  118.395706] init: ... started service 'vendor.bluetooth-1-1' has pid 2039
+[  118.874610] servicemanager: Notifying artd they don't (previously: do) have clients when we now have no record of a client
+[  118.875302] SELinux: SELinux: Loaded service context from:
+[  118.875356] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  118.875402] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  118.875446] SELinux: 		/product/etc/selinux/product_service_contexts
+[  118.875482] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  118.875518] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  118.875577] servicemanager: Caller(pid=438,uid=1082,sid=HACKED) Unregistering artd
+[  118.875620] BpBinder: onLastStrongRef automatically unlinking death recipients: 
+[  118.877416] init: Service 'artd' (pid 438) exited with status 0 oneshot service took 20.381001 seconds in background
+[  118.877477] init: Sending signal 9 to service 'artd' (pid 438) process group...
+[  122.496020] SELinux: SELinux: Loaded service context from:
+[  122.676614] init: starting service 'artd'...
+[  122.699071] init: ... started service 'artd' has pid 2064
+[  122.699120] init: Control message: Processed ctl.interface_start for 'aidl/artd' from pid: 23 (/system/bin/servicemanager)
+[  123.249010] logd: logdr: UID=2000 GID=2000 PID=2109 b tail=0 logMask=99 pid=0 start=1794784885691000000ns deadline=0ns
+[  124.002006] SELinux: SELinux: Loaded service context from:
+[  124.002060] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  124.002090] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  124.002115] SELinux: 		/product/etc/selinux/product_service_contexts
+[  124.002142] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  124.002178] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  124.073772] SELinux: SELinux: Loaded service context from:
+[  124.073819] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  124.073852] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  124.073892] SELinux: 		/product/etc/selinux/product_service_contexts
+[  129.445702] SELinux: SELinux: Loaded service context from:
+[  129.445890] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  129.446075] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  129.446105] SELinux: 		/product/etc/selinux/product_service_contexts
+[  129.446131] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  129.446162] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  129.606578] SELinux: SELinux: Loaded service context from:
+[  129.606740] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  129.606937] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  129.607085] SELinux: 		/product/etc/selinux/product_service_contexts
+[  134.474909] SELinux: SELinux: Loaded service context from:
+[  134.474957] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  134.475002] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  134.475031] SELinux: 		/product/etc/selinux/product_service_contexts
+[  134.475068] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  134.475106] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  134.477462] SELinux: SELinux: Loaded service context from:
+[  134.477503] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  134.477539] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  134.477571] SELinux: 		/product/etc/selinux/product_service_contexts
+[  139.851806] SELinux: SELinux: Loaded service context from:
+[  139.851841] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  139.851906] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  139.851953] SELinux: 		/product/etc/selinux/product_service_contexts
+[  139.851976] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  139.852017] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  139.853797] binder: 782:1169 ioctl 400c620e f43bb3bef28c returned -22
+[  139.855543] SELinux: SELinux: Loaded service context from:
+[  139.855581] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  139.855647] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  139.855678] SELinux: 		/product/etc/selinux/product_service_contexts
+[  144.266702] binder: 782:814 ioctl 400c620e f43c42ff279c returned -22
+[  144.843094] binder: 1109:782 cannot find target node
+[  144.843144] binder: 782:1109 transaction async to 0:0 failed 92124/29189/-22, size 64-0 line 3160
+[  144.913476] SELinux: SELinux: Loaded service context from:
+[  144.913542] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  144.913603] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  144.913643] SELinux: 		/product/etc/selinux/product_service_contexts
+[  144.913695] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  144.913724] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  144.921521] SELinux: SELinux: Loaded service context from:
+[  144.921596] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  144.921627] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  144.921666] SELinux: 		/product/etc/selinux/product_service_contexts
+[  145.339562] binder: 782:1109 ioctl 400c620e f43c068fb28c returned -22
+[  145.340213] binder: 814:782 cannot find target node
+[  145.340241] binder: 782:814 transaction async to 0:0 failed 93202/29189/-22, size 88-0 line 3160
+[  145.340370] binder: 3087:782 cannot find target node
+[  145.340436] binder: 782:3087 transaction call to 0:0 failed 93203/29189/-22, size 304-0 line 3160
+[  145.870356] binder: 782:814 ioctl 400c620e f43c42ff279c returned -22
+[  146.026956] binder: 1832:782 cannot find target node
+[  146.026996] binder: 782:1832 transaction async to 0:0 failed 95492/29189/-22, size 64-0 line 3160
+[  151.014163] SELinux: SELinux: Loaded service context from:
+[  151.014233] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  151.014277] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  151.014315] SELinux: 		/product/etc/selinux/product_service_contexts
+[  151.014350] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  151.014384] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  151.015482] SELinux: SELinux: Loaded service context from:
+[  151.015515] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  151.015551] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  151.015590] SELinux: 		/product/etc/selinux/product_service_contexts
+[  156.541790] SELinux: SELinux: Loaded service context from:
+[  156.541913] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  156.541976] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  156.542024] SELinux: 		/product/etc/selinux/product_service_contexts
+[  156.542077] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  156.542137] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  156.559919] SELinux: SELinux: Loaded service context from:
+[  156.560006] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  156.560065] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  156.560137] SELinux: 		/product/etc/selinux/product_service_contexts
+[  162.215468] SELinux: SELinux: Loaded service context from:
+[  162.215521] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  162.215546] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  162.215584] SELinux: 		/product/etc/selinux/product_service_contexts
+[  162.215604] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  162.215633] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  162.216687] SELinux: SELinux: Loaded service context from:
+[  162.216714] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  162.216732] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  162.216758] SELinux: 		/product/etc/selinux/product_service_contexts
+[  162.378532] init: Untracked pid 2109 exited with status 1
+[  162.378625] init: Untracked pid 2109 did not have an associated service entry and will not be reaped
+[  167.721957] SELinux: SELinux: Loaded service context from:
+[  167.722104] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  167.722168] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  167.722221] SELinux: 		/product/etc/selinux/product_service_contexts
+[  167.722268] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  167.722314] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  167.740935] SELinux: SELinux: Loaded service context from:
+[  167.741020] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  167.741078] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  167.741152] SELinux: 		/product/etc/selinux/product_service_contexts
+[  170.033497] logd: logdr: UID=2000 GID=2000 PID=2856 b tail=0 logMask=99 pid=0 start=1794784932475000000ns deadline=0ns
+[  174.890653] SELinux: SELinux: Loaded service context from:
+[  174.890795] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  174.890870] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  174.890925] SELinux: 		/product/etc/selinux/product_service_contexts
+[  174.890984] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  174.891036] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  174.896145] SELinux: SELinux: Loaded service context from:
+[  174.896250] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  174.896314] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  174.896368] SELinux: 		/product/etc/selinux/product_service_contexts
+[  180.011946] SELinux: SELinux: Loaded service context from:
+[  180.012044] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  180.012125] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  180.012183] SELinux: 		/product/etc/selinux/product_service_contexts
+[  180.012236] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  180.012291] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  180.412235] SELinux: SELinux: Loaded service context from:
+[  180.412349] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  180.412380] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  180.412408] SELinux: 		/product/etc/selinux/product_service_contexts
+[  183.260212] binder: 782:2133 ioctl 400c620e f43b7f9f928c returned -22
+[  183.261027] binder: 3446:782 cannot find target node
+[  183.261075] binder: 782:3446 transaction call to 0:0 failed 108509/29189/-22, size 304-0 line 3160
+[  183.261405] binder: 814:782 cannot find target node
+[  183.261466] binder: 782:814 transaction async to 0:0 failed 108510/29189/-22, size 88-0 line 3160
+[  227.549640] SELinux: SELinux: Loaded service context from:
+[  227.549744] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  227.549766] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  227.549782] SELinux: 		/product/etc/selinux/product_service_contexts
+[  227.549808] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  227.549828] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  227.550189] SELinux: SELinux: Loaded service context from:
+[  227.550214] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  227.550253] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  227.550278] SELinux: 		/product/etc/selinux/product_service_contexts
+[  228.586550] logd: logdr: UID=0 GID=0 PID=2923 n tail=250 logMask=bf pid=0 start=0ns deadline=0ns
+[  228.933159] logd: logdr: UID=2000 GID=2000 PID=3007 n tail=300 logMask=99 pid=0 start=0ns deadline=0ns
+[  228.992446] printk: servicemanager: 18226 output lines suppressed due to ratelimiting
+[  228.995294] printk: init: 1465 output lines suppressed due to ratelimiting
+[  228.997534] printk: ueventd: 148 output lines suppressed due to ratelimiting
+[  229.039218] EXT4-fs (loop18): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.039767] EXT4-fs (loop25): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.039892] EXT4-fs (loop20): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.039986] EXT4-fs (loop13): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.040091] EXT4-fs (loop31): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.040285] EXT4-fs (loop0): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.040399] EXT4-fs (loop1): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.040515] EXT4-fs (loop2): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.042252] EXT4-fs (loop4): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.042420] EXT4-fs (loop27): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.042497] EXT4-fs (loop8): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.079047] EXT4-fs (loop22): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.079355] EXT4-fs (loop16): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.079977] EXT4-fs (loop10): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.080852] EXT4-fs (loop24): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.081235] EXT4-fs (loop35): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.081431] EXT4-fs (loop34): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.081935] EXT4-fs (loop7): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.082060] EXT4-fs (loop12): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.082202] EXT4-fs (loop9): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.082354] EXT4-fs (loop26): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.082542] EXT4-fs (loop17): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.082697] EXT4-fs (loop3): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.082838] EXT4-fs (loop14): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.083082] EXT4-fs (loop33): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.083195] EXT4-fs (loop32): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.083305] EXT4-fs (loop21): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.083476] EXT4-fs (loop15): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.083766] EXT4-fs (loop11): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.083848] EXT4-fs (loop19): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.083929] EXT4-fs (loop30): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.084027] EXT4-fs (loop6): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.084290] EXT4-fs (loop23): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.084436] EXT4-fs (loop29): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.084514] EXT4-fs (loop28): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.084710] EXT4-fs (loop5): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  229.187731] docker0: port 1(veth3c9794a) entered disabled state
+[  229.189891] veth7b9abd0: renamed from eth0
+[  229.243772] docker0: port 1(veth3c9794a) entered disabled state
+[  229.244057] veth3c9794a (unregistering): left allmulticast mode
+[  229.244094] veth3c9794a (unregistering): left promiscuous mode
+[  229.244123] docker0: port 1(veth3c9794a) entered disabled state
+Ashnazg guest services exited with status 143; powering off
+[    0.053569] loop: module loaded
+[    0.053694] virtio_blk virtio2: 1/0/0 default/read/poll queues
+[    0.053833] virtio_blk virtio2: [vda] 8388608 512-byte logical blocks (4.29 GB/4.00 GiB)
+[    0.054111] megasas: 07.727.03.00-rc1
+[    0.054505] tun: Universal TUN/TAP device driver, 1.6
+[    0.055074] thunder_xcv, ver 1.0
+[    0.055097] thunder_bgx, ver 1.0
+[    0.055120] nicpf, ver 1.0
+[    0.055192] hns3: Hisilicon Ethernet Network Driver for Hip08 Family - version
+[    0.055250] hns3: Copyright (c) 2017 Huawei Corporation.
+[    0.055290] hclge is initializing
+[    0.055323] e1000: Intel(R) PRO/1000 Network Driver
+[    0.055343] e1000: Copyright (c) 1999-2006 Intel Corporation.
+[    0.055374] e1000e: Intel(R) PRO/1000 Network Driver
+[    0.055400] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
+[    0.055431] igb: Intel(R) Gigabit Ethernet Network Driver
+[    0.055451] igb: Copyright (c) 2007-2014 Intel Corporation.
+[    0.055477] igbvf: Intel(R) Gigabit Virtual Function Network Driver
+[    0.055509] igbvf: Copyright (c) 2009 - 2012 Intel Corporation.
+[    0.055548] sky2: driver version 1.30
+[    0.055685] VFIO - User Level meta-driver version: 0.3
+[    0.055880] usbcore: registered new interface driver usb-storage
+[    0.056109] rtc-pl031 20050000.pl031: registered as rtc0
+[    0.056138] rtc-pl031 20050000.pl031: setting system clock to 2026-11-15T23:23:36 UTC (1794785016)
+[    0.056222] i2c_dev: i2c /dev entries driver
+[    0.056574] sdhci: Secure Digital Host Controller Interface driver
+[    0.056601] sdhci: Copyright(c) Pierre Ossman
+[    0.056655] Synopsys Designware Multimedia Card Interface Driver
+[    0.056723] sdhci-pltfm: SDHCI platform and OF driver helper
+[    0.056916] usbcore: registered new interface driver usbhid
+[    0.056943] usbhid: USB HID core driver
+[    0.057586] NET: Registered PF_INET6 protocol family
+[    0.057767] Segment Routing with IPv6
+[    0.057791] In-situ OAM (IOAM) with IPv6
+[    0.057825] NET: Registered PF_PACKET protocol family
+[    0.057851] Bridge firewalling registered
+[    0.057882] 9pnet: Installing 9P2000 support
+[    0.057922] Key type dns_resolver registered
+[    0.057982] NET: Registered PF_VSOCK protocol family
+[    0.058991] registered taskstats version 1
+[    0.059041] Loading compiled-in X.509 certificates
+[    0.059507] Demotion targets for Node 0: null
+[    0.059735] input: gpio-keys as /devices/platform/gpio-keys/input/input0
+[    0.059815] clk: Disabling unused clocks
+[    0.059836] PM: genpd: Disabling unused power domains
+[    0.059855] ALSA device list:
+[    0.059875]   No soundcards found.
+[    0.117454] EXT4-fs (vda): recovery complete
+[    0.121432] EXT4-fs (vda): mounted filesystem 5b13dc59-1c32-4eaa-9748-9ee4888c2808 r/w with ordered data mode. Quota mode: none.
+[    0.121521] VFS: Mounted root (ext4 filesystem) on device 254:0.
+[    0.121728] devtmpfs: mounted
+[    0.122024] Freeing unused kernel memory: 10624K
+[    0.122076] Run /sbin/ashnazg-init as init process
+[    4.102803] random: crng init done
+udhcpc: started, v1.37.0
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 192.168.64.11, server 192.168.64.1
+udhcpc: lease of 192.168.64.11 obtained from 192.168.64.1, lease time 3600
+[    9.645134] docker0: port 1(vetha696703) entered blocking state
+[    9.645193] docker0: port 1(vetha696703) entered disabled state
+[    9.645218] vetha696703: entered allmulticast mode
+[    9.645247] vetha696703: entered promiscuous mode
+[    9.671437] eth0: renamed from veth3b0b4e0
+[    9.672514] docker0: port 1(vetha696703) entered blocking state
+[    9.672575] docker0: port 1(vetha696703) entered forwarding state
+[    9.775145] init: mkdir("/dev/pts", 0755) failed File exists
+[    9.775187] init: mount("sysfs", "/sys", "sysfs", 0, NULL) failed Device or resource busy
+[    9.775211] init: mount("selinuxfs", "/sys/fs/selinux", "selinuxfs", 0, NULL) failed No such file or directory
+[    9.775239] init: mknod("/dev/kmsg", S_IFCHR | 0600, makedev(1, 11)) failed File exists
+[    9.775263] init: mknod("/dev/random", S_IFCHR | 0666, makedev(1, 8)) failed Invalid argument
+[    9.775297] init: mknod("/dev/urandom", S_IFCHR | 0666, makedev(1, 9)) failed File exists
+[    9.775329] init: mknod("/dev/ptmx", S_IFCHR | 0666, makedev(5, 2)) failed File exists
+[    9.775358] init: mknod("/dev/null", S_IFCHR | 0666, makedev(1, 3)) failed File exists
+[    9.775386] init: init first stage started!
+[    9.775573] init: Unable to open /lib/modules, skipping module loading.
+[    9.776253] printk: init: 5 output lines suppressed due to ratelimiting
+[    9.778469] init: init second stage started!
+[    9.783008] selinux: SELinux: SELinux is disabled, skipping restorecon
+[    9.783057] selinux: SELinux: SELinux is disabled, skipping restorecon
+[    9.785251] init: [libfstab] Using Android DT directory /proc/device-tree/firmware/android/
+[    9.785727] init: Overriding previous property 'ro.cp_system_other_odex':'1' with new value '0'
+[    9.787038] init: Could not set 'ro.hardware' to 'redroid' while loading .prop filesRead-only property was already set
+[    9.787199] init: Setting product property ro.product.brand to 'redroid' (from ro.product.product.brand)
+[    9.787234] init: Setting product property ro.product.device to 'redroid_arm64_only' (from ro.product.product.device)
+[    9.787270] init: Setting product property ro.product.manufacturer to 'redroid' (from ro.product.product.manufacturer)
+[    9.787305] init: Setting product property ro.product.model to 'redroid15_arm64_only' (from ro.product.product.model)
+[    9.801546] cgroup: Unknown subsys name 'memory'
+[    9.825770] ueventd: ueventd started!
+[    9.826099] selinux: SELinux: Loaded file context from:
+[    9.826119] selinux: 		/system/etc/selinux/plat_file_contexts
+[    9.826157] selinux: 		/system_ext/etc/selinux/system_ext_file_contexts
+[    9.826185] selinux: 		/product/etc/selinux/product_file_contexts
+[    9.826200] selinux: 		/vendor/etc/selinux/vendor_file_contexts
+[    9.826218] selinux: 		/odm/etc/selinux/odm_file_contexts
+[    9.826264] ueventd: Parsing file /system/etc/ueventd.rc...
+[    9.826510] ueventd: Added '/vendor/etc/ueventd.rc' to import list
+[    9.826543] ueventd: Added '/odm/etc/ueventd.rc' to import list
+[    9.836197] apexd: Started. subcommand = --bootstrap
+[    9.836408] cutils-trace: Error opening trace file: No such file or directory (2)
+[    9.836461] apexd-bootstrap: Scanning /odm/apex for pre-installed ApexFiles
+[    9.836492] apexd-bootstrap: /odm/apex does not exist. Skipping
+[    9.836521] apexd-bootstrap: Scanning /vendor/apex for pre-installed ApexFiles
+[    9.836673] apexd-bootstrap: Found pre-installed APEX /vendor/apex/com.android.hardware.cas.apex
+[    9.837333] apexd-bootstrap: Scanning /product/apex for pre-installed ApexFiles
+[    9.837375] apexd-bootstrap: /product/apex does not exist. Skipping
+[    9.837405] apexd-bootstrap: Scanning /system_ext/apex for pre-installed ApexFiles
+[    9.837440] apexd-bootstrap: /system_ext/apex does not exist. Skipping
+[    9.851983] loop0: detected capacity change from 0 to 15240
+[    9.852066] loop1: detected capacity change from 0 to 70840
+[    9.852129] loop2: detected capacity change from 0 to 1680
+[    9.892304] EXT4-fs (loop2): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[    9.892394] EXT4-fs (loop1): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[    9.904399] EXT4-fs (loop0): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[    9.905551] printk: apexd: 117 output lines suppressed due to ratelimiting
+[    9.941277] prng_seeder: Hanging forever because setup failed: Unable to open hwrng /dev/hw_random
+[    9.941277] 
+[    9.941307] Caused by:
+[    9.941315]     No such file or directory (os error 2)
+[    9.954894] servicemanager: Starting sm instance on /dev/binder
+[    9.955736] SELinux: SELinux: Loaded service context from:
+[    9.955754] SELinux: 		/system/etc/selinux/plat_service_contexts
+[    9.955774] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[    9.955798] SELinux: 		/product/etc/selinux/product_service_contexts
+[    9.955840] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[    9.955861] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[    9.956440] logd.auditd: start
+[    9.956461] logd.klogd: 9954999545
+[    9.957530] logd: Loaded bug_map file: /system_ext/etc/selinux/bug_map
+[    9.957603] logd: Loaded bug_map file: /vendor/etc/selinux/selinux_denial_metadata
+[    9.957798] logd: Loaded bug_map file: /system/etc/selinux/bug_map
+[    9.958261] logd: SocketListener: Failed to start unbound listener
+[    9.962687] cutils-trace: Error opening trace file: No such file or directory (2)
+[    9.963038] SELinux: SELinux: Loaded service context from:
+[    9.963059] SELinux: 		/system/etc/selinux/plat_service_contexts
+[    9.970612] vold: Failed to open default fstab: No such file or directory
+[    9.970636] vold: Error reading configuration... continuing anyways: No such file or directory
+[    9.990777] incfs: IncFs_Features: failed to open features dir, assuming v1/none.: No such file or directory
+[   10.067763] vold: keystore2 Keystore earlyBootEnded returned service specific error: -68
+[   10.113827] logd: logd reinit
+[   10.113870] logd: Cannot read /data/misc/logd/event-log-tags
+[   10.114218] logd: FrameworkListener: read() failed (Connection reset by peer)
+[   10.116704] apexd: Started. subcommand = (null)
+[   10.116801] cutils-trace: Error opening trace file: No such file or directory (2)
+[   10.117302] apexd: Scanning /odm/apex for pre-installed ApexFiles
+[   10.117338] apexd: /odm/apex does not exist. Skipping
+[   10.117362] apexd: Scanning /vendor/apex for pre-installed ApexFiles
+[   10.117416] apexd: Found pre-installed APEX /vendor/apex/com.android.hardware.cas.apex
+[   10.117564] apexd: Scanning /product/apex for pre-installed ApexFiles
+[   10.117598] apexd: /product/apex does not exist. Skipping
+[   10.117623] apexd: Scanning /system_ext/apex for pre-installed ApexFiles
+[   10.117651] apexd: /system_ext/apex does not exist. Skipping
+[   10.119871] loop3: detected capacity change from 0 to 25160
+[   10.119944] loop4: detected capacity change from 0 to 1760
+[   10.120010] loop5: detected capacity change from 0 to 45672
+[   10.120065] loop6: detected capacity change from 0 to 21264
+[   10.120126] loop7: detected capacity change from 0 to 9120
+[   10.120176] loop8: detected capacity change from 0 to 49776
+[   10.120238] loop9: detected capacity change from 0 to 1680
+[   10.154027] EXT4-fs (loop26): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.154130] EXT4-fs (loop9): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.156466] EXT4-fs (loop27): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.157088] EXT4-fs (loop13): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.158045] EXT4-fs (loop20): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.160700] EXT4-fs (loop14): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.160712] EXT4-fs (loop12): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.160920] EXT4-fs (loop16): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.161037] EXT4-fs (loop15): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.161158] EXT4-fs (loop8): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.161447] EXT4-fs (loop24): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.161530] EXT4-fs (loop11): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.161609] EXT4-fs (loop21): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.162347] EXT4-fs (loop18): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.162544] EXT4-fs (loop23): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.162647] EXT4-fs (loop6): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.162800] EXT4-fs (loop10): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.162925] EXT4-fs (loop19): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.163027] EXT4-fs (loop3): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.163073] EXT4-fs (loop30): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.163197] EXT4-fs (loop25): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.163240] EXT4-fs (loop28): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.163319] EXT4-fs (loop7): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.163760] EXT4-fs (loop29): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.163838] EXT4-fs (loop5): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.163950] EXT4-fs (loop31): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.163951] EXT4-fs (loop4): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.164097] EXT4-fs (loop22): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.164338] EXT4-fs (loop17): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.167043] EXT4-fs (loop32): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.176182] EXT4-fs (loop33): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.176489] EXT4-fs (loop34): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.176568] EXT4-fs (loop35): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.242446] cutils-trace: Error opening trace file: No such file or directory (2)
+[   10.401895] apexd: Started. subcommand = --snapshotde
+[   10.401998] cutils-trace: Error opening trace file: No such file or directory (2)
+[   10.402469] apexd-snapshotde: Marking APEXd as ready
+[   10.444849] NetBpfLoad: NetBpfLoad v0.46 (/apex/com.android.tethering/bin/netbpfload) api:35/35 kver:60c0075 (64-on-aarch64) uid:0 rc:01
+[   10.444982] NetBpfLoad: Tethering APEX version 352090000
+[   10.445017] NetBpfLoad: open('/proc/sys/net/core/bpf_jit_enable', O_WRONLY | O_CLOEXEC) -> No such file or directory
+[   10.445059] NetBpfLoad: write 1 to /proc/sys/net/core/bpf_jit_enable FAILED
+[   10.445086] NetBpfLoad: open('/proc/sys/net/core/bpf_jit_kallsyms', O_WRONLY | O_CLOEXEC) -> No such file or directory
+[   10.445133] NetBpfLoad: write 1 to /proc/sys/net/core/bpf_jit_kallsyms FAILED
+[   10.502781] printk: netbpfload: 371 output lines suppressed due to ratelimiting
+[   10.569101] healthd: No battery devices found
+[   10.578518] HealthLoop: Successfully attached the BPF filter to the uevent socket
+[   10.578720] healthd: battery none chg=
+[   14.329798] healthd: battery none chg=
+[   14.715390] binder: 840:840 ioctl c00c620f fffff42b200c returned -22
+[   14.838147] init: processing action (sys.sysctl.extra_free_kbytes=*) from (/system/etc/init/hw/init.rc:1234)
+[   14.838245] init: starting service 'exec 20 (/system/bin/extra_free_kbytes.sh 10800)'...
+[   14.853600] init: ... started service 'exec 20 (/system/bin/extra_free_kbytes.sh 10800)' has pid 442
+[   14.853664] init: SVC_EXEC service 'exec 20 (/system/bin/extra_free_kbytes.sh 10800)' pid 442 (uid 0 gid 0+0 context default) started; waiting...
+[   14.880984] init: starting service 'artd'...
+[   14.898592] init: ... started service 'artd' has pid 453
+[   14.898636] init: Control message: Processed ctl.interface_start for 'aidl/artd' from pid: 22 (/system/bin/servicemanager)
+[   14.903575] init: Service 'exec 20 (/system/bin/extra_free_kbytes.sh 10800)' (pid 442) exited with status 0 waiting took 0.064000 seconds
+[   14.903722] init: Sending signal 9 to service 'exec 20 (/system/bin/extra_free_kbytes.sh 10800)' (pid 442) process group...
+[   15.048589] SELinux: SELinux: Loaded service context from:
+[   15.048644] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   15.048678] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   15.048710] SELinux: 		/product/etc/selinux/product_service_contexts
+[   15.048744] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   15.048770] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   15.153240] SELinux: SELinux: Loaded service context from:
+[   15.153316] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   15.153360] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   15.153439] SELinux: 		/product/etc/selinux/product_service_contexts
+[   17.817207] apexd: getSessions() received by ApexService
+[   19.397513] init: Service 'vendor.bluetooth-1-1' (pid 133) received signal 4
+[   19.398170] binder: release 650:650 transaction 14013 in, still active
+[   19.398209] binder: send failed reply for transaction 14013 to 1314:1528
+[   19.574862] apexd: markBootCompleted() received by ApexService
+[   19.708926] apexd: destroyCeSnapshotsNotSpecified() received by ApexService user_id : 0 retain_rollback_ids : []
+[   19.711899] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   19.929071] logd: logdr: UID=1002 GID=1002 PID=994 n tail=500 logMask=8 pid=771 start=0ns deadline=0ns
+[   19.945603] logd: logdr: UID=1002 GID=1002 PID=994 n tail=500 logMask=1 pid=771 start=0ns deadline=0ns
+[   19.961783] AidlLazyServiceRegistrar: Process has 0 (of 1 available) client(s) in use after notification apexservice has clients: 0
+[   19.961835] AidlLazyServiceRegistrar: Shutdown prevented by forcePersist override flag.
+[   20.020749] init: Untracked pid 994 exited with status 0
+[   20.020802] init: Untracked pid 994 did not have an associated service entry and will not be reaped
+[   20.025089] init: Untracked pid 1000 exited with status 0
+[   20.025140] init: Untracked pid 1000 did not have an associated service entry and will not be reaped
+[   20.043994] binder: undelivered death notification, b400e93d5b2320b0
+[   20.054630] SELinux: SELinux: Loaded service context from:
+[   20.054680] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   20.054708] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   20.054734] SELinux: 		/product/etc/selinux/product_service_contexts
+[   20.054760] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   20.054786] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   20.061883] SELinux: SELinux: Loaded service context from:
+[   20.061931] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   20.061959] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   20.061986] SELinux: 		/product/etc/selinux/product_service_contexts
+[   20.182727] apexd: DM_LIST_DEVICES failed: Bad file descriptor
+[   20.182766] apexd: Failed to fetch dm devices
+[   20.182780] AidlLazyServiceRegistrar: Trying to shut down the service. No clients in use for any service in process.
+[   20.184861] AidlLazyServiceRegistrar: Unregistered all clients and exiting
+[   20.185656] printk: binder:59_3: 148 output lines suppressed due to ratelimiting
+[   20.185720] init: Service 'apexd' (pid 59) exited with status 0 oneshot service took 10.074000 seconds in background
+[   20.185745] init: Sending signal 9 to service 'apexd' (pid 59) process group...
+[   20.455032] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   20.455081] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   20.455168] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   20.455204] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   20.651782] binder: release 1536:1536 transaction 22025 in, still active
+[   20.651826] binder: send failed reply for transaction 22025 to 1924:1973
+[   20.805676] logd: logdr: UID=1002 GID=1002 PID=1425 n tail=500 logMask=8 pid=1369 start=0ns deadline=0ns
+[   20.828558] logd: logdr: UID=1002 GID=1002 PID=1425 n tail=500 logMask=1 pid=1369 start=0ns deadline=0ns
+[   20.870521] binder: undelivered death notification, b400e93d5b233e40
+[   22.379719] logd: logdr: UID=1002 GID=1002 PID=1531 n tail=500 logMask=8 pid=1492 start=0ns deadline=0ns
+[   22.389402] logd: logdr: UID=1002 GID=1002 PID=1531 n tail=500 logMask=1 pid=1492 start=0ns deadline=0ns
+[   22.710807] binder: 840:898 ioctl 400c620e e93b947f96bc returned -22
+[   22.710923] binder: 840:898 ioctl 400c620e e93b947f96bc returned -22
+[   23.041913] binder: 840:898 ioctl 400c620e e93b947f96bc returned -22
+[   23.050858] binder: undelivered TRANSACTION_COMPLETE
+[   23.050892] binder: undelivered transaction 64184, process died.
+[   24.274486] logd: logdr: UID=1002 GID=1002 PID=1909 n tail=500 logMask=8 pid=1867 start=0ns deadline=0ns
+[   24.279496] logd: logdr: UID=1002 GID=1002 PID=1909 n tail=500 logMask=1 pid=1867 start=0ns deadline=0ns
+[   25.971936] SELinux: SELinux: Loaded service context from:
+[   25.972041] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   25.972108] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   25.972159] SELinux: 		/product/etc/selinux/product_service_contexts
+[   25.972208] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   25.972258] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   25.996647] SELinux: SELinux: Loaded service context from:
+[   25.996712] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   25.996797] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   25.996845] SELinux: 		/product/etc/selinux/product_service_contexts
+[   26.024834] binder: release 2503:2503 transaction 66679 in, still active
+[   26.024901] binder: send failed reply for transaction 66679 to 2509:2542
+[   26.024980] init: Service 'vendor.bluetooth-1-1' (pid 1918) received signal 4
+[   26.025033] init: Sending signal 9 to service 'vendor.bluetooth-1-1' (pid 1918) process group...
+[   26.112734] logd: logdr: UID=1002 GID=1002 PID=1962 n tail=500 logMask=8 pid=1923 start=0ns deadline=0ns
+[   26.113954] logd: logdr: UID=1002 GID=1002 PID=1962 n tail=500 logMask=1 pid=1923 start=0ns deadline=0ns
+[   26.134725] init: Untracked pid 1962 exited with status 0
+[   26.134788] init: Untracked pid 1962 did not have an associated service entry and will not be reaped
+[   26.135496] init: Untracked pid 1964 exited with status 0
+[   26.135549] init: Untracked pid 1964 did not have an associated service entry and will not be reaped
+[   26.136256] binder: undelivered death notification, b400e93d5b234aa0
+[   28.226996] init: Control message: Could not find 'android.hardware.bluetooth@1.1::IBluetoothHci/default' for ctl.interface_start from pid: 23 (/system/system_ext/bin/hwservicemanager)
+[   28.227114] init: Control message: Could not find 'android.hardware.bluetooth@1.1::IBluetoothHci/default' for ctl.interface_start from pid: 23 (/system/system_ext/bin/hwservicemanager)
+[   28.830086] logd: logdr: UID=1002 GID=1002 PID=2028 n tail=500 logMask=8 pid=1986 start=0ns deadline=0ns
+[   28.831391] logd: logdr: UID=1002 GID=1002 PID=2028 n tail=500 logMask=1 pid=1986 start=0ns deadline=0ns
+[   28.837569] init: Untracked pid 2028 exited with status 0
+[   28.837597] init: Untracked pid 2028 did not have an associated service entry and will not be reaped
+[   32.286271] SELinux: SELinux: Loaded service context from:
+[   32.286309] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   32.286336] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   32.286354] SELinux: 		/product/etc/selinux/product_service_contexts
+[   32.286369] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   32.286393] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   32.288311] SELinux: SELinux: Loaded service context from:
+[   32.288349] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   32.288363] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   32.288402] SELinux: 		/product/etc/selinux/product_service_contexts
+[   32.964439] logd: logdr: UID=2000 GID=2000 PID=2122 b tail=0 logMask=99 pid=0 start=1794785049399000000ns deadline=0ns
+[   37.446510] SELinux: SELinux: Loaded service context from:
+[   37.446617] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   37.446721] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   37.446754] SELinux: 		/product/etc/selinux/product_service_contexts
+[   37.446809] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   37.446850] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   37.959759] SELinux: SELinux: Loaded service context from:
+[   37.959943] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   37.960002] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   37.960060] SELinux: 		/product/etc/selinux/product_service_contexts
+[   44.107356] SELinux: SELinux: Loaded service context from:
+[   44.107406] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   44.107448] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   44.107490] SELinux: 		/product/etc/selinux/product_service_contexts
+[   44.107529] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   44.107593] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   44.109351] SELinux: SELinux: Loaded service context from:
+[   44.109386] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   44.109424] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   44.109452] SELinux: 		/product/etc/selinux/product_service_contexts
+[   44.857609] binder: 1876:1901 ioctl c0306201 e93c208fd3e8 returned -14
+[   44.857733] binder: 1876:1898 ioctl c0306201 e93c24c823e8 returned -14
+[   44.857765] binder: 1876:1899 ioctl c0306201 e93c209fb3e8 returned -14
+[   49.660337] SELinux: SELinux: Loaded service context from:
+[   49.660390] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   49.660429] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   49.660475] SELinux: 		/product/etc/selinux/product_service_contexts
+[   49.660515] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   49.660557] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   49.663031] SELinux: SELinux: Loaded service context from:
+[   49.663133] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   49.663189] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   49.663823] SELinux: 		/product/etc/selinux/product_service_contexts
+[   53.950140] binder: 840:878 ioctl 400c620e e93ba87f279c returned -22
+[   53.961619] binder: undelivered transaction 89771, process died.
+[   54.521971] binder: 2968:840 cannot find target node
+[   54.522045] binder: 840:2968 transaction async to 0:0 failed 91635/29189/-22, size 64-0 line 3160
+[   54.664478] SELinux: SELinux: Loaded service context from:
+[   54.664545] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   54.664581] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   54.664613] SELinux: 		/product/etc/selinux/product_service_contexts
+[   54.664644] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   54.664677] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   54.672138] SELinux: SELinux: Loaded service context from:
+[   54.672225] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   54.672287] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   54.672316] SELinux: 		/product/etc/selinux/product_service_contexts
+[   54.962970] binder: 840:1627 ioctl 400c620e e93bab7f528c returned -22
+[   54.963924] binder: 3103:840 cannot find target node
+[   54.963946] binder: 840:3103 transaction call to 0:0 failed 92663/29189/-22, size 304-0 line 3160
+[   54.967372] binder: 878:840 cannot find target node
+[   54.967408] binder: 840:878 transaction async to 0:0 failed 92670/29189/-22, size 88-0 line 3160
+[   71.328363] SELinux: SELinux: Loaded service context from:
+[   71.328404] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   71.328430] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   71.328454] SELinux: 		/product/etc/selinux/product_service_contexts
+[   71.328483] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   71.328509] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   71.331901] SELinux: SELinux: Loaded service context from:
+[   71.331927] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   71.331947] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   71.331978] SELinux: 		/product/etc/selinux/product_service_contexts
+[   72.302917] logd: logdr: UID=0 GID=0 PID=2550 n tail=250 logMask=bf pid=0 start=0ns deadline=0ns
+[   72.627035] logd: logdr: UID=2000 GID=2000 PID=2635 n tail=300 logMask=99 pid=0 start=0ns deadline=0ns
+[   72.688838] printk: init: 1507 output lines suppressed due to ratelimiting
+[   72.691414] printk: ueventd: 148 output lines suppressed due to ratelimiting
+[   72.691734] printk: servicemanager: 16958 output lines suppressed due to ratelimiting
+[   72.737761] EXT4-fs (loop26): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.738071] EXT4-fs (loop9): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.738183] EXT4-fs (loop14): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.738269] EXT4-fs (loop20): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.738563] EXT4-fs (loop24): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.738803] EXT4-fs (loop8): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.738924] EXT4-fs (loop18): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.738998] EXT4-fs (loop32): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.739095] EXT4-fs (loop2): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.739176] EXT4-fs (loop1): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.739281] EXT4-fs (loop0): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.827340] EXT4-fs (loop23): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.827541] EXT4-fs (loop28): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.828714] EXT4-fs (loop11): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.829133] EXT4-fs (loop25): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.829544] EXT4-fs (loop30): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.829877] EXT4-fs (loop33): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.830504] EXT4-fs (loop5): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.830665] EXT4-fs (loop13): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.830841] EXT4-fs (loop10): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.831019] EXT4-fs (loop27): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.831311] EXT4-fs (loop3): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.831442] EXT4-fs (loop4): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.831624] EXT4-fs (loop16): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.832066] EXT4-fs (loop34): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.832237] EXT4-fs (loop35): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.832372] EXT4-fs (loop21): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.832506] EXT4-fs (loop17): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.832868] EXT4-fs (loop12): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.832972] EXT4-fs (loop19): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.833184] EXT4-fs (loop31): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.833287] EXT4-fs (loop15): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.833577] EXT4-fs (loop22): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.833684] EXT4-fs (loop7): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.833791] EXT4-fs (loop29): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.834021] EXT4-fs (loop6): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[   72.950859] docker0: port 1(vetha696703) entered disabled state
+[   72.951204] veth3b0b4e0: renamed from eth0
+[   73.007141] docker0: port 1(vetha696703) entered disabled state
+[   73.007293] vetha696703 (unregistering): left allmulticast mode
+[   73.007339] vetha696703 (unregistering): left promiscuous mode
+[   73.007378] docker0: port 1(vetha696703) entered disabled state
+Ashnazg guest services exited with status 143; powering off

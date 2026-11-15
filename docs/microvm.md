@@ -1,6 +1,6 @@
 # Apple Silicon Linux VM backend
 
-This backend is under qualification. The native `ashnazg up` CLI and Swift Virtualization.framework helper have booted Android 15 on Apple Silicon macOS. Full integration and a default-download bundle remain unqualified. The existing Android device and Linux container paths remain usable independently.
+This backend is under qualification. The native `ashnazg up` CLI and Swift Virtualization.framework helper have booted Android 15 on Apple Silicon macOS. Native fixture integration, a comparative benchmark and one restart have passed; a default-download bundle remains unqualified. The existing Android device and Linux container paths remain usable independently.
 
 ## Build and inputs
 
@@ -42,8 +42,18 @@ The [runtime receipt](evidence/microvm-cold-boot-7a76029/runtime.json) records A
 
 Native, [Compose](evidence/microvm-cold-boot-7a76029/compose.png), and [React Native](evidence/microvm-cold-boot-7a76029/react-native.png) action/screenshot paths ran before the [integration failure](evidence/microvm-cold-boot-7a76029/integration-failure.json). The MCP install test then selected a locally signed fixture from the checkout instead of the hosted APK selected by `--root`. Android rejected it with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`; the [evidence receipt](evidence/microvm-cold-boot-7a76029/receipt.json) records both certificate digests. The overall run failed, and neither benchmarks nor warm restart ran. T3's Device panel discovered this owned Android endpoint, but its screenshot request failed; the images linked here came from the project's integration runner.
 
+## Native acceptance after the artifact-path repair
+
+The [successful retest receipt](evidence/microvm-acceptance-7a76029/receipt.json) uses the same immutable `7a76029` guest, hosted APKs and host implementation, with harness repair `7cf39f6`. The repair makes both MCP install calls use the fixture selected by `--root`; it does not bypass Android signature verification. The receipt separately identifies the cold/restart checkout revisions and confirms the host/guest implementation paths are unchanged from the artifact source.
+
+A new state directory passed [cold integration](evidence/microvm-acceptance-7a76029/cold-integration.json): 28 RPC checks and 10 MCP checks across native, Compose and React Native fixtures. The [benchmark](evidence/microvm-acceptance-7a76029/cold-benchmark.json) completed all ten paths with 100 successful samples and zero errors. The [cold runtime](evidence/microvm-acceptance-7a76029/cold-runtime.json) reached readiness in 108.923 seconds from VM startup, including a new image pull. Host manifest hashing is outside that VM-startup measurement.
+
+A restart of the same owned disk passed [another 28 RPC and 10 MCP checks](evidence/microvm-acceptance-7a76029/warm-integration.json), reaching readiness in 24.460 seconds with cached images. Both runs returned helper exit code zero and a `stopped` runtime receipt after SIGTERM, guest-owned container cleanup and poweroff. A simultaneous launch was [refused by state ownership](evidence/microvm-acceptance-7a76029/state-lock-collision.json). The stopped guest's [container directory](evidence/microvm-acceptance-7a76029/shutdown-container-directory.txt) was empty, and no forward remained for the owned host serial.
+
+The cold and restart screenshot sets are retained alongside the receipts. Native, Compose, React Native and MCP PNGs from the cold retest were visually inspected. These are one cold run and one restart, not a boot-time distribution or an idle-CPU measurement. The original failed run remains above as a separate result.
+
 ## Qualification still required
 
-A complete v0.3 delivery requires a successful generated image, actual local VM boot, Android native/Compose/React Native acceptance and screenshots through the ADB bridge, repeated stop/restart and injected failure checks, measured startup/resource receipts, and default bundle acquisition/agent setup integration. No kernel-size, RAM, idle-CPU, boot-time or zero-copy screenshot target is established by compiling the helper. GitHub-hosted macOS builds cannot replace the local VM acceptance run.
+Remaining v0.3 delivery work includes broader injected-failure and repeated-start coverage, default bundle acquisition, agent/MCP setup integration, and distribution packaging. The local acceptance above establishes the tested generated image, Android fixture paths, initial restart and owned shutdown behavior; it does not qualify those remaining installation and recovery flows. No kernel-size, RAM, idle-CPU, boot-time or zero-copy screenshot target is established by compiling the helper. GitHub-hosted macOS builds cannot replace the local VM acceptance run.
 
 [iOS research](research/ios.md) remains a separate track; the Linux guest does not provide iOS compatibility.

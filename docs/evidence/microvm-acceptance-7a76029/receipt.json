@@ -1,0 +1,51 @@
+{
+  "status": "passed",
+  "guest_and_host_implementation_source_sha": "7a760294d3a485cc9f40308c791a58e160d620f1",
+  "harness_repair_commit": "7cf39f6",
+  "cold_checkout_sha": "c9a6933ad93f3650fe973795c1c51c8408324887",
+  "warm_checkout_sha": "12cca41b050db2d4619c697dbdf6ffdda4e298eb",
+  "implementation_paths_verified_unchanged_from_guest_source": [
+    "src",
+    "platform/macos/Sources",
+    "runtime",
+    "scripts/redroid.py"
+  ],
+  "workflow_run": "https://github.com/edufelip/ashnazg/actions/runs/43771299927",
+  "host_cli_sha256": "ed5b84506e45794703126ed78a0592fabe2e9b02d1ad374abd989f73d957da23",
+  "signed_helper_sha256": "bc9dd33fae68217bdcae91aff6e80b95e993ba8e72fe877e6ef5f7d09b663b17",
+  "cold_rpc_checks": 28,
+  "cold_mcp_checks": 10,
+  "warm_rpc_checks": 28,
+  "warm_mcp_checks": 10,
+  "benchmark_successful_samples": 100,
+  "benchmark_errors": 0,
+  "limits": [
+    "One cold run and one restart; no startup distribution or CPU target qualification",
+    "Manual Device-panel screenshot failed; project-runner screenshots were inspected",
+    "Explicit downloaded assets and manually started agent harness; default asset acquisition and agent/MCP setup remain outstanding"
+  ],
+  "files": {
+    "apk-source.json": "6ce6a07b2f8746a92d7b55be4c77fdc433b43bcc35f9a21c80582d55555bdaf5",
+    "cold-acceptance.json": "8ac45bdc2ba889580fbe64517992cc49457eb034e88fdb71ec5b4f5464cc2942",
+    "cold-benchmark.json": "0d977a7c3966f6fb3eb973584552d3701e0bacce6fd654f7b89702733597e4ad",
+    "cold-integration.json": "f22a7ad43ddce1584d197e10678f267f050cb405d35088eeadbd0ac8d7208ef9",
+    "cold-runtime.json": "766ff955b72d1684e75d7cbf282e61c419fe1a336b5a296e4eada92690a36ff3",
+    "cold-screenshots/compose.png": "05c9aec3c5ffbae544ff7dacd85d164424e7997c57382b04422afcbf9ffa802a",
+    "cold-screenshots/fixture-overlay.png": "790dfb18e1f39c70b4a82e656b11496905ca3658f6caf8494b3887e58bf815c9",
+    "cold-screenshots/fixture.webp": "30538cfaa7bd98beaf28ca88e2e46d25707a5de8cc6f277ad2e9bec2a956f87c",
+    "cold-screenshots/mcp-screenshot.png": "48b1c271cd54dfc560f1f2ae5864ba01d4690842c5c2a481bc11b9baf8b90969",
+    "cold-screenshots/react-native.png": "81b3293d192ec25c3b59856a39edaf71b11c62853ec59ba28fe84c1620b86e14",
+    "serial.log": "3792ac6138432d372440665ccd53c5f659b3cee9d66b1b35fff54511e2f86ec5",
+    "shutdown-container-directory.txt": "827cc0e8b8ee196abed95144f80521fc2ad9b8bede7b535338bb96eb1545b958",
+    "state-lock-collision.json": "e03b897a35cd49ed2136475207addc2a91011825c3c976d8e40e29577e2c5799",
+    "warm-acceptance.json": "a06883702042524226af211cfba0470f44b7af4efa98d3048c11d46f40c61923",
+    "warm-guest-backend-receipt.json": "3c9d8676117ca569772dda7b5084687a35c82e16bc7bee8a4893948d603863b9",
+    "warm-integration.json": "461c29a2d7d4637e233a65795135336359f3bae942e085f776e1d67bd4a2ead4",
+    "warm-runtime.json": "89bcbf0d23d431c61c8ce1d0c50b8ba49b7f252073173cce1452bb2b7065ef21",
+    "warm-screenshots/compose.png": "c99dbc605279ce053b67f83778def085774e9c980651e5195f96bf5f13878511",
+    "warm-screenshots/fixture-overlay.png": "f5afa47cb81bc7a4fcdde996d42da8a7e58bec768bd6c425cca67289c4c3e9a5",
+    "warm-screenshots/fixture.webp": "1f22d172e97fe9080784a330e2f772adf2f5439d230d7863e594e2bd586a2b7c",
+    "warm-screenshots/mcp-screenshot.png": "f7c220b999864f3bc31af545821c760bf621b9816b745304e72eb4ba15670776",
+    "warm-screenshots/react-native.png": "85581a76ee68eb2b9b2c2f98b75907fb4892251372d0afefc72927412deea8d6"
+  }
+}
