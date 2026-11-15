@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Ashnazg Agent" />
+    <instrumentation android:name=".AgentInstrumentation" android:targetPackage="dev.ashnazg.agent" android:label="Ashnazg persistent UI agent" />
+</manifest>

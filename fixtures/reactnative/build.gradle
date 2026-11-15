@@ -1,0 +1,34 @@
+plugins {
+    id "com.android.application"
+    id "com.facebook.react"
+}
+
+react {
+    root = file(projectDir)
+    reactNativeDir = file("node_modules/react-native")
+    codegenDir = file("node_modules/@react-native/codegen")
+    cliFile = file("node_modules/react-native/cli.js")
+    debuggableVariants = []
+    autolinkLibrariesWithApp()
+}
+
+android {
+    namespace "com.ashnazg.fixture.reactnative"
+    compileSdk 35
+    ndkVersion "27.1.12297006"
+    buildToolsVersion "35.0.0"
+
+    defaultConfig {
+        applicationId "com.ashnazg.fixture.reactnative"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "0.1.0"
+    }
+}
+
+dependencies {
+    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation "com.facebook.react:react-android"
+    implementation "com.facebook.react:hermes-android"
+}

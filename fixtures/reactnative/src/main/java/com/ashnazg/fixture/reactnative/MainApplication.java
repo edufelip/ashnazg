@@ -1,0 +1,59 @@
+package com.ashnazg.fixture.reactnative;
+
+import android.app.Application;
+
+import com.facebook.react.PackageList;
+import com.facebook.react.ReactApplication;
+import com.facebook.react.ReactHost;
+import com.facebook.react.ReactNativeApplicationEntryPoint;
+import com.facebook.react.ReactNativeHost;
+import com.facebook.react.ReactPackage;
+import com.facebook.react.defaults.DefaultReactHost;
+import com.facebook.react.defaults.DefaultReactNativeHost;
+
+import java.util.List;
+
+public final class MainApplication extends Application implements ReactApplication {
+    private final ReactNativeHost reactNativeHost = new DefaultReactNativeHost(this) {
+        @Override
+        protected List<ReactPackage> getPackages() {
+            return new PackageList(this).getPackages();
+        }
+
+        @Override
+        protected String getJSMainModuleName() {
+            return "index";
+        }
+
+        @Override
+        public boolean getUseDeveloperSupport() {
+            return false;
+        }
+
+        @Override
+        protected boolean isNewArchEnabled() {
+            return BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
+        }
+
+        @Override
+        protected boolean isHermesEnabled() {
+            return BuildConfig.IS_HERMES_ENABLED;
+        }
+    };
+
+    @Override
+    public ReactNativeHost getReactNativeHost() {
+        return reactNativeHost;
+    }
+
+    @Override
+    public ReactHost getReactHost() {
+        return DefaultReactHost.getDefaultReactHost(getApplicationContext(), reactNativeHost, null);
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        ReactNativeApplicationEntryPoint.loadReactNative(this);
+    }
+}

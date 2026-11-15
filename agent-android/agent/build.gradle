@@ -1,0 +1,11 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'dev.ashnazg.agent'
+    compileSdk 35
+    defaultConfig { applicationId 'dev.ashnazg.agent'; minSdk 34; targetSdk 35; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    testOptions { unitTests.returnDefaultValues = true }
+}
+
+dependencies { testImplementation 'junit:junit:4.13.2' }

@@ -1,0 +1,155 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    name: Rust (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal --component rustfmt --component clippy
+      - name: Select stable Rust
+        run: rustup default stable
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Rust tests
+        run: cargo test --locked
+      - name: Release build
+        run: cargo build --release --locked
+
+  android:
+    name: Android Gradle and framework APKs
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.15.0'
+          cache: npm
+          cache-dependency-path: fixtures/reactnative/package-lock.json
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0 ndk;27.1.12297006 cmake;3.22.1'
+      - name: Build agent unit tests, lint, and APKs
+        run: cd agent-android && ./gradlew test lint assembleDebug
+      - name: Install React Native dependencies
+        run: npm ci
+        working-directory: fixtures/reactnative
+      - name: Build Compose and React Native fixtures
+        run: cd fixtures && ./gradlew :compose:assembleDebug :reactnative:assembleDebug
+      - name: Run harness unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Upload Android APKs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: android-apks
+          if-no-files-found: warn
+          path: |
+            agent-android/agent/build/outputs/apk/debug/*.apk
+            agent-android/fixture/build/outputs/apk/debug/*.apk
+            fixtures/compose/build/outputs/apk/debug/*.apk
+            fixtures/reactnative/build/outputs/apk/debug/*.apk
+
+  android-integration:
+    name: Android emulator integration and benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ASHNAZG_BIN: ${{ github.workspace }}/target/release/ashnazg
+      ASHNAZG_CI_DIAGNOSTICS: '1'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.15.0'
+          cache: npm
+          cache-dependency-path: fixtures/reactnative/package-lock.json
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: 'platform-tools emulator platforms;android-35 build-tools;35.0.0 ndk;27.1.12297006 cmake;3.22.1 system-images;android-35;default;x86_64'
+      - name: Install React Native dependencies
+        run: npm ci
+        working-directory: fixtures/reactnative
+      - name: Build host
+        run: cargo build --release --locked
+      - name: Build agent and real Compose/RN fixtures
+        run: |
+          cd agent-android && ./gradlew assembleDebug
+          cd ../fixtures && ./gradlew :compose:assembleDebug :reactnative:assembleDebug
+      - name: Stop build Gradle daemons and record runner headroom
+        run: |
+          (cd agent-android && ./gradlew --stop)
+          (cd fixtures && ./gradlew --stop)
+          free -h
+          grep -E '^MemAvailable:|^MemFree:|^SwapFree:' /proc/meminfo
+          uptime
+      - name: Enable KVM access
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Launch owned emulator and run checks
+        run: python3 scripts/ci_emulator.py --port 5554 --output-dir artifacts/emulator
+      - name: Upload benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: android-integration-evidence
+          if-no-files-found: warn
+          path: |
+            artifacts/benchmark.json
+            artifacts/integration.json
+            artifacts/integration/**
+            artifacts/emulator/**
+
+  quality-gate:
+    name: Quality gate
+    if: always()
+    needs: [rust, android, android-integration]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every quality job to succeed
+        env:
+          RUST_RESULT: ${{ needs.rust.result }}
+          ANDROID_RESULT: ${{ needs.android.result }}
+          INTEGRATION_RESULT: ${{ needs.android-integration.result }}
+        run: |
+          printf 'rust=%s android=%s android-integration=%s\n' "$RUST_RESULT" "$ANDROID_RESULT" "$INTEGRATION_RESULT"
+          test "$RUST_RESULT" = success
+          test "$ANDROID_RESULT" = success
+          test "$INTEGRATION_RESULT" = success

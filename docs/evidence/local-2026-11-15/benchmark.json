@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "timestamp_utc": "2026-11-15T12:09:47.253892+00:00",
+  "iterations_requested": 10,
+  "environment": {
+    "platform": "macOS-26.5-arm64-arm-64bit",
+    "python": "3.9.6",
+    "adb": {
+      "basename": "adb",
+      "version_lines": [
+        "Android Debug Bridge version 1.0.41",
+        "Version 37.0.1-15733141"
+      ]
+    },
+    "host_binary": {
+      "basename": "ashnazg",
+      "profile": "release",
+      "sha256": "ce28f5c7434ef6f58e38510d602bcd37fd76e96143f4cbf43c0386a10e8de508"
+    },
+    "source": {
+      "head": "3b5a8f3becca5542db684545f4b8dbe066e65d16",
+      "dirty": true,
+      "github_sha": null
+    },
+    "load_average_before": [
+      1.771,
+      12.917,
+      31.814
+    ],
+    "android_serial_source": "ANDROID_SERIAL",
+    "android_serial": "emulator-5554",
+    "load_average_after": [
+      3.154,
+      12.139,
+      30.874
+    ]
+  },
+  "device": {
+    "ro.build.version.sdk": "37",
+    "ro.product.model": "sdk_gphone16k_arm64",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "screen_size": "Physical size: 1080x1920",
+    "animation_scales": {
+      "window_animation_scale": "1",
+      "transition_animation_scale": "1",
+      "animator_duration_scale": "1"
+    }
+  },
+  "setup": {
+    "apk_install_and_fixture_launch_ms": 1087.73225,
+    "agent_instrumentation_ready_ms": 182.1465840000016,
+    "ready_includes": [
+      "adb forward",
+      "instrumentation startup",
+      "authenticated ping readiness"
+    ],
+    "mcp_stdio_initialize_and_tools_list_ms": 4.041667000002747
+  },
+  "benchmarks": {
+    "snapshot_adb_uiautomator_dump_pull": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 1970.495542,
+      "p95_ms": 2134.7275,
+      "mean_ms": 1988.0918625999998,
+      "samples_ms": [
+        2134.7275,
+        2015.362625,
+        1991.518375,
+        1971.5355,
+        1964.556291,
+        1949.786292,
+        1962.068959,
+        1982.791667,
+        1938.075875,
+        1970.495542
+      ]
+    },
+    "screenshot_adb_exec_out_screencap_png": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 94.260917,
+      "p95_ms": 118.552166,
+      "mean_ms": 96.7832125,
+      "samples_ms": [
+        118.552166,
+        88.475,
+        93.884584,
+        96.339542,
+        93.794958,
+        96.752458,
+        97.452042,
+        95.218042,
+        94.260917,
+        93.102416
+      ]
+    },
+    "snapshot_persistent_tcp": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 2.52375,
+      "p95_ms": 4.484166,
+      "mean_ms": 2.6819496999999997,
+      "samples_ms": [
+        4.237333,
+        4.484166,
+        3.429458,
+        3.788334,
+        2.472875,
+        2.553541,
+        2.52375,
+        1.127541,
+        1.074666,
+        1.127833
+      ]
+    },
+    "snapshot_mcp_stdio": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 1.287834,
+      "p95_ms": 1.711875,
+      "mean_ms": 1.3322958999999999,
+      "samples_ms": [
+        1.434625,
+        1.289417,
+        1.287834,
+        1.197625,
+        1.711875,
+        1.22375,
+        1.290542,
+        1.283958,
+        1.237417,
+        1.365916
+      ]
+    },
+    "screenshot_persistent_tcp_png": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 44.175208,
+      "p95_ms": 64.168625,
+      "mean_ms": 46.1730416,
+      "samples_ms": [
+        64.168625,
+        44.175208,
+        43.662292,
+        43.290458,
+        44.44,
+        43.743875,
+        44.87525,
+        44.358042,
+        44.974083,
+        44.042583
+      ]
+    },
+    "screenshot_persistent_tcp_webp": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 59.521542,
+      "p95_ms": 62.795625,
+      "mean_ms": 60.1454875,
+      "samples_ms": [
+        60.37525,
+        59.942,
+        59.521542,
+        59.690834,
+        62.795625,
+        58.388958,
+        59.047625,
+        59.519583,
+        59.476958,
+        62.6965
+      ]
+    },
+    "screenshot_mcp_stdio_png": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 45.521208,
+      "p95_ms": 47.356208,
+      "mean_ms": 45.6626083,
+      "samples_ms": [
+        47.356208,
+        46.123042,
+        46.882833,
+        46.490667,
+        45.435792,
+        45.521208,
+        45.648375,
+        44.845916,
+        44.200375,
+        44.121667
+      ]
+    },
+    "screenshot_mcp_stdio_webp": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 63.448833,
+      "p95_ms": 73.413458,
+      "mean_ms": 63.732175,
+      "samples_ms": [
+        64.40225,
+        73.413458,
+        63.448833,
+        59.883,
+        64.519042,
+        63.324166,
+        59.865584,
+        63.768833,
+        64.935084,
+        59.7615
+      ]
+    },
+    "action_tap_settled_persistent_tcp": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 369.86825,
+      "p95_ms": 399.348375,
+      "mean_ms": 370.9158084,
+      "samples_ms": [
+        376.470959,
+        369.86825,
+        341.451292,
+        351.945042,
+        371.177209,
+        393.512666,
+        374.449083,
+        399.348375,
+        365.835708,
+        365.0995
+      ]
+    },
+    "action_tap_settled_mcp_stdio": {
+      "errors": [],
+      "successes": 10,
+      "iterations_requested": 10,
+      "iterations": 10,
+      "p50_ms": 369.75225,
+      "p95_ms": 414.107084,
+      "mean_ms": 376.2603959,
+      "samples_ms": [
+        383.876,
+        363.459917,
+        384.2525,
+        366.292584,
+        363.643542,
+        375.146666,
+        363.487583,
+        414.107084,
+        369.75225,
+        378.585833
+      ]
+    }
+  },
+  "errors": []
+}
