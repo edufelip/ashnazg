@@ -1,7 +1,7 @@
 {
-  "helper": "/private/tmp/ashnazg-native-owner-5256b94-tkxfgvnt/inputs/ashnazg-vm",
+  "helper": "/private/tmp/ashnazg-native-owner-bound-5256b94-cr1644_q/inputs/ashnazg-vm",
   "helper_sha256": "4d722dff2987c1cca2bf6740c3a5cb6227d5c95e58175e35d91f8d140c9f08a5",
-  "agent_apk": "/private/tmp/ashnazg-native-owner-5256b94-tkxfgvnt/inputs/agent.apk",
+  "agent_apk": "/private/tmp/ashnazg-native-owner-bound-5256b94-cr1644_q/inputs/agent.apk",
   "agent_apk_sha256": "683f167443eb83c197e55d9302aca9a30117537d56dda3ebd28dcb1fc7f9bdd3",
   "assets": "/private/tmp/ashnazg-native-session-0155f64-guest/assets",
   "state_dir": "/private/tmp/ashnazg-native-session-acceptance-0155f64-3aimd4g7/state",

@@ -1,24 +1,30 @@
 {
+  "driver_checkout_sha": "0a677855031c41075f4628a2e331f8b9697e4c04",
   "files": [
     {
       "path": "acceptance.json",
-      "sha256": "95c22076ba572cde061358ca45091e8801469f608583e9ed6f9dc8b42283251f",
-      "size": 8184
+      "sha256": "31a2e3121ba4c1c66827f7986d7b5fcf10bfe5dfd1ef4f4031713b320afa3f8e",
+      "size": 8546
     },
     {
       "path": "acceptance.py",
-      "sha256": "320d9bdc7ddc9141e5c0a5ab00b3af2bc3a71a00767bdecd24bff49f30840766",
-      "size": 9800
+      "sha256": "a1b698aefd743d80535ce7ade0e8e4447270c892ec237212ff8ca45145429a23",
+      "size": 11004
     },
     {
       "path": "build-receipt.json",
-      "sha256": "bc5a82e6618b27d87b9dd01e373dcb63ac7f02eb6b74005b96ca5d08449cf909",
-      "size": 792
+      "sha256": "29f76dbac2afcfeaacca543b3139f428b2d0029864d97e19ceef8311cb0968f4",
+      "size": 856
+    },
+    {
+      "path": "harness-binding-test.json",
+      "sha256": "f4b783a5df29aa5b4f5f50a9fd18dbe219d8522ab5d26329ac4bee848083fb5d",
+      "size": 301
     },
     {
       "path": "launch.json",
-      "sha256": "f50af84201395aecf7b2c5ea8397a8bc328750ce83399ddc28f107de0a566383",
-      "size": 669
+      "sha256": "9192f32d56fbe8026aa2075598c776fc69623aebe943458642abdbfeb8816ca2",
+      "size": 681
     },
     {
       "path": "owner.stderr",
@@ -42,7 +48,7 @@
     },
     {
       "path": "ready-runtime.json",
-      "sha256": "38159b332df7414e0439b69c9425c867c39666a24133fdd8eaa1d00b11f01ca8",
+      "sha256": "95a8a3e1222063007eae75482273094bb53d437b8a126cd8f445145cf57ac247",
       "size": 837
     },
     {
@@ -52,33 +58,33 @@
     },
     {
       "path": "rpc/fixture-overlay.png",
-      "sha256": "17731d1700e5b369e3b19ba114a3467d4eab2d5718c4eacfdf528b785bd4b2fa",
-      "size": 68521
+      "sha256": "b33fc702dc8596e969d8eade9d3fe25cee8f468dd8d4163867558c5ba557a32b",
+      "size": 65097
     },
     {
       "path": "rpc/fixture.webp",
-      "sha256": "706274b38b3d41bd7266cbcd7bd040430ca2b4f54b25ecb85c1ca702885b466c",
-      "size": 18612
+      "sha256": "0d9067b4ac5a086da291623a4fb7746990a15e221c74bad99a83a8b4a83cae01",
+      "size": 18616
     },
     {
       "path": "runtime.json",
-      "sha256": "86876310d8aded0c58da536ae6fb6f41e7b2a2303fa0b7dc8bb42ee709c73239",
+      "sha256": "315c9022afc1d56e804fb1343d87ff30c0c1836e7ed8144af496b5ca1d30c691",
       "size": 740
     },
     {
       "path": "serial.log.gz",
-      "sha256": "7ba6b6969121a27b16dd39639ebf12bc6de33a03927c0323879f812c763b898d",
-      "size": 19447
+      "sha256": "23e26036eb2aa9992b9cbe462c9f5420185767a19196377c1b6adb5dd93dff9a",
+      "size": 22663
     },
     {
       "path": "warm-compose.png",
-      "sha256": "490e5131bcc7ae48f3c1a19f5839c6e2f459cd16d23bccc9ffb8805190765052",
-      "size": 20319
+      "sha256": "9755aaa6719146f75813ca243b21177e70efc2922c4ab8bcec9fabda0016db08",
+      "size": 20548
     },
     {
       "path": "warm-mcp.png",
-      "sha256": "3068dc818131de4b32bce7a99a2e61ab16437d12abe655e42b47d5e0d562534a",
-      "size": 59368
+      "sha256": "4537037b7b8b1b328a0f35d742388c286fe9ac347e83175e9cdef5dad71e663b",
+      "size": 59507
     },
     {
       "path": "warm-mcp.stderr",
@@ -87,11 +93,17 @@
     },
     {
       "path": "warm-reactnative.png",
-      "sha256": "6fdebddc1e004061d99540ac215f2906abaa0221d81be9c15ae42c22ce57114c",
-      "size": 25209
+      "sha256": "46a52636a1c3a488c464a764b17b982d23d2c8bbc4c6998a638f5f03dc93131b",
+      "size": 25774
     }
   ],
   "guest_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+  "harness_runtime_binding": {
+    "executed_prefix_sha256": "420a03b0966c9f694ea2a553386a8c239a16d2ea7dc334bce8fd9dd785bacfbf",
+    "loaded_file_sha256": "3ea7a1d3af7588d009b66c05ada4e5cff8f75a38593ca87e407024c45c5e8a1a",
+    "path": "reused-harness-source.py",
+    "verified_before_exec": true
+  },
   "host_adb_used": false,
   "host_source_sha": "5256b944db25d617d889df10f718e5b497e6cafa",
   "limits": [
@@ -118,8 +130,8 @@
   "serial_capture": {
     "credential_redaction": "Acceptance driver replaced any exact current credential values before retention; it also scanned retained output before reporting success.",
     "path": "serial.log.gz",
-    "uncompressed_sha256": "c93cda0051160bb45572cc810221d8a5d332f3d35e492d0358bed8d29aa5a74b",
-    "uncompressed_size": 129002
+    "uncompressed_sha256": "a0d401de6b1a97df0ecb70f9c77e27c2610c9abb91bdf322bf6b340007821a99",
+    "uncompressed_size": 161400
   },
   "source_parity": {
     "new_host_library": [
@@ -142,9 +154,14 @@
     ]
   },
   "status": "passed",
+  "supersedes": {
+    "evidence_commit": "0a677855031c41075f4628a2e331f8b9697e4c04",
+    "prior_receipt_sha256": "5d2a96429bfa2ef733c3e2f855a2e296f2b2fee5b146454e825b530ffb2d37a1",
+    "reason": "Prior driver did not capture the loaded harness hash before execution. This fresh full repeat binds and records the exact loaded file and prefix before exec; it does not retroactively attest the earlier run."
+  },
   "timings": {
-    "driver_observed_ready_seconds_including_preflight": 37.411,
-    "driver_total_seconds_including_checks_and_shutdown": 59.005,
-    "helper_ready_receipt_seconds": 26.156
+    "driver_observed_ready_seconds_including_preflight": 38.572,
+    "driver_total_seconds_including_checks_and_shutdown": 59.389,
+    "helper_ready_receipt_seconds": 27.464
   }
 }

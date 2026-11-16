@@ -52,13 +52,19 @@ credential and closed all three owned listeners. The persistent disk and state
 directory retained their filesystem identities; this does not assert unchanged
 disk contents.
 
-The helper's ready receipt reports 26.156 seconds; the driver observed readiness
-after 37.411 seconds including preflight and host setup. The driver's 59.005-second
+The helper's ready receipt reports 27.464 seconds; the driver observed readiness
+after 38.572 seconds including preflight and host setup. The driver's 59.389-second
 total includes checks and shutdown. These are separate intervals from one
 restart, not performance distributions. The probe's dependency package identities
 and checksums match the repository's runtime subset; only root test dependencies
-`tempfile` and `fastrand` are absent. That comparison was completed after execution
-and before accepting the evidence.
+`tempfile` and `fastrand` are absent. The pinned lock hashes were revalidated
+before this repeat. The earlier package comparison was independently audited
+before this run.
+
+The driver hashes and checks the exact loaded harness file and prefix before
+executing it, and records both hashes. An altered-file regression fails before
+execution. This full repeat supersedes the earlier run whose driver did not
+capture that binding; the earlier run is not retroactively attested.
 
 This acceptance covers the explicit library session. Fresh-state startup with
 this supervisor, broader injected failures, native MCP `app_install`, automatic

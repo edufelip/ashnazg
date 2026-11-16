@@ -16,6 +16,6 @@
     }
   ],
   "build_command": "cargo build --locked --offline --manifest-path probe/Cargo.toml",
-  "dependency_comparison_completed": "after_runtime_execution_before_evidence_acceptance",
+  "dependency_comparison_completed": "pinned lock hashes revalidated before this execution; package/checksum subset comparison retained from prior audit",
   "helper_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7"
 }

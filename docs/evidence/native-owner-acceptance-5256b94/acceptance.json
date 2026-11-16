@@ -3,6 +3,7 @@
   "status": "passed",
   "mode": "owned-state-restart",
   "host_source_sha": "5256b944db25d617d889df10f718e5b497e6cafa",
+  "driver_checkout_sha": "0a677855031c41075f4628a2e331f8b9697e4c04",
   "guest_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
   "guest_workflow_run": 43807503988,
   "host_adb_used": false,
@@ -77,14 +78,20 @@
     }
   ],
   "proof_scope": "Explicit NativeSession API and its client factories; local unpublished pinned inputs; no acquisition or CLI/MCP app_install wiring.",
+  "harness_binding": {
+    "verified_before_exec": true,
+    "loaded_file_sha256": "3ea7a1d3af7588d009b66c05ada4e5cff8f75a38593ca87e407024c45c5e8a1a",
+    "executed_prefix_sha256": "420a03b0966c9f694ea2a553386a8c239a16d2ea7dc334bce8fd9dd785bacfbf",
+    "path": "reused-harness-source.py"
+  },
   "staged_adhoc_signature_verified": true,
-  "config_sha256": "f50af84201395aecf7b2c5ea8397a8bc328750ce83399ddc28f107de0a566383",
+  "config_sha256": "9192f32d56fbe8026aa2075598c776fc69623aebe943458642abdbfeb8816ca2",
   "helper_sha256": "4d722dff2987c1cca2bf6740c3a5cb6227d5c95e58175e35d91f8d140c9f08a5",
   "agent_apk_sha256": "683f167443eb83c197e55d9302aca9a30117537d56dda3ebd28dcb1fc7f9bdd3",
   "host_binary_sha256": "5a3b06abfa9f9f465d8f101b79bd3bbf3e61657445527cc7faebc21c516daaac",
   "probe_sha256": "1153057dfe8fbcffafba24cae9ce967fd31f7b63fde93955376b598f9bec9104",
   "probe_source_sha256": "b06e9fcb47a86aeee2277d893399bc4d1c19e46777d7e66b3429ea427519f68f",
-  "driver_sha256": "320d9bdc7ddc9141e5c0a5ab00b3af2bc3a71a00767bdecd24bff49f30840766",
+  "driver_sha256": "a1b698aefd743d80535ce7ade0e8e4447270c892ec237212ff8ca45145429a23",
   "preflight": {
     "schema_version": 1,
     "source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
@@ -122,14 +129,14 @@
     "inode": 761697319,
     "size": 4294967296
   },
-  "owner_pid": 14407,
+  "owner_pid": 26632,
   "ready": {
     "api_level": 35,
-    "helper_pid": 14410,
+    "helper_pid": 26633,
     "phase": "ready",
-    "session_id": "3ca9d8a1-25f5-4eff-bf0d-bfbbb1c13dd0"
+    "session_id": "e3306fb3-7189-4882-a67e-f3b6c578ee92"
   },
-  "observed_ready_seconds": 37.411,
+  "observed_ready_seconds": 38.572,
   "ready_runtime_receipt": {
     "adb_listen": "127.0.0.1:15555",
     "agent_apk_sha256": "683f167443eb83c197e55d9302aca9a30117537d56dda3ebd28dcb1fc7f9bdd3",
@@ -144,13 +151,13 @@
     "memory_bytes": 2147483648,
     "rootfs_template_sha256": "f1ac1fbf6b498a03841154448e394cba15effb1e300de08e5a3d71f6439890ee",
     "schema_version": 1,
-    "session_id": "3ca9d8a1-25f5-4eff-bf0d-bfbbb1c13dd0",
+    "session_id": "e3306fb3-7189-4882-a67e-f3b6c578ee92",
     "status": "agent_ready",
     "timings": {
-      "agent_startup_ms": 704,
-      "readiness_ms": 25320,
-      "total_startup_ms": 26156,
-      "vm_start_ms": 109
+      "agent_startup_ms": 617,
+      "readiness_ms": 26722,
+      "total_startup_ms": 27464,
+      "vm_start_ms": 111
     }
   },
   "install_replies": [
@@ -200,13 +207,13 @@
     "memory_bytes": 2147483648,
     "rootfs_template_sha256": "f1ac1fbf6b498a03841154448e394cba15effb1e300de08e5a3d71f6439890ee",
     "schema_version": 1,
-    "session_id": "3ca9d8a1-25f5-4eff-bf0d-bfbbb1c13dd0",
+    "session_id": "e3306fb3-7189-4882-a67e-f3b6c578ee92",
     "status": "stopped",
     "timings": {
-      "agent_startup_ms": 704,
-      "readiness_ms": 25320,
-      "total_startup_ms": 47840,
-      "vm_start_ms": 109
+      "agent_startup_ms": 617,
+      "readiness_ms": 26722,
+      "total_startup_ms": 48341,
+      "vm_start_ms": 111
     }
   },
   "credential_removed": true,
@@ -218,5 +225,5 @@
   "state_disk_identity_preserved": true,
   "state_directory_identity_preserved": true,
   "helper_reaped": true,
-  "total_observed_seconds": 59.005
+  "total_observed_seconds": 59.389
 }

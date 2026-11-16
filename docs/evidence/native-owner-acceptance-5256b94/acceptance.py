@@ -1,14 +1,27 @@
 import base64, hashlib, json, os, select, signal, socket, stat, subprocess, sys, time
 from pathlib import Path
-RUN=Path('/private/tmp/ashnazg-native-owner-5256b94-tkxfgvnt')
+RUN=Path('/private/tmp/ashnazg-native-owner-bound-5256b94-cr1644_q')
 # Reuse the previously exercised project RPC/MCP assertions, not its VM launcher.
-legacy=Path('/private/tmp/ashnazg-native-rust-install-618cc59-acceptance.py').read_text()
+HARNESS_FILE_SHA256='3ea7a1d3af7588d009b66c05ada4e5cff8f75a38593ca87e407024c45c5e8a1a'
+HARNESS_PREFIX_SHA256='420a03b0966c9f694ea2a553386a8c239a16d2ea7dc334bce8fd9dd785bacfbf'
+def load_bound_harness(path):
+ raw=Path(path).read_bytes()
+ loaded_sha=hashlib.sha256(raw).hexdigest()
+ if loaded_sha!=HARNESS_FILE_SHA256:raise RuntimeError('harness source mismatch')
+ marker=b'process=None;client=None;failed=False'
+ if raw.count(marker)!=1:raise RuntimeError('harness marker mismatch')
+ prefix=raw.split(marker,1)[0]
+ executed_sha=hashlib.sha256(prefix).hexdigest()
+ if executed_sha!=HARNESS_PREFIX_SHA256:raise RuntimeError('harness prefix mismatch')
+ return prefix,loaded_sha,executed_sha
+_loaded_prefix,_loaded_harness_sha,_executed_prefix_sha=load_bound_harness(RUN/'reused-harness-source.py')
 sys.argv=[str(RUN/'acceptance.py'),str(RUN),'warm']
-exec(compile(legacy.split('process=None;client=None;failed=False')[0],str(RUN/'acceptance.py'),'exec'),globals())
+exec(compile(_loaded_prefix.decode('utf-8'),str(RUN/'reused-harness-source.py'),'exec'),globals())
 PROBE=REPO/'target/debug/ashnazg-native-session-proof'
 CONFIG=RUN/'launch.json'
 config=json.loads(CONFIG.read_text())
-record={'schema_version':1,'status':'starting','mode':'owned-state-restart','host_source_sha':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),'guest_source_sha':config['source_sha'],'guest_workflow_run':43807503988,'host_adb_used':False,'host_checkout_dirty':bool(subprocess.check_output(['git','status','--porcelain'],cwd=REPO)),'rpc_checks':[],'mcp_checks':[],'session_checks':[],'rust_native_installs':[],'proof_scope':'Explicit NativeSession API and its client factories; local unpublished pinned inputs; no acquisition or CLI/MCP app_install wiring.'}
+record={'schema_version':1,'status':'starting','mode':'owned-state-restart','host_source_sha':'5256b944db25d617d889df10f718e5b497e6cafa','driver_checkout_sha':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),'guest_source_sha':config['source_sha'],'guest_workflow_run':43807503988,'host_adb_used':False,'host_checkout_dirty':bool(subprocess.check_output(['git','status','--porcelain'],cwd=REPO)),'rpc_checks':[],'mcp_checks':[],'session_checks':[],'rust_native_installs':[],'proof_scope':'Explicit NativeSession API and its client factories; local unpublished pinned inputs; no acquisition or CLI/MCP app_install wiring.'}
+record['harness_binding']={'verified_before_exec':True,'loaded_file_sha256':_loaded_harness_sha,'executed_prefix_sha256':_executed_prefix_sha,'path':'reused-harness-source.py'}
 secrets=[]
 def save():
  (RUN/'acceptance.json').write_text(json.dumps(record,indent=2)+'\n')
@@ -38,6 +51,8 @@ started=time.monotonic()
 state_before=STATE.stat();disk_before=(STATE/'rootfs.ext4').stat()
 try:
  assert not record['host_checkout_dirty'],'proof requires a clean host checkout'
+ assert not subprocess.check_output(['git','diff','5256b944db25d617d889df10f718e5b497e6cafa','--','src','Cargo.toml','Cargo.lock'],cwd=REPO),'library source differs from tested build'
+ assert digest(PROBE)=='1153057dfe8fbcffafba24cae9ce967fd31f7b63fde93955376b598f9bec9104','proof binary changed'
  assert config['helper_sha256']==digest(Path(config['helper']))
  assert config['agent_apk_sha256']==digest(Path(config['agent_apk']))
  assert json.loads((STATE/'runtime.json').read_text())['status']=='stopped'
@@ -110,7 +125,7 @@ finally:
  disk_after=(STATE/'rootfs.ext4').stat()
  record['state_disk_identity_preserved']=(disk_before.st_dev,disk_before.st_ino,disk_before.st_size)==(disk_after.st_dev,disk_after.st_ino,disk_after.st_size)
  record['state_directory_identity_preserved']=(state_before.st_dev,state_before.st_ino)==(STATE.stat().st_dev,STATE.stat().st_ino)
- record['helper_reaped']=not (RUN/'helper-alive').exists()
+ record['helper_reaped']=None
  if 'ready' in record:
   try:os.kill(record['ready']['helper_pid'],0);record['helper_reaped']=False
   except ProcessLookupError:record['helper_reaped']=True

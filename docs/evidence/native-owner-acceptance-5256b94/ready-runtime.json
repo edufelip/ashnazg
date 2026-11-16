@@ -12,12 +12,12 @@
   "memory_bytes": 2147483648,
   "rootfs_template_sha256": "f1ac1fbf6b498a03841154448e394cba15effb1e300de08e5a3d71f6439890ee",
   "schema_version": 1,
-  "session_id": "3ca9d8a1-25f5-4eff-bf0d-bfbbb1c13dd0",
+  "session_id": "e3306fb3-7189-4882-a67e-f3b6c578ee92",
   "status": "agent_ready",
   "timings": {
-    "agent_startup_ms": 704,
-    "readiness_ms": 25320,
-    "total_startup_ms": 26156,
-    "vm_start_ms": 109
+    "agent_startup_ms": 617,
+    "readiness_ms": 26722,
+    "total_startup_ms": 27464,
+    "vm_start_ms": 111
   }
 }
