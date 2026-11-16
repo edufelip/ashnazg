@@ -14,7 +14,11 @@ const NO_INDEX: u32 = u32::MAX;
 ///
 /// This deliberately validates framing and only strings referenced by the small
 /// subset of AXML used here. It is an inference helper, not Android's full parser.
-pub fn package_name(bytes: &[u8], deadline: Instant, cancel: &CancellationToken) -> Result<String> {
+pub(crate) fn package_name(
+    bytes: &[u8],
+    deadline: Instant,
+    cancel: &CancellationToken,
+) -> Result<String> {
     package_name_with_checkpoint(bytes, deadline, cancel, |_, _| {})
 }
 

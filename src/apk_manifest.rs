@@ -2,7 +2,12 @@
 use anyhow::{Result, anyhow, bail};
 use flate2::read::DeflateDecoder;
 use rawzip::{CompressionMethod, MAX_CENTRAL_DIRECTORY_RECORD_SIZE, ReaderAt, ZipLocator};
-use std::{fs::File, io::Read, os::unix::fs::FileExt, time::Instant};
+use std::{
+    fs::File,
+    io::Read,
+    os::unix::fs::FileExt,
+    time::{Duration, Instant},
+};
 use tokio_util::sync::CancellationToken;
 
 const MAX_FILE: u64 = 128 * 1024 * 1024;
@@ -13,6 +18,38 @@ const MAX_OUTPUT: u64 = 4 * 1024 * 1024;
 const MAX_READ: usize = 64 * 1024;
 const MAX_CALLS: u32 = 100_000;
 const TARGET: &[u8] = b"AndroidManifest.xml";
+
+/// Infers one package from an already-open APK without changing its cursor.
+///
+/// ZIP integrity and narrow compiled-manifest framing are checked under one
+/// five-second budget, capped by `deadline`. Android still validates the APK
+/// during installation. Callers should run this synchronous work off the async
+/// runtime and retain this same descriptor for any subsequent upload.
+pub fn infer_package(file: &File, deadline: Instant, cancel: &CancellationToken) -> Result<String> {
+    infer_package_inner(file, deadline, cancel, |_| {})
+}
+
+fn infer_package_inner(
+    file: &File,
+    deadline: Instant,
+    cancel: &CancellationToken,
+    after_read: impl FnOnce(Instant),
+) -> Result<String> {
+    let deadline = deadline.min(Instant::now() + Duration::from_secs(5));
+    (|| {
+        check(deadline, cancel)?;
+        let before = identity(file)?;
+        let bytes = read_android_manifest(file, deadline, cancel)?;
+        after_read(deadline);
+        let package = crate::axml_package::package_name(&bytes, deadline, cancel)?;
+        if identity(file)? != before {
+            bail!("APK package inference failed");
+        }
+        check(deadline, cancel)?;
+        Ok(package)
+    })()
+    .map_err(|_: anyhow::Error| anyhow!("APK package inference failed"))
+}
 
 fn check(deadline: Instant, cancel: &CancellationToken) -> Result<()> {
     if cancel.is_cancelled() || Instant::now() >= deadline {
@@ -76,7 +113,7 @@ impl ReaderAt for Bounded<'_> {
 }
 
 /// Reads and validates the exact root AndroidManifest.xml member from an open APK descriptor.
-pub fn read_android_manifest(
+fn read_android_manifest(
     file: &File,
     deadline: Instant,
     cancel: &CancellationToken,
@@ -259,6 +296,7 @@ fn read_android_manifest_inner(
     if identity(file).map_err(|_| anyhow!("APK manifest read failed"))? != before {
         bail!("APK manifest read failed")
     }
+    check(deadline, cancel)?;
     Ok(out)
 }
 
@@ -579,5 +617,101 @@ mod tests {
             },
         );
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn infers_compiled_packages_from_stored_and_deflated_apks_without_seeking() {
+        use std::io::{Seek, SeekFrom};
+        for (manifest, expected) in [
+            (
+                include_bytes!("../rust-tests/fixtures/apk-manifests/native.axml").as_slice(),
+                "dev.ashnazg.fixture",
+            ),
+            (
+                include_bytes!("../rust-tests/fixtures/apk-manifests/compose.axml").as_slice(),
+                "com.ashnazg.fixture.compose",
+            ),
+            (
+                include_bytes!("../rust-tests/fixtures/apk-manifests/reactnative.axml").as_slice(),
+                "com.ashnazg.fixture.reactnative",
+            ),
+        ] {
+            for deflate in [false, true] {
+                let mut file = NamedTempFile::new().unwrap();
+                file.write_all(&zip(manifest, deflate, &[])).unwrap();
+                file.as_file().seek(SeekFrom::Start(5)).unwrap();
+                assert_eq!(
+                    infer_package(
+                        file.as_file(),
+                        Instant::now() + Duration::from_secs(30),
+                        &CancellationToken::new()
+                    )
+                    .unwrap(),
+                    expected
+                );
+                assert_eq!(file.as_file().stream_position().unwrap(), 5);
+            }
+        }
+        let mut file = NamedTempFile::new().unwrap();
+        file.write_all(&zip(b"uncompiled-secret-input", false, &[]))
+            .unwrap();
+        let error = infer_package(
+            file.as_file(),
+            Instant::now() + Duration::from_secs(30),
+            &CancellationToken::new(),
+        )
+        .unwrap_err();
+        assert_eq!(error.to_string(), "APK package inference failed");
+    }
+
+    #[test]
+    fn inference_uses_one_capped_budget_and_checks_interruption_and_identity_between_layers() {
+        let mut file = NamedTempFile::new().unwrap();
+        file.write_all(&zip(
+            include_bytes!("../rust-tests/fixtures/apk-manifests/native.axml"),
+            false,
+            &[],
+        ))
+        .unwrap();
+        let token = CancellationToken::new();
+        let before = Instant::now();
+        let mut reached = false;
+        assert!(
+            infer_package_inner(
+                file.as_file(),
+                before + Duration::from_secs(30),
+                &token,
+                |deadline| {
+                    reached = true;
+                    assert!(deadline <= Instant::now() + Duration::from_secs(5));
+                    assert!(deadline >= before + Duration::from_secs(5));
+                    token.cancel();
+                }
+            )
+            .is_err()
+        );
+        assert!(reached);
+
+        let metadata = file.as_file().metadata().unwrap();
+        let modified = metadata.modified().unwrap();
+        let token = CancellationToken::new();
+        let result = infer_package_inner(
+            file.as_file(),
+            Instant::now() + Duration::from_secs(1),
+            &token,
+            |_| {
+                // Change an already-parsed DOS timestamp, leaving payload and CRC
+                // intact, then restore mtime. The descriptor's ctime must catch it.
+                file.as_file().write_at(&[1], 10).unwrap();
+                file.as_file()
+                    .set_times(std::fs::FileTimes::new().set_modified(modified))
+                    .unwrap();
+            },
+        );
+        assert!(result.is_err());
+        assert_eq!(
+            file.as_file().metadata().unwrap().modified().unwrap(),
+            modified
+        );
     }
 }

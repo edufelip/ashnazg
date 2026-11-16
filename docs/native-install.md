@@ -14,6 +14,20 @@ a matching installation result followed by EOF. Requests are never replayed.
 An optional validated package requests launch after installation; the caller must
 infer that package from the APK if its user-facing API offers automatic inference.
 
+The separate `apk_manifest::infer_package` helper now reads the exact root
+`AndroidManifest.xml` from an already-open APK and infers its compiled package
+name without host tools. Stored and raw DEFLATE entries are supported; archive,
+directory, I/O, decompression and XML work are bounded under one five-second
+deadline, capped by the caller's deadline. It checks CRC and size claims,
+streaming descriptors and observed file metadata changes, including ctime.
+The decoder handles UTF-8 and UTF-16 string pools and narrow XML framing. It does
+not replace Android's APK validation.
+
+This helper is not yet connected to `NativeInstallClient` or MCP. Automatic launch
+inference must happen inside the installation worker using its retained descriptor;
+inferring from one open file and then installing a reopened pathname would lose
+that binding. The CLI and existing MCP behavior remain as described below.
+
 One blocking worker owns the file and socket. Upload has a 30-second deadline from
 call entry; the result has a 180-second limit, both capped by the caller's absolute
 deadline. Nonblocking I/O uses waits of at most 50 ms and checks deadlines after
