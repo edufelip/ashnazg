@@ -119,6 +119,31 @@ failure information without raw credentials/helper/guest output. Test unchanged
 schema/results, explicit and inferred launch, compatibility mode, malformed APKs,
 request cancellation and serving shutdown with bounded fixtures.
 
+Keep `HostConfig` and its legacy constructor compatible. Prefer an internal
+installation-backend enum in `AshnazgServer`, with the native variant receiving
+clients from the owned session. Parameter validation stays common; native errors
+remain generic. Add the MCP request cancellation context without changing the
+tool's JSON schema, and propagate cancellation to the native upload.
+
+The pinned RMCP 3.10 service starts through `serve_with_ct`; initialization can
+otherwise wait indefinitely for a client. Its service loop drains responses for
+two or five seconds and then cancels handlers, but does not join native blocking
+workers. Track native install operations independently: request abandonment must
+cancel an operation while its tracked task continues awaiting worker completion.
+On shutdown, stop admission, cancel requests, drain tracked operations, then join
+the helper. Do not drop a consumed `RunningService::waiting()` future from a
+`select!` and lose its join handle; retain it through service cleanup. Test EOF,
+cancellation before initialization, cancellation during upload, and helper exit.
+
+For HTTP, pass the same owned cancellation lifecycle into the RMCP service and
+Axum shutdown rather than leaving a fresh unrelated token in the router. Keep
+HTTP bearer authentication independent of the guest token. A transport-generic
+native serve entry point permits duplex tests and explicit owned acceptance.
+Tokio standard input uses an uninterruptible blocking read; do not claim bounded
+process shutdown on an open stdin merely because a library serve future returns.
+Resolve interruptible stdio ownership in the CLI integration before claiming
+signal-driven CLI acceptance.
+
 CLI acquisition/default changes remain separate: matching release assets/catalog
 are not public yet. First qualify the library adapter using explicit owned local
 inputs and a real MCP client: native `app_install` with and without package,
