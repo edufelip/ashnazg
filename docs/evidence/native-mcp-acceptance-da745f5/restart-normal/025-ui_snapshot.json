@@ -1,0 +1,126 @@
+{
+  "jsonrpc": "2.0",
+  "id": 25,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"nodes\":[{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":1,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.ashnazg.fixture.reactnative:id/action_bar_root\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":2,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"android:id/content\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"React Native count: 1\",\"enabled\":true,\"focused\":false,\"id\":3,\"longClickable\":false,\"password\":false,\"rect\":[48,48,442,152],\"role\":\"button\",\"scrollable\":false,\"selected\":false,\"testId\":\"rn-button\",\"text\":\"React Native count: 1\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":4,\"longClickable\":false,\"password\":false,\"rect\":[84,77,406,123],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"React Native count: 1\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"React Native input\",\"enabled\":true,\"focused\":false,\"hint\":\"Unicode: café / 東京 / مرحباً\",\"id\":5,\"longClickable\":true,\"password\":false,\"rect\":[48,192,608,296],\"role\":\"textbox\",\"scrollable\":false,\"selected\":false,\"testId\":\"rn-input\",\"text\":\"\"}],\"snapshotId\":31,\"truncated\":false}"
+      }
+    ],
+    "structuredContent": {
+      "nodes": [
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 1,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.ashnazg.fixture.reactnative:id/action_bar_root",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 2,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "android:id/content",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "contentDescription": "React Native count: 1",
+          "enabled": true,
+          "focused": false,
+          "id": 3,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            48,
+            48,
+            442,
+            152
+          ],
+          "role": "button",
+          "scrollable": false,
+          "selected": false,
+          "testId": "rn-button",
+          "text": "React Native count: 1"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 4,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            84,
+            77,
+            406,
+            123
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "React Native count: 1"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "contentDescription": "React Native input",
+          "enabled": true,
+          "focused": false,
+          "hint": "Unicode: café / 東京 / مرحباً",
+          "id": 5,
+          "longClickable": true,
+          "password": false,
+          "rect": [
+            48,
+            192,
+            608,
+            296
+          ],
+          "role": "textbox",
+          "scrollable": false,
+          "selected": false,
+          "testId": "rn-input",
+          "text": ""
+        }
+      ],
+      "snapshotId": 31,
+      "truncated": false
+    },
+    "isError": false
+  }
+}

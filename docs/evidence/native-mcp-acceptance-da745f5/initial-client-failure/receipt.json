@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "status": "failed",
+  "failure_class": "ProofFailure",
+  "host_source_sha": "da745f5c3ff474eb0ef3d4b02d3f7a3981604f38",
+  "stop_mode": "marker",
+  "checks": [],
+  "tool_calls": 0,
+  "elapsed_seconds": 42.374,
+  "credential_values_scanned": 3,
+  "credential_matches_found": 0,
+  "scope": "Explicit native library MCP HTTP session with existing guest; no CLI or acquisition proof",
+  "inputs": [
+    {
+      "relative_path": "agent-android/fixture/build/outputs/apk/debug/fixture-debug.apk",
+      "size": 13421,
+      "sha256": "162713fae95542b0c09efab4f494969ab992d73d9357fd6583665af942a30746"
+    },
+    {
+      "relative_path": "fixtures/compose/build/outputs/apk/debug/compose-debug.apk",
+      "size": 8723520,
+      "sha256": "876fc77a551cc49e8285bbd1f63f5c8be26d079994e5894b59546dd0d1913c78"
+    },
+    {
+      "relative_path": "fixtures/reactnative/build/outputs/apk/debug/reactnative-debug.apk",
+      "size": 57588073,
+      "sha256": "74f6ed7ee72b8f75356a53c13220f58fdcc199100228b9fa09bc5a6fb18d9f37"
+    }
+  ],
+  "payloads": {
+    "cleanup.json": {
+      "size": 296,
+      "sha256": "1ba715ffc8f7c427e6456dd2cd0b8460a89f8e3da22d483e0bbadaa8778d1526"
+    },
+    "environment-contract.json": {
+      "size": 193,
+      "sha256": "dd76b6bfcedef297bb34ab703f69f50f993b4946616a8b49bf3e7d981e63553b"
+    },
+    "probe.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ready.json": {
+      "size": 262,
+      "sha256": "b4a45f93ce08b18bdd7c231baaa9b351b9f5bd3314631f5c67fa0dbba9a66ee4"
+    },
+    "runtime.json": {
+      "size": 740,
+      "sha256": "ef379b166d48828af3e7508511f011bc500231c14eb64cb6e0f245c6a6cdedfc"
+    },
+    "serial-uncompressed.json": {
+      "size": 101,
+      "sha256": "b9729d761a0b620ee0118e63532fb8a8bcba944ba2f89104d4aa6715107ad571"
+    },
+    "serial.log.gz": {
+      "size": 25506,
+      "sha256": "7ee0a61d9dad0e7bd2f93d12d22e554e4048d881bd0fbb4ae9d84ea9cc186357"
+    },
+    "stopped.json": {
+      "size": 280,
+      "sha256": "5e59f65969d796325f60b8794da90cf6b2dc1c6b125f0d8e91016455df3e7f67"
+    },
+    "acceptance.py": {
+      "size": 15452,
+      "sha256": "518b8df40eec8027702f4a9fc3c08609ae7eeedef168313528cd647c4031359f"
+    },
+    "mcp_http.py": {
+      "size": 6135,
+      "sha256": "7343095302f86ec2c476cd0e47ac3d2f297e511f16ca7001314fd8a69af41269"
+    },
+    "preflight.json": {
+      "size": 1089,
+      "sha256": "091eff3b2bb0f1eca4aab81f14ab23dec1cef9dbc8308c8178a05c3bdfd68d0f"
+    },
+    "build-receipt.json": {
+      "size": 831,
+      "sha256": "72af6e960be7408e66e392ee80e1d736e87da7ca481186eec0165fa490ae677b"
+    }
+  }
+}

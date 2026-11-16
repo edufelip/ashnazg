@@ -69,8 +69,10 @@ executing it, and records both hashes. An altered-file regression fails before
 execution. This full repeat supersedes the earlier run whose driver did not
 capture that binding; the earlier run is not retroactively attested.
 
-This acceptance covers the explicit library session. Fresh-state startup with
-this supervisor, broader injected failures, native MCP `app_install`, automatic
-CLI setup, live release acquisition and distribution remain separate work. The
-seven MCP checks use the existing token/address compatibility mode. No new
-benchmark, CPU-saving, Developer ID signing or notarization claim is made.
+This acceptance covers the explicit library session. Its seven MCP checks use
+the existing token/address compatibility mode. The newer [native MCP acceptance](native-mcp.md)
+separately covers library-level native `app_install` and HTTP session ownership.
+Fresh-state startup with this supervisor, broader injected failures, automatic
+CLI setup, actual CLI interruption, live release acquisition and distribution
+remain separate work. No new benchmark, CPU-saving, Developer ID signing or
+notarization claim is made.

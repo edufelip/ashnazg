@@ -28,7 +28,9 @@ not replace Android's APK validation.
 
 `NativeInstallClient::install_with_inferred_launch` calls this helper with its
 retained descriptor and upload deadline. It never infers from one open file and
-installs a reopened pathname. MCP and CLI routing do not use this new method yet.
+installs a reopened pathname. The explicit [native MCP adapter](native-mcp.md)
+uses this method for launch without a package. The existing CLI's compatibility
+mode does not use the native session automatically.
 
 Loopback fixtures check the inferred request's package, digest and uploaded bytes
 for stored and deflated manifests. Deterministic preparation checkpoints exercise
@@ -63,6 +65,7 @@ Rust client.
 This qualifies the tested library-to-helper installation path on one owned restart.
 That earlier probe's credential reader is test scaffolding. The explicit native
 session owner now supplies the production credential binding and installation
-client factory. The CLI, MCP `app_install` and release acquisition do not use this
-session path yet.
+client factory. The newer [native MCP restart acceptance](native-mcp.md) covers
+library-level `app_install` using that session factory. Automatic CLI setup and
+release acquisition remain separate.
 There is no new cold-start, release, comparative performance or CPU claim.

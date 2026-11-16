@@ -1,0 +1,18 @@
+{
+  "jsonrpc": "2.0",
+  "id": 28,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"installed\":true,\"package\":\"dev.ashnazg.fixture\",\"serial\":\"127.0.0.1:15555\"}"
+      }
+    ],
+    "structuredContent": {
+      "installed": true,
+      "package": "dev.ashnazg.fixture",
+      "serial": "127.0.0.1:15555"
+    },
+    "isError": false
+  }
+}

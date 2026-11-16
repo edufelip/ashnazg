@@ -1,0 +1,106 @@
+{
+  "jsonrpc": "2.0",
+  "id": 14,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"settled\":true,\"snapshot\":{\"nodes\":[{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":1,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"android:id/content\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":2,\"longClickable\":false,\"password\":false,\"rect\":[48,96,376,192],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"compose-button\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":3,\"longClickable\":false,\"password\":false,\"rect\":[96,124,328,164],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Compose count: 1\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"Compose input\",\"enabled\":true,\"focused\":false,\"id\":4,\"longClickable\":true,\"password\":false,\"rect\":[48,204,258,300],\"role\":\"textbox\",\"scrollable\":false,\"selected\":false,\"testId\":\"compose-input\",\"text\":\"Native MCP 你好\"}],\"snapshotId\":17,\"truncated\":false}}"
+      }
+    ],
+    "structuredContent": {
+      "settled": true,
+      "snapshot": {
+        "nodes": [
+          {
+            "checkable": false,
+            "checked": false,
+            "clickable": false,
+            "enabled": true,
+            "focused": false,
+            "id": 1,
+            "longClickable": false,
+            "password": false,
+            "rect": [
+              0,
+              0,
+              720,
+              1280
+            ],
+            "role": "view",
+            "scrollable": false,
+            "selected": false,
+            "testId": "android:id/content",
+            "text": ""
+          },
+          {
+            "checkable": false,
+            "checked": false,
+            "clickable": true,
+            "enabled": true,
+            "focused": false,
+            "id": 2,
+            "longClickable": false,
+            "password": false,
+            "rect": [
+              48,
+              96,
+              376,
+              192
+            ],
+            "role": "view",
+            "scrollable": false,
+            "selected": false,
+            "testId": "compose-button",
+            "text": ""
+          },
+          {
+            "checkable": false,
+            "checked": false,
+            "clickable": false,
+            "enabled": true,
+            "focused": false,
+            "id": 3,
+            "longClickable": false,
+            "password": false,
+            "rect": [
+              96,
+              124,
+              328,
+              164
+            ],
+            "role": "text",
+            "scrollable": false,
+            "selected": false,
+            "text": "Compose count: 1"
+          },
+          {
+            "checkable": false,
+            "checked": false,
+            "clickable": true,
+            "contentDescription": "Compose input",
+            "enabled": true,
+            "focused": false,
+            "id": 4,
+            "longClickable": true,
+            "password": false,
+            "rect": [
+              48,
+              204,
+              258,
+              300
+            ],
+            "role": "textbox",
+            "scrollable": false,
+            "selected": false,
+            "testId": "compose-input",
+            "text": "Native MCP 你好"
+          }
+        ],
+        "snapshotId": 17,
+        "truncated": false
+      }
+    },
+    "isError": false
+  }
+}

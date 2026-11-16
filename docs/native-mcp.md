@@ -37,5 +37,31 @@ shutdown is joined before returning the serving failure. HTTP cancellation also
 interrupts request-body handling, so an unfinished body cannot hold helper
 teardown open.
 
-The adapter is library-level fixture qualified. This document does not claim
-native helper, VM, device, CLI interruption, or release acquisition acceptance.
+The [retained native MCP acceptance](evidence/native-mcp-acceptance-da745f5/receipt.json)
+tested host source `da745f5` against the retained `0155f64` guest and pinned,
+ad-hoc-signed helper. Two restarts of the existing owned state each passed 19
+checks through 30 MCP tool calls. They covered authenticated HTTP initialization,
+all five tools, inferred and explicit fixture installs, no-launch behavior,
+native/Compose/React Native tap and Unicode input/clear, PNG images and semantic
+marks, navigation, logs, and invalid installation requests. Host ADB and aapt
+were absent from the test PATH; neither `ASHNAZG_TOKEN` nor `ANDROID_SERIAL` was
+provided.
+
+One run requested normal shutdown; the other delivered SIGTERM to the acceptance
+controller after its request sequence. Both joined clean helper shutdown, reaped
+the helper, removed credentials and closed the three helper listeners plus HTTP.
+The caller's session parent token remained uncancelled. State and disk filesystem
+identities were preserved; their bytes are not claimed unchanged.
+
+The helper's ready receipts report 39.770 and 40.522 seconds. Complete controller
+runs, including checks and shutdown, took 49.824 and 49.509 seconds. These are
+different measurement intervals from two restarts, not a startup distribution or
+performance claim. The evidence also retains an initial controller failure with
+zero completed checks; the client's SSE decoder was repaired before the passing
+repeats, without changing host or guest code.
+
+Generic-I/O EOF, in-flight cancellation, caller drop and panic recovery remain
+fixture evidence. Cold starts, actual stdio/CLI interruption, automatic CLI setup,
+live acquisition and release distribution remain separate work. The driver reports
+its credential scan; retained files do not independently attest the external
+runtime environment or the secret values used by that scan.

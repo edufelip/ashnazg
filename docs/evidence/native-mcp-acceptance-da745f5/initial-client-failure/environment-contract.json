@@ -1,0 +1,7 @@
+{
+  "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+  "ASHNAZG_ADB": "/nonexistent-host-adb",
+  "AAPT": "/nonexistent-host-aapt",
+  "ASHNAZG_TOKEN_present": false,
+  "ANDROID_SERIAL_present": false
+}

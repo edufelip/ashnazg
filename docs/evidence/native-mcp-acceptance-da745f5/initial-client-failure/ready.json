@@ -1,0 +1,9 @@
+{
+  "adb_listen": "127.0.0.1:15555",
+  "helper_pid": 65420,
+  "host_source_sha": "da745f5c3ff474eb0ef3d4b02d3f7a3981604f38",
+  "http_listen": "127.0.0.1:17779",
+  "schema_version": 1,
+  "session_id": "f84c6f38-721f-4e11-9fe5-65612c895ae3",
+  "status": "ready"
+}

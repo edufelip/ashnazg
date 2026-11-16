@@ -1,0 +1,10 @@
+{
+  "helper_pid": 65420,
+  "host_source_sha": "da745f5c3ff474eb0ef3d4b02d3f7a3981604f38",
+  "interrupted": false,
+  "parent_cancelled": false,
+  "schema_version": 1,
+  "serving_and_cleanup_ok": true,
+  "session_id": "f84c6f38-721f-4e11-9fe5-65612c895ae3",
+  "status": "stopped"
+}

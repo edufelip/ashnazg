@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "host_source_sha": "da745f5c3ff474eb0ef3d4b02d3f7a3981604f38",
+  "working_tree_clean_before_and_after": true,
+  "compiled_only": true,
+  "vm_launched": false,
+  "binary_sha256": "c2a197dcc95c9527d199c606b701c99fbcf78bfc8f0fa534a65e7f89af4f247d",
+  "files": {
+    "probe/Cargo.toml": {
+      "size": 335,
+      "sha256": "1ed51ca8c110069420a47fbeb7d10b4a2e3f2e3ec78d352aa943f975c2a21ca2"
+    },
+    "probe/Cargo.lock": {
+      "size": 63096,
+      "sha256": "3252313d777cafaad1a3a0a4edaab087a03969a848002119c49834b6956e8522"
+    },
+    "probe/src/main.rs": {
+      "size": 4456,
+      "sha256": "10b0fb48e3f5e268f049c6809651657be6b447aa78a49927507ba788af97b58e"
+    },
+    "mcp_http.py": {
+      "size": 6443,
+      "sha256": "8cd5da103570fd07183dd261ff4d1a7a5fec6b010036485acedbff7293d84cc0"
+    }
+  }
+}
