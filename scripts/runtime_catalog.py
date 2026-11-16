@@ -7,7 +7,7 @@ import json
 import os
 import re
 import stat
-import tempfile
+import secrets
 from pathlib import Path
 
 
@@ -265,60 +265,90 @@ def build_catalog(version, source_sha, artifacts, source_archives=()):
     return validate_catalog(catalog)
 
 
+def _open_output_parent(parent):
+    """Walk and hold a real directory without following any symlink component."""
+    absolute = Path(parent).absolute()
+    if ".." in absolute.parts:
+        raise ValueError("output parent must not contain traversal")
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    fd = os.open(absolute.anchor, flags)
+    try:
+        for component in absolute.parts[1:]:
+            next_fd = os.open(component, flags, dir_fd=fd)
+            os.close(fd)
+            fd = next_fd
+        return fd
+    except BaseException:
+        os.close(fd)
+        raise
+
+
 def _prepare_output(output, input_paths):
     output = Path(output)
-    parent = output.parent
+    parent_fd = _open_output_parent(output.parent)
     try:
-        directory_info = os.stat(parent, follow_symlinks=False)
-    except FileNotFoundError as exc:
-        raise ValueError(f"output parent directory does not exist: {parent}") from exc
-    if stat.S_ISLNK(directory_info.st_mode) or not stat.S_ISDIR(directory_info.st_mode):
-        raise ValueError("output parent must be an existing, non-symlink directory")
-    try:
-        os.stat(output, follow_symlinks=False)
-    except FileNotFoundError:
-        pass
-    else:
-        raise FileExistsError(f"refusing to replace existing output: {output}")
-
-    output_absolute = os.path.abspath(os.fspath(output))
-    for path in input_paths:
-        if output_absolute == os.path.abspath(os.fspath(path)):
-            raise ValueError(f"output cannot alias input file: {path}")
         try:
-            if output.resolve(strict=False) == Path(path).resolve(strict=True):
-                raise ValueError(f"output cannot alias input file: {path}")
+            os.stat(output.name, dir_fd=parent_fd, follow_symlinks=False)
         except FileNotFoundError:
+            pass
+        else:
+            raise FileExistsError(f"refusing to replace existing output: {output}")
+        output_absolute = os.path.abspath(os.fspath(output))
+        for path in input_paths:
+            if output_absolute == os.path.abspath(os.fspath(path)):
+                raise ValueError(f"output cannot alias input file: {path}")
+            try:
+                if output.resolve(strict=False) == Path(path).resolve(strict=True):
+                    raise ValueError(f"output cannot alias input file: {path}")
+            except FileNotFoundError:
+                continue
+        return output, parent_fd
+    except BaseException:
+        os.close(parent_fd)
+        raise
+
+
+def _create_temporary(parent_fd, output_name):
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+    for _ in range(16):
+        name = f".{output_name}.{secrets.token_hex(12)}.tmp"
+        try:
+            return os.open(name, flags, 0o600, dir_fd=parent_fd), name
+        except FileExistsError:
             continue
-    return output
+    raise FileExistsError("could not allocate an owned catalog temporary file")
 
 
 def write_catalog(*, version, source_sha, artifacts, source_archives=(), output):
-    """Write a validated catalog atomically without replacing any existing path."""
+    """Write a validated catalog atomically without following output directories."""
     source_archives = _collect_source_archives(source_archives)
     input_paths = list(artifacts.values()) if isinstance(artifacts, dict) else []
     input_paths.extend(source_archives)
-    output = _prepare_output(output, input_paths)
-    catalog = build_catalog(version, source_sha, artifacts, source_archives)
-    payload = (json.dumps(catalog, sort_keys=True, indent=2) + "\n").encode("utf-8")
-
-    fd, temporary_name = tempfile.mkstemp(prefix=f".{output.name}.", suffix=".tmp", dir=output.parent)
-    temporary_path = Path(temporary_name)
+    output, parent_fd = _prepare_output(output, input_paths)
+    temporary_name = None
     try:
+        catalog = build_catalog(version, source_sha, artifacts, source_archives)
+        payload = (json.dumps(catalog, sort_keys=True, indent=2) + "\n").encode("utf-8")
+        fd, temporary_name = _create_temporary(parent_fd, output.name)
         with os.fdopen(fd, "wb") as stream:
             stream.write(payload)
             stream.flush()
             os.fsync(stream.fileno())
-        # Hard-link creation is atomic and fails if a destination appeared meanwhile.
-        os.link(temporary_path, output)
-        temporary_path.unlink()
-    except BaseException:
+        # Both names are relative to the held directory, even if its path changes.
+        os.link(temporary_name, output.name, src_dir_fd=parent_fd,
+                dst_dir_fd=parent_fd, follow_symlinks=False)
+        os.unlink(temporary_name, dir_fd=parent_fd)
+        temporary_name = None
+        return output
+    finally:
         try:
-            temporary_path.unlink()
-        except FileNotFoundError:
-            pass
-        raise
-    return output
+            if temporary_name is not None:
+                try:
+                    os.unlink(temporary_name, dir_fd=parent_fd)
+                except FileNotFoundError:
+                    pass
+        finally:
+            os.close(parent_fd)
 
 
 def main(argv=None):

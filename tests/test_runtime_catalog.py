@@ -18,7 +18,7 @@ ROLES = ("guest", "helper", "agent", "fixture")
 class RuntimeCatalogTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.inputs = {}
         for role, content in {
             "guest": b"guest archive bytes",
@@ -218,6 +218,7 @@ class RuntimeCatalogTests(unittest.TestCase):
         link_dir.symlink_to(self.root, target_is_directory=True)
         with self.assertRaises((ValueError, OSError)):
             write_catalog(version=VERSION, source_sha=SHA, artifacts=self.inputs, output=link_dir / "new.json")
+        (self.root / "sub").mkdir()
         nested_link = self.root / "nested-link"
         nested_link.symlink_to(self.root, target_is_directory=True)
         with self.assertRaises((ValueError, OSError)):
@@ -236,7 +237,7 @@ class RuntimeCatalogTests(unittest.TestCase):
         real_link = os.link
 
         def create_then_link(src, dst, *args, **kwargs):
-            Path(dst).write_text("foreign").__str__()
+            output.write_text("foreign")
             return real_link(src, dst, *args, **kwargs)
 
         with mock.patch("scripts.runtime_catalog.os.link", side_effect=create_then_link):
