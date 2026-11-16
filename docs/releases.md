@@ -14,6 +14,8 @@ Each ZIP contains:
 
 The APKs use a generated Android debug signing key; they are not production releases. The host executables are not Developer ID signed or notarized. No publisher signing identity or cross-architecture compatibility is claimed. They require Android 14 (API 34) or later and are intended for the Ashnazg agent/test setup.
 
+The host build embeds the validated source SHA explicitly supplied by the release workflow. This build stamp identifies the requested source revision only; it does not prove binary provenance or legal clearance. Cargo package version 0.1.0 and the native runtime contract version 0.3.0 are separate. A matching runtime 0.3.0 release is unavailable for this package, and this document makes no claim that matching runtime assets or a catalog are published or available.
+
 ## Installing
 
 1. Download the ZIP matching the host operating system and architecture shown in its filename and manifest, then extract it.

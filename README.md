@@ -45,6 +45,8 @@ export ANDROID_SERIAL=emulator-5554
 
 Configure a local MCP client to launch that command with the environment above. For Streamable HTTP, set `ASHNAZG_HTTP_TOKEN` and run `./target/release/ashnazg mcp --http 127.0.0.1:7778`; the endpoint is `/mcp` and requires `Authorization: Bearer …`. Stdio writes only MCP messages to stdout.
 
+On Apple Silicon macOS, omitting `ASHNAZG_TOKEN` selects the developing [native MCP bootstrap](docs/native-cli.md). It serves MCP initialization before runtime readiness and owns signal cleanup. A validated build-source stamp and matching runtime catalog/assets are required for native tools; a matching public catalog is not yet established. Unstamped development builds can use the external Android configuration above.
+
 Advertised tools are `ui_snapshot`, `ui_act`, `ui_screenshot`, `app_logs` and `app_install`. `device_boot`/snapshots, custom rendering, container images, microVMs and iOS are not implemented in v0.1. Compose apps must opt in to `testTagsAsResourceId`; a hidden tag is not retrievable simply by including unimportant views.
 
 ## Quality and performance

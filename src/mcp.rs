@@ -31,9 +31,102 @@ use crate::{GuestError, HostConfig, app_install, validate_loopback_addr, validat
 
 #[derive(Clone)]
 pub struct AshnazgServer {
-    config: HostConfig,
-    native: Option<Arc<NativeInstallBackend>>,
+    config: Option<HostConfig>,
+    provider: NativeProvider,
     tool_router: ToolRouter<Self>,
+}
+
+#[derive(Clone)]
+enum NativeProvider {
+    External,
+    Ready(Arc<NativeInstallBackend>),
+    Initializing(Arc<NativeReadiness>),
+}
+
+struct NativeReadiness {
+    state: Mutex<Option<Result<Arc<NativeInstallBackend>, ()>>>,
+    changed: tokio::sync::Notify,
+    waiters: std::sync::atomic::AtomicUsize,
+}
+
+impl NativeReadiness {
+    fn new() -> Self {
+        Self {
+            state: Mutex::new(None),
+            changed: tokio::sync::Notify::new(),
+            waiters: std::sync::atomic::AtomicUsize::new(0),
+        }
+    }
+
+    async fn publish(&self, result: Result<Arc<NativeInstallBackend>, ()>) {
+        *self.state.lock().await = Some(result);
+        self.changed.notify_waiters();
+    }
+
+    async fn wait(
+        &self,
+        request_cancel: CancellationToken,
+    ) -> Result<Arc<NativeInstallBackend>, ErrorData> {
+        self.wait_until(
+            request_cancel,
+            tokio::time::Instant::now() + Duration::from_secs(30),
+        )
+        .await
+    }
+
+    async fn wait_until(
+        &self,
+        request_cancel: CancellationToken,
+        deadline: tokio::time::Instant,
+    ) -> Result<Arc<NativeInstallBackend>, ErrorData> {
+        if request_cancel.is_cancelled() {
+            return Err(ErrorData::internal_error("native request cancelled", None));
+        }
+        use std::sync::atomic::Ordering;
+        loop {
+            let current = self.waiters.load(Ordering::Acquire);
+            if current >= 8 {
+                return Err(ErrorData::internal_error(
+                    "native runtime is busy; retry shortly",
+                    None,
+                ));
+            }
+            if self
+                .waiters
+                .compare_exchange(current, current + 1, Ordering::AcqRel, Ordering::Acquire)
+                .is_ok()
+            {
+                break;
+            }
+        }
+        struct Waiter<'a>(&'a std::sync::atomic::AtomicUsize);
+        impl Drop for Waiter<'_> {
+            fn drop(&mut self) {
+                self.0.fetch_sub(1, Ordering::AcqRel);
+            }
+        }
+        let _waiter = Waiter(&self.waiters);
+        loop {
+            let changed = self.changed.notified();
+            tokio::pin!(changed);
+            changed.as_mut().enable();
+            let state = self.state.lock().await.clone();
+            if request_cancel.is_cancelled() {
+                return Err(ErrorData::internal_error("native request cancelled", None));
+            }
+            if let Some(result) = state {
+                return result.map_err(|_| {
+                    ErrorData::internal_error("native runtime failed to start", None)
+                });
+            }
+            tokio::select! {
+                biased;
+                _ = request_cancel.cancelled() => return Err(ErrorData::internal_error("native request cancelled", None)),
+                _ = tokio::time::sleep_until(deadline) => return Err(ErrorData::internal_error("native runtime is still starting; retry the request", None)),
+                _ = changed => {}
+            }
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -260,16 +353,24 @@ pub struct ScreenshotText {
 impl AshnazgServer {
     pub fn new(config: HostConfig) -> Self {
         Self {
-            config,
-            native: None,
+            config: Some(config),
+            provider: NativeProvider::External,
             tool_router: Self::tool_router(),
         }
     }
 
-    fn with_native(config: HostConfig, native: NativeInstallBackend) -> Self {
+    fn with_native(native: NativeInstallBackend) -> Self {
         Self {
-            config,
-            native: Some(Arc::new(native)),
+            config: None,
+            provider: NativeProvider::Ready(Arc::new(native)),
+            tool_router: Self::tool_router(),
+        }
+    }
+
+    fn with_readiness(readiness: Arc<NativeReadiness>) -> Self {
+        Self {
+            config: None,
+            provider: NativeProvider::Initializing(readiness),
             tool_router: Self::tool_router(),
         }
     }
@@ -283,12 +384,43 @@ impl AshnazgServer {
         }
     }
 
-    async fn guest_json(&self, method: &str, params: Value) -> Result<Value, ErrorData> {
-        self.config
-            .guest
-            .call(method, params)
-            .await
-            .map_err(Self::guest_error)
+    async fn guest_json(
+        &self,
+        method: &str,
+        params: Value,
+        request_cancel: CancellationToken,
+    ) -> Result<Value, ErrorData> {
+        match &self.provider {
+            NativeProvider::Ready(native) => {
+                Self::native_guest_json(native, method, params, request_cancel).await
+            }
+            NativeProvider::Initializing(readiness) => {
+                let native = readiness.wait(request_cancel.clone()).await?;
+                Self::native_guest_json(&native, method, params, request_cancel).await
+            }
+            NativeProvider::External => self
+                .config
+                .as_ref()
+                .ok_or_else(|| ErrorData::internal_error("native runtime failed to start", None))?
+                .guest
+                .call(method, params)
+                .await
+                .map_err(Self::guest_error),
+        }
+    }
+
+    async fn native_guest_json(
+        native: &NativeInstallBackend,
+        method: &str,
+        params: Value,
+        request_cancel: CancellationToken,
+    ) -> Result<Value, ErrorData> {
+        tokio::select! {
+            biased;
+            _ = request_cancel.cancelled() => Err(ErrorData::internal_error("native request cancelled", None)),
+            _ = native.lifecycle.cancellation.cancelled() => Err(ErrorData::internal_error("native runtime is stopping", None)),
+            result = native.guest.call(method, params) => result.map_err(Self::guest_error),
+        }
     }
 }
 
@@ -302,10 +434,12 @@ impl AshnazgServer {
     pub async fn ui_snapshot(
         &self,
         Parameters(params): Parameters<SnapshotParams>,
+        request_cancel: CancellationToken,
     ) -> Result<Json<Value>, ErrorData> {
         self.guest_json(
             "ui_snapshot",
             serde_json::json!({"includeInvisible":params.include_invisible}),
+            request_cancel,
         )
         .await
         .map(Json)
@@ -319,11 +453,14 @@ impl AshnazgServer {
     pub async fn ui_act(
         &self,
         Parameters(params): Parameters<ActParams>,
+        request_cancel: CancellationToken,
     ) -> Result<Json<Value>, ErrorData> {
         let value = serde_json::to_value(params)
             .map_err(|e| ErrorData::invalid_params(e.to_string(), None))?;
         validate_ui_act(&value).map_err(|e| ErrorData::invalid_params(e.to_string(), None))?;
-        self.guest_json("ui_act", value).await.map(Json)
+        self.guest_json("ui_act", value, request_cancel)
+            .await
+            .map(Json)
     }
 
     #[tool(
@@ -334,6 +471,7 @@ impl AshnazgServer {
     pub async fn ui_screenshot(
         &self,
         Parameters(params): Parameters<ScreenshotParams>,
+        request_cancel: CancellationToken,
     ) -> Result<CallToolResult, ErrorData> {
         let format = match params.format.unwrap_or(ScreenshotFormat::Webp) {
             ScreenshotFormat::Webp => "webp",
@@ -343,6 +481,7 @@ impl AshnazgServer {
             .guest_json(
                 "ui_screenshot",
                 serde_json::json!({"format":format,"somOverlay":params.som_overlay}),
+                request_cancel,
             )
             .await?;
         let encoded = value.get("data").and_then(Value::as_str).ok_or_else(|| {
@@ -419,11 +558,13 @@ impl AshnazgServer {
     pub async fn app_logs(
         &self,
         Parameters(params): Parameters<LogsParams>,
+        request_cancel: CancellationToken,
     ) -> Result<Json<Value>, ErrorData> {
         self.guest_json(
             "app_logs",
             serde_json::to_value(params)
                 .map_err(|e| ErrorData::invalid_params(e.to_string(), None))?,
+            request_cancel,
         )
         .await
         .map(Json)
@@ -439,7 +580,20 @@ impl AshnazgServer {
         Parameters(params): Parameters<InstallParams>,
         request_cancel: CancellationToken,
     ) -> Result<Json<Value>, ErrorData> {
-        if let Some(native) = &self.native {
+        if !params.launch.unwrap_or(false) && params.package.is_some() {
+            return Err(ErrorData::invalid_params(
+                "package requires launch=true",
+                None,
+            ));
+        }
+        let native = match &self.provider {
+            NativeProvider::Ready(native) => Some(Arc::clone(native)),
+            NativeProvider::Initializing(readiness) => {
+                Some(readiness.wait(request_cancel.clone()).await?)
+            }
+            NativeProvider::External => None,
+        };
+        if let Some(native) = native {
             let result = native
                 .lifecycle
                 .install(
@@ -456,7 +610,10 @@ impl AshnazgServer {
                 "serial": native.serial,
             })));
         }
-        let config = self.config.clone();
+        let config = self
+            .config
+            .clone()
+            .ok_or_else(|| ErrorData::internal_error("native runtime failed to start", None))?;
         let path = params.path;
         let launch = params.launch.unwrap_or(false);
         let package = params.package;
@@ -536,11 +693,7 @@ impl NativeSessionOwner for NativeSession {
 }
 
 fn native_server(backend: NativeInstallBackend) -> AshnazgServer {
-    let config = HostConfig {
-        guest: backend.guest.clone(),
-        adb: String::new(),
-    };
-    AshnazgServer::with_native(config, backend)
+    AshnazgServer::with_native(backend)
 }
 
 async fn serve_native_transport<R, W>(
@@ -580,6 +733,275 @@ where
             .map(|_| ())
             .map_err(|_| anyhow::anyhow!("native MCP serving failed")),
     }
+}
+
+async fn serve_initializing_transport<R, W>(
+    readiness: Arc<NativeReadiness>,
+    read: R,
+    write: W,
+    lifecycle: CancellationToken,
+) -> anyhow::Result<()>
+where
+    R: AsyncRead + Unpin + Send + 'static,
+    W: AsyncWrite + Unpin + Send + 'static,
+{
+    use rmcp::ServiceExt;
+    let server = AshnazgServer::with_readiness(readiness);
+    let initializing = server.serve_with_ct((read, write), lifecycle.clone());
+    tokio::pin!(initializing);
+    let running = tokio::select! {
+        result = &mut initializing => match result {
+            Ok(running) => running,
+            Err(_) if lifecycle.is_cancelled() => return Ok(()),
+            Err(_) => anyhow::bail!("native MCP serving failed"),
+        },
+        _ = lifecycle.cancelled() => match initializing.await {
+            Ok(running) => running,
+            Err(_) => return Ok(()),
+        }
+    };
+    let waiting = running.waiting();
+    tokio::pin!(waiting);
+    tokio::select! {
+        result = &mut waiting => result.map(|_| ()).map_err(|_| anyhow::anyhow!("native MCP serving failed")),
+        _ = lifecycle.cancelled() => waiting.await.map(|_| ()).map_err(|_| anyhow::anyhow!("native MCP serving failed")),
+    }
+}
+
+fn initializing_http_app(
+    readiness: Arc<NativeReadiness>,
+    bearer: String,
+    lifecycle: CancellationToken,
+) -> axum::Router {
+    let service = rmcp::transport::streamable_http_server::StreamableHttpService::new(
+        move || Ok(AshnazgServer::with_readiness(Arc::clone(&readiness))),
+        Arc::new(
+            rmcp::transport::streamable_http_server::session::local::LocalSessionManager::default(),
+        ),
+        rmcp::transport::streamable_http_server::StreamableHttpServerConfig::default()
+            .with_sse_keep_alive(Some(Duration::from_secs(15)))
+            .with_cancellation_token(lifecycle.clone()),
+    );
+    axum::Router::new()
+        .route_service("/mcp", service)
+        .layer(tower_http::limit::RequestBodyLimitLayer::new(
+            8 * 1024 * 1024,
+        ))
+        .layer(middleware::from_fn_with_state(bearer, authorize))
+        .layer(middleware::from_fn_with_state(
+            lifecycle,
+            cancel_native_http_request,
+        ))
+}
+
+fn initializing_serve_result(
+    result: Result<anyhow::Result<()>, tokio::task::JoinError>,
+) -> anyhow::Result<()> {
+    result.unwrap_or_else(|_| Err(anyhow::anyhow!("native MCP serving failed")))
+}
+
+async fn run_initializing_owner<Fut, S, F>(
+    initialize: Fut,
+    readiness: Arc<NativeReadiness>,
+    lifecycle_token: CancellationToken,
+    serve: F,
+) -> anyhow::Result<()>
+where
+    Fut: Future<Output = anyhow::Result<S>> + Send + 'static,
+    S: NativeSessionOwner,
+    F: FnOnce(Arc<NativeReadiness>, CancellationToken) -> NativeServeFuture + Send + 'static,
+{
+    let lifecycle = Arc::new(InstallLifecycle::new(lifecycle_token.clone()));
+    let serve_readiness = Arc::clone(&readiness);
+    let serve_token = lifecycle_token.clone();
+    let mut serving = tokio::spawn(async move {
+        // Include construction as well as polling in the unwind boundary.
+        std::panic::AssertUnwindSafe(async move { serve(serve_readiness, serve_token).await })
+            .catch_unwind()
+            .await
+            .unwrap_or_else(|_| Err(anyhow::anyhow!("native MCP serving failed")))
+    });
+    let initialize = std::panic::AssertUnwindSafe(initialize).catch_unwind();
+    tokio::pin!(initialize);
+    let mut serving_result = None;
+    let init_result = tokio::select! {
+        result = &mut initialize => result,
+        result = &mut serving => {
+            serving_result = Some(result);
+            lifecycle_token.cancel();
+            initialize.await
+        }
+        _ = lifecycle_token.cancelled() => initialize.await,
+    };
+    let init_panicked = init_result.is_err();
+    let init_result =
+        init_result.unwrap_or_else(|_| Err(anyhow::anyhow!("native runtime failed to start")));
+    let session = match init_result {
+        Ok(session) => session,
+        Err(_) => {
+            readiness.publish(Err(())).await;
+            let cancelled_during_init = lifecycle_token.is_cancelled();
+            let result = match serving_result {
+                Some(result) => result,
+                None if cancelled_during_init => serving.await,
+                None => tokio::select! {
+                    _ = lifecycle_token.cancelled() => serving.await,
+                    result = &mut serving => result,
+                },
+            };
+            lifecycle_token.cancel();
+            lifecycle.close_and_drain().await;
+            let serving_ok = initializing_serve_result(result).is_ok();
+            return match (serving_ok, cancelled_during_init && !init_panicked) {
+                (true, true) => Ok(()),
+                (false, true) => Err(anyhow::anyhow!("native MCP serving failed")),
+                (true, false) => Err(anyhow::anyhow!("native runtime failed to start")),
+                (false, false) => Err(anyhow::anyhow!(
+                    "native runtime failed to start; native MCP serving failed"
+                )),
+            };
+        }
+    };
+
+    // Keep the unique session owner outside all serving/factory unwind paths.
+    let mut serving_joined = serving_result.is_some();
+    let server_result = std::panic::AssertUnwindSafe(async {
+        let backend = match (session.guest_client(), session.install_client()) {
+            (Ok(guest), Ok(client)) => Ok(Arc::new(NativeInstallBackend {
+                guest,
+                client,
+                serial: session.adb_addr().to_string(),
+                lifecycle: Arc::clone(&lifecycle),
+            })),
+            _ => Err(()),
+        };
+        let backend_ok = backend.is_ok();
+        if lifecycle_token.is_cancelled() {
+            readiness.publish(Err(())).await;
+        } else {
+            readiness.publish(backend).await;
+        }
+        let result = if let Some(result) = serving_result.take() {
+            initializing_serve_result(result)
+        } else {
+            let terminated = session.wait_terminated();
+            tokio::pin!(terminated);
+            let result = tokio::select! {
+                result = &mut serving => initializing_serve_result(result),
+                _ = lifecycle_token.cancelled() => initializing_serve_result((&mut serving).await),
+                _ = &mut terminated => {
+                    lifecycle_token.cancel();
+                    let serving_result = initializing_serve_result((&mut serving).await);
+                    serving_result.and(Err(anyhow::anyhow!("native helper exited unexpectedly")))
+                }
+            };
+            serving_joined = true;
+            result
+        };
+        if backend_ok {
+            result
+        } else {
+            result.and(Err(anyhow::anyhow!("native runtime failed to start")))
+        }
+    })
+    .catch_unwind()
+    .await
+    .unwrap_or_else(|_| Err(anyhow::anyhow!("native MCP serving failed")));
+
+    lifecycle_token.cancel();
+    readiness.publish(Err(())).await;
+    if !serving_joined {
+        // A factory panic may happen before the normal serving wait begins.
+        // Cancel and join that task before tearing down its session.
+        let _ = (&mut serving).await;
+    }
+    lifecycle.close_and_drain().await;
+    let shutdown_result = Box::new(session).shutdown().await;
+    match (server_result.is_ok(), shutdown_result.is_ok()) {
+        (true, true) => Ok(()),
+        (false, true) => Err(anyhow::anyhow!("native MCP serving failed")),
+        (true, false) => Err(anyhow::anyhow!("native helper shutdown failed")),
+        (false, false) => Err(anyhow::anyhow!(
+            "native MCP serving failed; native helper shutdown failed"
+        )),
+    }
+}
+
+async fn run_initializing_public<Fut, S, Init, F>(
+    initialize: Init,
+    cancel: CancellationToken,
+    serve: F,
+) -> anyhow::Result<()>
+where
+    Fut: Future<Output = anyhow::Result<S>> + Send + 'static,
+    S: NativeSessionOwner,
+    Init: FnOnce(CancellationToken) -> Fut + Send + 'static,
+    F: FnOnce(Arc<NativeReadiness>, CancellationToken) -> NativeServeFuture + Send + 'static,
+{
+    let lifecycle = cancel.child_token();
+    let guard = CancelOnDrop(lifecycle.clone());
+    let readiness = Arc::new(NativeReadiness::new());
+    let initialize_token = lifecycle.clone();
+    let initialize = async move { initialize(initialize_token).await };
+    let owner = tokio::spawn(run_initializing_owner(
+        initialize, readiness, lifecycle, serve,
+    ));
+    let result = owner
+        .await
+        .map_err(|_| anyhow::anyhow!("native MCP lifecycle task failed"))?;
+    drop(guard);
+    result
+}
+
+/// Starts native MCP immediately while one retained initializer prepares the runtime.
+pub async fn serve_initializing_native_io<R, W, Init, InitFuture>(
+    initialize: Init,
+    read: R,
+    write: W,
+    cancel: CancellationToken,
+) -> anyhow::Result<()>
+where
+    R: AsyncRead + Unpin + Send + 'static,
+    W: AsyncWrite + Unpin + Send + 'static,
+    Init: FnOnce(CancellationToken) -> InitFuture + Send + 'static,
+    InitFuture: Future<Output = anyhow::Result<NativeSession>> + Send + 'static,
+{
+    run_initializing_public(initialize, cancel, move |readiness, lifecycle| {
+        Box::pin(serve_initializing_transport(
+            readiness, read, write, lifecycle,
+        ))
+    })
+    .await
+}
+
+/// Starts authenticated loopback MCP after validating the listener and bearer.
+pub async fn serve_initializing_native_http<Init, InitFuture>(
+    initialize: Init,
+    listener: tokio::net::TcpListener,
+    bearer: String,
+    cancel: CancellationToken,
+) -> anyhow::Result<()>
+where
+    Init: FnOnce(CancellationToken) -> InitFuture + Send + 'static,
+    InitFuture: Future<Output = anyhow::Result<NativeSession>> + Send + 'static,
+{
+    let address = listener
+        .local_addr()
+        .map_err(|_| anyhow::anyhow!("native MCP serving failed"))?;
+    validate_native_http_inputs(address, &bearer)
+        .map_err(|_| anyhow::anyhow!("native MCP serving failed"))?;
+    run_initializing_public(initialize, cancel, move |readiness, lifecycle| {
+        Box::pin(async move {
+            axum::serve(
+                listener,
+                initializing_http_app(readiness, bearer, lifecycle.clone()),
+            )
+            .with_graceful_shutdown(lifecycle.cancelled_owned())
+            .await
+            .map_err(|_| anyhow::anyhow!("native MCP serving failed"))
+        })
+    })
+    .await
 }
 
 async fn serve_native_http_listener(
@@ -822,9 +1244,10 @@ fn validate_native_http_inputs(addr: std::net::SocketAddr, bearer: &str) -> anyh
 #[cfg(test)]
 mod tests {
     use super::{
-        AshnazgServer, NativeSessionOwner, NativeShutdownFuture, NativeWaitFuture, http_app,
-        run_native_owner, run_native_public, serve_native_http_listener, serve_native_transport,
-        validate_native_http_inputs,
+        AshnazgServer, NativeReadiness, NativeSessionOwner, NativeShutdownFuture, NativeWaitFuture,
+        http_app, initializing_http_app, run_initializing_public, run_native_owner,
+        run_native_public, serve_initializing_native_io, serve_initializing_transport,
+        serve_native_http_listener, serve_native_transport, validate_native_http_inputs,
     };
     use crate::GuestClient;
     use axum::{
@@ -843,6 +1266,7 @@ mod tests {
 
     struct FixtureOwner {
         events: Arc<StdMutex<Vec<&'static str>>>,
+        guest_endpoint: SocketAddr,
         install_endpoint: SocketAddr,
         termination:
             Arc<tokio::sync::Mutex<Option<tokio::sync::oneshot::Receiver<anyhow::Result<()>>>>>,
@@ -852,7 +1276,7 @@ mod tests {
     impl NativeSessionOwner for FixtureOwner {
         fn guest_client(&self) -> anyhow::Result<crate::GuestClient> {
             Ok(crate::GuestClient::new(
-                "127.0.0.1:7777".parse().unwrap(),
+                self.guest_endpoint,
                 "fixture-guest-token".into(),
             ))
         }
@@ -902,10 +1326,225 @@ mod tests {
     ) -> FixtureOwner {
         FixtureOwner {
             events,
+            guest_endpoint: "127.0.0.1:0".parse().unwrap(),
             install_endpoint,
             termination: Arc::new(tokio::sync::Mutex::new(None)),
             shutdown_fails: false,
         }
+    }
+
+    #[tokio::test]
+    async fn native_readiness_caps_waiters_and_keeps_cancellation_local() {
+        let readiness = Arc::new(NativeReadiness::new());
+        let mut request_cancels = Vec::new();
+        let mut waiters = Vec::new();
+        for _ in 0..8 {
+            let cancel = CancellationToken::new();
+            request_cancels.push(cancel.clone());
+            let readiness = Arc::clone(&readiness);
+            waiters.push(tokio::spawn(async move { readiness.wait(cancel).await }));
+        }
+        tokio::time::timeout(Duration::from_secs(1), async {
+            while readiness.waiters.load(std::sync::atomic::Ordering::Acquire) != 8 {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .unwrap();
+        let capped = readiness
+            .wait(CancellationToken::new())
+            .await
+            .err()
+            .unwrap();
+        assert!(capped.to_string().contains("busy"));
+        request_cancels[0].cancel();
+        assert!(
+            waiters
+                .remove(0)
+                .await
+                .unwrap()
+                .err()
+                .unwrap()
+                .to_string()
+                .contains("cancelled")
+        );
+        readiness.publish(Err(())).await;
+        for waiter in waiters {
+            assert!(
+                waiter
+                    .await
+                    .unwrap()
+                    .err()
+                    .unwrap()
+                    .to_string()
+                    .contains("failed to start")
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn readiness_does_not_return_a_backend_to_an_already_cancelled_request() {
+        let owner = fixture_owner(
+            Arc::new(StdMutex::new(Vec::new())),
+            "127.0.0.1:4321".parse().unwrap(),
+        );
+        let readiness = NativeReadiness::new();
+        readiness
+            .publish(Ok(Arc::new(super::NativeInstallBackend {
+                guest: owner.guest_client().unwrap(),
+                client: owner.install_client().unwrap(),
+                serial: owner.adb_addr().to_string(),
+                lifecycle: Arc::new(super::InstallLifecycle::new(CancellationToken::new())),
+            })))
+            .await;
+        let request = CancellationToken::new();
+        request.cancel();
+        let error = readiness
+            .wait(request)
+            .await
+            .err()
+            .expect("cancelled request must not acquire backend");
+        assert!(error.to_string().contains("cancelled"));
+    }
+
+    #[tokio::test]
+    async fn initializing_owner_preserves_serving_failure_when_init_is_cancelled() {
+        for panic_during_poll in [false, true] {
+            let parent = CancellationToken::new();
+            let result = run_initializing_public(
+                |lifecycle| async move {
+                    lifecycle.cancelled().await;
+                    Err::<FixtureOwner, _>(anyhow::anyhow!("fixture cancelled during startup"))
+                },
+                parent.clone(),
+                move |_, _| {
+                    Box::pin(async move {
+                        assert!(!panic_during_poll, "fixture serving panic");
+                        Err(anyhow::anyhow!("fixture serving failure"))
+                    })
+                },
+            )
+            .await;
+            assert!(
+                result.is_err(),
+                "serving failure must not become successful cancellation"
+            );
+            assert!(!parent.is_cancelled());
+        }
+    }
+
+    #[tokio::test]
+    async fn pending_readiness_deadline_expires_and_releases_its_slot() {
+        let readiness = NativeReadiness::new();
+        let error = readiness
+            .wait_until(CancellationToken::new(), tokio::time::Instant::now())
+            .await
+            .err()
+            .unwrap();
+        assert!(error.to_string().contains("still starting"));
+        assert_eq!(
+            readiness.waiters.load(std::sync::atomic::Ordering::Acquire),
+            0
+        );
+        // The production entry point supplies one 30-second absolute deadline
+        // to this same loop; no progress notification recreates that deadline.
+        assert!(readiness.state.lock().await.is_none());
+    }
+
+    #[tokio::test]
+    async fn initializing_owner_ready_paths_join_shutdown_and_preserve_failures() {
+        for mode in 0..5 {
+            let parent = CancellationToken::new();
+            let events = Arc::new(StdMutex::new(Vec::new()));
+            let mut owner = fixture_owner(Arc::clone(&events), "127.0.0.1:4321".parse().unwrap());
+            owner.shutdown_fails = mode == 4;
+            let (exited, exit) = tokio::sync::oneshot::channel();
+            if mode == 1 {
+                *owner.termination.lock().await = Some(exit);
+            }
+            let result = run_initializing_public(
+                move |_| async move { Ok(owner) },
+                parent.clone(),
+                move |readiness, lifecycle| {
+                    assert_ne!(mode, 2, "fixture serving constructor panic");
+                    Box::pin(async move {
+                        readiness
+                            .wait(CancellationToken::new())
+                            .await
+                            .map_err(|_| anyhow::anyhow!("fixture never ready"))?;
+                        match mode {
+                            1 => {
+                                let _ = exited.send(Err(anyhow::anyhow!("fixture helper exit")));
+                                lifecycle.cancelled().await;
+                                Ok(())
+                            }
+                            3 => panic!("fixture ready serving panic"),
+                            _ => {
+                                lifecycle.cancel();
+                                Ok(())
+                            }
+                        }
+                    })
+                },
+            )
+            .await;
+            assert_eq!(
+                *events.lock().unwrap(),
+                ["shutdown"],
+                "mode {mode} lost session cleanup"
+            );
+            assert!(!parent.is_cancelled());
+            assert_eq!(
+                result.is_ok(),
+                mode == 0,
+                "mode {mode} lost a serving/helper/shutdown failure"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn serving_constructor_panic_still_awaits_initialization_cleanup() {
+        let cleaned = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let cleaned_by_initializer = Arc::clone(&cleaned);
+        let parent = CancellationToken::new();
+        let result = run_initializing_public(
+            move |lifecycle| async move {
+                lifecycle.cancelled().await;
+                cleaned_by_initializer.store(true, std::sync::atomic::Ordering::Release);
+                Err::<FixtureOwner, _>(anyhow::anyhow!("fixture init cancelled"))
+            },
+            parent.clone(),
+            |_, _| panic!("fixture constructor panic"),
+        )
+        .await;
+        assert!(result.is_err());
+        assert!(cleaned.load(std::sync::atomic::Ordering::Acquire));
+        assert!(!parent.is_cancelled());
+    }
+
+    #[tokio::test]
+    async fn initializer_constructor_panic_cancels_and_joins_transport() {
+        let served = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let served_by_transport = Arc::clone(&served);
+        let parent = CancellationToken::new();
+        let result = run_initializing_public(
+            |_| -> std::future::Ready<anyhow::Result<FixtureOwner>> {
+                panic!("fixture initializer constructor panic")
+            },
+            parent.clone(),
+            move |readiness, _| {
+                Box::pin(async move {
+                    let result = readiness.wait(CancellationToken::new()).await;
+                    served_by_transport.store(true, std::sync::atomic::Ordering::Release);
+                    assert!(result.is_err());
+                    Ok(())
+                })
+            },
+        )
+        .await;
+        assert!(result.is_err());
+        assert!(served.load(std::sync::atomic::Ordering::Acquire));
+        assert!(!parent.is_cancelled());
     }
 
     #[tokio::test]
@@ -971,6 +1610,198 @@ mod tests {
             .unwrap();
         assert_eq!(*events.lock().unwrap(), ["shutdown"]);
         assert!(!parent.is_cancelled());
+    }
+
+    #[tokio::test]
+    async fn initializing_native_io_handshakes_and_lists_while_one_initializer_is_pending() {
+        let (client, server) = tokio::io::duplex(32 * 1024);
+        let (read, write) = tokio::io::split(server);
+        let cancel = CancellationToken::new();
+        let initializer_cancelled = cancel.clone();
+        let starts = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let starts_by_initializer = Arc::clone(&starts);
+        let server_task = tokio::spawn(async move {
+            serve_initializing_native_io(
+                move |lifecycle| async move {
+                    starts_by_initializer.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                    lifecycle.cancelled().await;
+                    Err(anyhow::anyhow!("fixture startup failure"))
+                },
+                read,
+                write,
+                cancel,
+            )
+            .await
+        });
+
+        let (read, mut write) = tokio::io::split(client);
+        let mut read = BufReader::new(read);
+        write.write_all(b"{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{},\"clientInfo\":{\"name\":\"fixture\",\"version\":\"1\"}}}\n").await.unwrap();
+        let mut line = String::new();
+        tokio::time::timeout(Duration::from_secs(2), read.read_line(&mut line))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&line).unwrap()["id"],
+            1
+        );
+        line.clear();
+        write.write_all(b"{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}\n").await.unwrap();
+        tokio::time::timeout(Duration::from_secs(2), async {
+            loop {
+                line.clear();
+                read.read_line(&mut line).await.unwrap();
+                let value: serde_json::Value = serde_json::from_str(&line).unwrap();
+                if value["id"] == 2 {
+                    assert_eq!(value["result"]["tools"].as_array().unwrap().len(), 5);
+                    break;
+                }
+            }
+        })
+        .await
+        .unwrap();
+        assert_eq!(starts.load(std::sync::atomic::Ordering::SeqCst), 1);
+        initializer_cancelled.cancel();
+        tokio::time::timeout(Duration::from_secs(3), server_task)
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn initialization_failure_keeps_mcp_available_and_hides_initializer_details() {
+        let (client, server) = tokio::io::duplex(32 * 1024);
+        let (read, write) = tokio::io::split(server);
+        let cancel = CancellationToken::new();
+        let (client_read, mut client_write) = tokio::io::split(client);
+        let mut client_read = BufReader::new(client_read);
+        let task = tokio::spawn(run_initializing_public(
+            |_lifecycle| async {
+                Err::<FixtureOwner, _>(anyhow::anyhow!("private fixture credential"))
+            },
+            cancel,
+            move |readiness, lifecycle| {
+                Box::pin(serve_initializing_transport(
+                    readiness, read, write, lifecycle,
+                ))
+            },
+        ));
+        client_write.write_all(b"{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{},\"clientInfo\":{\"name\":\"fixture\",\"version\":\"1\"}}}\n").await.unwrap();
+        let mut line = String::new();
+        tokio::time::timeout(Duration::from_secs(2), client_read.read_line(&mut line))
+            .await
+            .unwrap()
+            .unwrap();
+        line.clear();
+        client_write.write_all(b"{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"app_logs\",\"arguments\":{}}}\n").await.unwrap();
+        tokio::time::timeout(Duration::from_secs(2), async {
+            loop {
+                line.clear();
+                client_read.read_line(&mut line).await.unwrap();
+                let value: serde_json::Value = serde_json::from_str(&line).unwrap();
+                if value["id"] == 2 {
+                    let response = value.to_string();
+                    assert!(response.contains("native runtime failed to start"));
+                    assert!(!response.contains("private fixture credential"));
+                    break;
+                }
+            }
+        })
+        .await
+        .unwrap();
+        client_write.shutdown().await.unwrap();
+        let result = tokio::time::timeout(Duration::from_secs(3), task)
+            .await
+            .unwrap()
+            .unwrap();
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("native runtime failed to start")
+        );
+    }
+
+    #[tokio::test]
+    async fn dropping_initializing_caller_retains_and_cancels_initializer_cleanup() {
+        let (client, server) = tokio::io::duplex(1024);
+        let (read, write) = tokio::io::split(server);
+        let (started_tx, started_rx) = tokio::sync::oneshot::channel();
+        let (cleaned_tx, cleaned_rx) = tokio::sync::oneshot::channel();
+        let (served_tx, served_rx) = tokio::sync::oneshot::channel();
+        let task = tokio::spawn(run_initializing_public(
+            move |lifecycle| async move {
+                let _ = started_tx.send(());
+                lifecycle.cancelled().await;
+                let _ = cleaned_tx.send(());
+                Err::<FixtureOwner, _>(anyhow::anyhow!("fixture cancelled"))
+            },
+            CancellationToken::new(),
+            move |readiness, lifecycle| {
+                Box::pin(async move {
+                    let result =
+                        serve_initializing_transport(readiness, read, write, lifecycle).await;
+                    let _ = served_tx.send(());
+                    result
+                })
+            },
+        ));
+        tokio::time::timeout(Duration::from_secs(2), started_rx)
+            .await
+            .unwrap()
+            .unwrap();
+        task.abort();
+        assert!(task.await.unwrap_err().is_cancelled());
+        drop(client);
+        tokio::time::timeout(Duration::from_secs(2), cleaned_rx)
+            .await
+            .unwrap()
+            .unwrap();
+        tokio::time::timeout(Duration::from_secs(2), served_rx)
+            .await
+            .unwrap()
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn initializing_transport_eof_cancels_and_joins_pending_initializer() {
+        let (client, server) = tokio::io::duplex(1024);
+        let (read, write) = tokio::io::split(server);
+        let (started_tx, started_rx) = tokio::sync::oneshot::channel();
+        let (cleaned_tx, cleaned_rx) = tokio::sync::oneshot::channel();
+        let task = tokio::spawn(run_initializing_public(
+            move |lifecycle| async move {
+                let _ = started_tx.send(());
+                lifecycle.cancelled().await;
+                let _ = cleaned_tx.send(());
+                Err::<FixtureOwner, _>(anyhow::anyhow!("fixture cancelled"))
+            },
+            CancellationToken::new(),
+            move |readiness, lifecycle| {
+                Box::pin(serve_initializing_transport(
+                    readiness, read, write, lifecycle,
+                ))
+            },
+        ));
+        tokio::time::timeout(Duration::from_secs(2), started_rx)
+            .await
+            .unwrap()
+            .unwrap();
+        drop(client);
+        tokio::time::timeout(Duration::from_secs(2), cleaned_rx)
+            .await
+            .unwrap()
+            .unwrap();
+        let error = tokio::time::timeout(Duration::from_secs(2), task)
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap_err();
+        // EOF before MCP initialize is a serving failure even though pending
+        // initializer cancellation and cleanup completed successfully.
+        assert!(error.to_string().contains("serving failed"));
     }
 
     fn accept_native_fixture(listener: &std::net::TcpListener) -> std::net::TcpStream {
@@ -1820,5 +2651,118 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(names.len(), 5);
         assert!(!names.contains(&"device_boot"));
+    }
+
+    #[tokio::test]
+    async fn initializing_http_authenticates_initialize_list_and_native_tool_call() {
+        let install = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let guest = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let guest_endpoint = guest.local_addr().unwrap();
+        let peer = std::thread::spawn(move || {
+            use std::io::{BufRead, Write};
+            let mut stream = accept_native_fixture(&guest);
+            let mut request = String::new();
+            std::io::BufReader::new(stream.try_clone().unwrap())
+                .read_line(&mut request)
+                .unwrap();
+            let request: serde_json::Value = serde_json::from_str(&request).unwrap();
+            assert_eq!(request["method"], "app_logs");
+            assert_eq!(request["token"], "fixture-guest-token");
+            let response =
+                serde_json::json!({"jsonrpc":"2.0","id":request["id"],"result":{"logs":[]}});
+            stream
+                .write_all(format!("{response}\n").as_bytes())
+                .unwrap();
+        });
+        let events = Arc::new(StdMutex::new(Vec::new()));
+        let mut owner = fixture_owner(events, install.local_addr().unwrap());
+        owner.guest_endpoint = guest_endpoint;
+        let lifecycle = Arc::new(super::InstallLifecycle::new(CancellationToken::new()));
+        let backend = Arc::new(super::NativeInstallBackend {
+            guest: owner.guest_client().unwrap(),
+            client: owner.install_client().unwrap(),
+            serial: owner.adb_addr().to_string(),
+            lifecycle,
+        });
+        let readiness = Arc::new(NativeReadiness::new());
+        readiness.publish(Ok(backend)).await;
+        let cancel = CancellationToken::new();
+        let app = initializing_http_app(
+            Arc::clone(&readiness),
+            "native-http-secret".into(),
+            cancel.clone(),
+        );
+        let init = app.clone().oneshot(
+            Request::builder().method("POST").uri("/mcp").header("host", "localhost")
+                .header(AUTHORIZATION, "Bearer native-http-secret").header(CONTENT_TYPE, "application/json")
+                .header("accept", "application/json, text/event-stream")
+                .body(Body::from(r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"test","version":"1"}}}"#)).unwrap()
+        ).await.unwrap();
+        assert_eq!(init.status(), StatusCode::OK);
+        let session = init.headers().get("mcp-session-id").cloned();
+        let body = axum::body::to_bytes(init.into_body(), 1024 * 1024)
+            .await
+            .unwrap();
+        let protocol = parse_mcp_response(&body)["result"]["protocolVersion"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        let mut list = Request::builder()
+            .method("POST")
+            .uri("/mcp")
+            .header("host", "localhost")
+            .header(AUTHORIZATION, "Bearer native-http-secret")
+            .header(CONTENT_TYPE, "application/json")
+            .header("accept", "application/json, text/event-stream")
+            .header("mcp-protocol-version", &protocol);
+        if let Some(session) = &session {
+            list = list.header("mcp-session-id", session);
+        }
+        let listed = app
+            .clone()
+            .oneshot(
+                list.body(Body::from(
+                    r#"{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}"#,
+                ))
+                .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(listed.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(listed.into_body(), 1024 * 1024)
+            .await
+            .unwrap();
+        assert_eq!(
+            parse_mcp_response(&body)["result"]["tools"]
+                .as_array()
+                .unwrap()
+                .len(),
+            5
+        );
+        let mut call = Request::builder()
+            .method("POST")
+            .uri("/mcp")
+            .header("host", "localhost")
+            .header(AUTHORIZATION, "Bearer native-http-secret")
+            .header(CONTENT_TYPE, "application/json")
+            .header("accept", "application/json, text/event-stream")
+            .header("mcp-protocol-version", protocol);
+        if let Some(session) = session {
+            call = call.header("mcp-session-id", session);
+        }
+        let called = app.clone().oneshot(call.body(Body::from(r#"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"app_logs","arguments":{}}}"#)).unwrap()).await.unwrap();
+        assert_eq!(called.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(called.into_body(), 1024 * 1024)
+            .await
+            .unwrap();
+        let response = parse_mcp_response(&body);
+        assert_ne!(response["result"]["isError"], true);
+        let result: serde_json::Value =
+            serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap())
+                .unwrap();
+        assert_eq!(result["logs"], serde_json::json!([]));
+        peer.join().unwrap();
+        cancel.cancel();
+        drop(install);
     }
 }

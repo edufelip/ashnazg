@@ -7,6 +7,13 @@ on:
       - scripts/package_release.py
       - tests/test_package_release.py
       - docs/releases.md
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
+      - build.rs
+      - build_support/**
+      - src/build_identity.rs
+      - rust-tests/build_identity.rs
   push:
     tags: [v*]
   workflow_dispatch:
@@ -120,6 +127,8 @@ jobs:
         with:
           ref: ${{ needs.validate-source.outputs.source_sha }}
       - name: Build native release binary
+        env:
+          ASHNAZG_BUILD_SOURCE_SHA: ${{ needs.validate-source.outputs.source_sha }}
         run: |
           rustup toolchain install stable --profile minimal
           rustup default stable

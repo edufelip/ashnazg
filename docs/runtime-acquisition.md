@@ -1,8 +1,9 @@
 # Runtime artifact acquisition
 
-The Rust library now has the parts needed to acquire a native runtime safely.
-They are separate APIs; the CLI does not yet compose them or download a default
-runtime. No public runtime catalog has been published.
+The Rust library exposes acquisition as a cancellable API and the native CLI
+bootstrap composes it with the owned helper session. No public runtime catalog
+has been published, so a clean machine still reports native startup unavailable
+until a matching release catalog and artifacts exist.
 
 `runtime_catalog` parses the producer's bounded schema-1 catalog against an
 expected release version and source commit. Artifact roles, platform names,
@@ -61,13 +62,28 @@ before boot. The receipt describes cold extraction; it does not independently
 authenticate arbitrary later changes to guest assets, and hostile same-UID
 mutation remains outside this cache boundary.
 
-The coordinator is available to library callers; the CLI and MCP session do
-not yet invoke it, and no public runtime catalog has been published. Small
-private-source tar/XZ fixtures cover cold promotion, offline warm reuse,
-corruption refusal and dropped-future cleanup. They do not prove live GitHub
-acquisition, multi-gigabyte handling, VM boot, CLI/session acceptance or Linux
-locking and rename behavior. Those still require their separate hosted and
-runtime acceptance evidence.
+`native_bootstrap::config_for_user` validates an existing absolute user home
+and an explicit 40-character lowercase source stamp. It derives the fixed
+`Library/Caches/ashnazg/runtime` cache and a source-scoped
+`Library/Application Support/ashnazg/native-mcp/<source>` state directory;
+there are no environment or arbitrary path/hash overrides. Startup rejects
+unsupported hosts before acquisition, ensures only these app-owned directory
+trees with descriptor-relative no-follow operations, and refuses unsafe
+existing directories without repairing or deleting them. It uses the fixed
+0.3.0 contract and 900-second acquisition deadline, checks returned version
+and source identity, then starts `NativeSession` with the helper and agent APK
+hashes retained from the validated catalog. The launch identity uses ports
+15555, 7777 and 17778 and a fresh 300-second helper startup deadline. A child
+cancellation token reaches both stages; each stage is awaited so orderly
+cancellation joins its existing cleanup before returning. Persistent cache and
+state are retained.
+
+Small private-source tar/XZ fixtures cover cold promotion, offline warm reuse,
+catalog hash handoff, corruption refusal and dropped-future acquisition
+cleanup. Pure bootstrap/path/identity tests do not prove live GitHub
+acquisition, multi-gigabyte handling, VM boot, helper startup, CLI/MCP
+acceptance or Linux locking and rename behavior. Those still require their
+separate hosted and runtime acceptance evidence.
 
 Separate prior extractor evidence shows it processed the matching `b8806d8` CI
 archive and its 4 GiB root filesystem; its

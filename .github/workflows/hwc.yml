@@ -65,13 +65,13 @@ jobs:
                       'scripts/harness.py', 'scripts/hwc_acceptance.py',
                       'scripts/linux_binder.py', 'scripts/redroid.py',
                       'scripts/integration.py', 'scripts/benchmark.py',
-                      'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', 'action.yml',
+                      'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', 'build.rs', 'action.yml',
                       'tests/test_hwc_image.py', 'tests/test_hwc_acceptance.py',
                   }
                   required = any(
                       path in exact or path.startswith((
                           'runtime/hwc/', 'runtime/hwc-image/', 'runtime/display-governor/', 'agent-android/',
-                          'fixtures/', 'src/'))
+                          'fixtures/', 'src/', 'build_support/'))
                       for path in paths)
           else:
               sys.exit(f'unsupported HWC scope event: {event}')
