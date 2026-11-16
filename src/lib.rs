@@ -7,6 +7,7 @@ pub mod runtime_cache;
 pub mod runtime_catalog;
 pub mod runtime_download;
 pub mod runtime_extract;
+pub mod session_credentials;
 
 pub use runtime_acquire::{RuntimeArtifacts, acquire_runtime};
 
