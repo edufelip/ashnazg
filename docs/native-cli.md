@@ -8,7 +8,7 @@ Without `ASHNAZG_TOKEN`, MCP selects the native backend on macOS with Apple Sili
 
 MCP transport initialization and `tools/list` do not wait for artifact acquisition or VM startup. One shared initializer acquires a catalog-bound runtime, launches the helper and authenticates readiness. All five tools use that shared state. A tool can wait up to thirty seconds for readiness; a timeout reports that startup is still in progress and can be retried. Cancelling that request does not cancel initialization. Failed initialization remains a failed state for that server lifetime, with details on stderr and a fixed error at the MCP boundary.
 
-Native acquisition uses the fixed runtime `0.3.0` contract and the host binary's validated build-source stamp. An ordinary unstamped development build can still serve the external backend; native tool startup reports its unavailable source identity. A missing matching catalog or asset is an initialization failure. No matching public runtime catalog is established by this change. Cargo package `0.1.0` and runtime contract `0.3.0` remain separate until the release packaging work is completed.
+Native acquisition uses the fixed runtime `0.3.0` contract and the host binary's validated build-source stamp. An ordinary unstamped development build can still serve the external backend; native tool startup reports its unavailable source identity. A missing matching catalog or asset is an initialization failure. No matching public runtime catalog is established by this change. Cargo package and runtime contract now both use `0.3.0`; candidate preparation and publication are described in [releases](releases.md).
 
 Default cache and state paths derive from the current user's existing home directory:
 
