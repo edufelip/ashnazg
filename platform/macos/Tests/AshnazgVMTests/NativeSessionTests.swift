@@ -63,6 +63,101 @@ final class NativeSessionTests: XCTestCase {
         XCTAssertThrowsError(try OpenedAgentAPK(path: oversized, expectedSHA256: String(repeating: "0", count: 64)))
     }
 
+    func testOpeningFIFOAgentAPKDoesNotWaitForAWriter() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let fifo = directory.appendingPathComponent("agent.fifo")
+        XCTAssertEqual(mkfifo(fifo.path, 0o600), 0)
+        let done = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            do { let apk = try OpenedAgentAPK(path: fifo, expectedSHA256: String(repeating: "0", count: 64)); apk.close() }
+            catch { }
+            done.signal()
+        }
+        let result = done.wait(timeout: .now() + 0.2)
+        if result != .success {
+            let writer = open(fifo.path, O_WRONLY | O_NONBLOCK)
+            if writer >= 0 { Darwin.close(writer) }
+            _ = done.wait(timeout: .now() + 1)
+        }
+        XCTAssertEqual(result, .success, "a non-regular APK must be rejected before blocking open")
+    }
+
+    @MainActor
+    func testCancellationInterruptsACKWaitAndPreservesBorrowedDescriptor() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let path = directory.appendingPathComponent("agent.apk")
+        let payload = Data("apk".utf8)
+        try payload.write(to: path)
+        let digest = SHA256.hash(data: payload).map { String(format: "%02x", $0) }.joined()
+        let apk = try OpenedAgentAPK(path: path, expectedSHA256: digest)
+        defer { apk.close() }
+        let identity = try makeAgentSessionIdentity()
+        var pair: [Int32] = [0, 0]
+        XCTAssertEqual(socketpair(AF_UNIX, SOCK_STREAM, 0, &pair), 0)
+        for fd in pair { configureNoSIGPIPE(fd) }
+        defer { for fd in pair { Darwin.shutdown(fd, SHUT_RDWR); Darwin.close(fd) } }
+        let peer = pair[1], client = pair[0]
+        let headerSeen = DispatchSemaphore(value: 0), peerDone = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            defer { peerDone.signal() }
+            _ = try? Self.readSocketLine(peer)
+            headerSeen.signal()
+            var byte: UInt8 = 0
+            _ = Darwin.read(peer, &byte, 1)
+        }
+        let transfer = Task {
+            try await prepareAgentSession(fd: client, apk: apk, identity: identity,
+                                          wholeDeadline: StartupDeadline(after: .seconds(1)))
+        }
+        let observedHeader = await waitForDrainSignal(headerSeen, seconds: 1)
+        XCTAssertTrue(observedHeader)
+        let start = DispatchTime.now().uptimeNanoseconds
+        transfer.cancel()
+        do { try await transfer.value; XCTFail("cancelled preparation must fail") } catch { }
+        XCTAssertLessThan(DispatchTime.now().uptimeNanoseconds - start, 250_000_000)
+        var info = stat()
+        XCTAssertEqual(fstat(client, &info), 0, "prepare borrows the caller's descriptor")
+        let peerClosed = await waitForDrainSignal(peerDone, seconds: 0.2)
+        XCTAssertTrue(peerClosed)
+    }
+
+    func testUploadDeadlineStillAppliesWhenPeerStopsReadingTheBody() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let path = directory.appendingPathComponent("agent.apk")
+        let payload = Data(repeating: 42, count: 2 * 1024 * 1024)
+        try payload.write(to: path)
+        let digest = SHA256.hash(data: payload).map { String(format: "%02x", $0) }.joined()
+        let apk = try OpenedAgentAPK(path: path, expectedSHA256: digest)
+        defer { apk.close() }
+        var pair: [Int32] = [0, 0]
+        XCTAssertEqual(socketpair(AF_UNIX, SOCK_STREAM, 0, &pair), 0)
+        for fd in pair { configureNoSIGPIPE(fd) }
+        defer { for fd in pair { Darwin.shutdown(fd, SHUT_RDWR); Darwin.close(fd) } }
+        var bufferSize: Int32 = 4096
+        XCTAssertEqual(setsockopt(pair[0], SOL_SOCKET, SO_SNDBUF, &bufferSize, socklen_t(MemoryLayout<Int32>.size)), 0)
+        let peer = pair[1], done = DispatchSemaphore(value: 0), release = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            defer { done.signal() }
+            _ = try? Self.readSocketLine(peer)
+            try? Self.writeSocket(Data("{\"schema_version\":1,\"status\":\"ready_for_payload\"}\n".utf8), to: peer)
+            _ = release.wait(timeout: .now() + 0.7)
+            Darwin.shutdown(peer, SHUT_RDWR)
+        }
+        let start = DispatchTime.now().uptimeNanoseconds
+        XCTAssertThrowsError(try sendAgentPrepare(fd: pair[0], apk: apk, identity: makeAgentSessionIdentity(),
+                                                  wholeDeadline: StartupDeadline(after: .milliseconds(70))))
+        let elapsed = DispatchTime.now().uptimeNanoseconds - start
+        release.signal()
+        XCTAssertEqual(done.wait(timeout: .now() + 1), .success)
+        XCTAssertLessThan(elapsed, 400_000_000)
+    }
+
     func testPrepareWaitsForACKThenSendsExactBodyAndHalfCloses() throws {
         let bytes = Data("known apk".utf8), digest = Self.sha(bytes)
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

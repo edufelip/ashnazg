@@ -175,7 +175,7 @@ final class OwnedState {
                     var offset = 0
                     while offset < raw.count {
                         let amount = Darwin.write(markerFD, raw.baseAddress!.advanced(by: offset), raw.count - offset)
-                        if amount < 0 && errno == EINTR { continue }
+                        if amount < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) { continue }
                         guard amount > 0 else { throw AssetError.invalid("cannot write state ownership marker") }
                         offset += amount
                     }
@@ -347,7 +347,7 @@ func writeAll(_ fd: Int32, _ data: Data, deadline: StartupDeadline? = nil, signa
             try signals?.throwIfSignalled()
             if let deadline { try deadline.pollWritable(fd, signals: signals) }
             let amount = Darwin.write(fd, raw.baseAddress!.advanced(by: offset), raw.count - offset)
-            if amount < 0 && errno == EINTR { continue }
+            if amount < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) { continue }
             guard amount > 0 else { throw AssetError.invalid("socket write failed: \(String(cString: strerror(errno)))") }
             offset += amount
         }
@@ -360,7 +360,7 @@ func readLine(_ fd: Int32, maxBytes: Int = 4096, deadline: StartupDeadline, sign
         try deadline.pollReadable(fd, signals: signals)
         var byte: UInt8 = 0
         let amount = Darwin.read(fd, &byte, 1)
-        if amount < 0 && errno == EINTR { continue }
+        if amount < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) { continue }
         guard amount == 1 else { throw AssetError.invalid("guest readiness connection closed before newline") }
         result.append(byte)
         if byte == 10 { return result }

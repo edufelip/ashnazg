@@ -14,7 +14,7 @@ struct OpenedAgentAPK {
     let sha256: String
     init(path: URL, expectedSHA256: String) throws {
         guard isLowercaseSHA256(expectedSHA256) else { throw AssetError.invalid("invalid agent APK digest") }
-        let descriptor = open(path.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        let descriptor = open(path.path, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
         guard descriptor >= 0 else { throw AssetError.invalid("cannot open agent APK safely") }
         var info = stat()
         guard fstat(descriptor, &info) == 0, info.st_mode & S_IFMT == S_IFREG,
@@ -211,6 +211,11 @@ private func exactInteger(_ value: Any?) -> Int? {
 
 func sendAgentPrepare(fd: Int32, apk: OpenedAgentAPK, identity: AgentSessionIdentity,
                       wholeDeadline: StartupDeadline, signals: SignalController? = nil) throws {
+    let previousFlags = fcntl(fd, F_GETFL)
+    guard previousFlags >= 0, fcntl(fd, F_SETFL, previousFlags | O_NONBLOCK) == 0 else {
+        throw AssetError.invalid("cannot bound agent preparation socket operations")
+    }
+    defer { _ = fcntl(fd, F_SETFL, previousFlags) }
     let uploadDeadline = StartupDeadline(after: .milliseconds(min(30_000, wholeDeadline.remainingMilliseconds)))
     let header: [String: Any] = ["schema_version": 1, "op": "prepare_agent", "session_id": identity.sessionID,
                                  "rpc_token": identity.rpcToken, "install_token": identity.installToken,
@@ -235,10 +240,50 @@ func sendAgentPrepare(fd: Int32, apk: OpenedAgentAPK, identity: AgentSessionIden
     try parseAgentReadyResponse(readLine(fd, maxBytes: 4096, deadline: wholeDeadline, signals: signals), expectedSessionID: identity.sessionID)
 }
 
+private final class OwnedPreparationSocket: @unchecked Sendable {
+    let fd: Int32
+    private let lock = NSLock()
+    private var finished = false
+    init(borrowing descriptor: Int32) throws {
+        let copy = dup(descriptor)
+        guard copy >= 0 else { throw AssetError.invalid("cannot retain agent preparation socket") }
+        guard fcntl(copy, F_SETFD, FD_CLOEXEC) == 0 else {
+            Darwin.close(copy); throw AssetError.invalid("cannot protect agent preparation socket")
+        }
+        fd = copy
+    }
+    func cancel() {
+        lock.lock(); defer { lock.unlock() }
+        if !finished { Darwin.shutdown(fd, SHUT_RDWR) }
+    }
+    func finish() {
+        lock.lock(); defer { lock.unlock() }
+        guard !finished else { return }
+        finished = true
+        Darwin.close(fd)
+    }
+}
+
 func prepareAgentSession(fd: Int32, apk: OpenedAgentAPK, identity: AgentSessionIdentity,
                          wholeDeadline: StartupDeadline, signals: SignalController? = nil) async throws {
-    try await Task.detached(priority: .userInitiated) {
-        try sendAgentPrepare(fd: fd, apk: apk, identity: identity,
+    try Task.checkCancellation()
+    let owned = try OwnedPreparationSocket(borrowing: fd)
+    defer { owned.finish() }
+    let transfer = Task.detached(priority: .userInitiated) {
+        try Task.checkCancellation()
+        try sendAgentPrepare(fd: owned.fd, apk: apk, identity: identity,
                              wholeDeadline: wholeDeadline, signals: signals)
-    }.value
+        try Task.checkCancellation()
+    }
+    do {
+        try await withTaskCancellationHandler(operation: {
+            try await transfer.value
+        }, onCancel: {
+            transfer.cancel()
+            owned.cancel()
+        })
+    } catch {
+        try Task.checkCancellation()
+        throw error
+    }
 }
