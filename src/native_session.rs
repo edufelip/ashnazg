@@ -5,13 +5,11 @@
 
 use anyhow::{Result, bail};
 use serde::Deserialize;
-use sha2::{Digest, Sha256};
 use std::{
-    fs::{self, File},
-    io::Read,
+    fs,
     net::{IpAddr, Ipv4Addr, SocketAddr},
-    os::unix::{fs::MetadataExt, io::AsRawFd},
-    path::{Component, Path, PathBuf},
+    os::unix::io::AsRawFd,
+    path::{Path, PathBuf},
     process::{Child, Command, ExitStatus, Stdio},
     sync::{Arc, mpsc},
     time::{Duration, Instant},
@@ -19,10 +17,8 @@ use std::{
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(test)]
 mod launch;
 
-const MAX_HELPER_BYTES: u64 = 64 * 1024 * 1024;
 const MAX_PIPE_BYTES: usize = 64 * 1024;
 const MAX_LINE_BYTES: usize = 8 * 1024;
 const POLL: Duration = Duration::from_millis(25);
@@ -77,8 +73,6 @@ pub struct NativeSession {
     cancel: CancellationToken,
     exit: watch::Receiver<Option<SessionExit>>,
     worker: tokio::sync::Mutex<Option<tokio::task::JoinHandle<SessionExit>>>,
-    joined: watch::Receiver<bool>,
-    join_notify: watch::Sender<bool>,
 }
 
 struct StartupDrop(Option<CancellationToken>);
@@ -101,6 +95,9 @@ impl NativeSession {
         deadline: Instant,
         cancel: CancellationToken,
     ) -> Result<Self> {
+        if !cfg!(all(target_os = "macos", target_arch = "aarch64")) {
+            bail!("native sessions require macOS/aarch64");
+        }
         Self::start_impl(launch, deadline, cancel, false).await
     }
 
@@ -128,7 +125,6 @@ impl NativeSession {
         let (confirm_tx, confirm_rx) = mpsc::sync_channel(1);
         let (ack_tx, ack_rx) = mpsc::sync_channel(1);
         let (exit_tx, exit_rx) = watch::channel(None);
-        let (join_notify, joined) = watch::channel(false);
         let worker_cancelled = worker_cancel.clone();
         let worker = tokio::task::spawn_blocking(move || {
             run_owner(
@@ -149,14 +145,14 @@ impl NativeSession {
             if cancel.is_cancelled() || Instant::now() >= deadline {
                 worker_cancel.cancel();
                 let _ = join_worker_handle(worker.take().unwrap()).await;
-                bail!("native helper startup failed");
+                bail!("native helper startup cancelled or timed out");
             }
             match candidate_rx.try_recv() {
                 Ok(candidate) => break candidate,
                 Err(mpsc::TryRecvError::Disconnected) => {
                     worker_cancel.cancel();
                     let _ = join_worker_handle(worker.take().unwrap()).await;
-                    bail!("native helper startup failed");
+                    bail!("native helper stopped before readiness");
                 }
                 Err(mpsc::TryRecvError::Empty) => tokio::time::sleep(POLL).await,
             }
@@ -164,12 +160,20 @@ impl NativeSession {
         let credentials = candidate.credentials;
         let guest = credentials.guest_client();
         let ping_deadline = deadline.min(Instant::now() + Duration::from_secs(5));
-        let ping = tokio::time::timeout_at(
-            tokio::time::Instant::from_std(ping_deadline),
-            guest.call("ping", serde_json::json!({})),
-        )
-        .await;
-        let valid = matches!(ping, Ok(Ok(ref v)) if v.get("apiLevel").and_then(serde_json::Value::as_u64).is_some_and(|n| n >= 34));
+        let mut termination = exit_rx.clone();
+        let valid = if termination.borrow().is_some() || termination.has_changed().is_err() {
+            false
+        } else {
+            tokio::select! {
+                biased;
+                _ = worker_cancel.cancelled() => false,
+                _ = termination.changed() => false,
+                ping = tokio::time::timeout_at(
+                    tokio::time::Instant::from_std(ping_deadline),
+                    guest.call("ping", serde_json::json!({})),
+                ) => matches!(ping, Ok(Ok(ref v)) if v.get("apiLevel").and_then(serde_json::Value::as_u64).is_some_and(|n| n >= 34)),
+            }
+        };
         let install = match (valid && !cancel.is_cancelled() && Instant::now() < deadline)
             .then(|| credentials.install_client())
             .transpose()
@@ -178,7 +182,7 @@ impl NativeSession {
             _ => {
                 worker_cancel.cancel();
                 let _ = join_worker_handle(worker.take().unwrap()).await;
-                bail!("native helper startup failed");
+                bail!("native helper authentication failed");
             }
         };
         let pid = credentials.helper_pid();
@@ -186,7 +190,7 @@ impl NativeSession {
         if confirm_tx.send(true).is_err() {
             worker_cancel.cancel();
             let _ = join_worker_handle(worker.take().unwrap()).await;
-            bail!("native helper startup failed");
+            bail!("native helper readiness confirmation failed");
         }
         let ack = loop {
             if cancel.is_cancelled() || Instant::now() >= deadline {
@@ -198,10 +202,15 @@ impl NativeSession {
                 Err(mpsc::TryRecvError::Empty) => tokio::time::sleep(POLL).await,
             }
         };
-        if !ack {
+        if !ack
+            || worker_cancel.is_cancelled()
+            || Instant::now() >= deadline
+            || exit_rx.borrow().is_some()
+            || exit_rx.has_changed().is_err()
+        {
             worker_cancel.cancel();
             let _ = join_worker_handle(worker.take().unwrap()).await;
-            bail!("native helper startup failed");
+            bail!("native helper readiness confirmation failed");
         }
         drop_guard.disarm();
         Ok(Self {
@@ -212,8 +221,6 @@ impl NativeSession {
             cancel: worker_cancel,
             exit: exit_rx,
             worker: tokio::sync::Mutex::new(worker),
-            joined,
-            join_notify,
         })
     }
 
@@ -224,36 +231,33 @@ impl NativeSession {
         &self.session_id
     }
     pub fn guest_client(&self) -> Result<crate::GuestClient> {
-        if self.exit.borrow().is_some() {
+        if self.exit.borrow().is_some() || self.exit.has_changed().is_err() {
             bail!("native helper has terminated");
         }
         Ok(self.guest.clone())
     }
     pub fn install_client(&self) -> Result<Arc<crate::native_install::NativeInstallClient>> {
-        if self.exit.borrow().is_some() {
+        if self.exit.borrow().is_some() || self.exit.has_changed().is_err() {
             bail!("native helper has terminated");
         }
         Ok(self.install.clone())
     }
     pub async fn wait_terminated(&self) -> Result<SessionExit> {
-        let handle = self.worker.lock().await.take();
-        if let Some(handle) = handle {
-            let result = complete_worker(handle, self.exit.clone()).await;
-            let _ = self.join_notify.send(true);
-            result
-        } else {
-            let mut joined = self.joined.clone();
-            while !*joined.borrow() {
-                if joined.changed().await.is_err() {
-                    bail!("native helper status unavailable");
-                }
-            }
-            if let Some(value) = self.exit.borrow().clone() {
-                result_for_exit(value)
-            } else {
-                bail!("native helper did not stop cleanly")
-            }
+        // Borrow the handle across await: cancellation drops only the mutex
+        // guard, leaving the unique join handle available to the next waiter.
+        let mut worker = self.worker.lock().await;
+        if let Some(handle) = worker.as_mut() {
+            let result = handle.await;
+            worker.take();
+            return result
+                .map_err(|_| anyhow::anyhow!("native helper did not stop cleanly"))
+                .and_then(result_for_exit);
         }
+        self.exit
+            .borrow()
+            .clone()
+            .ok_or_else(|| anyhow::anyhow!("native helper did not stop cleanly"))
+            .and_then(result_for_exit)
     }
     pub async fn shutdown(self) -> Result<SessionExit> {
         self.cancel.cancel();
@@ -270,21 +274,6 @@ async fn join_worker_handle(handle: tokio::task::JoinHandle<SessionExit>) -> Res
     handle
         .await
         .map_err(|_| anyhow::anyhow!("native helper startup failed"))
-}
-async fn complete_worker(
-    handle: tokio::task::JoinHandle<SessionExit>,
-    exit: watch::Receiver<Option<SessionExit>>,
-) -> Result<SessionExit> {
-    match handle.await {
-        Ok(value) => result_for_exit(value),
-        Err(_) => {
-            if let Some(value) = exit.borrow().clone() {
-                result_for_exit(value)
-            } else {
-                bail!("native helper did not stop cleanly")
-            }
-        }
-    }
 }
 fn result_for_exit(exit: SessionExit) -> Result<SessionExit> {
     if exit.reason == SessionReason::Requested
@@ -335,123 +324,11 @@ fn valid_hex(text: &str, len: usize) -> bool {
             .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 fn validate_launch(
-    l: &NativeSessionLaunch,
+    launch: &NativeSessionLaunch,
     deadline: Instant,
     cancel: &CancellationToken,
-) -> Result<()> {
-    if !cfg!(all(target_os = "macos", target_arch = "aarch64")) && !cfg!(test) {
-        bail!("native sessions require macOS/aarch64");
-    }
-    if cancel.is_cancelled()
-        || Instant::now() >= deadline
-        || !(15..=1800).contains(&l.startup_timeout_secs)
-        || !valid_hex(&l.source_sha, 40)
-        || !valid_hex(&l.helper_sha256, 64)
-        || !valid_hex(&l.agent_apk_sha256, 64)
-        || [l.adb_port, l.agent_port, l.install_port]
-            .iter()
-            .any(|p| !(1024..=u16::MAX).contains(p))
-        || l.adb_port == l.agent_port
-        || l.adb_port == l.install_port
-        || l.agent_port == l.install_port
-    {
-        bail!("invalid native session launch");
-    }
-    for path in [&l.helper, &l.assets, &l.state_dir, &l.agent_apk] {
-        validate_path(path)?;
-    }
-    let state_parent = l
-        .state_dir
-        .parent()
-        .ok_or_else(|| anyhow::anyhow!("invalid native session launch"))?;
-    private_dir(state_parent)?;
-    if l.state_dir.exists() {
-        private_dir(&l.state_dir)?;
-    }
-    let state_credential = l.state_dir.join(".ashnazg-session-v1.json");
-    if state_credential.exists() || fs::symlink_metadata(&state_credential).is_ok() {
-        bail!("native session state is occupied");
-    }
-    private_dir(&l.assets)?;
-    private_dir(
-        l.agent_apk
-            .parent()
-            .ok_or_else(|| anyhow::anyhow!("invalid native session launch"))?,
-    )?;
-    validate_helper(&l.helper, &l.helper_sha256, deadline, cancel)?;
-    let apk = fs::symlink_metadata(&l.agent_apk)?;
-    if !apk.file_type().is_file() || apk.len() == 0 || apk.len() > 128 * 1024 * 1024 {
-        bail!("invalid agent artifact");
-    }
-    Ok(())
-}
-fn validate_path(path: &Path) -> Result<()> {
-    if !path.is_absolute()
-        || path
-            .components()
-            .any(|c| matches!(c, Component::ParentDir | Component::CurDir))
-        || path.as_os_str().as_encoded_bytes().len() > 4096
-    {
-        bail!("invalid native session path");
-    }
-    let canonical = fs::canonicalize(path)?;
-    if canonical != path {
-        bail!("native session path is not canonical");
-    }
-    Ok(())
-}
-fn private_dir(path: &Path) -> Result<()> {
-    let m = fs::symlink_metadata(path)?;
-    let uid = unsafe { libc::geteuid() };
-    if !m.is_dir() || m.uid() != uid || m.mode() & 0o7777 != 0o700 {
-        bail!("native session directory is not private");
-    }
-    Ok(())
-}
-fn validate_helper(
-    path: &Path,
-    expected: &str,
-    deadline: Instant,
-    cancel: &CancellationToken,
-) -> Result<()> {
-    let f = File::open(path)?;
-    let before = f.metadata()?;
-    let uid = unsafe { libc::geteuid() };
-    if !before.is_file()
-        || before.uid() != uid
-        || before.len() > MAX_HELPER_BYTES
-        || before.mode() & 0o100 == 0
-        || before.mode() & 0o022 != 0
-    {
-        bail!("invalid helper artifact");
-    }
-    let mut reader = f;
-    let mut hasher = Sha256::new();
-    let mut buf = [0u8; 64 * 1024];
-    loop {
-        if cancel.is_cancelled() || Instant::now() >= deadline {
-            bail!("native session startup failed");
-        }
-        let n = reader.read(&mut buf)?;
-        if n == 0 {
-            break;
-        }
-        hasher.update(&buf[..n]);
-    }
-    let after = reader.metadata()?;
-    if before.dev() != after.dev()
-        || before.ino() != after.ino()
-        || before.len() != after.len()
-        || hasher
-            .finalize()
-            .iter()
-            .map(|b| format!("{b:02x}"))
-            .collect::<String>()
-            != expected
-    {
-        bail!("helper artifact verification failed");
-    }
-    Ok(())
+) -> Result<launch::VerifiedLaunch> {
+    launch::validate(launch, deadline, cancel)
 }
 
 #[cfg(unix)]
@@ -468,6 +345,10 @@ struct ProcessOwner {
     stdout: Option<std::process::ChildStdout>,
     stderr: Option<std::process::ChildStderr>,
     reaped: bool,
+    out_count: usize,
+    err_count: usize,
+    output_failed: bool,
+    state_dir: PathBuf,
 }
 impl Drop for ProcessOwner {
     fn drop(&mut self) {
@@ -490,21 +371,83 @@ impl ProcessOwner {
         let status = self.child.try_wait()?;
         if status.is_some() {
             self.reaped = true;
-            self.stdout.take();
-            self.stderr.take();
         }
         Ok(status)
     }
     fn drain_cleanup(&mut self) {
         let mut buf = [0u8; 4096];
-        if let Some(pipe) = self.stdout.as_ref() {
-            let _ = unsafe { libc::read(pipe.as_raw_fd(), buf.as_mut_ptr().cast(), buf.len()) };
-        }
-        if let Some(pipe) = self.stderr.as_ref() {
-            let _ = unsafe { libc::read(pipe.as_raw_fd(), buf.as_mut_ptr().cast(), buf.len()) };
+        for stdout in [true, false] {
+            let fd = if stdout {
+                self.stdout.as_ref().map(AsRawFd::as_raw_fd)
+            } else {
+                self.stderr.as_ref().map(AsRawFd::as_raw_fd)
+            };
+            let Some(fd) = fd else {
+                continue;
+            };
+            let n = unsafe { libc::read(fd, buf.as_mut_ptr().cast(), buf.len()) };
+            let close = if n > 0 {
+                let count = if stdout {
+                    &mut self.out_count
+                } else {
+                    &mut self.err_count
+                };
+                *count += n as usize;
+                // A ready helper has already emitted its sole stdout receipt.
+                if stdout || *count > MAX_PIPE_BYTES {
+                    self.output_failed = true;
+                    true
+                } else {
+                    false
+                }
+            } else if n == 0 {
+                true
+            } else {
+                let error = std::io::Error::last_os_error();
+                if error.kind() == std::io::ErrorKind::WouldBlock
+                    || error.kind() == std::io::ErrorKind::Interrupted
+                {
+                    false
+                } else {
+                    self.output_failed = true;
+                    true
+                }
+            };
+            if close {
+                if stdout {
+                    self.stdout.take();
+                } else {
+                    self.stderr.take();
+                }
+            }
         }
     }
+    fn stopped(&mut self, status: ExitStatus, reason: SessionReason, forced: bool) -> SessionExit {
+        // A reaped child may leave buffered output. Inspect at most a lifetime
+        // budget per stream, then close even if another process holds a writer.
+        for _ in 0..(MAX_PIPE_BYTES / 4096 + 2) {
+            self.drain_cleanup();
+        }
+        self.stdout.take();
+        self.stderr.take();
+        exit_status(
+            status,
+            if self.output_failed {
+                SessionReason::PipeFailure
+            } else {
+                reason
+            },
+            forced,
+            credential_absent(&self.state_dir),
+        )
+    }
     fn cleanup(&mut self, reason: SessionReason) -> SessionExit {
+        // Reap a child that already exited before attempting any signal.
+        match self.reap() {
+            Ok(Some(status)) => return self.stopped(status, reason, false),
+            Err(_) => return failed_exit(reason, true),
+            Ok(None) => {}
+        }
         if !self.reaped {
             let _ = unsafe { libc::kill(self.child.id() as i32, libc::SIGTERM) };
         }
@@ -512,7 +455,7 @@ impl ProcessOwner {
         loop {
             self.drain_cleanup();
             match self.reap() {
-                Ok(Some(status)) => return exit_status(status, reason, false, false),
+                Ok(Some(status)) => return self.stopped(status, reason, false),
                 Err(_) => return failed_exit(reason, true),
                 _ => {}
             }
@@ -528,7 +471,7 @@ impl ProcessOwner {
         while Instant::now() < reap_by {
             self.drain_cleanup();
             match self.reap() {
-                Ok(Some(status)) => return exit_status(status, reason, true, false),
+                Ok(Some(status)) => return self.stopped(status, reason, true),
                 Err(_) => return failed_exit(reason, true),
                 _ => std::thread::sleep(POLL.min(Duration::from_millis(10))),
             }
@@ -538,7 +481,7 @@ impl ProcessOwner {
 }
 #[cfg(test)]
 fn cleanup_grace() -> Duration {
-    Duration::from_millis(150)
+    Duration::from_millis(500)
 }
 #[cfg(not(test))]
 fn cleanup_grace() -> Duration {
@@ -567,11 +510,22 @@ fn run_owner(
         exit: exit_tx,
         fixture,
     } = channels;
-    if !fixture && validate_launch(&launch, deadline, &cancel).is_err() {
-        let exit = failed_exit(SessionReason::StartupFailure, false);
-        let _ = exit_tx.send(Some(exit.clone()));
-        return exit;
-    }
+    let verified = if fixture {
+        None
+    } else {
+        match validate_launch(&launch, deadline, &cancel).and_then(|verified| {
+            verified.check_before_spawn(deadline, &cancel)?;
+            Ok(verified)
+        }) {
+            Ok(verified) => Some(verified),
+            Err(_) => {
+                let exit = failed_exit(SessionReason::StartupFailure, false);
+                let _ = exit_tx.send(Some(exit.clone()));
+                return exit;
+            }
+        }
+    };
+    let state_dir = launch.state_dir.clone();
     let child = match spawn(&launch) {
         Ok(c) => c,
         Err(_) => {
@@ -586,34 +540,39 @@ fn run_owner(
         stdout: None,
         stderr: None,
         reaped: false,
+        out_count: 0,
+        err_count: 0,
+        output_failed: false,
+        state_dir,
     };
+    // Keep verified artifact and path descriptors alive across process creation.
+    drop(verified);
     let setup = (|| -> Result<()> {
-        owner.stdout = owner.child.stdout.take();
-        owner.stderr = owner.child.stderr.take();
-        nonblocking(
-            owner
-                .stdout
-                .as_ref()
-                .ok_or_else(|| anyhow::anyhow!("pipe"))?
-                .as_raw_fd(),
-        )?;
-        nonblocking(
-            owner
-                .stderr
-                .as_ref()
-                .ok_or_else(|| anyhow::anyhow!("pipe"))?
-                .as_raw_fd(),
-        )?;
+        let out = owner
+            .child
+            .stdout
+            .take()
+            .ok_or_else(|| anyhow::anyhow!("pipe"))?;
+        nonblocking(out.as_raw_fd())?;
+        owner.stdout = Some(out);
+        let err = owner
+            .child
+            .stderr
+            .take()
+            .ok_or_else(|| anyhow::anyhow!("pipe"))?;
+        nonblocking(err.as_raw_fd())?;
+        owner.stderr = Some(err);
         Ok(())
     })();
     if setup.is_err() {
+        owner.child.stdout.take();
+        owner.child.stderr.take();
         let exit = owner.cleanup(SessionReason::StartupFailure);
         let _ = exit_tx.send(Some(exit.clone()));
         return exit;
     }
     let pid = owner.child.id();
     let mut line = Vec::new();
-    let (mut out_count, mut err_count) = (0usize, 0usize);
     let mut receipt: Option<Receipt> = None;
     let mut sent_candidate = false;
     let mut confirmed = false;
@@ -675,8 +634,8 @@ fn run_owner(
             }
             let bytes = &buf[..n as usize];
             if is_stdout {
-                out_count += bytes.len();
-                if out_count > MAX_PIPE_BYTES {
+                owner.out_count += bytes.len();
+                if owner.out_count > MAX_PIPE_BYTES {
                     pump_failed = true;
                     break;
                 }
@@ -706,8 +665,8 @@ fn run_owner(
                     break;
                 }
             } else {
-                err_count += bytes.len();
-                if err_count > MAX_PIPE_BYTES {
+                owner.err_count += bytes.len();
+                if owner.err_count > MAX_PIPE_BYTES {
                     pump_failed = true;
                     break;
                 }
@@ -724,6 +683,11 @@ fn run_owner(
             return exit;
         }
         if let Some(r) = receipt.as_ref().filter(|_| !sent_candidate) {
+            if !matches!(owner.reap(), Ok(None)) {
+                let exit = owner.cleanup(SessionReason::StartupFailure);
+                let _ = exit_tx.send(Some(exit.clone()));
+                return exit;
+            }
             let expected = crate::session_credentials::SessionExpectations {
                 session_id: r.session_id.clone().unwrap(),
                 helper_pid: pid,
@@ -739,6 +703,11 @@ fn run_owner(
                 &cancel,
             ) {
                 Ok(credentials) => {
+                    if !matches!(owner.reap(), Ok(None)) {
+                        let exit = owner.cleanup(SessionReason::StartupFailure);
+                        let _ = exit_tx.send(Some(exit.clone()));
+                        return exit;
+                    }
                     if candidate.send(StartupCandidate { credentials }).is_err() {
                         let exit = owner.cleanup(SessionReason::StartupFailure);
                         let _ = exit_tx.send(Some(exit.clone()));
@@ -756,14 +725,14 @@ fn run_owner(
         if sent_candidate && !confirmed {
             match confirm.try_recv() {
                 Ok(true) => {
-                    let live = owner.reap().ok().flatten().is_none();
+                    let live = matches!(owner.reap(), Ok(None));
                     let active = live && !cancel.is_cancelled() && Instant::now() < deadline;
+                    confirmed = active;
                     if ack.send(active).is_err() || !active {
                         let exit = owner.cleanup(SessionReason::StartupFailure);
                         let _ = exit_tx.send(Some(exit.clone()));
                         return exit;
                     }
-                    confirmed = true;
                 }
                 Ok(false) | Err(mpsc::TryRecvError::Disconnected) => {
                     let exit = owner.cleanup(SessionReason::StartupFailure);
@@ -780,7 +749,7 @@ fn run_owner(
                 } else {
                     SessionReason::StartupFailure
                 };
-                let exit = exit_status(status, reason, false, credential_absent(&launch.state_dir));
+                let exit = owner.stopped(status, reason, false);
                 let _ = exit_tx.send(Some(exit.clone()));
                 return exit;
             }
@@ -831,28 +800,22 @@ fn parse_receipt(line: &[u8], launch: &NativeSessionLaunch) -> Result<Receipt> {
 
 fn spawn(l: &NativeSessionLaunch) -> Result<Child> {
     let mut c = Command::new(&l.helper);
-    c.args([
-        "--assets",
-        l.assets.to_str().ok_or_else(|| anyhow::anyhow!("path"))?,
-        "--state-dir",
-        l.state_dir
-            .to_str()
-            .ok_or_else(|| anyhow::anyhow!("path"))?,
-        "--adb-port",
-        &l.adb_port.to_string(),
-        "--agent-port",
-        &l.agent_port.to_string(),
-        "--install-port",
-        &l.install_port.to_string(),
-        "--timeout",
-        &l.startup_timeout_secs.to_string(),
-        "--agent-apk",
-        l.agent_apk
-            .to_str()
-            .ok_or_else(|| anyhow::anyhow!("path"))?,
-        "--agent-sha256",
-        &l.agent_apk_sha256,
-    ]);
+    c.arg("--assets")
+        .arg(&l.assets)
+        .arg("--state-dir")
+        .arg(&l.state_dir)
+        .arg("--adb-port")
+        .arg(l.adb_port.to_string())
+        .arg("--agent-port")
+        .arg(l.agent_port.to_string())
+        .arg("--install-port")
+        .arg(l.install_port.to_string())
+        .arg("--timeout")
+        .arg(l.startup_timeout_secs.to_string())
+        .arg("--agent-apk")
+        .arg(&l.agent_apk)
+        .arg("--agent-sha256")
+        .arg(&l.agent_apk_sha256);
     c.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -882,8 +845,19 @@ fn exit_status(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sha2::{Digest, Sha256};
 
     const READY: &str = r#"{"schema_version":1,"status":"agent_ready","architecture":"aarch64","cpu_count":4,"memory_bytes":8589934592,"adb_listen":"127.0.0.1:15555","android_serial":"emulator-5554","manifest_version":"0.3.0","manifest_source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kernel_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","rootfs_template_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","timings":{"total_startup_ms":1000,"vm_start_ms":500,"readiness_ms":500,"agent_startup_ms":250},"session_id":"6f6f1234-1234-4234-8234-123456789abc","agent_listen":"127.0.0.1:17777","install_listen":"127.0.0.1:17778","agent_apk_sha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}"#;
+
+    // Short-deadline OS process fixtures run in isolation from this suite's
+    // other helper launches; the production owner has no shared fixture gate.
+    static PROCESS_FIXTURE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
+    async fn process_fixture() -> tokio::sync::MutexGuard<'static, ()> {
+        tokio::time::timeout(Duration::from_secs(30), PROCESS_FIXTURE.lock())
+            .await
+            .expect("process fixture gate timed out")
+    }
 
     const SESSION: &str = "6f6f1234-1234-4234-8234-123456789abc";
     const RPC_TOKEN: &str = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
@@ -902,26 +876,39 @@ mod tests {
     }
 
     async fn rpc_fixture_level(api_level: Option<u64>) -> (u16, tokio::task::JoinHandle<()>) {
+        rpc_fixture_replies(api_level, 1).await
+    }
+
+    async fn rpc_fixture_replies(
+        api_level: Option<u64>,
+        count: usize,
+    ) -> (u16, tokio::task::JoinHandle<()>) {
         use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
         let listener = tokio::net::TcpListener::bind((Ipv4Addr::LOCALHOST, 0))
             .await
             .unwrap();
         let port = listener.local_addr().unwrap().port();
         let server = tokio::spawn(async move {
-            if let Ok((socket, _)) = listener.accept().await {
-                let (read, mut write) = socket.into_split();
-                let mut line = String::new();
-                let mut reader = BufReader::new(read);
-                if reader.read_line(&mut line).await.is_ok() {
-                    let request: serde_json::Value = serde_json::from_str(&line).unwrap();
-                    if let Some(api_level) = api_level {
-                        let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":{"apiLevel":api_level}});
-                        let _ = write.write_all(format!("{}\n", response).as_bytes()).await;
-                    } else {
-                        tokio::time::sleep(Duration::from_secs(3)).await;
+            let _ = tokio::time::timeout(Duration::from_secs(3), async {
+                if let Ok((socket, _)) = listener.accept().await {
+                    let (read, mut write) = socket.into_split();
+                    let mut line = String::new();
+                    let mut reader = BufReader::new(read);
+                    for _ in 0..count {
+                        line.clear();
+                        reader.read_line(&mut line).await.unwrap();
+                        let request: serde_json::Value = serde_json::from_str(&line).unwrap();
+                        assert_eq!(request["token"], RPC_TOKEN);
+                        assert_eq!(request["method"], "ping");
+                        if let Some(api_level) = api_level {
+                            let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":{"apiLevel":api_level}});
+                            let _ = write.write_all(format!("{}\n", response).as_bytes()).await;
+                        } else {
+                            tokio::time::sleep(Duration::from_secs(3)).await;
+                        }
                     }
                 }
-            }
+            }).await;
         });
         (port, server)
     }
@@ -951,16 +938,22 @@ mod tests {
         } else {
             format!("printf '%s\\n' '{}'", receipt)
         };
+        let (setup, run) = if mode.starts_with("trap ") {
+            mode.split_once('\n').unwrap_or((mode, ""))
+        } else {
+            ("", mode)
+        };
         let script = format!(
-            "#!/bin/sh\nset -eu\nprintf '%s\\n' \"$@\" > '{}'\nenv | grep -E '^ASHNAZG_(TOKEN|AGENT_ADDR)=' > '{}/env.log' || true\nprintf '%s\\n' \"$$\" > '{}/pid'\ncat > '{}/.ashnazg-session-v1.json' <<CREDENTIAL\n{}\nCREDENTIAL\nchmod 600 '{}/.ashnazg-session-v1.json'\n{}\n{}\n",
+            "#!/bin/sh\nset -eu\nprintf '%s\\n' \"$@\" > '{}'\nenv | grep -E '^ASHNAZG_(TOKEN|AGENT_ADDR)=' > '{}/env.log' || true\nprintf '%s\\n' \"$$\" > '{}/pid'\ncat > '{}/.ashnazg-session-v1.json' <<CREDENTIAL\n{}\nCREDENTIAL\nchmod 600 '{}/.ashnazg-session-v1.json'\n{}\n{}\n{}\n",
             dir.join("argv.log").display(),
             dir.display(),
             state.display(),
             state.display(),
             credentials,
             state.display(),
+            setup,
             ready_output,
-            mode
+            run
         );
         fs::write(&helper, script).unwrap();
         fs::set_permissions(&helper, std::os::unix::fs::PermissionsExt::from_mode(0o700)).unwrap();
@@ -981,6 +974,7 @@ mod tests {
 
     #[tokio::test]
     async fn fixture_session_authenticates_and_stops_gracefully_past_startup_deadline() {
+        let _fixture = process_fixture().await;
         let canonical_temp = fs::canonicalize(std::env::temp_dir()).unwrap();
         let dir = tempfile::Builder::new().tempdir_in(canonical_temp).unwrap();
         let (agent_port, server) = rpc_fixture().await;
@@ -1043,13 +1037,152 @@ mod tests {
     }
 
     fn canonical_test_dir() -> tempfile::TempDir {
-        tempfile::Builder::new()
+        let dir = tempfile::Builder::new()
             .tempdir_in(fs::canonicalize(std::env::temp_dir()).unwrap())
+            .unwrap();
+        fs::set_permissions(
+            dir.path(),
+            std::os::unix::fs::PermissionsExt::from_mode(0o700),
+        )
+        .unwrap();
+        dir
+    }
+
+    #[tokio::test]
+    async fn validated_launch_creates_fresh_state_and_reuses_authenticated_caller_stream() {
+        let _fixture = process_fixture().await;
+        use std::os::unix::fs::PermissionsExt;
+        let dir = canonical_test_dir();
+        let (agent_port, server) = rpc_fixture_replies(Some(35), 2).await;
+        let mut launch = fixture_launch(
+            dir.path(),
+            agent_port,
+            free_port(),
+            "trap 'rm -f \"__STATE__/.ashnazg-session-v1.json\"; exit 0' TERM\nwhile :; do sleep 0.05; done",
+            "$$",
+            "agent_ready",
+        );
+        let script = fs::read_to_string(&launch.helper)
             .unwrap()
+            .replace(
+                "set -eu\n",
+                &format!("set -eu\nmkdir -m 700 '{}'\n", launch.state_dir.display()),
+            )
+            .replace("__STATE__", &launch.state_dir.display().to_string());
+        fs::write(&launch.helper, &script).unwrap();
+        launch.helper_sha256 = Sha256::digest(script.as_bytes())
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect();
+        fs::create_dir(&launch.assets).unwrap();
+        fs::set_permissions(&launch.assets, fs::Permissions::from_mode(0o700)).unwrap();
+        fs::write(
+            &launch.agent_apk,
+            b"fixture bytes; Swift APK hashing is outside this fixture",
+        )
+        .unwrap();
+        fs::set_permissions(&launch.agent_apk, fs::Permissions::from_mode(0o600)).unwrap();
+        fs::remove_dir(&launch.state_dir).unwrap();
+        validate_launch(
+            &launch,
+            Instant::now() + Duration::from_secs(2),
+            &CancellationToken::new(),
+        )
+        .expect("fixture must satisfy production launch validation");
+        let expected_args = vec![
+            "--assets".to_owned(),
+            launch.assets.display().to_string(),
+            "--state-dir".to_owned(),
+            launch.state_dir.display().to_string(),
+            "--adb-port".to_owned(),
+            launch.adb_port.to_string(),
+            "--agent-port".to_owned(),
+            launch.agent_port.to_string(),
+            "--install-port".to_owned(),
+            launch.install_port.to_string(),
+            "--timeout".to_owned(),
+            launch.startup_timeout_secs.to_string(),
+            "--agent-apk".to_owned(),
+            launch.agent_apk.display().to_string(),
+            "--agent-sha256".to_owned(),
+            launch.agent_apk_sha256.clone(),
+        ];
+        // Bypass only the public platform gate; run real production validation,
+        // spawn, receipt/credential binding and the caller-runtime handshake.
+        let session = NativeSession::start_impl(
+            launch,
+            Instant::now() + Duration::from_secs(2),
+            CancellationToken::new(),
+            false,
+        )
+        .await
+        .unwrap();
+        let second = session
+            .guest_client()
+            .unwrap()
+            .call("ping", serde_json::json!({}))
+            .await
+            .unwrap();
+        assert_eq!(second["apiLevel"], 35);
+        tokio::time::timeout(Duration::from_secs(3), server)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            fs::read_to_string(dir.path().join("argv.log"))
+                .unwrap()
+                .lines()
+                .collect::<Vec<_>>(),
+            expected_args
+        );
+        tokio::time::timeout(Duration::from_secs(3), session.shutdown())
+            .await
+            .unwrap()
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn cancelled_termination_wait_does_not_lose_worker_join_ownership() {
+        let _fixture = process_fixture().await;
+        let dir = canonical_test_dir();
+        let (agent_port, server) = rpc_fixture().await;
+        let launch = fixture_launch(
+            dir.path(),
+            agent_port,
+            free_port(),
+            "trap 'rm -f \"__STATE__/.ashnazg-session-v1.json\"; exit 0' TERM\nwhile :; do sleep 0.05; done",
+            "$$",
+            "agent_ready",
+        );
+        let script = fs::read_to_string(&launch.helper)
+            .unwrap()
+            .replace("__STATE__", &launch.state_dir.display().to_string());
+        fs::write(&launch.helper, script).unwrap();
+        let session = NativeSession::start_fixture(
+            launch,
+            Instant::now() + Duration::from_secs(2),
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+        tokio::time::timeout(Duration::from_secs(3), server)
+            .await
+            .unwrap()
+            .unwrap();
+        assert!(
+            tokio::time::timeout(Duration::from_millis(30), session.wait_terminated())
+                .await
+                .is_err()
+        );
+        tokio::time::timeout(Duration::from_secs(3), session.shutdown())
+            .await
+            .expect("cancelled wait must leave the worker joinable")
+            .unwrap();
     }
 
     #[tokio::test]
     async fn dropping_session_requests_cleanup_without_cancelling_parent() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let (agent_port, server) = rpc_fixture().await;
         let install_port = free_port();
@@ -1093,6 +1226,7 @@ mod tests {
 
     #[tokio::test]
     async fn dropping_startup_future_cancels_and_reaps_the_helper() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let agent_port = free_port();
         let install_port = free_port();
@@ -1139,6 +1273,7 @@ mod tests {
 
     #[tokio::test]
     async fn helper_exit_after_receipt_never_returns_a_session() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let (agent_port, server) = rpc_fixture().await;
         let install_port = free_port();
@@ -1164,6 +1299,7 @@ mod tests {
 
     #[tokio::test]
     async fn factories_refuse_clients_after_owned_helper_exits() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let (agent_port, server) = rpc_fixture().await;
         let install_port = free_port();
@@ -1195,6 +1331,7 @@ mod tests {
 
     #[tokio::test]
     async fn helper_exit_before_readiness_rejects_empty_stdout() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let agent_port = free_port();
         let install_port = free_port();
@@ -1219,6 +1356,7 @@ mod tests {
 
     #[tokio::test]
     async fn ping_requires_integer_api_level_at_least_34() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let (agent_port, server) = rpc_fixture_level(Some(33)).await;
         let install_port = free_port();
@@ -1244,6 +1382,7 @@ mod tests {
 
     #[tokio::test]
     async fn stalled_ping_is_bounded_by_remaining_startup_budget() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let (agent_port, server) = rpc_fixture_level(None).await;
         let install_port = free_port();
@@ -1267,10 +1406,12 @@ mod tests {
         );
         assert!(began.elapsed() < Duration::from_secs(2));
         server.abort();
+        let _ = server.await;
     }
 
     #[tokio::test]
     async fn leftover_credential_makes_requested_shutdown_fail_and_preserves_file() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let (agent_port, server) = rpc_fixture().await;
         let install_port = free_port();
@@ -1300,6 +1441,7 @@ mod tests {
 
     #[tokio::test]
     async fn ignored_term_is_forced_and_reported_as_failure() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let (agent_port, server) = rpc_fixture().await;
         let install_port = free_port();
@@ -1328,7 +1470,53 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn pipe_lifetime_budget_also_applies_during_graceful_cleanup() {
+        let _fixture = process_fixture().await;
+        let dir = canonical_test_dir();
+        let (agent_port, server) = rpc_fixture().await;
+        let mode = format!(
+            "trap 'printf %s {} >&2; rm -f \"__STATE__/.ashnazg-session-v1.json\"; exit 0' TERM\nwhile :; do sleep 0.05; done",
+            "x".repeat(MAX_PIPE_BYTES + 1)
+        );
+        let launch = fixture_launch(
+            dir.path(),
+            agent_port,
+            free_port(),
+            &mode,
+            "$$",
+            "agent_ready",
+        );
+        let script = fs::read_to_string(&launch.helper)
+            .unwrap()
+            .replace("__STATE__", &launch.state_dir.display().to_string());
+        fs::write(&launch.helper, script).unwrap();
+        let session = NativeSession::start_fixture(
+            launch,
+            Instant::now() + Duration::from_secs(2),
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+        tokio::time::timeout(Duration::from_secs(3), server)
+            .await
+            .unwrap()
+            .unwrap();
+        session.cancel.cancel();
+        assert!(
+            tokio::time::timeout(Duration::from_secs(3), session.wait_terminated())
+                .await
+                .unwrap()
+                .is_err()
+        );
+        assert_eq!(
+            session.exit.borrow().as_ref().unwrap().reason,
+            SessionReason::PipeFailure
+        );
+    }
+
+    #[tokio::test]
     async fn malformed_duplicate_oversized_and_flooded_pipes_fail_without_detached_readers() {
+        let _fixture = process_fixture().await;
         for kind in ["malformed", "duplicate", "oversized", "stderr_flood"] {
             let dir = canonical_test_dir();
             let (agent_port, server) = rpc_fixture_level(None).await;
@@ -1364,11 +1552,13 @@ mod tests {
             );
             assert!(began.elapsed() < Duration::from_secs(3));
             server.abort();
+            let _ = server.await;
         }
     }
 
     #[tokio::test]
     async fn invalid_receipt_startup_error_returns_after_helper_is_reaped() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let agent_port = free_port();
         let install_port = free_port();
@@ -1403,6 +1593,7 @@ mod tests {
 
     #[tokio::test]
     async fn bad_credential_pid_cannot_signal_an_independently_owned_process() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let mut sentinel = Command::new("/bin/sleep").arg("15").spawn().unwrap();
         let agent_port = free_port();
@@ -1434,6 +1625,7 @@ mod tests {
 
     #[tokio::test]
     async fn startup_cancellation_joins_helper_and_does_not_cancel_parent_on_normal_stop() {
+        let _fixture = process_fixture().await;
         let dir = canonical_test_dir();
         let (agent_port, server) = rpc_fixture().await;
         let install_port = free_port();
@@ -1479,6 +1671,7 @@ mod tests {
             .unwrap();
         assert!(!process_is_alive(pid));
         server.abort();
+        let _ = server.await;
     }
 
     #[test]
