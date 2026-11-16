@@ -29,7 +29,9 @@ struct HelperOptions {
             let value = arguments[index + 1]
             switch flag {
             case "--assets": assets = URL(fileURLWithPath: value).standardizedFileURL
-            case "--state-dir": stateDir = URL(fileURLWithPath: value).standardizedFileURL
+            case "--state-dir":
+                guard !value.split(separator: "/").contains("..") else { throw AssetError.invalid("state directory must not contain parent traversal") }
+                stateDir = URL(fileURLWithPath: value).standardizedFileURL
             case "--adb-port": guard let parsed = Int(value), (1024...65535).contains(parsed) else { throw AssetError.invalid("--adb-port must be between 1024 and 65535") }; adbPort = parsed
             case "--timeout": guard let parsed = Int(value), (15...1800).contains(parsed) else { throw AssetError.invalid("--timeout must be between 15 and 1800 seconds") }; timeout = parsed
             case "--agent-apk": agentAPK = URL(fileURLWithPath: value).standardizedFileURL

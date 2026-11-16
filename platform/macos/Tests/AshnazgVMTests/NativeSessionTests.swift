@@ -262,6 +262,9 @@ final class NativeSessionTests: XCTestCase {
         let alias = root.appendingPathComponent("alias")
         try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: parent)
         XCTAssertThrowsError(try OwnedAgentCredential(stateDirectory: alias.appendingPathComponent("state"), credentials: credentials()))
+        let traversingAlias = URL(fileURLWithPath: root.path + "/alias/../real/state")
+        XCTAssertThrowsError(try OwnedAgentCredential(stateDirectory: traversingAlias, credentials: credentials()))
+        XCTAssertThrowsError(try HelperOptions(arguments: ["--assets", root.path, "--state-dir", traversingAlias.path]))
     }
 
     func testCredentialRejectsSymlinkAndUnsafeDirectoryMode() throws {
