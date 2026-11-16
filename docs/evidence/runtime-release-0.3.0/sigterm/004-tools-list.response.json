@@ -1,0 +1,239 @@
+{
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+    "tools": [
+      {
+        "annotations": {
+          "destructiveHint": true
+        },
+        "description": "Install an APK on the selected Android session; optionally launch the package.",
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "launch": {
+              "default": null,
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "package": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "name": "app_install",
+        "outputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
+      },
+      {
+        "annotations": {
+          "readOnlyHint": true
+        },
+        "description": "Return bounded Android agent log lines.",
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "sinceMs": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "tagFilter": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "type": "object"
+        },
+        "name": "app_logs",
+        "outputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
+      },
+      {
+        "annotations": {
+          "destructiveHint": true
+        },
+        "description": "Perform a validated action on the Android UI and return a fresh snapshot.",
+        "inputSchema": {
+          "$defs": {
+            "Action": {
+              "enum": [
+                "tap",
+                "long_press",
+                "type",
+                "clear",
+                "scroll_to",
+                "back",
+                "deep_link"
+              ],
+              "type": "string"
+            },
+            "Direction": {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            "Target": {
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "format": "uint64",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "snapshotId": {
+                  "format": "uint64",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "testId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "text": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "type": "object"
+            }
+          },
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "$ref": "#/$defs/Action"
+            },
+            "direction": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Direction"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "target": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Target"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "text": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "action"
+          ],
+          "type": "object"
+        },
+        "name": "ui_act",
+        "outputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
+      },
+      {
+        "annotations": {
+          "readOnlyHint": true
+        },
+        "description": "Capture a guest screenshot; returns both screenshot image content and metadata.",
+        "inputSchema": {
+          "$defs": {
+            "ScreenshotFormat": {
+              "enum": [
+                "webp",
+                "png"
+              ],
+              "type": "string"
+            }
+          },
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "format": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ScreenshotFormat"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "somOverlay": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "name": "ui_screenshot"
+      },
+      {
+        "annotations": {
+          "readOnlyHint": true
+        },
+        "description": "Return the current semantic Android UI snapshot.",
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "includeInvisible": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "name": "ui_snapshot",
+        "outputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
+      }
+    ]
+  }
+}

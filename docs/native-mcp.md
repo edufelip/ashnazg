@@ -90,10 +90,14 @@ performance claim. The evidence also retains an initial controller failure with
 zero completed checks; the client's SSE decoder was repaired before the passing
 repeats, without changing host or guest code.
 
-Generic-I/O EOF, in-flight cancellation, caller drop and panic recovery remain
-fixture evidence. Initializing MCP tests are fixture evidence only; they do not
-establish CLI or VM startup, acquisition, cold-start performance, or a released
-runtime. Actual stdio/CLI interruption, automatic CLI setup, live acquisition
-and release distribution remain separate work. The driver reports
-its credential scan; retained files do not independently attest the external
-runtime environment or the secret values used by that scan.
+That HTTP evidence does not establish the later CLI bootstrap. Caller-drop and
+panic recovery remain fixture evidence. The driver reports its credential scan;
+retained files do not independently attest the external runtime environment or
+the secret values used by that scan.
+
+The separately retained [packaged CLI/VM acceptance](evidence/runtime-release-0.3.0/README.md)
+uses the unchanged `50434b8` candidate with an explicitly staged verified cache.
+The actual stdio CLI initializes before guest readiness, exercises all five
+tools, and passes EOF, idle SIGTERM, and client-observed in-flight SIGTERM with
+joined helper/bridge cleanup. Public cold acquisition and release distribution
+remain separate from this prepublication acceptance.
