@@ -15,6 +15,61 @@ import native_cli_acceptance as acceptance
 ORIGINAL_VERIFY_CANDIDATE = acceptance._verified_candidate
 
 
+class ProcessInventoryTests(unittest.TestCase):
+    def test_ps_capture_stops_and_reaps_flooded_or_stalled_child(self):
+        original = acceptance.subprocess.Popen
+        for command in ("exec /usr/bin/yes x", "exec /bin/sleep 10"):
+            with self.subTest(command=command), tempfile.TemporaryDirectory() as directory:
+                helper = Path(directory) / "ps-fixture"
+                helper.write_text("#!/bin/sh\n" + command + "\n")
+                helper.chmod(0o700)
+                children = []
+
+                def spawn(*args, **kwargs):
+                    child = original(*args, **kwargs)
+                    children.append(child)
+                    return child
+
+                with patch.object(acceptance.subprocess, "Popen", side_effect=spawn):
+                    self.assertIsNone(acceptance._bounded_ps_output(helper, seconds=0.1, maximum=4096))
+                self.assertEqual(len(children), 1)
+                self.assertIsNotNone(children[0].returncode, "capture must reap its owned child")
+
+    def test_only_mutable_diagnostic_state_identities_may_change(self):
+        before = {".": {"inode": 1}, "rootfs.ext4": {"inode": 2},
+                  ".ashnazg-owned-state-v1": {"inode": 3},
+                  "runtime.json": {"inode": 4}, "serial.log": {"inode": 5}}
+        after = {**before, "runtime.json": {"inode": 6}, "serial.log": {"inode": 7}}
+        self.assertTrue(acceptance._preserved_state_identities(before, after))
+        for name in (".", "rootfs.ext4", ".ashnazg-owned-state-v1"):
+            self.assertFalse(acceptance._preserved_state_identities(before, {**after, name: {"inode": 8}}))
+
+    def test_inventory_preserves_descendants_after_large_unrelated_prefix(self):
+        rows = [f"{pid} 1 /unrelated/" + "x" * 90 for pid in range(1, 3001)]
+        rows += ["50001 50000 /owned/bin/ashnazg", "50002 50000 /owned/ashnazg-vm-v0.3.0-macos-aarch64"]
+        result = acceptance.subprocess.CompletedProcess([], 0, ("\n".join(rows) + "\n").encode())
+        self.assertGreater(len(result.stdout), 128 * 1024)
+        with patch.object(acceptance, "_bounded_ps_output", return_value=result.stdout):
+            inventory = acceptance._process_descendants(50000)
+        self.assertEqual(inventory, {"status": "available", "processes": [
+            {"pid": 50001, "ppid": 50000, "command": "ashnazg"},
+            {"pid": 50002, "ppid": 50000, "command": "ashnazg-vm-v0.3.0-macos-aarch64"},
+        ]})
+
+    def test_inventory_refuses_rows_beyond_its_bound(self):
+        result = acceptance.subprocess.CompletedProcess([], 0, b"1 0 x\n" * (16 * 1024 + 1))
+        with patch.object(acceptance, "_bounded_ps_output", return_value=result.stdout):
+            inventory = acceptance._process_descendants(50000)
+        self.assertEqual(inventory["status"], "unavailable")
+
+    def test_inventory_refuses_an_oversized_owned_process_tree(self):
+        rows = [f"{pid} 50000 child" for pid in range(50001, 50066)]
+        result = acceptance.subprocess.CompletedProcess([], 0, ("\n".join(rows) + "\n").encode())
+        with patch.object(acceptance, "_bounded_ps_output", return_value=result.stdout):
+            inventory = acceptance._process_descendants(50000)
+        self.assertEqual(inventory["status"], "unavailable")
+
+
 def png(value):
     def chunk(kind, body):
         return struct.pack('>I', len(body)) + kind + body + struct.pack('>I', zlib.crc32(kind + body) & 0xffffffff)
@@ -274,7 +329,11 @@ class NativeCliAcceptanceTests(unittest.TestCase):
             if message.get('method') == 'tools/list':
                 raise KeyboardInterrupt()
             return original(client, message, **kwargs)
-        with patch.object(acceptance.StdioClient, 'request', interrupt):
+        # This fixture owns a tiny fake process, not a VM needing its full
+        # graceful shutdown interval. Keep forced-cleanup coverage bounded.
+        with patch.object(acceptance.StdioClient, 'request', interrupt), \
+                patch.object(acceptance, 'SHUTDOWN_GRACE', 1.0), \
+                patch.object(acceptance, 'KILL_GRACE', 0.25):
             code, output = self.run_driver()
         self.assertNotEqual(code, 0)
         receipt = json.loads((output / 'receipt.json').read_text())

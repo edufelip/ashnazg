@@ -1,0 +1,12 @@
+{
+  "id": 5,
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "arguments": {
+      "launch": true,
+      "path": "/private/tmp/ashnazg-runtime-release-50434b8-ugh0ozrx/attempt-2-artifact-14252024126/release-files/ashnazg-fixture-v0.3.0.apk"
+    },
+    "name": "app_install"
+  }
+}

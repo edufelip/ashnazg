@@ -1,0 +1,18 @@
+{
+  "id": 9,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "data": "[image bytes stored separately]",
+        "mimeType": "image/png",
+        "type": "image"
+      },
+      {
+        "text": "{\"mimeType\":\"image/png\",\"snapshotId\":6,\"marks\":[],\"width\":720,\"height\":1280}",
+        "type": "text"
+      }
+    ],
+    "isError": false
+  }
+}

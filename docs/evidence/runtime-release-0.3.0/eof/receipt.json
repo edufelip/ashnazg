@@ -1,0 +1,2378 @@
+{
+  "cache": {
+    "after": {
+      ".": {
+        "device": 16777233,
+        "inode": 763222905,
+        "kind": "directory",
+        "mode": 448
+      },
+      "cache.json": {
+        "device": 16777233,
+        "inode": 763228474,
+        "kind": "file",
+        "mode": 384
+      },
+      "cache.lock": {
+        "device": 16777233,
+        "inode": 763228471,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries": {
+        "device": 16777233,
+        "inode": 763228472,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac": {
+        "device": 16777233,
+        "inode": 763228475,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/ashnazg-agent-v0.3.0.apk": {
+        "device": 16777233,
+        "inode": 763228491,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/ashnazg-fixture-v0.3.0.apk": {
+        "device": 16777233,
+        "inode": 763228501,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/ashnazg-vm-v0.3.0-macos-aarch64": {
+        "device": 16777233,
+        "inode": 763228483,
+        "kind": "file",
+        "mode": 448
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets": {
+        "device": 16777233,
+        "inode": 763228504,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/NOTICES.md": {
+        "device": 16777233,
+        "inode": 763233845,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/kernel": {
+        "device": 16777233,
+        "inode": 763228505,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/kernel.config": {
+        "device": 16777233,
+        "inode": 763233843,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/kernel.generated.config": {
+        "device": 16777233,
+        "inode": 763233844,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/linux-6.12.117.tar.xz": {
+        "device": 16777233,
+        "inode": 763233850,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/manifest.json": {
+        "device": 16777233,
+        "inode": 763233841,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/packages.lock.json": {
+        "device": 16777233,
+        "inode": 763233846,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/provenance.json": {
+        "device": 16777233,
+        "inode": 763233842,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/rootfs.ext4": {
+        "device": 16777233,
+        "inode": 763228752,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/runtime-components.json": {
+        "device": 16777233,
+        "inode": 763233848,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/runtime-installed.db": {
+        "device": 16777233,
+        "inode": 763233849,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/catalog.json": {
+        "device": 16777233,
+        "inode": 763228477,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/entry.json": {
+        "device": 16777233,
+        "inode": 763233870,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/integrity.json": {
+        "device": 16777233,
+        "inode": 763233868,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/stage.json": {
+        "device": 16777233,
+        "inode": 763228476,
+        "kind": "file",
+        "mode": 384
+      },
+      "staging": {
+        "device": 16777233,
+        "inode": 763228473,
+        "kind": "directory",
+        "mode": 448
+      }
+    },
+    "before": {
+      ".": {
+        "device": 16777233,
+        "inode": 763222905,
+        "kind": "directory",
+        "mode": 448
+      },
+      "cache.json": {
+        "device": 16777233,
+        "inode": 763228474,
+        "kind": "file",
+        "mode": 384
+      },
+      "cache.lock": {
+        "device": 16777233,
+        "inode": 763228471,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries": {
+        "device": 16777233,
+        "inode": 763228472,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac": {
+        "device": 16777233,
+        "inode": 763228475,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/ashnazg-agent-v0.3.0.apk": {
+        "device": 16777233,
+        "inode": 763228491,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/ashnazg-fixture-v0.3.0.apk": {
+        "device": 16777233,
+        "inode": 763228501,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/ashnazg-vm-v0.3.0-macos-aarch64": {
+        "device": 16777233,
+        "inode": 763228483,
+        "kind": "file",
+        "mode": 448
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets": {
+        "device": 16777233,
+        "inode": 763228504,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/NOTICES.md": {
+        "device": 16777233,
+        "inode": 763233845,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/kernel": {
+        "device": 16777233,
+        "inode": 763228505,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/kernel.config": {
+        "device": 16777233,
+        "inode": 763233843,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/kernel.generated.config": {
+        "device": 16777233,
+        "inode": 763233844,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/linux-6.12.117.tar.xz": {
+        "device": 16777233,
+        "inode": 763233850,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/manifest.json": {
+        "device": 16777233,
+        "inode": 763233841,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/packages.lock.json": {
+        "device": 16777233,
+        "inode": 763233846,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/provenance.json": {
+        "device": 16777233,
+        "inode": 763233842,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/rootfs.ext4": {
+        "device": 16777233,
+        "inode": 763228752,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/runtime-components.json": {
+        "device": 16777233,
+        "inode": 763233848,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/assets/runtime-installed.db": {
+        "device": 16777233,
+        "inode": 763233849,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/catalog.json": {
+        "device": 16777233,
+        "inode": 763228477,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/entry.json": {
+        "device": 16777233,
+        "inode": 763233870,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/integrity.json": {
+        "device": 16777233,
+        "inode": 763233868,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac/stage.json": {
+        "device": 16777233,
+        "inode": 763228476,
+        "kind": "file",
+        "mode": 384
+      },
+      "staging": {
+        "device": 16777233,
+        "inode": 763228473,
+        "kind": "directory",
+        "mode": 448
+      }
+    },
+    "claim": "not_observable",
+    "marker_after": {
+      "device": 16777233,
+      "inode": 763228474,
+      "kind": "file",
+      "mode": 384
+    },
+    "marker_before": {
+      "device": 16777233,
+      "inode": 763228474,
+      "kind": "file",
+      "mode": 384
+    },
+    "path": "/private/tmp/ashnazg-runtime-release-50434b8-ugh0ozrx/prepublication-home/Library/Caches/ashnazg/runtime"
+  },
+  "candidate": {
+    "candidate_sha256": "4846dc01389eeeecf507f9f94c5192fb545bfbeb2b0a71191934c650e46aa86b",
+    "catalog_sha256": "6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac",
+    "provenance_scope": "verified prepared candidate metadata; not intrinsic binary-to-source attestation",
+    "source_sha": "50434b8a056514fafd9fcb63cc534ce369880184"
+  },
+  "cleanup": {
+    "cache_identity_preserved": true,
+    "credential_absent": true,
+    "credential_at_ready": {
+      "exists": true,
+      "mode": 384
+    },
+    "listeners": {
+      "after": {
+        "15555": true,
+        "17778": true,
+        "7777": true
+      },
+      "at_ready": {
+        "15555": false,
+        "17778": false,
+        "7777": false
+      },
+      "before": {
+        "15555": true,
+        "17778": true,
+        "7777": true
+      },
+      "closed_after": {
+        "15555": true,
+        "17778": true,
+        "7777": true
+      }
+    },
+    "mutable_state_diagnostics": [
+      "runtime.json",
+      "serial.log"
+    ],
+    "owned_descendants_after_shutdown": [
+      {
+        "alive": false,
+        "command": "ashnazg",
+        "pid": 60194
+      },
+      {
+        "alive": false,
+        "command": "ashnazg-vm-v0.3.0-macos-aarch64",
+        "pid": 60198
+      }
+    ],
+    "state_after": {
+      ".": {
+        "device": 16777233,
+        "inode": 763240630,
+        "kind": "directory",
+        "mode": 448
+      },
+      ".ashnazg-owned-state-v1": {
+        "device": 16777233,
+        "inode": 763241344,
+        "kind": "file",
+        "mode": 384
+      },
+      ".ashnazg.lock": {
+        "device": 16777233,
+        "inode": 763241343,
+        "kind": "file",
+        "mode": 384
+      },
+      "rootfs.ext4": {
+        "device": 16777233,
+        "inode": 763241346,
+        "kind": "file",
+        "mode": 384
+      },
+      "runtime.json": {
+        "device": 16777233,
+        "inode": 763380590,
+        "kind": "file",
+        "mode": 384
+      },
+      "serial.log": {
+        "device": 16777233,
+        "inode": 763241348,
+        "kind": "file",
+        "mode": 384
+      },
+      "template.json": {
+        "device": 16777233,
+        "inode": 763241345,
+        "kind": "file",
+        "mode": 384
+      }
+    },
+    "state_identity_preserved": true
+  },
+  "driver_sha256": "c1fbd84a7c7485df6412e0eee8692ae40448dbcd5f93bcc527f66b0cc8dd3eed",
+  "environment": {
+    "default_home_created": false,
+    "excluded_variables": [
+      "ASHNAZG_TOKEN",
+      "ANDROID_SERIAL",
+      "ADB",
+      "ASHNAZG_ADB",
+      "ASHNAZG_AAPT",
+      "AAPT",
+      "ANDROID_HOME",
+      "ANDROID_SDK_ROOT",
+      "ANDROID_SDK_HOME",
+      "ANDROID_SDK_PATH",
+      "SDKPATH"
+    ],
+    "home": "/private/tmp/ashnazg-runtime-release-50434b8-ugh0ozrx/prepublication-home",
+    "home_mode_700": true,
+    "passed_variables": [
+      "HOME",
+      "LANG",
+      "LC_ALL",
+      "PATH",
+      "TMPDIR"
+    ],
+    "path_is_private_empty_dir": true
+  },
+  "handshake": {
+    "credential_at_tools_list": {
+      "exists": false,
+      "mode": null
+    },
+    "elapsed_seconds": 0.019
+  },
+  "inputs": {
+    "binary": {
+      "path": "/private/tmp/ashnazg-runtime-release-50434b8-ugh0ozrx/mac-package/bin/ashnazg",
+      "sha256": "e70790ffab64412a486b6b0c398ee4bf2b07b3c3b23cc3f5c60d88431a5c7b05",
+      "size": 18514320
+    },
+    "fixture_apk": {
+      "path": "/private/tmp/ashnazg-runtime-release-50434b8-ugh0ozrx/attempt-2-artifact-14252024126/release-files/ashnazg-fixture-v0.3.0.apk",
+      "sha256": "cafc888b119926235872c4bc23023c1dbbd7a986f33e11609e33244cccd49e1d",
+      "size": 13421
+    }
+  },
+  "installation": {
+    "inferred_package": "dev.ashnazg.fixture",
+    "installed": true
+  },
+  "interaction": {
+    "action": "tap",
+    "count_after": 1,
+    "count_before": 0,
+    "target": {
+      "testId": "dev.ashnazg.fixture:id/increment"
+    }
+  },
+  "listeners_before": {
+    "15555": true,
+    "17778": true,
+    "7777": true
+  },
+  "mode": "eof",
+  "process": {
+    "exit_code": 0,
+    "pid": 60193,
+    "stderr_bytes": 254,
+    "stderr_sha256": "8fb71695b5f5022f029a3c19bc40a6f4f6f80eab6e1653abff19db0d46395009",
+    "stderr_truncated": false,
+    "stdout_bytes": 581938
+  },
+  "process_inventory": {
+    "processes": [
+      {
+        "command": "ashnazg",
+        "pid": 60194,
+        "ppid": 60193
+      },
+      {
+        "command": "ashnazg-vm-v0.3.0-macos-aarch64",
+        "pid": 60198,
+        "ppid": 60193
+      }
+    ],
+    "status": "available"
+  },
+  "protocol": {
+    "payloads": [
+      {
+        "path": "001-initialize.request.json",
+        "sha256": "8243b23569975f6ddb42dec8670a09f3601fe919e0b9402da1162d04b76fc5cc",
+        "size": 226
+      },
+      {
+        "path": "002-initialize.response.json",
+        "sha256": "f89dec5030bcd78fb01c3803ea83874dbdbac2c1d5bb2d92dc0544fbaa7c5516",
+        "size": 213
+      },
+      {
+        "path": "003-tools-list.request.json",
+        "sha256": "9d2c25011becd4610370daff19fb91cafe891394d20080993ce44a0f6b413da1",
+        "size": 76
+      },
+      {
+        "path": "004-tools-list.response.json",
+        "sha256": "8b3592b9b943a7e22c6d7ef6b5f2a2cd81d60a2a59ea19c96a03effbe950d1bf",
+        "size": 6135
+      },
+      {
+        "path": "003-readiness.request.json",
+        "sha256": "70dcd94552acb2b3fd134cbf8eab0b0f9b10100cc658922a3253a47b40737a32",
+        "size": 163
+      },
+      {
+        "path": "003-readiness.response.json",
+        "sha256": "ac02f1f008870f0fcf722dedc8a441b4652c969ee3243ddcc6a183f0f8b99a36",
+        "size": 141
+      },
+      {
+        "path": "004-readiness.request.json",
+        "sha256": "355de8191564cdf12dbf92018ca42cfe1bbfc1aaa7dc40af86777a297ebcc830",
+        "size": 163
+      },
+      {
+        "path": "004-readiness.response.json",
+        "sha256": "dfeb3e79e2a9fe8c9c222a134cad9f1fcbebd3359e2802a138000db8fa9e7341",
+        "size": 14962
+      },
+      {
+        "path": "005-app_install.request.json",
+        "sha256": "ae375f77916cab23aecf8840558103e8abd7fc0b6f0ff0685ecd197c889919a8",
+        "size": 295
+      },
+      {
+        "path": "005-app_install.response.json",
+        "sha256": "25c93002b0c70a01ed58ccbfc0ce97e26e3511e30ddd237cd461b6c40cb55dbb",
+        "size": 377
+      },
+      {
+        "path": "006-ui_snapshot.request.json",
+        "sha256": "88daef4f8071dcc0cad3e2a88fd65161ba92fe92adbbfc8171250a8bd32391d7",
+        "size": 163
+      },
+      {
+        "path": "006-ui_snapshot.response.json",
+        "sha256": "d3a1d2e37b5724ef84efa0893ec81c1b67db67f382fdcb331c07011cc5e340ad",
+        "size": 13830
+      },
+      {
+        "path": "007-ui_screenshot.request.json",
+        "sha256": "525e72952ffd364f7d3d583864bb3b388b5ae17604120bc64b7014469ca91105",
+        "size": 182
+      },
+      {
+        "path": "007-ui_screenshot.response.json",
+        "sha256": "23d15acfdc8333895477da1dd4d6d6c7b8db5e19991d2a8ff97aea390f3d3484",
+        "size": 370
+      },
+      {
+        "path": "screenshot-before.png",
+        "sha256": "8b8f78f8d79fab46532a6bb72bcd63a648d4202d3ae99f92fa49c047f683edca",
+        "size": 45056
+      },
+      {
+        "path": "008-ui_act.request.json",
+        "sha256": "9b46b93d9a0f715130963d676221f9b2b67cffd3de73427d6a18c89e09e3771c",
+        "size": 228
+      },
+      {
+        "path": "008-ui_act.response.json",
+        "sha256": "f61ea834b20b0a9df97cba334f05ad5a84522c0cbbf1880555fc961d4941f92b",
+        "size": 13027
+      },
+      {
+        "path": "009-ui_screenshot.request.json",
+        "sha256": "660966332932d2166ed011bed718f2be0aba901226442ac91601fe8dfc293ac8",
+        "size": 182
+      },
+      {
+        "path": "009-ui_screenshot.response.json",
+        "sha256": "1abaa33472b0572becb613d9e2d4b67abc7262e1c788e366da0a4efff482a7aa",
+        "size": 370
+      },
+      {
+        "path": "screenshot.png",
+        "sha256": "e7b2e0c9426c453af6a83739d3bd5ce4b1f9beea72cb93a136935b538015e709",
+        "size": 61753
+      },
+      {
+        "path": "010-app_logs.request.json",
+        "sha256": "462a5ab38e589548d540d132341cef3926883a578e207b10a50add3d6c5048c3",
+        "size": 176
+      },
+      {
+        "path": "010-app_logs.response.json",
+        "sha256": "0940689932793f3eba8cc3f18f67ac0e3016f55b2adb0149c18a5fafbb96af34",
+        "size": 248
+      }
+    ],
+    "requests": [
+      {
+        "id": 1,
+        "jsonrpc": "2.0",
+        "method": "initialize",
+        "params": {
+          "capabilities": {},
+          "clientInfo": {
+            "name": "native-cli-acceptance",
+            "version": "1"
+          },
+          "protocolVersion": "2024-11-05"
+        }
+      },
+      {
+        "jsonrpc": "2.0",
+        "method": "notifications/initialized"
+      },
+      {
+        "id": 2,
+        "jsonrpc": "2.0",
+        "method": "tools/list",
+        "params": {}
+      },
+      {
+        "id": 3,
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "arguments": {
+            "includeInvisible": false
+          },
+          "name": "ui_snapshot"
+        }
+      },
+      {
+        "id": 4,
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "arguments": {
+            "includeInvisible": false
+          },
+          "name": "ui_snapshot"
+        }
+      },
+      {
+        "id": 5,
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "arguments": {
+            "launch": true,
+            "path": "/private/tmp/ashnazg-runtime-release-50434b8-ugh0ozrx/attempt-2-artifact-14252024126/release-files/ashnazg-fixture-v0.3.0.apk"
+          },
+          "name": "app_install"
+        }
+      },
+      {
+        "id": 6,
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "arguments": {
+            "includeInvisible": false
+          },
+          "name": "ui_snapshot"
+        }
+      },
+      {
+        "id": 7,
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "arguments": {
+            "format": "png",
+            "somOverlay": false
+          },
+          "name": "ui_screenshot"
+        }
+      },
+      {
+        "id": 8,
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "arguments": {
+            "action": "tap",
+            "target": {
+              "testId": "dev.ashnazg.fixture:id/increment"
+            }
+          },
+          "name": "ui_act"
+        }
+      },
+      {
+        "id": 9,
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "arguments": {
+            "format": "png",
+            "somOverlay": false
+          },
+          "name": "ui_screenshot"
+        }
+      },
+      {
+        "id": 10,
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "arguments": {
+            "sinceMs": null,
+            "tagFilter": null
+          },
+          "name": "app_logs"
+        }
+      }
+    ],
+    "responses": [
+      {
+        "id": 1,
+        "jsonrpc": "2.0",
+        "result": {
+          "capabilities": {
+            "tools": {}
+          },
+          "protocolVersion": "2024-11-05",
+          "serverInfo": {
+            "name": "ashnazg",
+            "version": "0.3.0"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "jsonrpc": "2.0",
+        "result": {
+          "tools": [
+            {
+              "annotations": {
+                "destructiveHint": true
+              },
+              "description": "Install an APK on the selected Android session; optionally launch the package.",
+              "inputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "launch": {
+                    "default": null,
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "package": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "type": "object"
+              },
+              "name": "app_install",
+              "outputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema"
+              }
+            },
+            {
+              "annotations": {
+                "readOnlyHint": true
+              },
+              "description": "Return bounded Android agent log lines.",
+              "inputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "sinceMs": {
+                    "format": "uint64",
+                    "minimum": 0,
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "tagFilter": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              "name": "app_logs",
+              "outputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema"
+              }
+            },
+            {
+              "annotations": {
+                "destructiveHint": true
+              },
+              "description": "Perform a validated action on the Android UI and return a fresh snapshot.",
+              "inputSchema": {
+                "$defs": {
+                  "Action": {
+                    "enum": [
+                      "tap",
+                      "long_press",
+                      "type",
+                      "clear",
+                      "scroll_to",
+                      "back",
+                      "deep_link"
+                    ],
+                    "type": "string"
+                  },
+                  "Direction": {
+                    "enum": [
+                      "up",
+                      "down",
+                      "left",
+                      "right"
+                    ],
+                    "type": "string"
+                  },
+                  "Target": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "format": "uint64",
+                        "minimum": 0,
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "snapshotId": {
+                        "format": "uint64",
+                        "minimum": 0,
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "testId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "text": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "action": {
+                    "$ref": "#/$defs/Action"
+                  },
+                  "direction": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/Direction"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "target": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/Target"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "action"
+                ],
+                "type": "object"
+              },
+              "name": "ui_act",
+              "outputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema"
+              }
+            },
+            {
+              "annotations": {
+                "readOnlyHint": true
+              },
+              "description": "Capture a guest screenshot; returns both screenshot image content and metadata.",
+              "inputSchema": {
+                "$defs": {
+                  "ScreenshotFormat": {
+                    "enum": [
+                      "webp",
+                      "png"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "format": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/ScreenshotFormat"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "somOverlay": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "name": "ui_screenshot"
+            },
+            {
+              "annotations": {
+                "readOnlyHint": true
+              },
+              "description": "Return the current semantic Android UI snapshot.",
+              "inputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "includeInvisible": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "name": "ui_snapshot",
+              "outputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "error": {
+          "code": -32603,
+          "message": "native runtime is still starting; retry the request"
+        },
+        "id": 3,
+        "jsonrpc": "2.0"
+      },
+      {
+        "id": 4,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"nodes\":[{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":1,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"android:id/content\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":2,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/launcher\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":3,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/drag_layer\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":4,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/scrim_view\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":5,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"scrollable\",\"scrollable\":true,\"selected\":false,\"testId\":\"com.android.launcher3:id/workspace\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":6,\"longClickable\":false,\"password\":false,\"rect\":[16,70,704,305],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/search_container_workspace\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"contentDescription\":\"Search\",\"enabled\":true,\"focused\":false,\"id\":7,\"longClickable\":false,\"password\":false,\"rect\":[16,70,704,305],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/qsb_widget\",\"text\":\"Search\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":8,\"longClickable\":false,\"password\":false,\"rect\":[16,113,704,262],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.quicksearchbox:id/search_plate\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":9,\"longClickable\":false,\"password\":false,\"rect\":[35,139,131,235],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.quicksearchbox:id/search_icon\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":10,\"longClickable\":false,\"password\":false,\"rect\":[131,144,676,231],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.quicksearchbox:id/search_widget_text\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"Gallery\",\"enabled\":true,\"focused\":false,\"id\":11,\"longClickable\":true,\"password\":false,\"rect\":[188,775,360,1010],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Gallery\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"contentDescription\":\"Home\",\"enabled\":true,\"focused\":false,\"id\":12,\"longClickable\":false,\"password\":false,\"rect\":[0,48,720,1184],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"text\":\"Home\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":13,\"longClickable\":false,\"password\":false,\"rect\":[0,944,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/overview_actions_view\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":14,\"longClickable\":false,\"password\":false,\"rect\":[0,1012,720,1060],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/page_indicator\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":15,\"longClickable\":false,\"password\":false,\"rect\":[0,1028,720,1248],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/hotseat\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"Contacts\",\"enabled\":true,\"focused\":false,\"id\":16,\"longClickable\":true,\"password\":false,\"rect\":[16,1028,188,1150],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Contacts\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"WebView Browser Tester\",\"enabled\":true,\"focused\":false,\"id\":17,\"longClickable\":true,\"password\":false,\"rect\":[360,1028,532,1150],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"WebView Browser Tester\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"Camera\",\"enabled\":true,\"focused\":false,\"id\":18,\"longClickable\":true,\"password\":false,\"rect\":[532,1028,704,1150],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Camera\"}],\"snapshotId\":1,\"truncated\":false}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "nodes": [
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 1,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  0,
+                  720,
+                  1280
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "android:id/content",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 2,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  0,
+                  720,
+                  1280
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.launcher3:id/launcher",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 3,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  0,
+                  720,
+                  1280
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.launcher3:id/drag_layer",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 4,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  0,
+                  720,
+                  1280
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.launcher3:id/scrim_view",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 5,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  0,
+                  720,
+                  1280
+                ],
+                "role": "scrollable",
+                "scrollable": true,
+                "selected": false,
+                "testId": "com.android.launcher3:id/workspace",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 6,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  16,
+                  70,
+                  704,
+                  305
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.launcher3:id/search_container_workspace",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "contentDescription": "Search",
+                "enabled": true,
+                "focused": false,
+                "id": 7,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  16,
+                  70,
+                  704,
+                  305
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.launcher3:id/qsb_widget",
+                "text": "Search"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 8,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  16,
+                  113,
+                  704,
+                  262
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.quicksearchbox:id/search_plate",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": true,
+                "enabled": true,
+                "focused": false,
+                "id": 9,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  35,
+                  139,
+                  131,
+                  235
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.quicksearchbox:id/search_icon",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": true,
+                "enabled": true,
+                "focused": false,
+                "id": 10,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  131,
+                  144,
+                  676,
+                  231
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.quicksearchbox:id/search_widget_text",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": true,
+                "contentDescription": "Gallery",
+                "enabled": true,
+                "focused": false,
+                "id": 11,
+                "longClickable": true,
+                "password": false,
+                "rect": [
+                  188,
+                  775,
+                  360,
+                  1010
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Gallery"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "contentDescription": "Home",
+                "enabled": true,
+                "focused": false,
+                "id": 12,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  48,
+                  720,
+                  1184
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "text": "Home"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 13,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  944,
+                  720,
+                  1280
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.launcher3:id/overview_actions_view",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 14,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  1012,
+                  720,
+                  1060
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.launcher3:id/page_indicator",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 15,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  1028,
+                  720,
+                  1248
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "com.android.launcher3:id/hotseat",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": true,
+                "contentDescription": "Contacts",
+                "enabled": true,
+                "focused": false,
+                "id": 16,
+                "longClickable": true,
+                "password": false,
+                "rect": [
+                  16,
+                  1028,
+                  188,
+                  1150
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Contacts"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": true,
+                "contentDescription": "WebView Browser Tester",
+                "enabled": true,
+                "focused": false,
+                "id": 17,
+                "longClickable": true,
+                "password": false,
+                "rect": [
+                  360,
+                  1028,
+                  532,
+                  1150
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "WebView Browser Tester"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": true,
+                "contentDescription": "Camera",
+                "enabled": true,
+                "focused": false,
+                "id": 18,
+                "longClickable": true,
+                "password": false,
+                "rect": [
+                  532,
+                  1028,
+                  704,
+                  1150
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Camera"
+              }
+            ],
+            "snapshotId": 1,
+            "truncated": false
+          }
+        }
+      },
+      {
+        "id": 5,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"installed\":true,\"package\":\"dev.ashnazg.fixture\",\"serial\":\"127.0.0.1:15555\"}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "installed": true,
+            "package": "dev.ashnazg.fixture",
+            "serial": "127.0.0.1:15555"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"nodes\":[{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":1,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"android:id/content\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":2,\"longClickable\":false,\"password\":false,\"rect\":[40,40,680,99],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Ashnazg fixture\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":3,\"longClickable\":false,\"password\":false,\"rect\":[40,99,680,195],\"role\":\"button\",\"scrollable\":false,\"selected\":false,\"testId\":\"dev.ashnazg.fixture:id/increment\",\"text\":\"Count: 0\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"hint\":\"Input\",\"id\":4,\"longClickable\":true,\"password\":false,\"rect\":[40,195,680,286],\"role\":\"textbox\",\"scrollable\":false,\"selected\":false,\"testId\":\"dev.ashnazg.fixture:id/input\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":5,\"longClickable\":true,\"password\":true,\"rect\":[40,286,680,377],\"role\":\"textbox\",\"scrollable\":false,\"selected\":false,\"testId\":\"dev.ashnazg.fixture:id/password\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":6,\"longClickable\":false,\"password\":false,\"rect\":[40,377,680,415],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Duplicate target\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":7,\"longClickable\":false,\"password\":false,\"rect\":[40,415,680,453],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Duplicate target\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":8,\"longClickable\":true,\"password\":false,\"rect\":[40,453,680,547],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Long press target\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":9,\"longClickable\":false,\"password\":false,\"rect\":[40,547,680,1240],\"role\":\"scrollable\",\"scrollable\":true,\"selected\":false,\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":10,\"longClickable\":false,\"password\":false,\"rect\":[40,547,680,641],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 0\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":11,\"longClickable\":false,\"password\":false,\"rect\":[40,641,680,735],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 1\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":12,\"longClickable\":false,\"password\":false,\"rect\":[40,735,680,829],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 2\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":13,\"longClickable\":false,\"password\":false,\"rect\":[40,829,680,923],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 3\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":14,\"longClickable\":false,\"password\":false,\"rect\":[40,923,680,1017],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 4\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":15,\"longClickable\":false,\"password\":false,\"rect\":[40,1017,680,1111],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 5\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":16,\"longClickable\":false,\"password\":false,\"rect\":[40,1111,680,1205],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 6\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":17,\"longClickable\":false,\"password\":false,\"rect\":[40,1205,680,1240],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 7\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":18,\"longClickable\":false,\"password\":false,\"rect\":[0,1184,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"android:id/navigationBarBackground\",\"text\":\"\"}],\"snapshotId\":2,\"truncated\":false}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "nodes": [
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 1,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  0,
+                  720,
+                  1280
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "android:id/content",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 2,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  40,
+                  680,
+                  99
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Ashnazg fixture"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": true,
+                "enabled": true,
+                "focused": false,
+                "id": 3,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  99,
+                  680,
+                  195
+                ],
+                "role": "button",
+                "scrollable": false,
+                "selected": false,
+                "testId": "dev.ashnazg.fixture:id/increment",
+                "text": "Count: 0"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": true,
+                "enabled": true,
+                "focused": false,
+                "hint": "Input",
+                "id": 4,
+                "longClickable": true,
+                "password": false,
+                "rect": [
+                  40,
+                  195,
+                  680,
+                  286
+                ],
+                "role": "textbox",
+                "scrollable": false,
+                "selected": false,
+                "testId": "dev.ashnazg.fixture:id/input",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": true,
+                "enabled": true,
+                "focused": false,
+                "id": 5,
+                "longClickable": true,
+                "password": true,
+                "rect": [
+                  40,
+                  286,
+                  680,
+                  377
+                ],
+                "role": "textbox",
+                "scrollable": false,
+                "selected": false,
+                "testId": "dev.ashnazg.fixture:id/password",
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 6,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  377,
+                  680,
+                  415
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Duplicate target"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 7,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  415,
+                  680,
+                  453
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Duplicate target"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 8,
+                "longClickable": true,
+                "password": false,
+                "rect": [
+                  40,
+                  453,
+                  680,
+                  547
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Long press target"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 9,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  547,
+                  680,
+                  1240
+                ],
+                "role": "scrollable",
+                "scrollable": true,
+                "selected": false,
+                "text": ""
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 10,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  547,
+                  680,
+                  641
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Scrollable row 0"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 11,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  641,
+                  680,
+                  735
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Scrollable row 1"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 12,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  735,
+                  680,
+                  829
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Scrollable row 2"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 13,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  829,
+                  680,
+                  923
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Scrollable row 3"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 14,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  923,
+                  680,
+                  1017
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Scrollable row 4"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 15,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  1017,
+                  680,
+                  1111
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Scrollable row 5"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 16,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  1111,
+                  680,
+                  1205
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Scrollable row 6"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 17,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  40,
+                  1205,
+                  680,
+                  1240
+                ],
+                "role": "text",
+                "scrollable": false,
+                "selected": false,
+                "text": "Scrollable row 7"
+              },
+              {
+                "checkable": false,
+                "checked": false,
+                "clickable": false,
+                "enabled": true,
+                "focused": false,
+                "id": 18,
+                "longClickable": false,
+                "password": false,
+                "rect": [
+                  0,
+                  1184,
+                  720,
+                  1280
+                ],
+                "role": "view",
+                "scrollable": false,
+                "selected": false,
+                "testId": "android:id/navigationBarBackground",
+                "text": ""
+              }
+            ],
+            "snapshotId": 2,
+            "truncated": false
+          }
+        }
+      },
+      {
+        "id": 7,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "data": "[image bytes stored separately]",
+              "mimeType": "image/png",
+              "type": "image"
+            },
+            {
+              "text": "{\"mimeType\":\"image/png\",\"snapshotId\":3,\"marks\":[],\"width\":720,\"height\":1280}",
+              "type": "text"
+            }
+          ],
+          "isError": false
+        }
+      },
+      {
+        "id": 8,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"settled\":true,\"snapshot\":{\"nodes\":[{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":1,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"android:id/content\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":2,\"longClickable\":false,\"password\":false,\"rect\":[40,40,680,99],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Ashnazg fixture\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":3,\"longClickable\":false,\"password\":false,\"rect\":[40,99,680,195],\"role\":\"button\",\"scrollable\":false,\"selected\":false,\"testId\":\"dev.ashnazg.fixture:id/increment\",\"text\":\"Count: 1\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"hint\":\"Input\",\"id\":4,\"longClickable\":true,\"password\":false,\"rect\":[40,195,680,286],\"role\":\"textbox\",\"scrollable\":false,\"selected\":false,\"testId\":\"dev.ashnazg.fixture:id/input\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":5,\"longClickable\":true,\"password\":true,\"rect\":[40,286,680,377],\"role\":\"textbox\",\"scrollable\":false,\"selected\":false,\"testId\":\"dev.ashnazg.fixture:id/password\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":6,\"longClickable\":false,\"password\":false,\"rect\":[40,377,680,415],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Duplicate target\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":7,\"longClickable\":false,\"password\":false,\"rect\":[40,415,680,453],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Duplicate target\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":8,\"longClickable\":true,\"password\":false,\"rect\":[40,453,680,547],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Long press target\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":9,\"longClickable\":false,\"password\":false,\"rect\":[40,547,680,1240],\"role\":\"scrollable\",\"scrollable\":true,\"selected\":false,\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":10,\"longClickable\":false,\"password\":false,\"rect\":[40,547,680,641],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 0\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":11,\"longClickable\":false,\"password\":false,\"rect\":[40,641,680,735],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 1\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":12,\"longClickable\":false,\"password\":false,\"rect\":[40,735,680,829],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 2\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":13,\"longClickable\":false,\"password\":false,\"rect\":[40,829,680,923],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 3\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":14,\"longClickable\":false,\"password\":false,\"rect\":[40,923,680,1017],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 4\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":15,\"longClickable\":false,\"password\":false,\"rect\":[40,1017,680,1111],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 5\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":16,\"longClickable\":false,\"password\":false,\"rect\":[40,1111,680,1205],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 6\"}],\"snapshotId\":5,\"truncated\":false}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "settled": true,
+            "snapshot": {
+              "nodes": [
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 1,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    0,
+                    0,
+                    720,
+                    1280
+                  ],
+                  "role": "view",
+                  "scrollable": false,
+                  "selected": false,
+                  "testId": "android:id/content",
+                  "text": ""
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 2,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    40,
+                    680,
+                    99
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Ashnazg fixture"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": true,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 3,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    99,
+                    680,
+                    195
+                  ],
+                  "role": "button",
+                  "scrollable": false,
+                  "selected": false,
+                  "testId": "dev.ashnazg.fixture:id/increment",
+                  "text": "Count: 1"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": true,
+                  "enabled": true,
+                  "focused": false,
+                  "hint": "Input",
+                  "id": 4,
+                  "longClickable": true,
+                  "password": false,
+                  "rect": [
+                    40,
+                    195,
+                    680,
+                    286
+                  ],
+                  "role": "textbox",
+                  "scrollable": false,
+                  "selected": false,
+                  "testId": "dev.ashnazg.fixture:id/input",
+                  "text": ""
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": true,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 5,
+                  "longClickable": true,
+                  "password": true,
+                  "rect": [
+                    40,
+                    286,
+                    680,
+                    377
+                  ],
+                  "role": "textbox",
+                  "scrollable": false,
+                  "selected": false,
+                  "testId": "dev.ashnazg.fixture:id/password",
+                  "text": ""
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 6,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    377,
+                    680,
+                    415
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Duplicate target"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 7,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    415,
+                    680,
+                    453
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Duplicate target"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 8,
+                  "longClickable": true,
+                  "password": false,
+                  "rect": [
+                    40,
+                    453,
+                    680,
+                    547
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Long press target"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 9,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    547,
+                    680,
+                    1240
+                  ],
+                  "role": "scrollable",
+                  "scrollable": true,
+                  "selected": false,
+                  "text": ""
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 10,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    547,
+                    680,
+                    641
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Scrollable row 0"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 11,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    641,
+                    680,
+                    735
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Scrollable row 1"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 12,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    735,
+                    680,
+                    829
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Scrollable row 2"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 13,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    829,
+                    680,
+                    923
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Scrollable row 3"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 14,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    923,
+                    680,
+                    1017
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Scrollable row 4"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 15,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    1017,
+                    680,
+                    1111
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Scrollable row 5"
+                },
+                {
+                  "checkable": false,
+                  "checked": false,
+                  "clickable": false,
+                  "enabled": true,
+                  "focused": false,
+                  "id": 16,
+                  "longClickable": false,
+                  "password": false,
+                  "rect": [
+                    40,
+                    1111,
+                    680,
+                    1205
+                  ],
+                  "role": "text",
+                  "scrollable": false,
+                  "selected": false,
+                  "text": "Scrollable row 6"
+                }
+              ],
+              "snapshotId": 5,
+              "truncated": false
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "data": "[image bytes stored separately]",
+              "mimeType": "image/png",
+              "type": "image"
+            },
+            {
+              "text": "{\"mimeType\":\"image/png\",\"snapshotId\":6,\"marks\":[],\"width\":720,\"height\":1280}",
+              "type": "text"
+            }
+          ],
+          "isError": false
+        }
+      },
+      {
+        "id": 10,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [],
+          "structuredContent": {
+            "line_count": 1384,
+            "result_sha256": "c334790bb137925f2d310293e8f47963ba1cadcf41305b2bdb9d681e91db23d0",
+            "truncated": false
+          }
+        }
+      }
+    ],
+    "sanitized_tool_results": {
+      "app_logs": {
+        "line_count": 1384,
+        "result_sha256": "c334790bb137925f2d310293e8f47963ba1cadcf41305b2bdb9d681e91db23d0",
+        "truncated": false
+      }
+    }
+  },
+  "ready": {
+    "credential_at_ready": {
+      "exists": true,
+      "mode": 384
+    },
+    "descendants_at_ready": {
+      "processes": [
+        {
+          "command": "ashnazg",
+          "pid": 60194,
+          "ppid": 60193
+        },
+        {
+          "command": "ashnazg-vm-v0.3.0-macos-aarch64",
+          "pid": 60198,
+          "ppid": 60193
+        }
+      ],
+      "status": "available"
+    },
+    "elapsed_seconds": 40.449,
+    "listeners_at_ready": {
+      "15555": false,
+      "17778": false,
+      "7777": false
+    }
+  },
+  "schema_version": 1,
+  "screenshot": {
+    "channels": 4,
+    "encoding_channels": 3,
+    "fresh_after_action": true,
+    "height": 1280,
+    "marks_count": 0,
+    "mime_type": "image/png",
+    "path": "screenshot.png",
+    "pixel_sha256": "aa4805c2fe92bfe20e9b5477431e1a8c210a269298447394d55dd4faea7a38b8",
+    "pixels_changed_after_action": true,
+    "sha256": "e7b2e0c9426c453af6a83739d3bd5ce4b1f9beea72cb93a136935b538015e709",
+    "size": 61753,
+    "snapshot_id": 6,
+    "width": 720
+  },
+  "screenshot_before": {
+    "channels": 4,
+    "encoding_channels": 3,
+    "height": 1280,
+    "marks_count": 0,
+    "mime_type": "image/png",
+    "path": "screenshot-before.png",
+    "pixel_sha256": "887a1b78d0a490cbafc265e2b00adce0c263aa716afe22c23513d7d606bea4ee",
+    "sha256": "8b8f78f8d79fab46532a6bb72bcd63a648d4202d3ae99f92fa49c047f683edca",
+    "size": 45056,
+    "snapshot_id": 3,
+    "width": 720
+  },
+  "shutdown": {
+    "direct_child_pid": 60193,
+    "exit_code": 0,
+    "joined": true,
+    "mode": "eof",
+    "stdin_open_at_signal": false
+  },
+  "source_sha": "50434b8a056514fafd9fcb63cc534ce369880184",
+  "startup_retries": 1,
+  "state": {
+    "after": {
+      ".": {
+        "device": 16777233,
+        "inode": 763240630,
+        "kind": "directory",
+        "mode": 448
+      },
+      ".ashnazg-owned-state-v1": {
+        "device": 16777233,
+        "inode": 763241344,
+        "kind": "file",
+        "mode": 384
+      },
+      ".ashnazg.lock": {
+        "device": 16777233,
+        "inode": 763241343,
+        "kind": "file",
+        "mode": 384
+      },
+      "rootfs.ext4": {
+        "device": 16777233,
+        "inode": 763241346,
+        "kind": "file",
+        "mode": 384
+      },
+      "runtime.json": {
+        "device": 16777233,
+        "inode": 763380590,
+        "kind": "file",
+        "mode": 384
+      },
+      "serial.log": {
+        "device": 16777233,
+        "inode": 763241348,
+        "kind": "file",
+        "mode": 384
+      },
+      "template.json": {
+        "device": 16777233,
+        "inode": 763241345,
+        "kind": "file",
+        "mode": 384
+      }
+    },
+    "before": {
+      ".": {
+        "device": 16777233,
+        "inode": 763240630,
+        "kind": "directory",
+        "mode": 448
+      },
+      ".ashnazg-owned-state-v1": {
+        "device": 16777233,
+        "inode": 763241344,
+        "kind": "file",
+        "mode": 384
+      },
+      ".ashnazg.lock": {
+        "device": 16777233,
+        "inode": 763241343,
+        "kind": "file",
+        "mode": 384
+      },
+      "rootfs.ext4": {
+        "device": 16777233,
+        "inode": 763241346,
+        "kind": "file",
+        "mode": 384
+      },
+      "runtime.json": {
+        "device": 16777233,
+        "inode": 763363517,
+        "kind": "file",
+        "mode": 384
+      },
+      "serial.log": {
+        "device": 16777233,
+        "inode": 763241348,
+        "kind": "file",
+        "mode": 384
+      },
+      "template.json": {
+        "device": 16777233,
+        "inode": 763241345,
+        "kind": "file",
+        "mode": 384
+      }
+    },
+    "path": "/private/tmp/ashnazg-runtime-release-50434b8-ugh0ozrx/prepublication-home/Library/Application Support/ashnazg/native-mcp/50434b8a056514fafd9fcb63cc534ce369880184"
+  },
+  "status": "passed",
+  "tool_schema_sha256": "7cec67c72d850d22b5d0fcb85c464c2ce2cecc8dbc8d36e408890dd2a9d46b75",
+  "tools_called": [
+    "app_install",
+    "ui_snapshot",
+    "ui_act",
+    "ui_screenshot",
+    "app_logs"
+  ],
+  "tools_list": [
+    "app_install",
+    "app_logs",
+    "ui_act",
+    "ui_screenshot",
+    "ui_snapshot"
+  ]
+}

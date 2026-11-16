@@ -1,0 +1,21 @@
+{
+  "architecture": "aarch64",
+  "files": {
+    "kernel": {
+      "sha256": "d7a09daf0f590912d28e73b3638b010169fc923dde980e14066d6c15a8980f21",
+      "size": 47684096
+    },
+    "rootfs.ext4": {
+      "sha256": "5b5fc32080f3542904bbcec4be5901d12984ae632b930e73f7b65209229896f9",
+      "size": 4294967296
+    }
+  },
+  "guest": {
+    "base": "alpine-3.22.8-aarch64",
+    "kernel_version": "6.12.117",
+    "redroid_index": "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"
+  },
+  "schema_version": 1,
+  "source_sha": "50434b8a056514fafd9fcb63cc534ce369880184",
+  "version": "0.3.0"
+}

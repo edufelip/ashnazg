@@ -1,0 +1,14 @@
+{
+  "id": 11,
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "arguments": {
+      "action": "long_press",
+      "target": {
+        "text": "Long press target"
+      }
+    },
+    "name": "ui_act"
+  }
+}

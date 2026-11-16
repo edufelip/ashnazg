@@ -105,9 +105,12 @@ A prepared candidate can be staged in a new, private acceptance cache using the 
 python3 scripts/runtime_release.py verify --directory "$CANDIDATE" --source-sha "$SOURCE_SHA"
 mkdir -m 700 "$ACCEPTANCE_HOME"
 mkdir -p "$ACCEPTANCE_HOME/Library/Caches/ashnazg/runtime"
-chmod 700 "$ACCEPTANCE_HOME/Library/Caches/ashnazg" "$ACCEPTANCE_HOME/Library/Caches/ashnazg/runtime"
+chmod 700 "$ACCEPTANCE_HOME/Library" "$ACCEPTANCE_HOME/Library/Caches" \
+  "$ACCEPTANCE_HOME/Library/Caches/ashnazg" "$ACCEPTANCE_HOME/Library/Caches/ashnazg/runtime"
 cargo run --release --locked --example stage_runtime_candidate -- \
   "$CANDIDATE" "$ACCEPTANCE_HOME/Library/Caches/ashnazg/runtime" "$SOURCE_SHA"
 ```
 
 Use the source-matching packaged host for acceptance after staging. The helper still validates the kernel/rootfs before boot. The utility refuses an existing entry rather than replacing it; cache and persistent state remain owned by the acceptance home. Public cold acquisition must later use a different empty home without this staging step.
+
+The [50434b8 prepublication acceptance](evidence/runtime-release-0.3.0/README.md) now exercises this staging path with the actual packaged CLI and VM in all three shutdown modes. It does not establish public acquisition or network-denied warm reuse.

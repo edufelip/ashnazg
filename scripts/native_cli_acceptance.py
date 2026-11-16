@@ -11,6 +11,7 @@ import json
 import os
 import queue
 import re
+import select
 import signal
 import socket
 import stat
@@ -31,6 +32,8 @@ SCHEMA_PATH = Path(__file__).resolve().parents[1] / "runtime/mcp-tools.schema.js
 MAX_FRAME_BYTES = 16 * 1024 * 1024
 MAX_STDOUT_BYTES = 32 * 1024 * 1024
 MAX_STDERR_BYTES = 64 * 1024
+MAX_PROCESS_OUTPUT_BYTES = 1024 * 1024
+MAX_PROCESS_ROWS = 16 * 1024
 REQUEST_TIMEOUT = 35.0
 STARTUP_TIMEOUT = 1250.0
 STARTUP_RETRY_INTERVAL = 2.0
@@ -129,6 +132,14 @@ def _credential_metadata(state_dir: Path) -> dict[str, Any]:
     return {"exists": identity is not None, "mode": identity["mode"] if identity else None}
 
 
+def _preserved_state_identities(before: dict[str, Any], after: dict[str, Any]) -> bool:
+    # Runtime receipts and serial logs are rewritten diagnostics. The directory,
+    # disk, ownership markers, locks, template, and any other retained files
+    # must keep their identities.
+    return all(after.get(name) == identity for name, identity in before.items()
+               if name not in {"runtime.json", "serial.log"})
+
+
 def _ports_closed() -> dict[str, bool | None]:
     result = {}
     for port in (15555, 7777, 17778):
@@ -144,20 +155,58 @@ def _ports_closed() -> dict[str, bool | None]:
     return result
 
 
+def _bounded_ps_output(ps_path: Path, *, seconds: float = 2.0,
+                       maximum: int = MAX_PROCESS_OUTPUT_BYTES) -> bytes | None:
+    child = None
+    deadline = time.monotonic() + seconds
+    try:
+        child = subprocess.Popen([str(ps_path), "-axo", "pid=,ppid=,comm="], stdin=subprocess.DEVNULL,
+                                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                 env={"PATH": "/usr/bin:/bin"})
+        assert child.stdout is not None
+        output = bytearray()
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or not select.select([child.stdout], [], [], remaining)[0]:
+                return None
+            chunk = os.read(child.stdout.fileno(), min(65536, maximum + 1 - len(output)))
+            if not chunk:
+                return bytes(output) if child.wait(timeout=max(0.001, deadline-time.monotonic())) == 0 else None
+            output.extend(chunk)
+            if len(output) > maximum:
+                return None
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return None
+    finally:
+        if child is not None:
+            if child.poll() is None:
+                try:
+                    child.kill()
+                except ProcessLookupError:
+                    pass
+            try:
+                child.wait(timeout=1)
+            finally:
+                if child.stdout is not None:
+                    child.stdout.close()
+
+
 def _process_descendants(parent_pid: int) -> dict[str, Any]:
-    """Return bounded PID/PPID/command metadata when a local ps is available."""
+    """Return complete bounded PID/PPID/command metadata or unavailable."""
     ps_path = next((candidate for candidate in (Path("/bin/ps"), Path("/usr/bin/ps")) if candidate.is_file()), None)
     if ps_path is None:
         return {"status": "unavailable", "processes": []}
     try:
-        result = subprocess.run([str(ps_path), "-axo", "pid=,ppid=,comm="], stdout=subprocess.PIPE,
-                                stderr=subprocess.DEVNULL, timeout=2, check=False, env={"PATH": "/usr/bin:/bin"})
+        output = _bounded_ps_output(ps_path)
     except (OSError, subprocess.TimeoutExpired):
+        output = None
+    if output is None or len(output) > MAX_PROCESS_OUTPUT_BYTES:
         return {"status": "unavailable", "processes": []}
-    if result.returncode or len(result.stdout) > 128 * 1024:
+    lines = output.decode("utf-8", "replace").splitlines()
+    if len(lines) > MAX_PROCESS_ROWS:
         return {"status": "unavailable", "processes": []}
     children: dict[int, list[tuple[int, str]]] = {}
-    for raw_line in result.stdout.decode("utf-8", "replace").splitlines()[:2048]:
+    for raw_line in lines:
         fields = raw_line.strip().split(None, 2)
         if len(fields) != 3:
             continue
@@ -170,11 +219,13 @@ def _process_descendants(parent_pid: int) -> dict[str, Any]:
     descendants = []
     frontier = [parent_pid]
     seen = {parent_pid}
-    while frontier and len(descendants) < 64:
+    while frontier:
         current = frontier.pop(0)
         for pid, command in children.get(current, []):
             if pid in seen:
                 continue
+            if len(descendants) >= 64:
+                return {"status": "unavailable", "processes": []}
             seen.add(pid)
             descendants.append({"pid": pid, "ppid": current, "command": command})
             frontier.append(pid)
@@ -700,6 +751,7 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
                 if any(value is not False for value in readiness["listeners_at_ready"].values()):
                     raise AcceptanceError("native session relays missing at readiness")
                 descendants = readiness["descendants_at_ready"]
+                receipt["process_inventory"] = descendants
                 if descendants["status"] != "available" or not any(
                         item["command"].startswith("ashnazg-vm") for item in descendants["processes"]) or not any(
                         item["command"] == "ashnazg" for item in descendants["processes"]):
@@ -891,8 +943,8 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
                           "at_ready": readiness.get("listeners_at_ready"),
                           "after": listeners_after,
                           "closed_after": listeners_after},
-            "state_identity_preserved": all(_tree_identity(state_dir).get(name) == identity
-                                             for name, identity in state_before.items()),
+            "state_identity_preserved": _preserved_state_identities(state_before, _tree_identity(state_dir)),
+            "mutable_state_diagnostics": ["runtime.json", "serial.log"],
             "state_after": _tree_identity(state_dir),
             "cache_identity_preserved": all(_tree_identity(cache_dir).get(name) == identity
                                              for name, identity in cache_before.items()),
