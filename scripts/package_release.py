@@ -9,7 +9,7 @@ import stat
 import zipfile
 from pathlib import Path
 
-VERSION = "0.1.0"
+VERSION = "0.3.0"
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 ARCHIVE_FILES = {
     "host_binary": "bin/ashnazg",
@@ -21,13 +21,19 @@ ARCHIVE_FILES = {
 
 
 def package_release(*, version, source_sha, platform, output, host_binary,
-                    agent_apk, fixture_apk, license_file, setup_file):
+                    agent_apk, fixture_apk, license_file, setup_file, vm_helper=None):
     if version != VERSION:
         raise ValueError(f"version must match this package release: {VERSION}")
     if not SHA_RE.fullmatch(source_sha):
         raise ValueError("source must be a full 40-character lowercase commit SHA")
-    if not re.fullmatch(r"(?:linux|macos)-(?:x86_64|aarch64)", platform):
+    if platform not in {"linux-x86_64", "linux-aarch64", "macos-x86_64", "macos-aarch64"}:
         raise ValueError("platform must identify the actual supported OS and architecture")
+    if platform.startswith("linux-") and vm_helper is not None:
+        raise ValueError("Linux packages must not include a VM helper")
+    if platform == "macos-x86_64" and vm_helper is not None:
+        raise ValueError("VM helper is only supported for macos-aarch64 packages")
+    if platform == "macos-aarch64" and vm_helper is None:
+        raise ValueError("macos-aarch64 packages require a VM helper")
 
     output = Path(output)
     payload = {}
@@ -38,6 +44,16 @@ def package_release(*, version, source_sha, platform, output, host_binary,
         if source.resolve() == output.resolve():
             raise ValueError(f"output cannot replace input file: {source}")
         payload[archive_name] = source.read_bytes()
+
+    if vm_helper is not None:
+        helper = Path(vm_helper)
+        if not helper.is_file() or helper.is_symlink():
+            raise FileNotFoundError(f"required regular file for vm_helper: {helper}")
+        if not helper.stat().st_mode & 0o111:
+            raise ValueError(f"VM helper must be executable: {helper}")
+        if helper.resolve() == output.resolve():
+            raise ValueError(f"output cannot replace input file: {helper}")
+        payload["bin/ashnazg-vm"] = helper.read_bytes()
 
     files = {
         name: {"sha256": hashlib.sha256(content).hexdigest(), "size": len(content)}
@@ -61,7 +77,8 @@ def package_release(*, version, source_sha, platform, output, host_binary,
         for name, content in sorted(payload.items()):
             info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
-            info.external_attr = (stat.S_IFREG | (0o755 if name == "bin/ashnazg" else 0o644)) << 16
+            executable = name in {"bin/ashnazg", "bin/ashnazg-vm"}
+            info.external_attr = (stat.S_IFREG | (0o755 if executable else 0o644)) << 16
             archive.writestr(info, content, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
     return output
 
@@ -74,6 +91,7 @@ def main():
     parser.add_argument("--output", required=True)
     for arg in ARCHIVE_FILES:
         parser.add_argument("--" + arg.replace("_", "-"), required=True)
+    parser.add_argument("--vm-helper")
     args = vars(parser.parse_args())
     package_release(**args)
 
