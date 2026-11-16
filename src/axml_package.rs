@@ -15,6 +15,15 @@ const NO_INDEX: u32 = u32::MAX;
 /// This deliberately validates framing and only strings referenced by the small
 /// subset of AXML used here. It is an inference helper, not Android's full parser.
 pub fn package_name(bytes: &[u8], deadline: Instant, cancel: &CancellationToken) -> Result<String> {
+    package_name_with_checkpoint(bytes, deadline, cancel, |_, _| {})
+}
+
+fn package_name_with_checkpoint(
+    bytes: &[u8],
+    deadline: Instant,
+    cancel: &CancellationToken,
+    mut checkpoint: impl FnMut(usize, &mut Work<'_>),
+) -> Result<String> {
     let mut work = Work {
         deadline,
         cancel,
@@ -309,6 +318,7 @@ pub fn package_name(bytes: &[u8], deadline: Instant, cancel: &CancellationToken)
             bail!("binary XML made no progress");
         }
         cursor = end;
+        checkpoint(chunks, &mut work);
     }
     work.check()?;
     if !root_seen || !root_closed || !tags.is_empty() || !namespaces.is_empty() {
@@ -695,6 +705,54 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    #[test]
+    fn missing_or_invalid_package_values_are_rejected() {
+        assert!(parse(&compiled(true, "manifest", &[], 1)).is_err());
+        for value in [
+            "",
+            "single",
+            "com..app",
+            "com.1app",
+            "com.app-evil",
+            "com.app\0evil",
+            "com.é",
+        ] {
+            assert!(parse(&compiled(true, "manifest", &[package_attr(value)], 1)).is_err());
+        }
+        let long = format!("com.{}", "a".repeat(252));
+        assert!(parse(&compiled(true, "manifest", &[package_attr(&long)], 1)).is_err());
+    }
+
+    #[test]
+    fn cancellation_and_expiry_during_scan_and_before_success_are_rejected() {
+        let bytes = compiled(true, "manifest", &[package_attr("org.example.app")], 1);
+        // Three chunks: string pool, root start, root end. Check both mid-scan
+        // interruption and interruption after the last chunk has been parsed.
+        for at in [1, 3] {
+            for expire in [false, true] {
+                let token = CancellationToken::new();
+                let mut observed = false;
+                let result = super::package_name_with_checkpoint(
+                    &bytes,
+                    Instant::now() + Duration::from_secs(2),
+                    &token,
+                    |chunk, work| {
+                        if chunk == at {
+                            observed = true;
+                            if expire {
+                                work.deadline = Instant::now();
+                            } else {
+                                token.cancel();
+                            }
+                        }
+                    },
+                );
+                assert!(observed);
+                assert!(result.is_err());
+            }
+        }
     }
 
     #[test]
