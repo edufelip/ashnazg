@@ -1,6 +1,7 @@
 import Foundation
 import Virtualization
 import Darwin
+import CryptoKit
 
 let stateMarker = ".ashnazg-owned-state-v1"
 
@@ -8,6 +9,10 @@ struct HelperOptions {
     var assets: URL?
     var stateDir: URL?
     var adbPort = 15555
+    var agentAPK: URL?
+    var agentSHA256: String?
+    var agentPort = 17777
+    var installPort = 17778
     var timeout = 300
     var validateOnly = false
     let diagnosticsEnabled: Bool
@@ -18,8 +23,8 @@ struct HelperOptions {
         while index < arguments.count {
             let flag = arguments[index]
             if flag == "--validate-only" { validateOnly = true; index += 1; continue }
-            guard ["--assets", "--state-dir", "--adb-port", "--timeout"].contains(flag), index + 1 < arguments.count else {
-                throw AssetError.invalid("invalid argument near \(flag); usage: ashnazg-vm --assets DIR --state-dir DIR [--adb-port PORT] [--timeout SECONDS] [--validate-only]")
+            guard ["--assets", "--state-dir", "--adb-port", "--timeout", "--agent-apk", "--agent-sha256", "--agent-port", "--install-port"].contains(flag), index + 1 < arguments.count else {
+                throw AssetError.invalid("invalid argument near \(flag); usage: ashnazg-vm --assets DIR --state-dir DIR [--adb-port PORT] [--timeout SECONDS] [--agent-apk PATH --agent-sha256 HEX [--agent-port PORT --install-port PORT]] [--validate-only]")
             }
             let value = arguments[index + 1]
             switch flag {
@@ -27,11 +32,18 @@ struct HelperOptions {
             case "--state-dir": stateDir = URL(fileURLWithPath: value).standardizedFileURL
             case "--adb-port": guard let parsed = Int(value), (1024...65535).contains(parsed) else { throw AssetError.invalid("--adb-port must be between 1024 and 65535") }; adbPort = parsed
             case "--timeout": guard let parsed = Int(value), (15...1800).contains(parsed) else { throw AssetError.invalid("--timeout must be between 15 and 1800 seconds") }; timeout = parsed
+            case "--agent-apk": agentAPK = URL(fileURLWithPath: value).standardizedFileURL
+            case "--agent-sha256": agentSHA256 = value
+            case "--agent-port": guard let parsed = Int(value), (1024...65535).contains(parsed) else { throw AssetError.invalid("--agent-port must be between 1024 and 65535") }; agentPort = parsed
+            case "--install-port": guard let parsed = Int(value), (1024...65535).contains(parsed) else { throw AssetError.invalid("--install-port must be between 1024 and 65535") }; installPort = parsed
             default: break
             }
             index += 2
         }
         guard assets != nil else { throw AssetError.invalid("missing --assets DIR; provide a verified kernel/rootfs bundle") }
+        guard (agentAPK == nil) == (agentSHA256 == nil) else { throw AssetError.invalid("--agent-apk and --agent-sha256 must be provided together") }
+        if let hash = agentSHA256 { guard isLowercaseSHA256(hash) else { throw AssetError.invalid("--agent-sha256 must be 64 lowercase hexadecimal characters") } }
+        guard Set([adbPort, agentPort, installPort]).count == 3 else { throw AssetError.invalid("ADB, agent and install ports must be pairwise distinct") }
     }
 }
 
@@ -39,6 +51,15 @@ struct StartupTimings: Encodable {
     var vm_start_ms: UInt64? = nil
     var readiness_ms: UInt64? = nil
     var total_startup_ms: UInt64
+    var agent_startup_ms: UInt64? = nil
+    private enum CodingKeys: String, CodingKey { case vm_start_ms, readiness_ms, total_startup_ms, agent_startup_ms }
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(vm_start_ms, forKey: .vm_start_ms)
+        try container.encodeIfPresent(readiness_ms, forKey: .readiness_ms)
+        try container.encode(total_startup_ms, forKey: .total_startup_ms)
+        try container.encodeIfPresent(agent_startup_ms, forKey: .agent_startup_ms)
+    }
 }
 
 struct RuntimeReceipt: Encodable {
@@ -55,14 +76,38 @@ struct RuntimeReceipt: Encodable {
     let rootfs_template_sha256: String?
     let timings: StartupTimings
     let error: String?
+    let session_id: String?
+    let agent_listen: String?
+    let install_listen: String?
+    let agent_apk_sha256: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case schema_version, status, architecture, cpu_count, memory_bytes, adb_listen, android_serial
+        case manifest_version, manifest_source_sha, kernel_sha256, rootfs_template_sha256, timings, error
+        case session_id, agent_listen, install_listen, agent_apk_sha256
+    }
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(schema_version, forKey: .schema_version); try container.encode(status, forKey: .status)
+        try container.encode(architecture, forKey: .architecture); try container.encode(cpu_count, forKey: .cpu_count)
+        try container.encode(memory_bytes, forKey: .memory_bytes); try container.encode(adb_listen, forKey: .adb_listen)
+        try container.encodeIfPresent(android_serial, forKey: .android_serial); try container.encodeIfPresent(manifest_version, forKey: .manifest_version)
+        try container.encodeIfPresent(manifest_source_sha, forKey: .manifest_source_sha); try container.encodeIfPresent(kernel_sha256, forKey: .kernel_sha256)
+        try container.encodeIfPresent(rootfs_template_sha256, forKey: .rootfs_template_sha256); try container.encode(timings, forKey: .timings)
+        try container.encodeIfPresent(error, forKey: .error); try container.encodeIfPresent(session_id, forKey: .session_id)
+        try container.encodeIfPresent(agent_listen, forKey: .agent_listen); try container.encodeIfPresent(install_listen, forKey: .install_listen)
+        try container.encodeIfPresent(agent_apk_sha256, forKey: .agent_apk_sha256)
+    }
 
     init(status: String, adbListen: String, assets: ValidatedAssets?, cpuCount: Int = VZConfigFactory.cpuCount,
          memorySize: UInt64 = VZConfigFactory.memorySize, serial: String? = nil,
-         timings: StartupTimings, error: String? = nil) {
+         timings: StartupTimings, error: String? = nil, sessionID: String? = nil,
+         agentListen: String? = nil, installListen: String? = nil, agentAPKSHA256: String? = nil) {
         self.status = status; self.adb_listen = adbListen; self.cpu_count = cpuCount; self.memory_bytes = memorySize
         self.android_serial = serial; self.manifest_version = assets?.manifest.version
         self.manifest_source_sha = assets?.manifest.source_sha; self.kernel_sha256 = assets?.kernelSHA256
         self.rootfs_template_sha256 = assets?.rootfsSHA256; self.timings = timings; self.error = error
+        self.session_id = sessionID; self.agent_listen = agentListen; self.install_listen = installListen; self.agent_apk_sha256 = agentAPKSHA256
     }
 }
 
@@ -331,6 +376,7 @@ func configureNoSIGPIPE(_ fd: Int32) {
 final class RelayServer {
     private let vm: VZVirtualMachine
     private let port: Int
+    private let guestPort: UInt32
     private let queue = DispatchQueue(label: "dev.ashnazg.adb-relay", qos: .userInitiated)
     private let activeLock = NSLock()
     private let listenerLock = NSLock()
@@ -340,7 +386,7 @@ final class RelayServer {
     private var activeFDs = Set<Int32>()
     private var stopped = false
     private var shuttingDown = false
-    init(vm: VZVirtualMachine, port: Int) { self.vm = vm; self.port = port }
+    init(vm: VZVirtualMachine, port: Int, guestPort: UInt32 = 15555) { self.vm = vm; self.port = port; self.guestPort = guestPort }
     func start() throws {
         listener = socket(AF_INET, SOCK_STREAM, 0)
         guard listener >= 0 else { throw AssetError.invalid("cannot create ADB listener socket") }
@@ -396,7 +442,7 @@ final class RelayServer {
         guard !isStopped() else { return }
         guard let socketDevice = vm.socketDevices.first as? VZVirtioSocketDevice else { return }
         do {
-            let connection = try await connect(to: socketDevice, port: 15555, deadline: StartupDeadline(after: .seconds(30)))
+            let connection = try await connect(to: socketDevice, port: guestPort, deadline: StartupDeadline(after: .seconds(30)))
             defer { connection.close() }
             let guestFD = connection.fileDescriptor; configureNoSIGPIPE(guestFD)
             guard register(guestFD) else { connection.close(); return }
@@ -406,18 +452,20 @@ final class RelayServer {
             DispatchQueue.global().async { Self.copy(guestFD, client); b.leave() }
             await withCheckedContinuation { continuation in
                 DispatchQueue.global().async {
-                    _ = a.wait(timeout: .now() + 1800)
-                    Darwin.shutdown(client, SHUT_RDWR); Darwin.shutdown(guestFD, SHUT_RDWR)
-                    _ = b.wait(timeout: .now() + 2); continuation.resume()
+                    _ = a.wait(timeout: .distantFuture)
+                    _ = b.wait(timeout: .distantFuture)
+                    continuation.resume()
                 }
             }
-        } catch { FileHandle.standardError.write(Data("ADB relay failed: \(error.localizedDescription)\n".utf8)) }
+        } catch { FileHandle.standardError.write(Data("agent relay failed\n".utf8)) }
     }
     private static func copy(_ source: Int32, _ destination: Int32) {
         var buffer = [UInt8](repeating: 0, count: 64 * 1024)
         while true {
             let count = Darwin.read(source, &buffer, buffer.count)
-            if count < 0 && errno == EINTR { continue }; guard count > 0 else { break }
+            if count < 0 && errno == EINTR { continue }
+            if count == 0 { _ = Darwin.shutdown(destination, SHUT_WR); return }
+            guard count > 0 else { _ = Darwin.shutdown(destination, SHUT_WR); return }
             let sentAll = buffer.withUnsafeBytes { raw -> Bool in
                 var offset = 0
                 while offset < count {
@@ -427,8 +475,14 @@ final class RelayServer {
                 }
                 return true
             }
-            if !sentAll { return }
+            if !sentAll { _ = Darwin.shutdown(destination, SHUT_WR); return }
         }
+    }
+    static func bridge(_ source: Int32, _ destination: Int32) {
+        let a = DispatchGroup(), b = DispatchGroup(); a.enter(); b.enter()
+        DispatchQueue.global().async { Self.copy(source, destination); a.leave() }
+        DispatchQueue.global().async { Self.copy(destination, source); b.leave() }
+        _ = a.wait(timeout: .distantFuture); _ = b.wait(timeout: .distantFuture)
     }
 }
 
@@ -469,17 +523,28 @@ func runHelper(_ options: HelperOptions) async throws {
     let deadline = StartupDeadline(after: .seconds(options.timeout))
     let signals = SignalController()
     let state = try OwnedState(statePath, assets: assets)
+    if options.agentAPK != nil { try OwnedAgentCredential.requireAbsent(stateDirectory: state.directory) }
     var timings = StartupTimings(total_startup_ms: 0)
     var readySerial: String?
+    var sessionID: String?
     let receipt = { (status: String, serial: String?, error: String?) -> RuntimeReceipt in
         timings.total_startup_ms = (DispatchTime.now().uptimeNanoseconds - start) / 1_000_000
-        return RuntimeReceipt(status: status, adbListen: "127.0.0.1:\(options.adbPort)", assets: assets, serial: serial, timings: timings, error: error)
+        let optedIn = options.agentAPK != nil
+        return RuntimeReceipt(status: status, adbListen: "127.0.0.1:\(options.adbPort)", assets: assets, serial: serial, timings: timings, error: error,
+                              sessionID: status == "agent_ready" || status == "stopped" ? sessionID : nil,
+                              agentListen: optedIn && (status == "agent_ready" || status == "stopped") ? "127.0.0.1:\(options.agentPort)" : nil,
+                              installListen: optedIn && (status == "agent_ready" || status == "stopped") ? "127.0.0.1:\(options.installPort)" : nil,
+                              agentAPKSHA256: optedIn ? options.agentSHA256 : nil)
     }
     var vm: VZVirtualMachine?
-    var relay: RelayServer?
+    var relays: [RelayServer] = []
+    var credential: OwnedAgentCredential?
+    var monitor: VMMonitor?
+    var openedAPK: OpenedAgentAPK?
     var readHandle: FileHandle?
     var writeHandle: FileHandle?
     do {
+        if let path = options.agentAPK, let hash = options.agentSHA256 { openedAPK = try OpenedAgentAPK(path: path, expectedSHA256: hash) }
         try state.writeReceipt(receipt("starting", nil, nil))
         let log = try SerialLog(url: state.serial)
         let pipeHandles = Pipe().fileHandlePair
@@ -490,7 +555,7 @@ func runHelper(_ options: HelperOptions) async throws {
         let configuration = try VZConfigFactory.make(assets: assets, disk: state.disk, serialAttachment: attachment, diagnosticsEnabled: options.diagnosticsEnabled)
         vm = VZVirtualMachine(configuration: configuration)
         let machine = vm!
-        let stopped = DispatchSemaphore(value: 0); let monitor = VMMonitor(stoppedSignal: stopped); machine.delegate = monitor
+        let stopped = DispatchSemaphore(value: 0); let activeMonitor = VMMonitor(stoppedSignal: stopped); monitor = activeMonitor; machine.delegate = activeMonitor
         let vmStartStart = DispatchTime.now().uptimeNanoseconds
         try await startVM(machine, deadline: deadline, signals: signals)
         timings.vm_start_ms = (DispatchTime.now().uptimeNanoseconds - vmStartStart) / 1_000_000
@@ -501,7 +566,7 @@ func runHelper(_ options: HelperOptions) async throws {
         while androidSerial == nil {
             try signals.throwIfSignalled()
             guard !deadline.isExpired else { throw AssetError.invalid("guest did not become ready within \(options.timeout)s: \(lastError)") }
-            if machine.state == .error || machine.state == .stopped { throw AssetError.invalid(monitor.error ?? "virtual machine stopped before guest readiness") }
+            if machine.state == .error || machine.state == .stopped { throw AssetError.invalid(activeMonitor.error ?? "virtual machine stopped before guest readiness") }
             do {
                 let connection = try await connect(to: socket, deadline: deadline, signals: signals)
                 defer { connection.close() }
@@ -518,23 +583,57 @@ func runHelper(_ options: HelperOptions) async throws {
         timings.readiness_ms = (DispatchTime.now().uptimeNanoseconds - readyStart) / 1_000_000
         guard let serial = androidSerial else { throw AssetError.invalid("guest readiness ended without a serial") }
         readySerial = serial
-        let server = RelayServer(vm: machine, port: options.adbPort); relay = server; try server.start()
-        try state.writeReceipt(receipt("ready", serial, nil))
-        print(try JSONEncoder.sorted.encode(receipt("ready", serial, nil)).asUTF8()); fflush(stdout)
+        let server = RelayServer(vm: machine, port: options.adbPort); try server.start(); relays.append(server)
+        var finalStatus = "ready"
+        if options.agentAPK != nil {
+            let agentStart = DispatchTime.now().uptimeNanoseconds
+            guard let apk = openedAPK else { throw AssetError.invalid("agent APK was not safely opened") }
+            let identity = try makeAgentSessionIdentity(); sessionID = identity.sessionID
+            let preparationBudget = min(180_000, deadline.remainingMilliseconds)
+            guard preparationBudget > 0 else { throw AssetError.invalid("agent preparation deadline expired") }
+            let preparationDeadline = StartupDeadline(after: .milliseconds(preparationBudget))
+            let control = try await connect(to: socket, port: 10777, deadline: preparationDeadline, signals: signals)
+            do { configureNoSIGPIPE(control.fileDescriptor); try sendAgentPrepare(fd: control.fileDescriptor, apk: apk, identity: identity, wholeDeadline: preparationDeadline, signals: signals) }
+            catch { control.close(); throw error }
+            control.close()
+            let agentRelay = RelayServer(vm: machine, port: options.agentPort, guestPort: 17777)
+            try agentRelay.start(); relays.append(agentRelay)
+            let installRelay = RelayServer(vm: machine, port: options.installPort, guestPort: 17778)
+            try installRelay.start(); relays.append(installRelay)
+            let credentialValue = AgentSessionCredentials(session_id: identity.sessionID, helper_pid: getpid(),
+                                                          manifest_source_sha: assets.manifest.source_sha,
+                                                          agent_apk_sha256: apk.sha256, rpc_token: identity.rpcToken,
+                                                          install_token: identity.installToken,
+                                                          agent_listen: "127.0.0.1:\(options.agentPort)",
+                                                          install_listen: "127.0.0.1:\(options.installPort)")
+            credential = try OwnedAgentCredential(stateDirectory: state.directory, credentials: credentialValue)
+            timings.agent_startup_ms = (DispatchTime.now().uptimeNanoseconds - agentStart) / 1_000_000
+            finalStatus = "agent_ready"
+        }
+        try state.writeReceipt(receipt(finalStatus, serial, nil))
+        print(try JSONEncoder.sorted.encode(receipt(finalStatus, serial, nil)).asUTF8()); fflush(stdout)
         while !signals.isSignalled {
-            if let failure = monitor.error { throw AssetError.invalid("virtual machine stopped with an error: \(failure)") }
-            if monitor.stoppedByGuest { throw AssetError.invalid("guest shut down while ash nazg was supervising it") }
+            if let failure = activeMonitor.error { throw AssetError.invalid("virtual machine stopped with an error: \(failure)") }
+            if activeMonitor.stoppedByGuest { throw AssetError.invalid("guest shut down while ash nazg was supervising it") }
             try await Task.sleep(for: .milliseconds(100))
         }
-        server.close()
-        guard await server.waitForDrain() else { throw AssetError.invalid("ADB relay did not drain during shutdown") }
-        relay = nil
-        try await shutdownGuest(machine, monitor: monitor)
+        for relay in relays { relay.close() }
+        for relay in relays { guard await relay.waitForDrain() else { throw AssetError.invalid("runtime relay did not drain during shutdown") } }
+        relays.removeAll()
+        try await shutdownGuest(machine, monitor: activeMonitor)
+        try credential?.removeOwned(); credential = nil
+        openedAPK?.close(); openedAPK = nil
         try state.writeReceipt(receipt("stopped", serial, nil))
         readHandle?.readabilityHandler = nil; try? writeHandle?.close(); try? readHandle?.close(); state.close()
     } catch {
-        relay?.close()
-        if let server = relay { _ = await server.waitForDrain() }
+        for relay in relays { relay.close() }
+        for relay in relays { _ = await relay.waitForDrain() }
+        relays.removeAll()
+        if let machine = vm, let activeMonitor = monitor, machine.canStop, activeMonitor.error == nil, !activeMonitor.stoppedByGuest {
+            try? await shutdownGuest(machine, monitor: activeMonitor)
+        }
+        try? credential?.removeOwned(); credential = nil
+        openedAPK?.close(); openedAPK = nil
         readHandle?.readabilityHandler = nil; try? writeHandle?.close(); try? readHandle?.close()
         if let machine = vm, machine.canStop { try? await stopVM(machine) }
         try? state.writeReceipt(receipt("failed", readySerial, error.localizedDescription))
