@@ -141,6 +141,19 @@ class RuntimeSourcesTests(unittest.TestCase):
         self.assertNotIn("secret", str(caught.exception))
         response.read.assert_not_called()
 
+    def test_download_http_failure_identifies_input_without_response_or_url(self):
+        record = {"filename": "protocols-6.4", "size": 3144,
+                  "url": "https://example.invalid/raw?token=never-log-this"}
+        body = io.BytesIO(b"private response must not be reported")
+        error = urllib.error.HTTPError(record["url"], 418, "private response reason", {}, body)
+        with mock.patch("scripts.runtime_sources.urllib.request.build_opener") as opener:
+            opener.return_value.open.side_effect = error
+            with self.assertRaisesRegex(ValueError, r"HTTP 418.*protocols-6.4") as caught:
+                _download(record, remaining=5000, deadline=time.monotonic() + 10)
+        self.assertNotIn("private", str(caught.exception))
+        self.assertNotIn("token", str(caught.exception))
+        self.assertTrue(body.closed)
+
     def test_download_still_requires_both_locked_digests(self):
         payload = b"pinned upstream bytes"
         record = {"filename": "source.txt", "size": len(payload),
@@ -196,6 +209,14 @@ class RuntimeSourcesTests(unittest.TestCase):
                 self.assertNotIn("/private/tmp/", value)
                 self.assertNotIn("/var/folders/", value)
         assert_portable(lock)
+
+    def test_pinned_sources_use_verified_official_distfiles(self):
+        lock = json.loads(Path("runtime/microvm/sources.lock.json").read_text())
+        for record in lock["source_inputs"]:
+            with self.subTest(filename=record["filename"]):
+                self.assertEqual(record["url"], "https://distfiles.alpinelinux.org/distfiles/v3.22/"
+                                 + record["filename"])
+                self.assertIn("initial_url", record)
 
     def test_source_sidecar_is_deterministic_and_includes_bound_material(self):
         repo, assets, cache, vendor, lock, _, source_sha = _fixture(self.root)
