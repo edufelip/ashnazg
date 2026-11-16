@@ -31,6 +31,8 @@ SCHEMA_PATH = Path(__file__).resolve().parents[1] / "runtime/mcp-tools.schema.js
 MAX_FRAME_BYTES = 16 * 1024 * 1024
 MAX_STDOUT_BYTES = 32 * 1024 * 1024
 MAX_STDERR_BYTES = 64 * 1024
+MAX_PROCESS_OUTPUT_BYTES = 1024 * 1024
+MAX_PROCESS_ROWS = 16 * 1024
 REQUEST_TIMEOUT = 35.0
 STARTUP_TIMEOUT = 1250.0
 STARTUP_RETRY_INTERVAL = 2.0
@@ -154,10 +156,13 @@ def _process_descendants(parent_pid: int) -> dict[str, Any]:
                                 stderr=subprocess.DEVNULL, timeout=2, check=False, env={"PATH": "/usr/bin:/bin"})
     except (OSError, subprocess.TimeoutExpired):
         return {"status": "unavailable", "processes": []}
-    if result.returncode or len(result.stdout) > 128 * 1024:
+    if result.returncode or len(result.stdout) > MAX_PROCESS_OUTPUT_BYTES:
+        return {"status": "unavailable", "processes": []}
+    lines = result.stdout.decode("utf-8", "replace").splitlines()
+    if len(lines) > MAX_PROCESS_ROWS:
         return {"status": "unavailable", "processes": []}
     children: dict[int, list[tuple[int, str]]] = {}
-    for raw_line in result.stdout.decode("utf-8", "replace").splitlines()[:2048]:
+    for raw_line in lines:
         fields = raw_line.strip().split(None, 2)
         if len(fields) != 3:
             continue
@@ -170,11 +175,13 @@ def _process_descendants(parent_pid: int) -> dict[str, Any]:
     descendants = []
     frontier = [parent_pid]
     seen = {parent_pid}
-    while frontier and len(descendants) < 64:
+    while frontier:
         current = frontier.pop(0)
         for pid, command in children.get(current, []):
             if pid in seen:
                 continue
+            if len(descendants) >= 64:
+                return {"status": "unavailable", "processes": []}
             seen.add(pid)
             descendants.append({"pid": pid, "ppid": current, "command": command})
             frontier.append(pid)
@@ -700,6 +707,7 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
                 if any(value is not False for value in readiness["listeners_at_ready"].values()):
                     raise AcceptanceError("native session relays missing at readiness")
                 descendants = readiness["descendants_at_ready"]
+                receipt["process_inventory"] = descendants
                 if descendants["status"] != "available" or not any(
                         item["command"].startswith("ashnazg-vm") for item in descendants["processes"]) or not any(
                         item["command"] == "ashnazg" for item in descendants["processes"]):

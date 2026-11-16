@@ -15,6 +15,33 @@ import native_cli_acceptance as acceptance
 ORIGINAL_VERIFY_CANDIDATE = acceptance._verified_candidate
 
 
+class ProcessInventoryTests(unittest.TestCase):
+    def test_inventory_preserves_descendants_after_large_unrelated_prefix(self):
+        rows = [f"{pid} 1 /unrelated/" + "x" * 90 for pid in range(1, 3001)]
+        rows += ["50001 50000 /owned/bin/ashnazg", "50002 50000 /owned/ashnazg-vm-v0.3.0-macos-aarch64"]
+        result = acceptance.subprocess.CompletedProcess([], 0, ("\n".join(rows) + "\n").encode())
+        self.assertGreater(len(result.stdout), 128 * 1024)
+        with patch.object(acceptance.subprocess, "run", return_value=result):
+            inventory = acceptance._process_descendants(50000)
+        self.assertEqual(inventory, {"status": "available", "processes": [
+            {"pid": 50001, "ppid": 50000, "command": "ashnazg"},
+            {"pid": 50002, "ppid": 50000, "command": "ashnazg-vm-v0.3.0-macos-aarch64"},
+        ]})
+
+    def test_inventory_refuses_rows_beyond_its_bound(self):
+        result = acceptance.subprocess.CompletedProcess([], 0, b"1 0 x\n" * (16 * 1024 + 1))
+        with patch.object(acceptance.subprocess, "run", return_value=result):
+            inventory = acceptance._process_descendants(50000)
+        self.assertEqual(inventory["status"], "unavailable")
+
+    def test_inventory_refuses_an_oversized_owned_process_tree(self):
+        rows = [f"{pid} 50000 child" for pid in range(50001, 50066)]
+        result = acceptance.subprocess.CompletedProcess([], 0, ("\n".join(rows) + "\n").encode())
+        with patch.object(acceptance.subprocess, "run", return_value=result):
+            inventory = acceptance._process_descendants(50000)
+        self.assertEqual(inventory["status"], "unavailable")
+
+
 def png(value):
     def chunk(kind, body):
         return struct.pack('>I', len(body)) + kind + body + struct.pack('>I', zlib.crc32(kind + body) & 0xffffffff)
