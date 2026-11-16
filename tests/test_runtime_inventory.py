@@ -155,6 +155,13 @@ class RuntimeInventoryTests(unittest.TestCase):
             with self.subTest(final=final):
                 self.assertEqual(self.build(final, base)["metadata_status"], "incomplete")
 
+    def test_rejects_two_installed_versions_of_the_same_package(self):
+        ambiguous_base = db(record("x", "1-r0"), record("x", "2-r0"))
+        result = self.build(db(record("x", "1-r0"), record("x", "2-r0"), record("z", "2-r0")),
+                            ambiguous_base, [locked("z", "2-r0")])
+        self.assertEqual(result["metadata_status"], "incomplete")
+        self.assertTrue(any(i["code"] == "duplicate_package_record" for i in result["issues"]))
+
     def test_file_list_is_not_source_metadata_and_missing_fields_are_explicit(self):
         incomplete = record("partial", origin=None, commit=None, license=None, url=None, build_time=None,
                             files=("fake/main/recipe-version", "usr/share/doc/NOTICE"))

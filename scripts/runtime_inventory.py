@@ -137,6 +137,7 @@ def _parse_db(raw, source_label, issues):
         return []
     records = []
     seen_identity = set()
+    seen_names = set()
     for index, block in enumerate(re.split(r"\n[\t ]*\n", text), start=1):
         if not block.strip():
             if source_label == "final" and not records and index == 1:
@@ -175,10 +176,11 @@ def _parse_db(raw, source_label, issues):
         if not PACKAGE_NAME_RE.fullmatch(identity[0]) or not PACKAGE_VERSION_RE.fullmatch(identity[1]) or identity[2] not in {"aarch64", "noarch"}:
             issues.append(_issue("invalid_identity", f"{source_label} database record {index} has invalid package identity"))
             continue
-        if identity in seen_identity:
+        if identity in seen_identity or identity[0] in seen_names:
             issues.append(_issue("duplicate_package_record", f"{source_label} database repeats package identity {identity[0]} {identity[1]} {identity[2]}"))
             continue
         seen_identity.add(identity)
+        seen_names.add(identity[0])
         raw_header = {key: (values[0] if len(values) == 1 else values) for key, values in sorted(fields.items())}
         package = {
             "name": identity[0], "version": identity[1], "architecture": identity[2],
