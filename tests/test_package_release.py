@@ -20,6 +20,7 @@ class PackageReleaseTests(unittest.TestCase):
             "fixture": b"fixture apk",
             "license": b"MIT license",
             "setup": b"Install instructions",
+            "notices": b"Dependency original notice texts",
         }.items():
             path = self.root / name
             path.write_bytes(content)
@@ -45,6 +46,7 @@ class PackageReleaseTests(unittest.TestCase):
             fixture_apk=values["fixture"],
             license_file=values["license"],
             setup_file=values["setup"],
+            third_party_notices=values["notices"],
         )
 
     def test_missing_input_is_rejected_before_archive_creation(self):
@@ -62,6 +64,7 @@ class PackageReleaseTests(unittest.TestCase):
                 {
                     "LICENSE",
                     "README-SETUP.md",
+                    "THIRD-PARTY-NOTICES.tar.xz",
                     "bin/ashnazg",
                     "android/agent-instrumentation.apk",
                     "android/fixture-instrumentation.apk",
@@ -100,13 +103,13 @@ class PackageReleaseTests(unittest.TestCase):
             package_release(version="0.1.0", source_sha="a" * 40, platform="linux-x86_64",
                             output=self.root / "other.zip", host_binary=self.inputs["host"],
                             agent_apk=self.inputs["agent"], fixture_apk=self.inputs["fixture"],
-                            license_file=self.inputs["license"], setup_file=self.inputs["setup"])
+                            license_file=self.inputs["license"], setup_file=self.inputs["setup"], third_party_notices=self.inputs["notices"])
         with self.assertRaisesRegex(ValueError, "source"):
             package_release(version="0.3.0", source_sha="not-a-sha", platform="linux-x86_64",
                             output=self.root / "other.zip", host_binary=self.inputs["host"],
                             vm_helper=None,
                             agent_apk=self.inputs["agent"], fixture_apk=self.inputs["fixture"],
-                            license_file=self.inputs["license"], setup_file=self.inputs["setup"])
+                            license_file=self.inputs["license"], setup_file=self.inputs["setup"], third_party_notices=self.inputs["notices"])
 
     def test_linux_package_rejects_vm_helper(self):
         for platform in ("linux-x86_64", "linux-aarch64"):

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import errno
 import hashlib
 import json
 import os
@@ -128,15 +129,16 @@ def _credential_metadata(state_dir: Path) -> dict[str, Any]:
     return {"exists": identity is not None, "mode": identity["mode"] if identity else None}
 
 
-def _ports_closed() -> dict[str, bool]:
+def _ports_closed() -> dict[str, bool | None]:
     result = {}
     for port in (15555, 7777, 17778):
         sock = socket.socket()
         sock.settimeout(0.15)
         try:
-            result[str(port)] = sock.connect_ex(("127.0.0.1", port)) != 0
+            code = sock.connect_ex(("127.0.0.1", port))
+            result[str(port)] = False if code == 0 else True if code == errno.ECONNREFUSED else None
         except OSError:
-            result[str(port)] = True
+            result[str(port)] = None
         finally:
             sock.close()
     return result
@@ -188,8 +190,10 @@ def _pids_alive(processes: list[dict[str, Any]]) -> list[dict[str, Any]]:
         try:
             os.kill(pid, 0)
             alive = True
-        except OSError:
+        except ProcessLookupError:
             alive = False
+        except OSError:
+            alive = True
         results.append({"pid": pid, "command": process.get("command", ""), "alive": alive})
     return results
 
@@ -693,7 +697,7 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
                 readiness["listeners_at_ready"] = _ports_closed()
                 if readiness["credential_at_ready"] != {"exists": True, "mode": 0o600}:
                     raise AcceptanceError("native session credential missing or unsafe at readiness")
-                if any(readiness["listeners_at_ready"].values()):
+                if any(value is not False for value in readiness["listeners_at_ready"].values()):
                     raise AcceptanceError("native session relays missing at readiness")
                 descendants = readiness["descendants_at_ready"]
                 if descendants["status"] != "available" or not any(
@@ -893,7 +897,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"status": "passed", "receipt": str(args.output_dir / "receipt.json")}))
         return 0
     except Exception as exc:
-        print(bounded_text(str(exc)), file=sys.stderr)
+        print(sanitize(bounded_text(str(exc))), file=sys.stderr)
         return 1
 
 

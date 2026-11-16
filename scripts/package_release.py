@@ -17,11 +17,12 @@ ARCHIVE_FILES = {
     "fixture_apk": "android/fixture-instrumentation.apk",
     "license_file": "LICENSE",
     "setup_file": "README-SETUP.md",
+    "third_party_notices": "THIRD-PARTY-NOTICES.tar.xz",
 }
 
 
 def package_release(*, version, source_sha, platform, output, host_binary,
-                    agent_apk, fixture_apk, license_file, setup_file, vm_helper=None):
+                    agent_apk, fixture_apk, license_file, setup_file, third_party_notices, vm_helper=None):
     if version != VERSION:
         raise ValueError(f"version must match this package release: {VERSION}")
     if not SHA_RE.fullmatch(source_sha):

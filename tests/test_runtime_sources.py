@@ -216,6 +216,30 @@ class RuntimeSourcesTests(unittest.TestCase):
             build_source_sidecar(assets, repo, case / "binding.tar.xz", "0.3.0", source_sha,
                                  cache, vendor, lock)
 
+    def test_unrelated_source_group_is_rejected_even_with_unchanged_counts(self):
+        repo, assets, cache, vendor, lock, _, source_sha = _fixture(self.root)
+        data = json.loads(lock.read_text())
+        data['source_inputs'][0]['origin'] = 'unrelated'
+        lock.write_text(json.dumps(data))
+        with self.assertRaisesRegex(ValueError, 'source input.*group'):
+            build_source_sidecar(assets, repo, self.root / 'out.tar.xz', '0.3.0', source_sha, cache, vendor, lock)
+
+    def test_cached_input_budget_is_checked_before_reading(self):
+        import scripts.runtime_sources as module
+        record = {'size': 10, 'cache_path': 'source.bin'}
+        (self.root / 'source.bin').write_bytes(b'x' * 10)
+        with mock.patch.object(module, '_regular_bytes', side_effect=AssertionError('must not read')):
+            with self.assertRaisesRegex(ValueError, 'aggregate|budget'):
+                module._cached_or_download(self.root, record, remaining=1, deadline=0)
+
+    def test_source_sidecar_refuses_to_replace_caller_output(self):
+        repo, assets, cache, vendor, lock, _, source_sha = _fixture(self.root)
+        output = self.root / 'caller-output.tar.xz'
+        output.write_bytes(b'caller bytes')
+        with self.assertRaises((ValueError, FileExistsError)):
+            build_source_sidecar(assets, repo, output, '0.3.0', source_sha, cache, vendor, lock)
+        self.assertEqual(output.read_bytes(), b'caller bytes')
+
     def test_vendor_hash_or_lock_checksum_mismatch_is_rejected(self):
         repo, _, _, vendor, _, _, _ = _fixture(self.root)
         (vendor / "serde-1.0.0" / "Cargo.toml").write_text("tampered")

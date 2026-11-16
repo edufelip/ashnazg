@@ -9,6 +9,8 @@ on:
       - scripts/runtime_catalog.py
       - scripts/runtime_release.py
       - scripts/runtime_sources.py
+      - scripts/rust_notices.py
+      - tests/test_rust_notices.py
       - scripts/native_cli_acceptance.py
       - tests/test_native_cli_acceptance.py
       - examples/stage_runtime_candidate.rs
@@ -207,6 +209,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir release-files
+          cargo vendor --locked "$RUNNER_TEMP/notice-vendor" > "$RUNNER_TEMP/notice-vendor-config.toml"
+          python3 scripts/rust_notices.py --vendor "$RUNNER_TEMP/notice-vendor" --cargo-lock Cargo.lock \
+            --output "$RUNNER_TEMP/THIRD-PARTY-NOTICES.tar.xz"
           helper_args=()
           case "$(uname -s):$(uname -m)" in
             Linux:x86_64) platform=linux-x86_64 ;;
@@ -221,7 +226,8 @@ jobs:
             --output "release-files/ashnazg-v0.3.0-$platform.zip" --host-binary target/release/ashnazg \
             --agent-apk android-apks/agent/build/outputs/apk/debug/agent-debug.apk \
             --fixture-apk android-apks/fixture/build/outputs/apk/debug/fixture-debug.apk \
-            --license-file LICENSE --setup-file docs/releases.md "${helper_args[@]}"
+            --license-file LICENSE --setup-file docs/releases.md \
+            --third-party-notices "$RUNNER_TEMP/THIRD-PARTY-NOTICES.tar.xz" "${helper_args[@]}"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-${{ matrix.os }}

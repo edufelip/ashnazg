@@ -1,4 +1,16 @@
 {
+  "archive_free_groups": [
+    {
+      "commit": "dd94d896d312c363b34d0f13970fde25def57bb1",
+      "origin": "alpine-base",
+      "reason": "Package source consists of pinned recipe/support inputs; no remote source archive is declared."
+    },
+    {
+      "commit": "6d473fb38effb2389f567b29fb7eb27039b3a279",
+      "origin": "alpine-keys",
+      "reason": "Package source consists of pinned recipe/support inputs; no remote source archive is declared."
+    }
+  ],
   "collected_from": {
     "rootfs_sha256": "f1ac1fbf6b498a03841154448e394cba15effb1e300de08e5a3d71f6439890ee",
     "runtime_components_sha256": "07bda6e9667ef29a422d02b6e6cbd2b2ddb8f86ddfb3255ed2d03df6af7733da",

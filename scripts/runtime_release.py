@@ -37,7 +37,7 @@ GUEST_MEMBERS = {
     "provenance.json",
 }
 ZIP_BASE_MEMBERS = {
-    "LICENSE", "README-SETUP.md", "android/agent-instrumentation.apk",
+    "LICENSE", "README-SETUP.md", "THIRD-PARTY-NOTICES.tar.xz", "android/agent-instrumentation.apk",
     "android/fixture-instrumentation.apk", "bin/ashnazg",
 }
 

@@ -12,6 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import native_cli_acceptance as acceptance
+ORIGINAL_VERIFY_CANDIDATE = acceptance._verified_candidate
 
 
 def png(value):
@@ -268,6 +269,28 @@ class NativeCliAcceptanceTests(unittest.TestCase):
         code, _ = self.run_driver()
         self.assertNotEqual(code, 0)
         self.assertEqual(stat.S_IMODE(self.home.stat().st_mode), 0o755)
+
+    def test_candidate_provenance_must_match_exact_tested_binary_and_apk(self):
+        import zipfile
+        candidate = self.root / 'verified-candidate'
+        candidate.mkdir()
+        binary_bytes = self.binary.read_bytes()
+        metadata = {"files": {"bin/ashnazg": {"size": len(binary_bytes), "sha256": acceptance.sha256_bytes(binary_bytes)}}}
+        with zipfile.ZipFile(candidate / 'ashnazg-v0.3.0-macos-aarch64.zip', 'w') as archive:
+            archive.writestr('manifest.json', json.dumps(metadata))
+        (candidate / 'ashnazg-runtime-v0.3.0.json').write_text(json.dumps({"artifacts": {"fixture": {
+            "size": self.apk.stat().st_size, "sha256": acceptance.sha256_file(self.apk)}}}))
+        (candidate / 'candidate.json').write_text('{}')
+        with patch('runtime_release.verify_release', return_value=True):
+            proof = ORIGINAL_VERIFY_CANDIDATE(candidate, self.binary, self.apk, 'a' * 40)
+            self.assertEqual(proof['candidate_sha256'], acceptance.sha256_bytes(b'{}'))
+            self.binary.write_bytes(binary_bytes + b'changed')
+            with self.assertRaisesRegex(acceptance.AcceptanceError, 'binary differs'):
+                ORIGINAL_VERIFY_CANDIDATE(candidate, self.binary, self.apk, 'a' * 40)
+            self.binary.write_bytes(binary_bytes)
+            self.apk.write_bytes(b'changed APK')
+            with self.assertRaisesRegex(acceptance.AcceptanceError, 'fixture differs'):
+                ORIGINAL_VERIFY_CANDIDATE(candidate, self.binary, self.apk, 'a' * 40)
 
     def test_png_rgb_and_opaque_rgba_have_identical_normalized_pixels(self):
         def chunk(kind, body):

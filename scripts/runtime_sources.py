@@ -412,6 +412,8 @@ def _verify_record_bytes(record, data):
 
 
 def _cached_or_download(cache_root, record, *, remaining, deadline):
+    if record["size"] > remaining:
+        raise ValueError("source input exceeds remaining aggregate budget")
     path = _cache_file(cache_root, record.get("cache_path"))
     try:
         info = path.lstat()
@@ -633,19 +635,22 @@ def _validate_installed_db(raw, inventory):
         raise ValueError("installed APK database package/source metadata differs from component inventory")
 
 
-def _collect_project(repo_root, source_sha):
+def _collect_project(repo_root, source_sha, *, remaining=MAX_TOTAL_BYTES):
     repo_root = Path(repo_root)
     if not SOURCE_SHA_RE.fullmatch(source_sha):
         raise ValueError("--source-sha must be a full lowercase Git commit SHA")
+    raw = tempfile.TemporaryFile()
     try:
-        raw = subprocess.run(["git", "-C", str(repo_root), "archive", "--format=tar", source_sha],
-                             check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60).stdout
+        subprocess.run(["git", "-C", str(repo_root), "archive", "--format=tar", source_sha],
+                       check=True, stdout=raw, stderr=subprocess.DEVNULL, timeout=60)
+        raw.seek(0)
     except (OSError, subprocess.SubprocessError) as error:
+        raw.close()
         raise ValueError("could not produce project source archive for requested full SHA") from error
     result, modes = {}, {}
     total_bytes = 0
     try:
-        with tarfile.open(fileobj=__import__("io").BytesIO(raw), mode="r:") as archive:
+        with tarfile.open(fileobj=raw, mode="r:") as archive:
             for member in archive:
                 path = _safe_relpath(member.name, max_parts=32)
                 if member.isdir():
@@ -654,6 +659,8 @@ def _collect_project(repo_root, source_sha):
                     raise ValueError("project source includes a non-regular member: " + path)
                 if member.size > MAX_INPUT_BYTES:
                     raise ValueError("project source file exceeds input size bound")
+                if member.size > remaining - total_bytes:
+                    raise ValueError("project source exceeds remaining aggregate budget")
                 stream = archive.extractfile(member)
                 data = stream.read(MAX_INPUT_BYTES + 1) if stream else b""
                 if len(data) != member.size:
@@ -667,15 +674,20 @@ def _collect_project(repo_root, source_sha):
                     raise ValueError("project source exceeds file count bound")
     except (tarfile.TarError, OSError) as error:
         raise ValueError("invalid git archive output") from error
+    finally:
+        raw.close()
     if not result or "LICENSE" not in result:
         raise ValueError("exact Git source archive is empty or has no project LICENSE")
     return result, modes
 
 
-def _collect_rust_vendor(vendor_dir, cargo_lock_bytes):
+def _collect_rust_vendor(vendor_dir, cargo_lock_bytes, *, remaining=MAX_TOTAL_BYTES):
     cargo_lock = validate_rust_vendor(vendor_dir, cargo_lock_bytes)
     root = Path(vendor_dir)
     files = {"rust-vendor/Cargo.lock": cargo_lock}
+    total = len(cargo_lock)
+    if total > remaining:
+        raise ValueError("Rust vendor exceeds remaining aggregate budget")
     for package_dir in sorted(root.iterdir(), key=lambda p: p.name):
         checksum_path = package_dir / ".cargo-checksum.json"
         checksum = json.loads(_regular_bytes(checksum_path, maximum=4 * 1024 * 1024).decode("utf-8", "strict"))
@@ -686,7 +698,10 @@ def _collect_rust_vendor(vendor_dir, cargo_lock_bytes):
                 path = Path(directory) / name
                 rel = path.relative_to(root).as_posix()
                 _safe_relpath(rel, max_parts=32)
+                if path.lstat().st_size > remaining - total:
+                    raise ValueError("Rust vendor exceeds remaining aggregate budget")
                 data = _regular_bytes(path, maximum=MAX_INPUT_BYTES)
+                total += len(data)
                 if path != checksum_path and _hash_bytes(data) != checksum.get("files", {}).get(path.relative_to(package_dir).as_posix()):
                     raise ValueError("Cargo vendor file changed after checksum validation: " + rel)
                 files["rust-vendor/" + rel] = data
@@ -732,9 +747,22 @@ def build_source_sidecar(assets_dir, repo_root, output, version, source_sha,
     locked_pairs = {(x.get("origin"), x.get("commit")) for x in lock.get("groups", [])}
     if locked_pairs != set(actual_groups):
         raise ValueError("source lock origin/commit groups do not match guest inventory")
+    archive_free = {(x.get("origin"), x.get("commit")) for x in lock.get("archive_free_groups", [])}
+    if not archive_free <= locked_pairs:
+        raise ValueError("archive-free source group is not installed")
+    for kind, records, name_fn, expected_pairs in (
+        ("source input", lock["source_inputs"], _source_member_name, locked_pairs - archive_free),
+        ("recipe input", lock["recipe_files"], _recipe_member_name, locked_pairs),
+    ):
+        pairs = {_validate_record(record, kind) for record in records}
+        if pairs != expected_pairs:
+            raise ValueError(kind + " groups do not cover the exact installed source groups")
+        names = [name_fn(record) for record in records]
+        if len(names) != len(set(names)):
+            raise ValueError(kind + " records repeat an archive destination")
     input_root = Path(input_dir) if input_dir else Path(tempfile.gettempdir()) / "ashnazg-source-cache"
     overall_deadline = time.monotonic() + MAX_DOWNLOAD_SECONDS
-    total_input_bytes, member_sources = 0, {}
+    total_input_bytes, member_sources = sum(map(len, files.values())), {}
     for record in lock["source_inputs"]:
         _validate_record(record, "source")
         if not isinstance(record.get("declared_sha512"), str) or not SHA512_RE.fullmatch(record["declared_sha512"]):
@@ -763,6 +791,8 @@ def build_source_sidecar(assets_dir, repo_root, output, version, source_sha,
         candidate_id = record.get("candidate_id")
         if not isinstance(candidate_id, str) or not re.fullmatch(r"candidate-[0-9]{6}", candidate_id):
             raise ValueError("notice candidate id is malformed")
+    if sum(record["size"] for record in lock.get("notice_candidates", [])) > MAX_TOTAL_BYTES - total_input_bytes:
+        raise ValueError("notice evidence exceeds remaining aggregate budget")
     notice_bytes = _collect_notice_data(lock.get("notice_candidates", []), input_root,
                                         lock["source_inputs"], member_sources,
                                         lock["recipe_files"], recipe_members)
@@ -784,11 +814,12 @@ def build_source_sidecar(assets_dir, repo_root, output, version, source_sha,
                                    deadline=overall_deadline)
         total_input_bytes += len(data)
         notice_members["supplemental-texts/" + _safe_relpath(record["filename"], max_parts=1)] = data
-    project_files, project_modes = _collect_project(repo_root, source_sha)
+    project_files, project_modes = _collect_project(repo_root, source_sha, remaining=MAX_TOTAL_BYTES - total_input_bytes)
+    total_input_bytes += sum(map(len, project_files.values()))
     source_cargo_lock = project_files.get("Cargo.lock")
     if source_cargo_lock is None:
         raise ValueError("exact project source SHA has no Cargo.lock")
-    rust_files = _collect_rust_vendor(rust_vendor_dir, source_cargo_lock)
+    rust_files = _collect_rust_vendor(rust_vendor_dir, source_cargo_lock, remaining=MAX_TOTAL_BYTES - total_input_bytes)
     all_data = list(member_sources.values()) + list(recipe_members.values()) + list(notice_members.values()) + list(files.values()) + list(project_files.values()) + list(rust_files.values())
     if sum(map(len, all_data)) > MAX_TOTAL_BYTES:
         raise ValueError("source sidecar uncompressed content exceeds 2 GiB bound")
@@ -833,7 +864,8 @@ def build_source_sidecar(assets_dir, repo_root, output, version, source_sha,
             _add_member(archive, "notice-evidence.json", _json_bytes(lock.get("notice_evidence", {})), members)
             index["members"] = members
             _add_member(archive, "MANIFEST.json", _json_bytes(index), {})
-        os.replace(temp_output, output)
+        os.link(temp_output, output, follow_symlinks=False)
+        temp_output.unlink()
     except BaseException:
         try:
             temp_output.unlink()

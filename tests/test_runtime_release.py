@@ -88,6 +88,7 @@ class RuntimeReleaseTests(unittest.TestCase):
                 "android/fixture-instrumentation.apk": b"fixture apk",
                 "LICENSE": b"MIT",
                 "README-SETUP.md": b"setup",
+                "THIRD-PARTY-NOTICES.tar.xz": b"notices",
             }
             if platform == "macos-aarch64":
                 contents["bin/ashnazg-vm"] = zip_helper or helper
@@ -133,7 +134,7 @@ class RuntimeReleaseTests(unittest.TestCase):
         import tempfile
         with tempfile.TemporaryDirectory() as inputs:
             folder = Path(inputs)
-            for name, data in {"host": b"actual host", "license": b"MIT", "setup": b"setup"}.items():
+            for name, data in {"host": b"actual host", "license": b"MIT", "setup": b"setup", "notices": b"notices"}.items():
                 (folder / name).write_bytes(data)
             helper = self.root / f"ashnazg-vm-v{VERSION}-macos-aarch64"
             helper.chmod(0o755)
@@ -142,7 +143,7 @@ class RuntimeReleaseTests(unittest.TestCase):
                     output=self.root / f"ashnazg-v{VERSION}-{platform}.zip", host_binary=folder / "host",
                     agent_apk=self.root / f"ashnazg-agent-v{VERSION}.apk",
                     fixture_apk=self.root / f"ashnazg-fixture-v{VERSION}.apk",
-                    license_file=folder / "license", setup_file=folder / "setup",
+                    license_file=folder / "license", setup_file=folder / "setup", third_party_notices=folder / "notices",
                     vm_helper=helper if platform == "macos-aarch64" else None)
             self.prepare()
             self.assertTrue(verify_release(self.root, source_sha=SOURCE_SHA))
