@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::ffi::{CStr, CString};
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
-use std::os::fd::{AsRawFd, FromRawFd, RawFd};
+use std::os::fd::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Component, Path, PathBuf};
@@ -23,6 +23,19 @@ const IDENTITY: &str = "ashnazg-runtime-cache";
 const MAX_MARKER: usize = 4096;
 const PRIVATE_DIR: u32 = 0o700;
 const PRIVATE_FILE: u32 = 0o600;
+
+#[cfg(test)]
+thread_local! {
+    static FAIL_AT: std::cell::Cell<Option<&'static str>> = const { std::cell::Cell::new(None) };
+}
+
+fn setup_checkpoint(_point: &str) -> anyhow::Result<()> {
+    #[cfg(test)]
+    if FAIL_AT.with(|point| point.get() == Some(_point)) {
+        return Err(io::Error::from_raw_os_error(libc::EIO).into());
+    }
+    Ok(())
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -66,16 +79,48 @@ impl CacheGuard {
     pub fn try_acquire(root: &Path) -> anyhow::Result<Option<Self>> {
         let (root_path, root) = open_or_create_root(root)?;
         validate_directory(&root, "cache root")?;
+        // Serialize initialization before creating a control file. This avoids
+        // a new-owner race between creating cache.lock and locking that file.
+        if unsafe { libc::flock(root.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
+            let error = io::Error::last_os_error();
+            if error.raw_os_error() == Some(libc::EWOULDBLOCK) {
+                return Ok(None);
+            }
+            return Err(error).context("could not acquire cache directory lock");
+        }
+        let initial_names = directory_names(root.as_raw_fd())?;
+        let empty_root = initial_names.is_empty();
+        ensure!(
+            empty_root
+                || initial_names
+                    .iter()
+                    .any(|name| name == ROOT_MARKER.as_bytes()),
+            "refusing nonempty unmarked cache root"
+        );
+        let mut created_lock = false;
         let lock = match openat_file(
             root.as_raw_fd(),
             LOCK_FILE.as_bytes(),
-            libc::O_RDWR | libc::O_CREAT | libc::O_EXCL | libc::O_NOFOLLOW | libc::O_CLOEXEC,
+            libc::O_RDWR
+                | libc::O_NONBLOCK
+                | libc::O_NOFOLLOW
+                | libc::O_CLOEXEC
+                | if empty_root {
+                    libc::O_CREAT | libc::O_EXCL
+                } else {
+                    0
+                },
             PRIVATE_FILE,
         ) {
             Ok(created) => {
-                if unsafe { libc::fchmod(created.as_raw_fd(), PRIVATE_FILE as libc::mode_t) } != 0 {
-                    return Err(io::Error::last_os_error())
-                        .context("could not set cache lock mode");
+                created_lock = empty_root;
+                if created_lock
+                    && unsafe { libc::fchmod(created.as_raw_fd(), PRIVATE_FILE as libc::mode_t) }
+                        != 0
+                {
+                    let error = io::Error::last_os_error();
+                    remove_created_object(root.as_raw_fd(), LOCK_FILE, &created, false)?;
+                    return Err(error).context("could not set cache lock mode");
                 }
                 created
             }
@@ -88,23 +133,49 @@ impl CacheGuard {
                 openat_file(
                     root.as_raw_fd(),
                     LOCK_FILE.as_bytes(),
-                    libc::O_RDWR | libc::O_NOFOLLOW | libc::O_CLOEXEC,
+                    libc::O_RDWR | libc::O_NONBLOCK | libc::O_NOFOLLOW | libc::O_CLOEXEC,
                     0,
                 )?
             }
             Err(error) => return Err(error).context("could not create cache lock"),
         };
-        validate_regular(&lock, "cache lock", PRIVATE_FILE)?;
-        ensure!(lock.metadata()?.len() == 0, "cache lock file must be empty");
-        // flock is nonblocking. EINTR is an error, never a retry or sleep.
-        if unsafe { libc::flock(lock.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
-            let error = io::Error::last_os_error();
-            if error.raw_os_error() == Some(libc::EWOULDBLOCK) {
+        let initialization = (|| {
+            validate_regular(&lock, "cache lock", PRIVATE_FILE)?;
+            ensure!(lock.metadata()?.len() == 0, "cache lock file must be empty");
+            // Both locks are nonblocking. EINTR is an error, never a retry.
+            if unsafe { libc::flock(lock.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
+                let error = io::Error::last_os_error();
+                if error.raw_os_error() == Some(libc::EWOULDBLOCK) {
+                    return Ok(None);
+                }
+                return Err(error).context("could not acquire cache lock");
+            }
+            if !created_lock {
+                ensure!(
+                    directory_names(root.as_raw_fd())?
+                        .iter()
+                        .any(|name| name == ROOT_MARKER.as_bytes()),
+                    "refusing nonempty unmarked cache root"
+                );
+            }
+            initialize_or_validate(&root).map(Some)
+        })();
+        let (entries, staging) = match initialization {
+            Ok(Some(directories)) => directories,
+            Ok(None) => {
+                if created_lock {
+                    remove_created_object(root.as_raw_fd(), LOCK_FILE, &lock, false)?;
+                }
                 return Ok(None);
             }
-            return Err(error).context("could not acquire cache lock");
-        }
-        let (entries, staging) = initialize_or_validate(&root)?;
+            Err(error) => {
+                if created_lock {
+                    remove_created_object(root.as_raw_fd(), LOCK_FILE, &lock, false)
+                        .context("cache initialization failed and owned lock cleanup failed")?;
+                }
+                return Err(error);
+            }
+        };
         Ok(Some(Self {
             root_path,
             _root: root,
@@ -152,12 +223,24 @@ impl CacheGuard {
         {
             return Err(io::Error::last_os_error()).context("could not create private cache stage");
         }
-        let directory = openat_dir(self.staging.as_raw_fd(), name.as_bytes())?;
-        if unsafe { libc::fchmod(directory.as_raw_fd(), PRIVATE_DIR as libc::mode_t) } != 0 {
-            return Err(io::Error::last_os_error()).context("could not set cache stage mode");
-        }
+        let setup = (|| {
+            setup_checkpoint("stage-setup")?;
+            let directory = openat_dir(self.staging.as_raw_fd(), name.as_bytes())?;
+            if unsafe { libc::fchmod(directory.as_raw_fd(), PRIVATE_DIR as libc::mode_t) } != 0 {
+                return Err(io::Error::last_os_error()).context("could not set cache stage mode");
+            }
+            let metadata = directory.metadata()?;
+            Ok((directory, metadata))
+        })();
+        let (directory, metadata) = match setup {
+            Ok(prepared) => prepared,
+            Err(error) => {
+                remove_new_empty_directory(self.staging.as_raw_fd(), &name)
+                    .context("cache stage setup failed and cleanup failed")?;
+                return Err(error);
+            }
+        };
         let path = self.root_path.join(STAGING_DIR).join(&name);
-        let metadata = directory.metadata()?;
         let stage = CacheStage {
             guard: self,
             path,
@@ -350,18 +433,37 @@ fn initialize_or_validate(root: &File) -> anyhow::Result<(File, File)> {
             "refusing nonempty unmarked cache root"
         );
         // Control files and directories are created exclusively; caller data is never replaced.
-        let entries = create_directory(root.as_raw_fd(), ENTRIES_DIR)?;
-        let staging = create_directory(root.as_raw_fd(), STAGING_DIR)?;
-        write_new_json(
-            root.as_raw_fd(),
-            ROOT_MARKER,
-            &RootMarker {
-                schema: 1,
-                identity: IDENTITY.to_owned(),
-                owner_uid: current_uid(),
-            },
-        )?;
-        return Ok((entries, staging));
+        let mut entries = None;
+        let mut staging = None;
+        let result = (|| {
+            entries = Some(create_directory(root.as_raw_fd(), ENTRIES_DIR)?);
+            setup_checkpoint("root-staging")?;
+            staging = Some(create_directory(root.as_raw_fd(), STAGING_DIR)?);
+            write_new_json(
+                root.as_raw_fd(),
+                ROOT_MARKER,
+                &RootMarker {
+                    schema: 1,
+                    identity: IDENTITY.to_owned(),
+                    owner_uid: current_uid(),
+                },
+            )
+        })();
+        if let Err(error) = result {
+            let mut cleanup_failed = false;
+            for (name, directory) in [(STAGING_DIR, &staging), (ENTRIES_DIR, &entries)] {
+                if let Some(directory) = directory {
+                    cleanup_failed |=
+                        remove_created_object(root.as_raw_fd(), name, directory, true).is_err();
+                }
+            }
+            ensure!(
+                !cleanup_failed,
+                "cache initialization failed and directory cleanup failed"
+            );
+            return Err(error);
+        }
+        return Ok((entries.unwrap(), staging.unwrap()));
     }
     validate_root_marker(root.as_raw_fd())?;
     let mut allowed = vec![
@@ -453,30 +555,79 @@ fn create_directory(parent: RawFd, name: &str) -> anyhow::Result<File> {
     if unsafe { libc::mkdirat(parent, name_c.as_ptr(), PRIVATE_DIR as libc::mode_t) } != 0 {
         return Err(io::Error::last_os_error()).with_context(|| format!("could not create {name}"));
     }
-    let dir = openat_dir(parent, name.as_bytes())?;
-    if unsafe { libc::fchmod(dir.as_raw_fd(), PRIVATE_DIR as libc::mode_t) } != 0 {
-        return Err(io::Error::last_os_error()).context("could not set private directory mode");
+    let result = (|| {
+        let dir = openat_dir(parent, name.as_bytes())?;
+        if unsafe { libc::fchmod(dir.as_raw_fd(), PRIVATE_DIR as libc::mode_t) } != 0 {
+            return Err(io::Error::last_os_error()).context("could not set private directory mode");
+        }
+        validate_directory(&dir, name)?;
+        Ok(dir)
+    })();
+    if result.is_err() {
+        remove_new_empty_directory(parent, name)
+            .context("private directory setup failed and cleanup failed")?;
     }
-    validate_directory(&dir, name)?;
-    Ok(dir)
+    result
+}
+
+// Setup has not exposed this new empty directory to a caller. The private parent
+// and cache lock exclude other legitimate writers; hostile same-UID mutation is
+// outside this boundary. unlinkat never follows a substituted symlink.
+fn remove_new_empty_directory(parent: RawFd, name: &str) -> anyhow::Result<()> {
+    let name = cstring(name.as_bytes())?;
+    if unsafe { libc::unlinkat(parent, name.as_ptr(), libc::AT_REMOVEDIR) } != 0 {
+        return Err(io::Error::last_os_error()).context("could not roll back new empty directory");
+    }
+    Ok(())
+}
+
+fn remove_created_object(
+    parent: RawFd,
+    name: &str,
+    held: &File,
+    directory: bool,
+) -> anyhow::Result<()> {
+    let name = cstring(name.as_bytes())?;
+    let expected = held.metadata()?;
+    let mut found: libc::stat = unsafe { std::mem::zeroed() };
+    if unsafe { libc::fstatat(parent, name.as_ptr(), &mut found, libc::AT_SYMLINK_NOFOLLOW) } != 0 {
+        return Err(io::Error::last_os_error()).context("could not inspect owned setup object");
+    }
+    ensure!(
+        found.st_dev as u64 == expected.dev() && found.st_ino as u64 == expected.ino(),
+        "cache setup path was replaced; preserving replacement"
+    );
+    let flags = if directory { libc::AT_REMOVEDIR } else { 0 };
+    if unsafe { libc::unlinkat(parent, name.as_ptr(), flags) } != 0 {
+        return Err(io::Error::last_os_error()).context("could not remove owned setup object");
+    }
+    Ok(())
 }
 
 fn write_new_json<T: Serialize>(directory: RawFd, name: &str, value: &T) -> anyhow::Result<()> {
+    let bytes = serde_json::to_vec(value)?;
+    ensure!(bytes.len() <= MAX_MARKER, "cache marker exceeds size limit");
     let file = openat_file(
         directory,
         name.as_bytes(),
         libc::O_WRONLY | libc::O_CREAT | libc::O_EXCL | libc::O_NOFOLLOW | libc::O_CLOEXEC,
         PRIVATE_FILE,
     )?;
-    if unsafe { libc::fchmod(file.as_raw_fd(), PRIVATE_FILE as libc::mode_t) } != 0 {
-        return Err(io::Error::last_os_error()).context("could not set private marker mode");
+    let result = (|| {
+        if unsafe { libc::fchmod(file.as_raw_fd(), PRIVATE_FILE as libc::mode_t) } != 0 {
+            return Err(io::Error::last_os_error()).context("could not set private marker mode");
+        }
+        setup_checkpoint(name)?;
+        let mut writer = &file;
+        writer.write_all(&bytes)?;
+        writer.sync_all()?;
+        Ok(())
+    })();
+    if result.is_err() {
+        remove_created_object(directory, name, &file, false)
+            .context("cache marker write failed and cleanup failed")?;
     }
-    let bytes = serde_json::to_vec(value)?;
-    ensure!(bytes.len() <= MAX_MARKER, "cache marker exceeds size limit");
-    let mut writer = &file;
-    writer.write_all(&bytes)?;
-    writer.sync_all()?;
-    Ok(())
+    result
 }
 
 fn read_json<T: for<'de> Deserialize<'de>>(directory: RawFd, name: &str) -> anyhow::Result<T> {
@@ -600,10 +751,8 @@ fn statat(parent: RawFd, name: &[u8]) -> anyhow::Result<fs::Metadata> {
 }
 
 fn directory_names(fd: RawFd) -> anyhow::Result<Vec<Vec<u8>>> {
-    let duplicate = unsafe { libc::dup(fd) };
-    if duplicate < 0 {
-        return Err(io::Error::last_os_error().into());
-    }
+    // dup would share the directory offset and make a later validation see EOF.
+    let duplicate = openat_dir(fd, b".")?.into_raw_fd();
     let stream = unsafe { libc::fdopendir(duplicate) };
     if stream.is_null() {
         unsafe {
@@ -802,6 +951,11 @@ mod tests {
         fs::write(other.join("caller-data"), "keep").unwrap();
         assert!(CacheGuard::try_acquire(&other).is_err());
         assert_eq!(fs::read(other.join("caller-data")).unwrap(), b"keep");
+        let names: Vec<_> = fs::read_dir(&other)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name())
+            .collect();
+        assert_eq!(names, vec![std::ffi::OsString::from("caller-data")]);
     }
 
     #[test]
@@ -942,5 +1096,42 @@ mod tests {
         assert!(path.exists());
         drop(guard);
         assert!(path.exists());
+    }
+
+    #[test]
+    fn failed_root_setup_rolls_back_control_files_and_can_be_retried() {
+        for point in ["root-staging", ROOT_MARKER] {
+            let parent = tempfile::tempdir().unwrap();
+            let root = private_root(&parent);
+            FAIL_AT.with(|failure| failure.set(Some(point)));
+            let result = CacheGuard::try_acquire(&root);
+            FAIL_AT.with(|failure| failure.set(None));
+            assert!(result.is_err());
+            assert!(
+                fs::read_dir(&root).unwrap().next().is_none(),
+                "left partial state after {point}"
+            );
+            assert!(CacheGuard::try_acquire(&root).unwrap().is_some());
+        }
+    }
+
+    #[test]
+    fn failed_stage_setup_leaves_no_unmarked_stage_and_cache_can_reopen() {
+        let parent = tempfile::tempdir().unwrap();
+        let root = private_root(&parent);
+        let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
+        FAIL_AT.with(|failure| failure.set(Some("stage-setup")));
+        let result = guard.create_stage();
+        FAIL_AT.with(|failure| failure.set(None));
+        assert!(result.is_err());
+        drop(result);
+        assert!(
+            fs::read_dir(root.join(STAGING_DIR))
+                .unwrap()
+                .next()
+                .is_none()
+        );
+        drop(guard);
+        assert!(CacheGuard::try_acquire(&root).unwrap().is_some());
     }
 }
