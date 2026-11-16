@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "guest_source_sha": "b8806d85953561ca1c7ccdf88cb5093fec7a1c9a",
+  "workflow_run": 43802590487,
+  "host_checkout_sha": "59aa1e2d9d69af57e989b3a8f3c470412bb562fd",
+  "host_checkout_dirty": false,
+  "implementation_parity": {
+    "platform/macos": {
+      "artifact_tree_or_blob": "1b257cda19c0b121cda2df682ae42665d3210265",
+      "local_tree_or_blob": "1b257cda19c0b121cda2df682ae42665d3210265"
+    },
+    "scripts/integration.py": {
+      "artifact_tree_or_blob": "47125381330b57aa8d41d7bd88e55076a4d603ea",
+      "local_tree_or_blob": "47125381330b57aa8d41d7bd88e55076a4d603ea"
+    },
+    "scripts/harness.py": {
+      "artifact_tree_or_blob": "644c884dc074f36f2b87bb345d1da0dca1e01e42",
+      "local_tree_or_blob": "644c884dc074f36f2b87bb345d1da0dca1e01e42"
+    },
+    "src/host.rs": {
+      "artifact_tree_or_blob": "8feed8134f9e8f5b187c89921438971381363665",
+      "local_tree_or_blob": "8feed8134f9e8f5b187c89921438971381363665"
+    },
+    "src/guest.rs": {
+      "artifact_tree_or_blob": "ea15b6e76a23104935c89e3e7372cfef24c49e7a",
+      "local_tree_or_blob": "ea15b6e76a23104935c89e3e7372cfef24c49e7a"
+    },
+    "src/main.rs": {
+      "artifact_tree_or_blob": "546a49279c37d0c63302001f9c02e7b04ebf645d",
+      "local_tree_or_blob": "546a49279c37d0c63302001f9c02e7b04ebf645d"
+    },
+    "src/mcp.rs": {
+      "artifact_tree_or_blob": "398b2a121d81bfcd7f54f148488e45b0c896117c",
+      "local_tree_or_blob": "398b2a121d81bfcd7f54f148488e45b0c896117c"
+    }
+  },
+  "cold": {
+    "rpc_checks": 28,
+    "mcp_checks": 7,
+    "driver_launch_to_ready_seconds": 115.36,
+    "runtime_timings": {
+      "agent_startup_ms": 814,
+      "readiness_ms": 103845,
+      "total_startup_ms": 104785,
+      "vm_start_ms": 111
+    },
+    "helper_exit_code": 0
+  },
+  "warm": {
+    "rpc_checks": 28,
+    "mcp_checks": 7,
+    "driver_launch_to_ready_seconds": 37.696,
+    "runtime_timings": {
+      "agent_startup_ms": 618,
+      "readiness_ms": 26150,
+      "total_startup_ms": 26918,
+      "vm_start_ms": 130
+    },
+    "helper_exit_code": 0
+  },
+  "host_adb_used": false,
+  "guest_disk_modified_offline": false,
+  "credentials_removed": true,
+  "owned_listeners_closed": true,
+  "mcp_scope": "Compatibility smoke through the existing MCP host. Native MCP app_install and automatic CLI/session bootstrap are not implemented. APK installs use the helper native channel.",
+  "catalog_scope": "The retained catalog is local test metadata built from measured files, not a published release or intrinsic binary-to-source proof.",
+  "performance_scope": "One cold/restart pair, not a distribution. Runtime startup and driver launch intervals have distinct boundaries. No new comparative benchmark or idle-CPU claim.",
+  "files": {
+    "acceptance-driver.py": {
+      "size": 12422,
+      "sha256": "c17a4f29f23e206789b0a4ed529f3fba5736a909bb21e096e5fa59a079813476"
+    },
+    "cold-acceptance.json": {
+      "size": 6695,
+      "sha256": "3d3c28c3a1dfbcd281f8df4f8160eb89681d8d434f27d1844c65d51146ca4b17"
+    },
+    "cold-compose.png": {
+      "size": 20200,
+      "sha256": "355628cfb6fdc5788a7fd19ca01bcc296d07caf4139002267c363c581aac437e"
+    },
+    "cold-fixture-overlay.png": {
+      "size": 63519,
+      "sha256": "e2db77e873088a62fd86523aaebe9e15455a99ce469d572901f9a027a4529147"
+    },
+    "cold-fixture.webp": {
+      "size": 18596,
+      "sha256": "e827af828f9ec80aeefaef49ae54187b14385e0a7fd90d9c08cce0dc6651432a"
+    },
+    "cold-mcp.png": {
+      "size": 59319,
+      "sha256": "4ec9174737faa0073d67b82aa3656adc0714b4438051a7294ac3b5b2e7f50b39"
+    },
+    "cold-mcp.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cold-reactnative.png": {
+      "size": 25086,
+      "sha256": "3bc9501f2cb355cc9d8f5b3664902458a89e1eb39c10a6850dd7517b81a978a1"
+    },
+    "cold-runtime.json": {
+      "size": 835,
+      "sha256": "c4537911eb0b45cbb46b44294f89cb406e3c05f6ebb7227a2be98eda508334c6"
+    },
+    "cold-vm.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cold-vm.stdout": {
+      "size": 747,
+      "sha256": "590df60c13e54ab5b6be8d7095a2afd279141c392e2955cf92a815983fa1231b"
+    },
+    "extractor-receipt.json": {
+      "size": 1906,
+      "sha256": "84a13d83a4607dc29e1faefb5f95c6988334560ab032d3250322d17fdc92ae2b"
+    },
+    "guest-manifest.json": {
+      "size": 605,
+      "sha256": "1e8043cfb4cfe58dd5e5232224b9ade190ee6f70ade6ca6c32322482f269ef13"
+    },
+    "kernel.config": {
+      "size": 1945,
+      "sha256": "1d3f71c5cd4f4f5402136658877a4baa9c6973a55e236da26f03383b7d7967ae"
+    },
+    "local-unpublished-catalog.json": {
+      "size": 1273,
+      "sha256": "e64468f1d671603c4c8b7cd99324769064f504819673e1d40fc029c93351595c"
+    },
+    "preflight-verification.json": {
+      "size": 1491,
+      "sha256": "5932d0e62d450412d62d80e7d89c88989240c7665bc20ff092b84e396b0ff679"
+    },
+    "warm-acceptance.json": {
+      "size": 6691,
+      "sha256": "7f40008b88bd882b3aa35f695351d8bfc42cdd9da33a4140782629f02f204886"
+    },
+    "warm-compose.png": {
+      "size": 20301,
+      "sha256": "cc9ceab682e1de9ccb74d5ef1a83b9223325f56f477c460ad7d32c995f9a9bfb"
+    },
+    "warm-fixture-overlay.png": {
+      "size": 64201,
+      "sha256": "33ab35699117333c9b6cbf77a44860ec3abaf8e1ca3906523617a917d101fa41"
+    },
+    "warm-fixture.webp": {
+      "size": 18602,
+      "sha256": "f17df35cec51d0eabc7d4d7d5230e8b8a2dafaf01cdbe35cfc0dce3438de3d70"
+    },
+    "warm-mcp.png": {
+      "size": 59357,
+      "sha256": "e9ae8c31d3335374ebb1ddf9b3bd562a09f1e2d42216df19b959d0a277ce05a4"
+    },
+    "warm-mcp.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "warm-reactnative.png": {
+      "size": 25067,
+      "sha256": "ea39135319c0b94a4a7353cb7cc3ca4f0fd38912a42f27af0e39343bfe67bd45"
+    },
+    "warm-runtime.json": {
+      "size": 833,
+      "sha256": "48e73e9e8bf28b16ea4ae60ab4428a148f77c8eb3f0da104c49d33c027e8691d"
+    },
+    "warm-vm.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "warm-vm.stdout": {
+      "size": 745,
+      "sha256": "7f63958ebf146392598e8a7d972acaf2abea619c9507435e3622561772b475f0"
+    },
+    "kernel.generated.config.gz": {
+      "size": 65139,
+      "sha256": "3701da2727a1360258348f68731771a5f7a34441d279ad0b223a83d722806227",
+      "uncompressed_size": 302491,
+      "uncompressed_sha256": "70960e57afb670d381ffde6284c48faf7934be7e0acdfd6ccdadfcb789718694"
+    }
+  },
+  "kernel_generated_config_storage": "gzip; preflight records the uncompressed config digest"
+}
