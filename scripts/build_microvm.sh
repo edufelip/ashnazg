@@ -184,7 +184,8 @@ python3 - "$RAW_ASSETS" "$SOURCE_SHA" "$KERNEL_URL" "$KERNEL_SHA256" "$KERNEL_CH
   "$ALPINE_URL" "$ALPINE_SHA256" "$ALPINE_CHECKSUM_URL" "$REDROID_INDEX" \
   "$KERNEL_SOURCE" "$KERNEL_BUILD" "$ROOTFS" \
   "$REPO_ROOT/runtime/microvm/guest-init.py" "$REPO_ROOT/runtime/microvm/guest_bridge.py" \
-  "$REPO_ROOT/scripts/redroid.py" "$REPO_ROOT/scripts/ci_emulator.py" <<'PYTHON'
+  "$REPO_ROOT/scripts/redroid.py" "$REPO_ROOT/scripts/ci_emulator.py" \
+  "$REPO_ROOT" "$ALPINE_ARCHIVE" <<'PYTHON'
 import hashlib
 import json
 import os
@@ -198,6 +199,9 @@ source_sha, kernel_url, kernel_sha, kernel_checksums_url = sys.argv[2:6]
 alpine_url, alpine_sha, alpine_checksum_url, redroid_index = sys.argv[6:10]
 kernel_source, kernel_build, rootfs = map(Path, sys.argv[10:13])
 guest_init, guest_bridge, redroid_supervisor, readiness_parser = map(Path, sys.argv[13:17])
+repo_root, alpine_archive = map(Path, sys.argv[17:19])
+sys.path.insert(0, str(repo_root))
+from scripts.runtime_inventory import build_inventory
 
 def sha256(path):
     digest = hashlib.sha256()
@@ -208,6 +212,24 @@ def sha256(path):
 
 files = {name: {"sha256": sha256(assets / name), "size": (assets / name).stat().st_size}
          for name in ("kernel", "rootfs.ext4")}
+# Capture the actual composed rootfs package database, including base packages.
+# The image was built from this tree immediately before this metadata phase.
+installed_db = (rootfs / "lib/apk/db/installed").read_bytes()
+inventory = build_inventory(
+    installed_db=installed_db, base_archive=alpine_archive.read_bytes(),
+    package_lock=(assets / "packages.lock.json").read_bytes(),
+    rootfs_sha256=files["rootfs.ext4"]["sha256"], source_sha=source_sha,
+)
+if inventory["metadata_status"] != "complete":
+    raise RuntimeError("rootfs component metadata is incomplete: " + json.dumps(inventory["issues"], sort_keys=True))
+(assets / "runtime-installed.db").write_bytes(installed_db)
+(assets / "runtime-components.json").write_text(json.dumps(inventory, indent=2, sort_keys=True) + "\n")
+component_inventory = {
+    "name": "runtime-components.json", "sha256": sha256(assets / "runtime-components.json"),
+    "installed_db_name": "runtime-installed.db", "installed_db_sha256": sha256(assets / "runtime-installed.db"),
+    "metadata_status": inventory["metadata_status"],
+    "source_closure_status": inventory["source_closure_status"],
+}
 apk_versions = subprocess.run(
     ["chroot", str(rootfs), "/sbin/apk", "info", "-v"],
     check=True, text=True, capture_output=True,
@@ -240,6 +262,7 @@ provenance = {
     "package_lock_sha256": sha256(assets / "packages.lock.json"),
     "apk_indexes": [{"name": item.name, "sha256": sha256(item)} for item in apk_indexes],
     "packages": sorted(apk_versions),
+    "component_inventory": component_inventory,
     "files": files,
     "runtime_boot_validated": False,
 }
@@ -266,7 +289,7 @@ PYTHON
 
 tar -C "$RAW_ASSETS" -cJf "$OUTPUT_DIR/microvm-assets.tar.xz" \
   kernel rootfs.ext4 manifest.json provenance.json kernel.config kernel.generated.config \
-  NOTICES.md packages.lock.json linux-${KERNEL_VERSION}.tar.xz
+  NOTICES.md packages.lock.json runtime-components.json runtime-installed.db linux-${KERNEL_VERSION}.tar.xz
 (cd "$OUTPUT_DIR" && sha256sum microvm-assets.tar.xz > microvm-assets.tar.xz.sha256)
 printf 'Built guest artifact bundle: %s/microvm-assets.tar.xz\n' "$OUTPUT_DIR"
 printf 'Build output is not runtime boot validation.\n'
