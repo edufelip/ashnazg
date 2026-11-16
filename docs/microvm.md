@@ -1,6 +1,6 @@
 # Apple Silicon Linux VM backend
 
-This backend is under qualification. The native `ashnazg up` CLI and Swift Virtualization.framework helper have booted Android 15 on Apple Silicon macOS. Native fixture integration, a comparative benchmark and one restart have passed; a default-download bundle remains unqualified. The existing Android device and Linux container paths remain usable independently.
+The experimental Apple Silicon backend is distributed in the [public v0.3.0 release](https://github.com/edufelip/ashnazg/releases/tag/v0.3.0). The packaged native MCP CLI passed [public cold acquisition and a network-denied warm restart](evidence/public-runtime-0.3.0/README.md), including all five tools and joined shutdown. The source-specific sections below retain earlier qualification history. The existing Android device and Linux container paths remain usable independently.
 
 ## Build and inputs
 
@@ -83,10 +83,11 @@ metadata. Existing credential files are refused. Shutdown closes the relays,
 agent resources and owned credential before releasing state.
 
 Host tests cover framing, ownership, cancellation, FIFO refusal, nonblocking
-upload deadlines and relay half-close behavior. Live explicit-helper acceptance
-is recorded below. The Rust `up` command and MCP
-server do not yet expose this opt-in helper setup; automatic artifact acquisition
-and native MCP installation are subsequent delivery steps.
+upload deadlines and relay half-close behavior. The historical explicit-helper
+acceptance is recorded below. At that milestone, automatic acquisition and
+native MCP installation were outside its scope. The later [public-release
+acceptance](evidence/public-runtime-0.3.0/README.md) qualifies those flows through
+the packaged MCP CLI; `up` retains its separate VM-only responsibility.
 
 The first matching hosted guest from source `4f130cc` passed its Linux build and
 all Quality/ReDroid checks, but [native session acceptance failed](evidence/native-session-failure-4f130cc/receipt.json).
@@ -96,8 +97,9 @@ Android 15 rejecting the install command's trailing `-` as an unknown option.
 With the same APK and `-S SIZE`, omitting the pathname returned `Success`.
 The [pinned package-manager implementation](https://android.googlesource.com/platform/frameworks/base/+/cc8bb19595c661f5cf42f330457000e643c67d1b/services/core/java/com/android/server/pm/PackageManagerShellCommand.java)
 selects stdin when no positional arguments remain. The diagnostic used host ADB;
-it is not successful acceptance of the host-ADB-free session. The corrected
-guest must be rebuilt and tested through that full path before qualification.
+it was not successful acceptance of the host-ADB-free session. Qualification
+required rebuilding the corrected guest and testing that full path, as recorded
+below.
 
 The rebuilt `2245f29` guest [prepared the agent successfully](evidence/native-session-diagnostic-2245f29/receipt.json),
 then exposed two further issues. A restart rejected the private state directory
@@ -113,10 +115,10 @@ An offline, readback-verified patch to the **writable diagnostic disk** passed
 actions/screenshots. The runner used no host ADB; separate diagnostic commands
 used it to reproduce the launch-output failure. The diagnostic helper exited
 zero, removed its credential and closed all three listeners. The MCP checks
-exclude native `app_install` wiring, which remains subsequent work; APK installs
+excluded native `app_install` wiring at that source; APK installs
 were exercised through the helper's native installation channel. This modified
-disk result does not qualify the immutable guest or a release. A rebuilt guest
-and fresh cold/restart acceptance remain required.
+disk result did not qualify the immutable guest or a release. The following
+receipts supply the subsequent rebuilt-guest cold/restart acceptance.
 
 The [subsequent immutable acceptance](evidence/native-session-acceptance-b8806d8/receipt.json)
 uses the matching `b8806d8` hosted guest and APK artifacts without offline disk
@@ -126,9 +128,10 @@ screenshots. The runner invoked no host ADB. Invalid installation authentication
 and a corrupt upload were rejected before a valid install/launch succeeded.
 Both helpers exited zero, removed their credentials and closed all three owned
 listeners. The receipt binds download digests, boot-asset/config verification,
-driver and binary hashes, and relevant source-tree parity. Native MCP
-`app_install`, default acquisition and automatic CLI session supervision remain
-subsequent delivery steps; this is acceptance of the explicit helper session.
+driver and binary hashes, and relevant source-tree parity. That receipt is
+limited to the explicit helper session; it does not establish native MCP
+`app_install`, default acquisition or automatic CLI session supervision. The
+later public-release acceptance linked above covers those flows separately.
 
 The [merge-head retest](evidence/native-session-acceptance-0155f64/receipt.json)
 repeats cold and restart acceptance with the rebuilt `0155f64` guest after the
@@ -158,16 +161,16 @@ A restart of the same owned disk passed [another 28 RPC and 10 MCP checks](evide
 
 The cold and restart screenshot sets are retained alongside the receipts. Native, Compose, React Native and MCP PNGs from the cold retest were visually inspected. These are one cold run and one restart, not a boot-time distribution or an idle-CPU measurement. The original failed run remains above as a separate result.
 
-## Qualification still required
+## Historical owner qualification and remaining coverage
 
 The Rust [native session owner](native-session.md) now supervises explicit local
 helper startup, authenticates the agent and supplies RPC/install clients. Its
 [one-restart acceptance](evidence/native-owner-acceptance-5256b94/receipt.json)
 passed three Rust factory installs, 28 RPC and seven MCP compatibility checks
 against the existing pinned guest, then joined orderly shutdown without host
-ADB. This does not yet expose automatic native sessions through CLI/MCP or
-qualify fresh-state startup with the new supervisor.
+ADB. That source-specific acceptance did not establish automatic CLI/MCP
+setup or fresh-state startup with the new supervisor.
 
-Remaining v0.3 delivery work includes broader injected-failure and repeated-start coverage, default bundle acquisition, agent/MCP setup integration, and distribution packaging. The local acceptance above establishes the tested generated image, Android fixture paths, initial restart and owned shutdown behavior; it does not qualify those remaining installation and recovery flows. No kernel-size, RAM, idle-CPU, boot-time or zero-copy screenshot target is established by compiling the helper. GitHub-hosted macOS builds cannot replace the local VM acceptance run.
+The later [public-release qualification](evidence/public-runtime-0.3.0/README.md) establishes distribution, automatic acquisition and native MCP setup for its tested macOS host. Broader injected-failure and repeated-start coverage remains separate. No kernel-size, RAM, idle-CPU, boot-time or zero-copy screenshot target is established by compiling the helper. GitHub-hosted macOS builds cannot replace the local VM acceptance run.
 
 [iOS research](research/ios.md) remains a separate track; the Linux guest does not provide iOS compatibility.

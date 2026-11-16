@@ -1,0 +1,12 @@
+{
+  "id": 5,
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "arguments": {
+      "launch": true,
+      "path": "/private/tmp/ashnazg-runtime-release-50434b8-ugh0ozrx/public-mac-package/android/fixture-instrumentation.apk"
+    },
+    "name": "app_install"
+  }
+}

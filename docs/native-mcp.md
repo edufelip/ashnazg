@@ -99,5 +99,6 @@ The separately retained [packaged CLI/VM acceptance](evidence/runtime-release-0.
 uses the unchanged `50434b8` candidate with an explicitly staged verified cache.
 The actual stdio CLI initializes before guest readiness, exercises all five
 tools, and passes EOF, idle SIGTERM, and client-observed in-flight SIGTERM with
-joined helper/bridge cleanup. Public cold acquisition and release distribution
-remain separate from this prepublication acceptance.
+joined helper/bridge cleanup. The later [public-release acceptance](evidence/public-runtime-0.3.0/README.md)
+separately verifies public cold acquisition and host-network-denied warm reuse
+of the published v0.3.0 assets.

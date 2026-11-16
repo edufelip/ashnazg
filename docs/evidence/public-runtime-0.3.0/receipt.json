@@ -1,0 +1,373 @@
+{
+  "anonymous_asset_bodies_verified": 10,
+  "anonymous_asset_bytes": 726340394,
+  "candidate_sha256": "4846dc01389eeeecf507f9f94c5192fb545bfbeb2b0a71191934c650e46aa86b",
+  "cold": {
+    "empty_cache_before": true,
+    "empty_state_before": true,
+    "helper_startup_ms": 60346,
+    "manual_staging": false,
+    "passed": true,
+    "ready_seconds": 90.64
+  },
+  "limits": [
+    "Two observations, not a startup distribution or performance improvement claim.",
+    "Network policy covers the sandboxed CLI subtree; guest NAT may use external host services.",
+    "Developer ID signing, notarization, intrinsic compiler-to-binary provenance and legal clearance are not claimed.",
+    "Retained files cannot independently attest the external environment or actual token values used by the scan.",
+    "The cold run uses a fresh HOME and minimal environment, not a factory-reset machine."
+  ],
+  "payloads": [
+    {
+      "path": "README.md",
+      "sha256": "4798d9dfcc7e9dbb122cb2c91c07244385058ff86314e4c61e583af032951bf6",
+      "size": 2871
+    },
+    {
+      "path": "anonymous-assets.json",
+      "sha256": "c263f59fbea5eeb144a4306741873c74011fb2ef9afa2260a8c0c81afa60b8f1",
+      "size": 5836
+    },
+    {
+      "path": "cold/001-initialize.request.json",
+      "sha256": "8243b23569975f6ddb42dec8670a09f3601fe919e0b9402da1162d04b76fc5cc",
+      "size": 226
+    },
+    {
+      "path": "cold/002-initialize.response.json",
+      "sha256": "f89dec5030bcd78fb01c3803ea83874dbdbac2c1d5bb2d92dc0544fbaa7c5516",
+      "size": 213
+    },
+    {
+      "path": "cold/003-readiness.request.json",
+      "sha256": "70dcd94552acb2b3fd134cbf8eab0b0f9b10100cc658922a3253a47b40737a32",
+      "size": 163
+    },
+    {
+      "path": "cold/003-readiness.response.json",
+      "sha256": "ac02f1f008870f0fcf722dedc8a441b4652c969ee3243ddcc6a183f0f8b99a36",
+      "size": 141
+    },
+    {
+      "path": "cold/003-tools-list.request.json",
+      "sha256": "9d2c25011becd4610370daff19fb91cafe891394d20080993ce44a0f6b413da1",
+      "size": 76
+    },
+    {
+      "path": "cold/004-readiness.request.json",
+      "sha256": "355de8191564cdf12dbf92018ca42cfe1bbfc1aaa7dc40af86777a297ebcc830",
+      "size": 163
+    },
+    {
+      "path": "cold/004-readiness.response.json",
+      "sha256": "e7cbcd570f5ff3070155c265a2bef75b520ed9a58592054f7746fe04ba06b562",
+      "size": 141
+    },
+    {
+      "path": "cold/004-tools-list.response.json",
+      "sha256": "8b3592b9b943a7e22c6d7ef6b5f2a2cd81d60a2a59ea19c96a03effbe950d1bf",
+      "size": 6135
+    },
+    {
+      "path": "cold/005-readiness.request.json",
+      "sha256": "b0162fa80ea0079de7ae8eb14db882e3cc2aee50c45751a6f22dd04b44a0f509",
+      "size": 163
+    },
+    {
+      "path": "cold/005-readiness.response.json",
+      "sha256": "09e147617c09d4f5abddab94a206bfb7735f585a710d4edfc815222fb2370305",
+      "size": 14962
+    },
+    {
+      "path": "cold/006-app_install.request.json",
+      "sha256": "64a98c521a67d7a7c6a6cd83943bf54aa8d46fd6e2752246f64fc3b79dab5ba0",
+      "size": 278
+    },
+    {
+      "path": "cold/006-app_install.response.json",
+      "sha256": "ad8d72941caafe0caf3ce54bfc29236210df79eee915277be435fec1c1f166ce",
+      "size": 377
+    },
+    {
+      "path": "cold/007-ui_snapshot.request.json",
+      "sha256": "e92b2fc3f028ad6f9b846ad9c7ec44a7f6191bb3f5a3519d3c68f4049178db9d",
+      "size": 163
+    },
+    {
+      "path": "cold/007-ui_snapshot.response.json",
+      "sha256": "75f74991f23391397d240bd6cbc0fe785301531e3f4d36fd4ac7085d29c1e605",
+      "size": 12286
+    },
+    {
+      "path": "cold/008-ui_screenshot.request.json",
+      "sha256": "77a1f74448abb3c3e1bebdcfa205e868ea09ff0b74c379d17e6f67685e2c1de3",
+      "size": 182
+    },
+    {
+      "path": "cold/008-ui_screenshot.response.json",
+      "sha256": "2ae16214cf68749ade0dc010e5b3ed12719d18343c4e2c67f7cf36d9220ff1e7",
+      "size": 370
+    },
+    {
+      "path": "cold/009-ui_act.request.json",
+      "sha256": "0f56e7f4248ec72050c37752a72349383a373472783a744395f714101d115b3e",
+      "size": 228
+    },
+    {
+      "path": "cold/009-ui_act.response.json",
+      "sha256": "014896d5b76cf1f6ce056dc561aa36668e569e44b5f36d8b4d1e18068d992cfe",
+      "size": 13027
+    },
+    {
+      "path": "cold/010-ui_screenshot.request.json",
+      "sha256": "d783ec1ca766d7e80dd44e068b463f8d9781bf0cf4de171161ebd0ee8bd2859c",
+      "size": 183
+    },
+    {
+      "path": "cold/010-ui_screenshot.response.json",
+      "sha256": "0036f943d76ff682f5bd38db9e2ce016e5e61ade657c62cdf6eec3044d0cd29e",
+      "size": 371
+    },
+    {
+      "path": "cold/011-app_logs.request.json",
+      "sha256": "e73f928d664a4ea8154fa8b99e0ff8c7b8ea3f280ab903f79d758f4b0ae616ef",
+      "size": 176
+    },
+    {
+      "path": "cold/011-app_logs.response.json",
+      "sha256": "aea6c6a5c8039b3a5a25e49f267d83f93d03dd7433e57ca80c9af3744ccf6e64",
+      "size": 248
+    },
+    {
+      "path": "cold/receipt.json",
+      "sha256": "f5d0b6137089dc6c3eec017320819c99e7e2d30337016b9176d90aab75cc8562",
+      "size": 76991
+    },
+    {
+      "path": "cold/runtime.json",
+      "sha256": "0f20fa84cd0aba93d2bdeb3a0d8978415c23f2caced4ac0545861fef7d833817",
+      "size": 740
+    },
+    {
+      "path": "cold/screenshot-before.png",
+      "sha256": "2167dc41a44c543576149da6b476ea1fb82e2bf5f68bbff7ad2a5309da74a025",
+      "size": 38783
+    },
+    {
+      "path": "cold/screenshot.png",
+      "sha256": "e21b2339f7d24cc4f6b8918a0192ffae60f94fa892886e90eaefc754953516b4",
+      "size": 57445
+    },
+    {
+      "path": "cold/secret-scan.json",
+      "sha256": "7be5af382c3109a22b23dff778461ed260b3afa85ebd21011a9a1cd42763b159",
+      "size": 187
+    },
+    {
+      "path": "cold/serial.log.gz",
+      "sha256": "bcd668b25d5179be46759bfcf6b9c7471751d8c83fbabfbbbf534bae22005c05",
+      "size": 6421
+    },
+    {
+      "path": "cold-wrapper.py",
+      "sha256": "2646752d6beeb1744e22eda186c11d4ebf360134ccf8dd9b0854b1f4cc94b349",
+      "size": 4101
+    },
+    {
+      "path": "empty-home.json",
+      "sha256": "c3cb977ce99c6ce0ef5cd0d6db7e95cc2985464cfe53ca35b124efca951709c6",
+      "size": 195
+    },
+    {
+      "path": "executed-driver.py",
+      "sha256": "c1fbd84a7c7485df6412e0eee8692ae40448dbcd5f93bcc527f66b0cc8dd3eed",
+      "size": 49927
+    },
+    {
+      "path": "host-metadata.json",
+      "sha256": "0f8e3677fc6e5d214ebb9b22fb379cbb3cba01a6beab4b5a81fb98720da9e468",
+      "size": 282
+    },
+    {
+      "path": "host-network-policy.sb",
+      "sha256": "dfc42c68e4c06ddb51dbe133d3496d737f1f20cbe832694669222b94633d1347",
+      "size": 228
+    },
+    {
+      "path": "mcp-tools.schema.json",
+      "sha256": "7cec67c72d850d22b5d0fcb85c464c2ce2cecc8dbc8d36e408890dd2a9d46b75",
+      "size": 3513
+    },
+    {
+      "path": "network-denial.json",
+      "sha256": "59e4c360315cbbf560e985effcd3252e4a40be847ce80f56dd7f554aee025a9d",
+      "size": 861
+    },
+    {
+      "path": "public-host-download.json",
+      "sha256": "0dda176489e235a5890b2da457d2cc86e818030a5852ad8cb1ae2d281ba56671",
+      "size": 507
+    },
+    {
+      "path": "publication.json",
+      "sha256": "a224ae98eebb84819788a3247b266eb5dba47efd9140141c7c274b7deca9f9ab",
+      "size": 4080
+    },
+    {
+      "path": "warm-offline/001-initialize.request.json",
+      "sha256": "8243b23569975f6ddb42dec8670a09f3601fe919e0b9402da1162d04b76fc5cc",
+      "size": 226
+    },
+    {
+      "path": "warm-offline/002-initialize.response.json",
+      "sha256": "f89dec5030bcd78fb01c3803ea83874dbdbac2c1d5bb2d92dc0544fbaa7c5516",
+      "size": 213
+    },
+    {
+      "path": "warm-offline/003-readiness.request.json",
+      "sha256": "70dcd94552acb2b3fd134cbf8eab0b0f9b10100cc658922a3253a47b40737a32",
+      "size": 163
+    },
+    {
+      "path": "warm-offline/003-readiness.response.json",
+      "sha256": "ac02f1f008870f0fcf722dedc8a441b4652c969ee3243ddcc6a183f0f8b99a36",
+      "size": 141
+    },
+    {
+      "path": "warm-offline/003-tools-list.request.json",
+      "sha256": "9d2c25011becd4610370daff19fb91cafe891394d20080993ce44a0f6b413da1",
+      "size": 76
+    },
+    {
+      "path": "warm-offline/004-readiness.request.json",
+      "sha256": "355de8191564cdf12dbf92018ca42cfe1bbfc1aaa7dc40af86777a297ebcc830",
+      "size": 163
+    },
+    {
+      "path": "warm-offline/004-readiness.response.json",
+      "sha256": "af2dd542109d1b26c0e8941ee13130361027a7376d4e2136b146a84fcb5827a9",
+      "size": 14962
+    },
+    {
+      "path": "warm-offline/004-tools-list.response.json",
+      "sha256": "8b3592b9b943a7e22c6d7ef6b5f2a2cd81d60a2a59ea19c96a03effbe950d1bf",
+      "size": 6135
+    },
+    {
+      "path": "warm-offline/005-app_install.request.json",
+      "sha256": "7e4860e1d356385affab1dbc759197009cc1e059054718ec5a11bd919eb53cf6",
+      "size": 278
+    },
+    {
+      "path": "warm-offline/005-app_install.response.json",
+      "sha256": "25c93002b0c70a01ed58ccbfc0ce97e26e3511e30ddd237cd461b6c40cb55dbb",
+      "size": 377
+    },
+    {
+      "path": "warm-offline/006-ui_snapshot.request.json",
+      "sha256": "88daef4f8071dcc0cad3e2a88fd65161ba92fe92adbbfc8171250a8bd32391d7",
+      "size": 163
+    },
+    {
+      "path": "warm-offline/006-ui_snapshot.response.json",
+      "sha256": "9d048514156c232c49298505cdce6190b87e124012c9b57ace728aaf2aff3a17",
+      "size": 13836
+    },
+    {
+      "path": "warm-offline/007-ui_screenshot.request.json",
+      "sha256": "525e72952ffd364f7d3d583864bb3b388b5ae17604120bc64b7014469ca91105",
+      "size": 182
+    },
+    {
+      "path": "warm-offline/007-ui_screenshot.response.json",
+      "sha256": "23d15acfdc8333895477da1dd4d6d6c7b8db5e19991d2a8ff97aea390f3d3484",
+      "size": 370
+    },
+    {
+      "path": "warm-offline/008-ui_act.request.json",
+      "sha256": "9b46b93d9a0f715130963d676221f9b2b67cffd3de73427d6a18c89e09e3771c",
+      "size": 228
+    },
+    {
+      "path": "warm-offline/008-ui_act.response.json",
+      "sha256": "f61ea834b20b0a9df97cba334f05ad5a84522c0cbbf1880555fc961d4941f92b",
+      "size": 13027
+    },
+    {
+      "path": "warm-offline/009-ui_screenshot.request.json",
+      "sha256": "660966332932d2166ed011bed718f2be0aba901226442ac91601fe8dfc293ac8",
+      "size": 182
+    },
+    {
+      "path": "warm-offline/009-ui_screenshot.response.json",
+      "sha256": "1abaa33472b0572becb613d9e2d4b67abc7262e1c788e366da0a4efff482a7aa",
+      "size": 370
+    },
+    {
+      "path": "warm-offline/010-app_logs.request.json",
+      "sha256": "462a5ab38e589548d540d132341cef3926883a578e207b10a50add3d6c5048c3",
+      "size": 176
+    },
+    {
+      "path": "warm-offline/010-app_logs.response.json",
+      "sha256": "eada298d3ba2a29efc331b42964ffaedb643d98be17e6c7904e1409af3692546",
+      "size": 247
+    },
+    {
+      "path": "warm-offline/launch-policy.json",
+      "sha256": "04bd5ff5195c078d32cc9e054d8e8211838fff3f4aab70d77c4c8d252b53a5e8",
+      "size": 356
+    },
+    {
+      "path": "warm-offline/receipt.json",
+      "sha256": "ee306120d855eb6ce50553aa6c2ef22ed37cb180c4bb46086cbd817b239c8603",
+      "size": 83990
+    },
+    {
+      "path": "warm-offline/runtime.json",
+      "sha256": "d7c2a5ed3493339b81360f7ef287ef6250bb102b54ebe74e5ace882c50fdb21f",
+      "size": 740
+    },
+    {
+      "path": "warm-offline/screenshot-before.png",
+      "sha256": "0c9212012f1d2e4188525f3b42af69124fd026142455f92178685ed1f45c5a8d",
+      "size": 38143
+    },
+    {
+      "path": "warm-offline/screenshot.png",
+      "sha256": "bdf40087ce46c9c192a473a8c206a44ecb3f39f4726c7454abe72af524a6539e",
+      "size": 64396
+    },
+    {
+      "path": "warm-offline/secret-scan.json",
+      "sha256": "226622bd86f049b60bb842318c5563d21042f4fa5dfd29680ae08b0619322633",
+      "size": 187
+    },
+    {
+      "path": "warm-offline/serial.log.gz",
+      "sha256": "07f07f4417b21f21d8a1b22dfdcfc0832b0cd3b7055a2f899c9ef15b72d71da0",
+      "size": 12937
+    },
+    {
+      "path": "warm-offline-wrapper.py",
+      "sha256": "bba7ca6a69d62126a5e85eb8c3aae452c2705474f639371e9edf2e058fe08c2f",
+      "size": 5624
+    }
+  ],
+  "prepared_run_id": 43914898031,
+  "prepublication_acceptance_commit": "90d0bda1ee4894add5c668f5e46dc65a456ea944",
+  "public_verified": true,
+  "publication_run_id": 43929683661,
+  "release_url": "https://github.com/edufelip/ashnazg/releases/tag/v0.3.0",
+  "schema_version": 1,
+  "source_sha": "50434b8a056514fafd9fcb63cc534ce369880184",
+  "warm_offline": {
+    "cli_subtree_outbound_ip_denied": true,
+    "helper_startup_ms": 30571,
+    "passed": true,
+    "persistent_disk_identity_preserved_from_cold": true,
+    "profile_launch_bound": true,
+    "ready_seconds": 37.701,
+    "whole_guest_network_isolation_claim": false
+  }
+}

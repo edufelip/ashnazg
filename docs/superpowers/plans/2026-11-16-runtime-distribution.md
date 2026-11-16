@@ -17,32 +17,32 @@
 
 ## Release candidate contract
 
-- [ ] Set Cargo and package version to `0.3.0`; preserve the runtime manifest's existing `0.3.0` contract.
-- [ ] Package the macOS ARM64 helper with Virtualization.framework entitlements and an ad-hoc signature verified after signing. Describe Developer ID/notarization availability accurately.
-- [ ] Prepare guest, helper, agent and fixture with the catalog's exact role names. Record full source SHA, byte sizes and SHA-256 values using `scripts/runtime_catalog.py`.
-- [ ] Publish the complete source/notice sidecar as `ashnazg-runtime-sources-v0.3.0-001.tar.xz`; include its digest in the catalog and external download checksums.
-- [ ] Preserve existing read-only PR validation and exact-source Quality/main/tag publication checks. Separate candidate preparation from publication so accepted bytes are reused.
+- [x] Set Cargo and package version to `0.3.0`; preserve the runtime manifest's existing `0.3.0` contract.
+- [x] Package the macOS ARM64 helper with Virtualization.framework entitlements and an ad-hoc signature verified after signing. Describe Developer ID/notarization availability accurately.
+- [x] Prepare guest, helper, agent and fixture with the catalog's exact role names. Record full source SHA, byte sizes and SHA-256 values using `scripts/runtime_catalog.py`.
+- [x] Publish the complete source/notice sidecar as `ashnazg-runtime-sources-v0.3.0-001.tar.xz`; include its digest in the catalog and external download checksums.
+- [x] Preserve existing read-only PR validation and exact-source Quality/main/tag publication checks. Separate candidate preparation from publication so accepted bytes are reused.
 
 ## Source sidecar
 
-- [ ] Normalize retained authenticated recipe/source evidence into checked URL, filename, size, SHA-256 and declared SHA-512 records without temporary paths.
-- [ ] Compare the prepared guest's `runtime-components.json` origin/commit groups with the lock before assembly; reject missing, extra or changed groups.
-- [ ] Include all exact source inputs, all recipe/support files, notice evidence and supplemental texts, package inventory, kernel configuration/source and project license/source. Retain original bytes and map them in a deterministic manifest.
-- [ ] Use bounded downloads and regular-file archive members with fixed metadata. Test missing/corrupt inputs, inventory mismatches, unsafe names and deterministic assembly.
+- [x] Normalize retained authenticated recipe/source evidence into checked URL, filename, size, SHA-256 and declared SHA-512 records without temporary paths.
+- [x] Compare the prepared guest's `runtime-components.json` origin/commit groups with the lock before assembly; reject missing, extra or changed groups.
+- [x] Include all exact source inputs, all recipe/support files, notice evidence and supplemental texts, package inventory, kernel configuration/source and project license/source. Retain original bytes and map them in a deterministic manifest.
+- [x] Use bounded downloads and regular-file archive members with fixed metadata. Test missing/corrupt inputs, inventory mismatches, unsafe names and deterministic assembly.
 
 ## Real CLI acceptance
 
-- [ ] Build a production source-stamped host and source-matching helper/guest/APKs; verify upstream artifact receipts and every candidate hash before use.
-- [ ] Use an owned private HOME/cache/state. Stage a catalog-verified candidate cache for prepublication CLI acceptance without adding a production URL override or fabricating source identity.
-- [ ] Launch the actual `ashnazg mcp` process with no host ADB/aapt or external guest credentials. Require initialize/tools-list before readiness, then exercise all five tools, inferred install/launch, changed UI and decoded screenshot freshness.
-- [ ] Exercise normal EOF, idle SIGTERM and in-flight cancellation. Retain helper/bridge process, credential, listener and persistent-state cleanup evidence; never signal unowned processes or remove unowned paths.
-- [ ] Repeat warm startup and record acquisition, ready and shutdown intervals separately. Publish no performance improvement claim from these observations.
-- [ ] After publication, start with a fresh cache using the public catalog and assets, repeat the real CLI checks, and verify offline warm reuse separately.
+- [x] Build a production source-stamped host and source-matching helper/guest/APKs; verify upstream artifact receipts and every candidate hash before use.
+- [x] Use an owned private HOME/cache/state. Stage a catalog-verified candidate cache for prepublication CLI acceptance without adding a production URL override or fabricating source identity.
+- [x] Launch the actual `ashnazg mcp` process with no host ADB/aapt or external guest credentials. Require initialize/tools-list before readiness, then exercise all five tools, inferred install/launch, changed UI and decoded screenshot freshness.
+- [x] Exercise normal EOF, idle SIGTERM and in-flight cancellation. Retain helper/bridge process, credential, listener and persistent-state cleanup evidence; never signal unowned processes or remove unowned paths.
+- [x] Repeat warm startup and record acquisition, ready and shutdown intervals separately. Publish no performance improvement claim from these observations.
+- [x] After publication, start with a fresh cache using the public catalog and assets, repeat the real CLI checks, and verify offline warm reuse separately.
 
 ## Verification and delivery
 
-- [ ] Run focused red/green lane tests, combined Rust/Python/Swift checks, actionlint, formatting and diff checks.
-- [ ] Obtain fresh independent reviews for packaging, source binding and acceptance evidence; repair concrete findings and rerun affected checks.
-- [ ] Open a draft PR, inspect exact-head CI and feedback, merge when all applicable checks pass, and prepare candidates from the chosen validated main SHA.
-- [ ] Retain acceptance receipts and artifact hashes, create the pinned release tag and publish the accepted bytes as an experimental prerelease.
-- [ ] Verify public asset URLs, hashes and real cold acquisition. Report actual platform/signing and runtime limitations alongside measured results.
+- [x] Run focused red/green lane tests, combined Rust/Python/Swift checks, actionlint, formatting and diff checks.
+- [x] Obtain fresh independent reviews for packaging, source binding and acceptance evidence; repair concrete findings and rerun affected checks.
+- [x] Open a draft PR, inspect exact-head CI and feedback, merge when all applicable checks pass, and prepare candidates from the chosen validated main SHA.
+- [x] Retain acceptance receipts and artifact hashes, create the pinned release tag and publish the accepted bytes as an experimental prerelease.
+- [x] Verify public asset URLs, hashes and real cold acquisition. Report actual platform/signing and runtime limitations alongside measured results.

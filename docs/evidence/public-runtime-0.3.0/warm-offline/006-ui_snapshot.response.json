@@ -1,0 +1,385 @@
+{
+  "id": 6,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"nodes\":[{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":1,\"longClickable\":false,\"password\":false,\"rect\":[0,40,720,1320],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"android:id/content\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":2,\"longClickable\":false,\"password\":false,\"rect\":[40,80,680,139],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Ashnazg fixture\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":3,\"longClickable\":false,\"password\":false,\"rect\":[40,139,680,235],\"role\":\"button\",\"scrollable\":false,\"selected\":false,\"testId\":\"dev.ashnazg.fixture:id/increment\",\"text\":\"Count: 0\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"hint\":\"Input\",\"id\":4,\"longClickable\":true,\"password\":false,\"rect\":[40,235,680,326],\"role\":\"textbox\",\"scrollable\":false,\"selected\":false,\"testId\":\"dev.ashnazg.fixture:id/input\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":5,\"longClickable\":true,\"password\":true,\"rect\":[40,326,680,417],\"role\":\"textbox\",\"scrollable\":false,\"selected\":false,\"testId\":\"dev.ashnazg.fixture:id/password\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":6,\"longClickable\":false,\"password\":false,\"rect\":[40,417,680,455],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Duplicate target\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":7,\"longClickable\":false,\"password\":false,\"rect\":[40,455,680,493],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Duplicate target\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":8,\"longClickable\":true,\"password\":false,\"rect\":[40,493,680,587],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Long press target\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":9,\"longClickable\":false,\"password\":false,\"rect\":[40,587,680,1280],\"role\":\"scrollable\",\"scrollable\":true,\"selected\":false,\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":10,\"longClickable\":false,\"password\":false,\"rect\":[40,587,680,681],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 0\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":11,\"longClickable\":false,\"password\":false,\"rect\":[40,681,680,775],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 1\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":12,\"longClickable\":false,\"password\":false,\"rect\":[40,775,680,869],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 2\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":13,\"longClickable\":false,\"password\":false,\"rect\":[40,869,680,963],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 3\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":14,\"longClickable\":false,\"password\":false,\"rect\":[40,963,680,1057],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 4\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":15,\"longClickable\":false,\"password\":false,\"rect\":[40,1057,680,1151],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 5\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":16,\"longClickable\":false,\"password\":false,\"rect\":[40,1151,680,1245],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 6\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":17,\"longClickable\":false,\"password\":false,\"rect\":[40,1245,680,1280],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Scrollable row 7\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":18,\"longClickable\":false,\"password\":false,\"rect\":[0,1224,720,1320],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"android:id/navigationBarBackground\",\"text\":\"\"}],\"snapshotId\":2,\"truncated\":false}",
+        "type": "text"
+      }
+    ],
+    "isError": false,
+    "structuredContent": {
+      "nodes": [
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 1,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            40,
+            720,
+            1320
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "android:id/content",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 2,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            80,
+            680,
+            139
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Ashnazg fixture"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "enabled": true,
+          "focused": false,
+          "id": 3,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            139,
+            680,
+            235
+          ],
+          "role": "button",
+          "scrollable": false,
+          "selected": false,
+          "testId": "dev.ashnazg.fixture:id/increment",
+          "text": "Count: 0"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "enabled": true,
+          "focused": false,
+          "hint": "Input",
+          "id": 4,
+          "longClickable": true,
+          "password": false,
+          "rect": [
+            40,
+            235,
+            680,
+            326
+          ],
+          "role": "textbox",
+          "scrollable": false,
+          "selected": false,
+          "testId": "dev.ashnazg.fixture:id/input",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "enabled": true,
+          "focused": false,
+          "id": 5,
+          "longClickable": true,
+          "password": true,
+          "rect": [
+            40,
+            326,
+            680,
+            417
+          ],
+          "role": "textbox",
+          "scrollable": false,
+          "selected": false,
+          "testId": "dev.ashnazg.fixture:id/password",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 6,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            417,
+            680,
+            455
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Duplicate target"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 7,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            455,
+            680,
+            493
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Duplicate target"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 8,
+          "longClickable": true,
+          "password": false,
+          "rect": [
+            40,
+            493,
+            680,
+            587
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Long press target"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 9,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            587,
+            680,
+            1280
+          ],
+          "role": "scrollable",
+          "scrollable": true,
+          "selected": false,
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 10,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            587,
+            680,
+            681
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Scrollable row 0"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 11,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            681,
+            680,
+            775
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Scrollable row 1"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 12,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            775,
+            680,
+            869
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Scrollable row 2"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 13,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            869,
+            680,
+            963
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Scrollable row 3"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 14,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            963,
+            680,
+            1057
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Scrollable row 4"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 15,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            1057,
+            680,
+            1151
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Scrollable row 5"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 16,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            1151,
+            680,
+            1245
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Scrollable row 6"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 17,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            40,
+            1245,
+            680,
+            1280
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Scrollable row 7"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 18,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            1224,
+            720,
+            1320
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "android:id/navigationBarBackground",
+          "text": ""
+        }
+      ],
+      "snapshotId": 2,
+      "truncated": false
+    }
+  }
+}
