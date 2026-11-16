@@ -13,6 +13,8 @@ import re
 import signal
 import socket
 import stat
+import struct
+import zlib
 import subprocess
 import sys
 import threading
@@ -23,22 +25,16 @@ from typing import Any
 
 PROTOCOL_VERSION = "2024-11-05"
 TOOLS = ("app_install", "app_logs", "ui_act", "ui_screenshot", "ui_snapshot")
-TOOL_PROPERTIES = {
-    "app_install": {"path", "launch", "package"},
-    "app_logs": {"sinceMs", "tagFilter"},
-    "ui_act": {"action", "target", "text", "direction"},
-    "ui_screenshot": {"format", "somOverlay"},
-    "ui_snapshot": {"includeInvisible"},
-}
+SCHEMA_PATH = Path(__file__).resolve().parents[1] / "runtime/mcp-tools.schema.json"
 MAX_FRAME_BYTES = 16 * 1024 * 1024
 MAX_STDOUT_BYTES = 32 * 1024 * 1024
 MAX_STDERR_BYTES = 64 * 1024
-REQUEST_TIMEOUT = 30.0
-STARTUP_TIMEOUT = 300.0
+REQUEST_TIMEOUT = 35.0
+STARTUP_TIMEOUT = 1250.0
 STARTUP_RETRY_INTERVAL = 2.0
 SHUTDOWN_GRACE = 220.0
 KILL_GRACE = 5.0
-SOURCE_SHA_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
+SOURCE_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SECRET_TEXT_RE = re.compile(
     r"(?i)(ASHNAZG_TOKEN|rpc_token|install_token|authorization|bearer|token)\s*([:= ]\s*)[^\s,}\"]+"
 )
@@ -367,7 +363,86 @@ def _tool_call(client: StdioClient, records: list[dict[str, Any]], output: Path,
     return payload, response
 
 
-def _screenshot(output: Path, response: dict[str, Any], fallback: Any, records: list[dict[str, Any]]) -> dict[str, Any]:
+def decode_png(image: bytes) -> dict[str, Any]:
+    """Decode bounded non-interlaced 8-bit RGB/RGBA PNGs, including CRC/filter checks."""
+    if not image.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise AcceptanceError("invalid PNG signature")
+    offset, chunks, header, ended, data_started = 8, 0, None, False, False
+    compressed = bytearray()
+    while offset < len(image):
+        chunks += 1
+        if chunks > 4096 or offset + 12 > len(image):
+            raise AcceptanceError("invalid PNG framing")
+        length, = struct.unpack_from('>I', image, offset)
+        kind = image[offset+4:offset+8]
+        end = offset + 12 + length
+        if end > len(image):
+            raise AcceptanceError("truncated PNG chunk")
+        body = image[offset+8:offset+8+length]
+        crc, = struct.unpack_from('>I', image, end-4)
+        if zlib.crc32(kind + body) & 0xffffffff != crc:
+            raise AcceptanceError("PNG CRC mismatch")
+        if kind == b'IHDR':
+            if header is not None or chunks != 1 or length != 13:
+                raise AcceptanceError("invalid PNG header")
+            width, height, depth, color, comp, filt, interlace = struct.unpack('>IIBBBBB', body)
+            if not (0 < width <= 4096 and 0 < height <= 4096 and width * height <= 8 * 1024**2):
+                raise AcceptanceError("PNG dimensions exceed bounds")
+            if depth != 8 or color not in (2, 6) or comp or filt or interlace:
+                raise AcceptanceError("unsupported PNG encoding")
+            header = (width, height, 3 if color == 2 else 4)
+        elif kind == b'IDAT':
+            if header is None or ended:
+                raise AcceptanceError("invalid PNG data ordering")
+            data_started = True
+            compressed.extend(body)
+        elif kind == b'IEND':
+            if not data_started or length or end != len(image):
+                raise AcceptanceError("invalid PNG end")
+            ended = True
+        elif kind[:1].isupper() and kind != b'PLTE':
+            raise AcceptanceError("unknown critical PNG chunk")
+        offset = end
+    if header is None or not ended:
+        raise AcceptanceError("incomplete PNG")
+    width, height, channels = header
+    stride = width * channels
+    expected = height * (stride + 1)
+    decoder = zlib.decompressobj()
+    try:
+        raw = decoder.decompress(bytes(compressed), expected + 1)
+    except zlib.error as exc:
+        raise AcceptanceError("invalid PNG deflate stream") from exc
+    if len(raw) != expected or not decoder.eof or decoder.unused_data or decoder.unconsumed_tail:
+        raise AcceptanceError("PNG decompressed size or stream mismatch")
+    pixels = bytearray()
+    prior = bytearray(stride)
+    for row in range(height):
+        position = row * (stride + 1)
+        filter_type = raw[position]
+        current = bytearray(raw[position+1:position+1+stride])
+        if filter_type > 4:
+            raise AcceptanceError("invalid PNG row filter")
+        for index in range(stride):
+            left = current[index-channels] if index >= channels else 0
+            up = prior[index]
+            diagonal = prior[index-channels] if index >= channels else 0
+            if filter_type == 1: prediction = left
+            elif filter_type == 2: prediction = up
+            elif filter_type == 3: prediction = (left + up) // 2
+            elif filter_type == 4:
+                guess = left + up - diagonal
+                distances = (abs(guess-left), abs(guess-up), abs(guess-diagonal))
+                prediction = (left, up, diagonal)[distances.index(min(distances))]
+            else: prediction = 0
+            current[index] = (current[index] + prediction) & 255
+        pixels.extend(current)
+        prior = current
+    return {"width": width, "height": height, "channels": channels,
+            "pixel_sha256": sha256_bytes(pixels)}
+
+
+def _screenshot(output: Path, response: dict[str, Any], fallback: Any, records: list[dict[str, Any]], stem: str = "screenshot") -> dict[str, Any]:
     result = response.get("result", {})
     if not isinstance(result, dict):
         raise AcceptanceError("screenshot result is malformed")
@@ -418,11 +493,16 @@ def _screenshot(output: Path, response: dict[str, Any], fallback: Any, records: 
         raise AcceptanceError("ui_screenshot dimensions are missing")
     if not isinstance(metadata.get("marks"), list):
         raise AcceptanceError("ui_screenshot semantic marks are missing")
-    image_path = output / f"screenshot.{suffix}"
+    if mime != "image/png":
+        raise AcceptanceError("acceptance requires decoded PNG evidence")
+    decoded = decode_png(image)
+    if decoded["width"] != metadata["width"] or decoded["height"] != metadata["height"]:
+        raise AcceptanceError("PNG dimensions disagree with screenshot metadata")
+    image_path = output / f"{stem}.{suffix}"
     image_path.write_bytes(image)
     item = {"path": image_path.name, "size": len(image), "sha256": sha256_bytes(image)}
     records.append(item)
-    return {**item, "mime_type": mime, "snapshot_id": snapshot_id,
+    return {**item, **decoded, "mime_type": mime, "snapshot_id": snapshot_id,
             "width": metadata["width"], "height": metadata["height"], "marks_count": len(metadata["marks"])}
 
 
@@ -437,11 +517,8 @@ def _first_clickable_target(snapshot: Any) -> dict[str, str]:
         if not isinstance(node, dict) or node.get("clickable") is not True or node.get("enabled") is False:
             continue
         test_id = node.get("testId")
-        if isinstance(test_id, str) and test_id:
+        if test_id == "dev.ashnazg.fixture:id/increment":
             return {"testId": test_id}
-        text = node.get("text")
-        if isinstance(text, str) and text:
-            return {"text": text}
     raise AcceptanceError("fixture UI snapshot has no enabled clickable semantic target")
 
 
@@ -456,7 +533,8 @@ def _prepare_home(home_arg: Path | None, output: Path) -> tuple[Path, bool]:
     info = home.lstat()
     if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid():
         raise AcceptanceError("--home must be an owned directory")
-    os.chmod(home, 0o700)
+    if stat.S_IMODE(info.st_mode) != 0o700:
+        raise AcceptanceError("--home must already be private mode 0700")
     return home, False
 
 
@@ -465,7 +543,7 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
     if mode not in ("eof", "sigterm"):
         raise AcceptanceError("--mode must be eof or sigterm")
     if not SOURCE_SHA_RE.fullmatch(source_sha):
-        raise AcceptanceError("--source-sha must be a 40- or 64-character lowercase hexadecimal SHA")
+        raise AcceptanceError("--source-sha must be a 40-character lowercase hexadecimal SHA")
     binary = binary.resolve(strict=True)
     fixture_apk = fixture_apk.resolve(strict=True)
     if not binary.is_file() or not os.access(binary, os.X_OK):
@@ -473,7 +551,9 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
     if not fixture_apk.is_file():
         raise AcceptanceError("--fixture-apk must be a regular file")
     output.mkdir(parents=True, exist_ok=True, mode=0o700)
-    os.chmod(output, 0o700)
+    output_info = output.lstat()
+    if not stat.S_ISDIR(output_info.st_mode) or output_info.st_uid != os.getuid() or stat.S_IMODE(output_info.st_mode) != 0o700:
+        raise AcceptanceError("--output-dir must be an owned private directory")
     if any(output.iterdir()):
         raise AcceptanceError("--output-dir must be empty to preserve existing evidence")
     home, default_home = _prepare_home(home_arg, output)
@@ -499,6 +579,7 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
     started_at = time.monotonic()
     receipt: dict[str, Any] = {
         "schema_version": 1, "status": "running", "mode": mode, "source_sha": source_sha,
+        "driver_sha256": sha256_file(Path(__file__)),
         "inputs": {"binary": {"path": str(binary), "size": binary.stat().st_size, "sha256": sha256_file(binary)},
                    "fixture_apk": {"path": str(fixture_apk), "size": fixture_apk.stat().st_size,
                                    "sha256": sha256_file(fixture_apk)}},
@@ -522,6 +603,8 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
     shutdown = {"mode": mode, "stdin_open_at_signal": False, "joined": False,
                 "exit_code": None, "direct_child_pid": None}
     try:
+        if not all(listeners_before.values()):
+            raise AcceptanceError("acceptance ports are already occupied")
         process = subprocess.Popen([str(binary), "mcp"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, env=environment, cwd=str(home), bufsize=0)
         client = StdioClient(process)
@@ -554,10 +637,12 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
             raise AcceptanceError("tools/list did not expose exactly the five production tools")
         receipt["tools_list"] = tool_names
         schemas = {item["name"]: item.get("inputSchema", {}) for item in listed_result["tools"]}
-        for name, properties in TOOL_PROPERTIES.items():
-            if not isinstance(schemas.get(name), dict) or not properties.issubset(
-                    set(schemas[name].get("properties", {}))):
-                raise AcceptanceError(f"tools/list schema for {name} does not match the production contract")
+        expected_schemas = json.loads(SCHEMA_PATH.read_text())
+        if schemas != expected_schemas:
+            raise AcceptanceError("tools/list input schemas differ from the frozen production contracts")
+        receipt["tool_schema_sha256"] = sha256_file(SCHEMA_PATH)
+        receipt["handshake"] = {"elapsed_seconds": round(time.monotonic() - started_at, 3),
+                                "credential_at_tools_list": _credential_metadata(state_dir)}
         next_id += 1
 
         # Only a harmless snapshot is retried while the production runtime finishes startup.
@@ -578,6 +663,15 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
                 readiness["credential_at_ready"] = _credential_metadata(state_dir)
                 readiness["descendants_at_ready"] = _process_descendants(process.pid)
                 readiness["listeners_at_ready"] = _ports_closed()
+                if readiness["credential_at_ready"] != {"exists": True, "mode": 0o600}:
+                    raise AcceptanceError("native session credential missing or unsafe at readiness")
+                if any(readiness["listeners_at_ready"].values()):
+                    raise AcceptanceError("native session relays missing at readiness")
+                descendants = readiness["descendants_at_ready"]
+                if descendants["status"] != "available" or not any(
+                        item["command"].startswith("ashnazg-vm") for item in descendants["processes"]) or not any(
+                        item["command"] == "ashnazg" for item in descendants["processes"]):
+                    raise AcceptanceError("owned helper descendant unavailable at readiness")
                 break
             except AcceptanceError as exc:
                 retryable_startup = str(exc).lower() in {
@@ -597,7 +691,7 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
         install, _ = _tool_call(client, records, output, receipt["protocol"], "app_install",
                                 {"path": str(fixture_apk), "launch": True}, next_id)
         receipt["tools_called"].append("app_install")
-        if not isinstance(install, dict) or install.get("installed") is not True or not install.get("package"):
+        if not isinstance(install, dict) or install.get("installed") is not True or install.get("package") != "dev.ashnazg.fixture":
             raise AcceptanceError("app_install did not infer and launch the APK package")
         package = install["package"]
         receipt["installation"] = {"installed": True, "inferred_package": package}
@@ -608,6 +702,17 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
                 isinstance(snapshot.get("snapshotId"), bool) or snapshot["snapshotId"] <= 0):
             raise AcceptanceError("ui_snapshot omitted a snapshot ID")
         initial_nodes = _snapshot_nodes(snapshot)
+        def count_value(value):
+            values = [node.get("text") for node in _snapshot_nodes(value)
+                      if isinstance(node, dict) and node.get("testId") == "dev.ashnazg.fixture:id/increment"]
+            if len(values) != 1 or not isinstance(values[0], str) or re.fullmatch(r"Count: [0-9]+", values[0]) is None:
+                raise AcceptanceError("fixture counter semantic value is missing or ambiguous")
+            return int(values[0].split(": ")[1])
+        initial_count = count_value(snapshot)
+        next_id += 1
+        before_image, before_response = _tool_call(client, records, output, receipt["protocol"], "ui_screenshot",
+                                                   {"format": "png", "somOverlay": False}, next_id)
+        receipt["screenshot_before"] = _screenshot(output, before_response, before_image, records, "screenshot-before")
         next_id += 1
         act_args = {"action": "tap", "target": _first_clickable_target(snapshot)}
         receipt["interaction"] = {"action": "tap", "target": act_args["target"]}
@@ -620,6 +725,9 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
                 isinstance(action_snapshot.get("snapshotId"), bool) or
                 action_snapshot["snapshotId"] <= snapshot["snapshotId"]):
             raise AcceptanceError("ui_act did not return a changed fresh snapshot")
+        if count_value(action_snapshot) != initial_count + 1:
+            raise AcceptanceError("fixture counter did not increment exactly once")
+        receipt["interaction"].update(count_before=initial_count, count_after=initial_count + 1)
         if _snapshot_nodes(action_snapshot) == initial_nodes:
             raise AcceptanceError("ui_act did not change the semantic UI snapshot")
         next_id += 1
@@ -630,6 +738,9 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
         receipt["screenshot"]["fresh_after_action"] = receipt["screenshot"]["snapshot_id"] >= action_snapshot["snapshotId"]
         if not receipt["screenshot"]["fresh_after_action"]:
             raise AcceptanceError("screenshot snapshot is not fresh after ui_act")
+        if receipt["screenshot"]["pixel_sha256"] == receipt["screenshot_before"]["pixel_sha256"]:
+            raise AcceptanceError("screenshot pixels did not change after the fixture action")
+        receipt["screenshot"]["pixels_changed_after_action"] = True
         next_id += 1
         logs, _ = _tool_call(client, records, output, receipt["protocol"], "app_logs", {"sinceMs": None, "tagFilter": None}, next_id)
         receipt["tools_called"].append("app_logs")
@@ -657,8 +768,8 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
             raise AcceptanceError("CLI did not exit within the bounded owned-child shutdown grace")
         if shutdown["exit_code"] != 0:
             raise AcceptanceError(f"CLI exited with status {shutdown['exit_code']}")
-    except Exception as exc:
-        failure = bounded_text(str(exc))
+    except BaseException as exc:
+        failure = bounded_text(str(exc)) if isinstance(exc, Exception) else "acceptance interrupted"
     finally:
         if process is not None and process.poll() is None:
             if not failure and process.stdin is not None and not process.stdin.closed:
@@ -715,6 +826,14 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
                                              for name, identity in cache_before.items()),
             "owned_descendants_after_shutdown": _pids_alive(readiness.get("descendants_at_ready", {}).get("processes", [])),
         }
+        cleanup = receipt["cleanup"]
+        if not failure:
+            if not cleanup["credential_absent"] or not all(listeners_after.values()):
+                failure = "native cleanup left credentials or listeners"
+            elif not cleanup["state_identity_preserved"] or not cleanup["cache_identity_preserved"]:
+                failure = "native cleanup changed a retained state or cache identity"
+            elif any(item["alive"] for item in cleanup["owned_descendants_after_shutdown"]):
+                failure = "owned helper or bridge descendant remained alive"
         receipt["cache"]["after"] = _tree_identity(cache_dir)
         receipt["cache"]["marker_after"] = _identity(cache_dir / "cache.json")
         receipt["state"]["after"] = _tree_identity(state_dir)

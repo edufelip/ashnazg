@@ -2488,6 +2488,23 @@ mod tests {
     }
 
     #[test]
+    fn acceptance_schema_fixture_matches_all_production_tool_inputs() {
+        let actual: serde_json::Map<String, serde_json::Value> = AshnazgServer::tool_router()
+            .list_all()
+            .into_iter()
+            .map(|tool| {
+                (
+                    tool.name.to_string(),
+                    serde_json::to_value(tool.input_schema).unwrap(),
+                )
+            })
+            .collect();
+        let expected: serde_json::Value =
+            serde_json::from_str(include_str!("../runtime/mcp-tools.schema.json")).unwrap();
+        assert_eq!(serde_json::Value::Object(actual), expected);
+    }
+
+    #[test]
     fn exposes_only_the_five_implemented_tools_with_typed_action_schema() {
         let tools = AshnazgServer::tool_router().list_all();
         let mut names = tools

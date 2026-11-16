@@ -17,6 +17,7 @@ on:
       - tests/test_runtime_sources.py
       - tests/test_release_workflow.py
       - runtime/microvm/sources.lock.json
+      - runtime/mcp-tools.schema.json
       - docs/releases.md
       - Cargo.toml
       - Cargo.lock
