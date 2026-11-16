@@ -1,0 +1,9 @@
+{
+  "qualification": "Diagnostic mutable test disk only; immutable template unchanged and rebuilt CI acceptance required",
+  "guest_template_source_sha": "2245f29c0ce7a4d9df84ff6c77ed048951eaef2b",
+  "override_source_sha": "c18e97c17044cfb606af83d3990375881b5b6aa3",
+  "path": "/usr/local/lib/ashnazg/runtime/microvm/agent_backend.py",
+  "before_sha256": "948602b8499cda23d2a5cf3187695e00b968178e5d285b7d0145e9487fa617ce",
+  "after_sha256": "c41efe282a0a44826d39bd76bab5aba84b4c337c2834794b9874ea9ce0a7dc6f",
+  "offline_readback_matches": true
+}

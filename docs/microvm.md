@@ -99,6 +99,25 @@ selects stdin when no positional arguments remain. The diagnostic used host ADB;
 it is not successful acceptance of the host-ADB-free session. The corrected
 guest must be rebuilt and tested through that full path before qualification.
 
+The rebuilt `2245f29` guest [prepared the agent successfully](evidence/native-session-diagnostic-2245f29/receipt.json),
+then exposed two further issues. A restart rejected the private state directory
+because Foundation's `/tmp` spelling differed from C `realpath`'s `/private/tmp`
+spelling. The repaired check permits only exact macOS system aliases and rejects
+custom symlinks and parent traversal before normalization. Separately, Android's
+successful `Status: ok` launch output was rejected by a backtracking negative
+lookahead. The launcher now relies on its existing exact-one-`ok` status check
+and still rejects explicit error or exception lines.
+
+An offline, readback-verified patch to the **writable diagnostic disk** passed
+28 RPC checks and 7 MCP checks, including native, Compose and React Native
+actions/screenshots. The runner used no host ADB; separate diagnostic commands
+used it to reproduce the launch-output failure. The diagnostic helper exited
+zero, removed its credential and closed all three listeners. The MCP checks
+exclude native `app_install` wiring, which remains subsequent work; APK installs
+were exercised through the helper's native installation channel. This modified
+disk result does not qualify the immutable guest or a release. A rebuilt guest
+and fresh cold/restart acceptance remain required.
+
 ## Recorded native cold boot
 
 The clean `7a760294d3a485cc9f40308c791a58e160d620f1` source and its [hosted artifact build](https://github.com/edufelip/ashnazg/actions/runs/43771299927) were tested with an ad-hoc-signed helper on Apple Silicon macOS. Both artifact ZIP digests, the inner archive checksum, manifest asset hashes and every requested kernel setting were verified before creating a fresh state directory. The retained [verification record](evidence/microvm-cold-boot-7a76029/verification.json) includes the two download receipts, API digest comparisons and all 79 kernel assignments; these checks were repeated when recording the evidence. The generated kernel has PSI and FUSE built in, with PSI enabled by default.
