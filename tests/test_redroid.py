@@ -132,6 +132,72 @@ class RedroidValidationTests(unittest.TestCase):
         with self.assertRaises(redroid.RedroidError):
             redroid.verify_image_index(raw, "sha256:" + "0" * 64, "amd64")
 
+    def test_android15_64only_index_and_platform_digests_are_pinned(self):
+        profile = "android15-64only"
+        index = "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"
+        for architecture, digest in {
+            "amd64": "sha256:58e548d78c4854f032912757dc0782d7a86b9d602ffc10b2f09fb9e86731adf3",
+            "arm64": "sha256:dc2024a999dd0acb1112a23cddc9537ec8cb60a0dbe5a87ce9fbd75a2f5e94d2",
+        }.items():
+            raw = json.dumps({"manifests": [
+                {"digest": digest, "platform": {"os": "linux", "architecture": architecture}}
+            ]})
+            self.assertEqual(redroid.verify_image_index(raw, index, architecture, profile=profile), digest)
+            with self.assertRaises(redroid.RedroidError):
+                redroid.verify_image_index(raw, redroid.IMAGE_INDEX, architecture, profile=profile)
+
+    def test_android15_64only_profile_selects_verified_pin_in_receipt(self):
+        index = "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"
+        digest = "sha256:dc2024a999dd0acb1112a23cddc9537ec8cb60a0dbe5a87ce9fbd75a2f5e94d2"
+        supervisor = redroid.RedroidSupervisor(output_dir=Path("unused"), image_profile="android15-64only")
+        supervisor.architecture = "arm64"
+        supervisor.deadline = redroid.time.monotonic() + 30
+        commands = []
+
+        def command(args, **kwargs):
+            commands.append(args)
+            if args[1:3] == ["context", "inspect"]:
+                return redroid.CommandResult(0, "unix:///var/run/docker.sock", "")
+            if args[1:3] == ["devices", "-l"]:
+                return redroid.CommandResult(0, "List of devices attached", "")
+            if "--raw" in args:
+                return redroid.CommandResult(0, json.dumps({"manifests": [
+                    {"digest": digest, "platform": {"os": "linux", "architecture": "arm64"}}
+                ]}), "")
+            return redroid.CommandResult(0, "", "")
+
+        supervisor.docker_path = "docker"
+        supervisor.adb_path = "adb"
+        supervisor.host_system = "Linux"
+        supervisor.host_arch = "aarch64"
+        supervisor.binder_available = True
+        with patch.object(supervisor, "_command", command), patch.object(redroid, "check_port_available"):
+            # Exercise the exact preflight contract after the non-Docker host checks.
+            supervisor._preflight()
+        self.assertEqual(supervisor.image, f"redroid/redroid@{index}")
+        self.assertEqual(supervisor.receipt["image_index"], index)
+        self.assertEqual(supervisor.receipt["platform_digest"], digest)
+        self.assertEqual(supervisor.receipt["image"], f"redroid/redroid@{index}")
+        self.assertTrue(any(args[-1] == f"redroid/redroid@{index}" for args in commands if "--raw" in args))
+
+    def test_64only_profile_rejects_derived_image_provenance(self):
+        with tempfile.TemporaryDirectory() as temp:
+            with self.assertRaisesRegex(redroid.RedroidError, "provenance"):
+                redroid.RedroidSupervisor(output_dir=Path(temp), image_profile="android15-64only",
+                                          image_provenance=Path(temp) / "provenance.json")
+
+    def test_default_profile_keeps_existing_pins(self):
+        with tempfile.TemporaryDirectory() as temp:
+            supervisor = redroid.RedroidSupervisor(output_dir=Path(temp))
+            self.assertEqual(supervisor.image_profile, "default")
+            self.assertEqual(supervisor.image, redroid.IMAGE)
+            self.assertEqual(supervisor.image_index, redroid.IMAGE_INDEX)
+            self.assertIs(supervisor.platform_digests, redroid.PLATFORM_DIGESTS)
+            supervisor._write_metadata()
+            self.assertEqual(supervisor.receipt["image_index"], redroid.IMAGE_INDEX)
+            self.assertEqual(supervisor.receipt["image"], redroid.IMAGE)
+            self.assertEqual(supervisor.receipt["image_profile"], "default")
+
     def test_port_check_binds_loopback_only_and_reports_busy_port(self):
         with patch.object(redroid.socket, "socket") as create_socket:
             sock = create_socket.return_value.__enter__.return_value
@@ -362,6 +428,21 @@ class RedroidRegressionTests(unittest.TestCase):
                                 cwd=tempfile.gettempdir(), capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_cli_forwards_explicit_image_profile(self):
+        calls = []
+
+        class FakeSupervisor:
+            def __init__(self, **kwargs): calls.append(("init", kwargs))
+            def run(self, command):
+                calls.append(("run", command))
+                return 17
+
+        with patch.object(redroid, "RedroidSupervisor", FakeSupervisor):
+            code = redroid.main(["run", "--output-dir", "out", "--image-profile", "android15-64only",
+                                 "--", "true"])
+        self.assertEqual(code, 17)
+        self.assertEqual(calls[0][1]["image_profile"], "android15-64only")
+
     def test_failed_ownership_probe_never_removes_container(self):
         commands = []
         def runner(args, **kwargs):
@@ -416,6 +497,106 @@ class RedroidRegressionTests(unittest.TestCase):
             with patch.object(supervisor, '_command') as command:
                 supervisor._collect_diagnostics()
                 command.assert_not_called()
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_diagnostics_are_not_collected_when_opt_in_is_unset(self):
+        supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'))
+        supervisor.container_started = True
+        with patch.object(supervisor, '_command') as command:
+            supervisor._collect_diagnostics()
+            command.assert_not_called()
+
+    @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
+    def test_diagnostic_collection_verifies_ownership_before_docker_exec(self):
+        calls = []
+        def command(args, **kwargs):
+            calls.append((args, kwargs))
+            return redroid.CommandResult(0, 'foreign-run-id')
+        with tempfile.TemporaryDirectory() as temp:
+            supervisor = redroid.RedroidSupervisor(output_dir=Path(temp), runner=lambda *a, **k: None,
+                docker_path='docker')
+            supervisor.container_started = True
+            with patch.object(supervisor, '_command', side_effect=command):
+                supervisor._collect_diagnostics()
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0][0][1], 'inspect')
+        self.assertNotIn('diagnostics', supervisor.receipt)
+
+    @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
+    def test_diagnostic_probes_are_static_bounded_and_failures_are_unavailable(self):
+        calls = []
+        def command(args, **kwargs):
+            calls.append((args, kwargs))
+            if args[1] == 'inspect':
+                return redroid.CommandResult(0, supervisor.run_id)
+            if any(arg.endswith('/getprop') for arg in args):
+                raise redroid.RedroidError('probe failed')
+            return redroid.CommandResult(0, 'ok')
+        with tempfile.TemporaryDirectory() as temp:
+            supervisor = redroid.RedroidSupervisor(output_dir=Path(temp), runner=lambda *a, **k: None,
+                docker_path='docker')
+            supervisor.container_started = True
+            with patch.object(supervisor, '_command', side_effect=command):
+                supervisor._collect_diagnostics()
+        execs = [(args, kwargs) for args, kwargs in calls if args[1:2] == ['exec']]
+        self.assertTrue(execs)
+        self.assertTrue(all(kwargs['timeout'] == 5 and kwargs['use_deadline'] is False for _, kwargs in execs))
+        expected = {
+            ('/system/bin/logcat', '-b', 'all', '-d', '-t', '250'),
+            ('/system/bin/getprop', 'sys.boot_completed'),
+            ('/system/bin/getprop', 'ro.lmk.use_psi'),
+            ('/system/bin/getprop', 'ro.lmk.use_minfree_levels'),
+            ('/system/bin/getprop', 'ro.config.low_ram'),
+            ('/system/bin/pidof', 'lmkd', 'system_server', 'surfaceflinger'),
+            *(('/system/bin/cat', path) for path in (
+                '/proc/pressure/memory', '/proc/cgroups', '/sys/fs/cgroup/cgroup.controllers',
+                '/proc/self/mountinfo', '/system/etc/cgroups.json', '/vendor/etc/cgroups.json')),
+        }
+        self.assertEqual({tuple(args[3:]) for args, _ in execs}, expected)
+        self.assertEqual(supervisor.receipt['diagnostics']['lmk_use_psi']['unavailable'], 'probe failed')
+        self.assertTrue(all('/system/bin/sh' not in args for args, _ in execs))
+        self.assertTrue({'boot_completed', 'last_anr', 'input', 'windows', 'logcat'}.issubset(
+            supervisor.receipt['diagnostics']))
+
+    @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
+    def test_slow_container_probes_leave_time_for_every_retained_adb_probe(self):
+        now = [0.0]
+        calls = []
+        supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'), docker_path='docker', adb_path='adb')
+        supervisor.container_started = True
+        def command(args, **kwargs):
+            calls.append(args)
+            now[0] += kwargs['timeout']
+            if args[0] == 'docker':
+                raise redroid.RedroidError('container probe timed out')
+            return redroid.CommandResult(0, 'ADB evidence')
+        with patch.object(supervisor, '_owned_container', return_value=True), \
+             patch.object(supervisor, '_command', side_effect=command), \
+             patch.object(redroid.time, 'monotonic', side_effect=lambda: now[0]):
+            supervisor._collect_diagnostics()
+        self.assertEqual(len([args for args in calls if args[0] == 'adb']), 5)
+        self.assertLessEqual(now[0], 45.0)
+        for name in ('boot_completed', 'last_anr', 'input', 'windows', 'logcat'):
+            self.assertEqual(supervisor.receipt['diagnostics'][name]['output'], 'ADB evidence')
+
+    @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
+    def test_diagnostics_stop_probing_when_the_collection_budget_is_exhausted(self):
+        supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'))
+        supervisor.container_started = True
+        with patch.object(supervisor, '_owned_container', return_value=True), \
+             patch.object(supervisor, '_command') as command, \
+             patch.object(redroid.time, 'monotonic', side_effect=[0.0] + [46.0] * 17):
+            supervisor._collect_diagnostics()
+        command.assert_not_called()
+        self.assertTrue(supervisor.receipt['diagnostics'])
+        self.assertTrue(all('budget exhausted' in probe['unavailable']
+                            for probe in supervisor.receipt['diagnostics'].values()))
+
+    def test_diagnostic_redaction_covers_json_and_flag_token_formats(self):
+        output = redroid._bounded('{"refresh_token": "json-secret", --access-token=flag-secret, token plain-secret}')
+        for secret in ('json-secret', 'flag-secret', 'plain-secret'):
+            self.assertNotIn(secret, output)
+        self.assertEqual(output.count('[REDACTED]'), 3)
 
     def test_structured_window_output_is_not_silently_truncated(self):
         content = 'Window #0 focused application\n' + ('x' * 100_000)

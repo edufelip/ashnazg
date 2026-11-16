@@ -1,0 +1,731 @@
+[    0.055403] loop: module loaded
+[    0.055504] virtio_blk virtio2: 1/0/0 default/read/poll queues
+[    0.055646] virtio_blk virtio2: [vda] 8388608 512-byte logical blocks (4.29 GB/4.00 GiB)
+[    0.056119] megasas: 07.727.03.00-rc1
+[    0.056530] tun: Universal TUN/TAP device driver, 1.6
+[    0.057659] thunder_xcv, ver 1.0
+[    0.057690] thunder_bgx, ver 1.0
+[    0.057715] nicpf, ver 1.0
+[    0.057785] hns3: Hisilicon Ethernet Network Driver for Hip08 Family - version
+[    0.057831] hns3: Copyright (c) 2017 Huawei Corporation.
+[    0.057859] hclge is initializing
+[    0.057885] e1000: Intel(R) PRO/1000 Network Driver
+[    0.057907] e1000: Copyright (c) 1999-2006 Intel Corporation.
+[    0.057940] e1000e: Intel(R) PRO/1000 Network Driver
+[    0.057970] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
+[    0.058008] igb: Intel(R) Gigabit Ethernet Network Driver
+[    0.058031] igb: Copyright (c) 2007-2014 Intel Corporation.
+[    0.058055] igbvf: Intel(R) Gigabit Virtual Function Network Driver
+[    0.058084] igbvf: Copyright (c) 2009 - 2012 Intel Corporation.
+[    0.058128] sky2: driver version 1.30
+[    0.058293] VFIO - User Level meta-driver version: 0.3
+[    0.058483] usbcore: registered new interface driver usb-storage
+[    0.058726] rtc-pl031 20050000.pl031: registered as rtc0
+[    0.058751] rtc-pl031 20050000.pl031: setting system clock to 2026-11-15T21:27:39 UTC (1794778059)
+[    0.058827] i2c_dev: i2c /dev entries driver
+[    0.059170] sdhci: Secure Digital Host Controller Interface driver
+[    0.059205] sdhci: Copyright(c) Pierre Ossman
+[    0.059260] Synopsys Designware Multimedia Card Interface Driver
+[    0.059335] sdhci-pltfm: SDHCI platform and OF driver helper
+[    0.059542] usbcore: registered new interface driver usbhid
+[    0.059563] usbhid: USB HID core driver
+[    0.060200] NET: Registered PF_INET6 protocol family
+[    0.060396] Segment Routing with IPv6
+[    0.060418] In-situ OAM (IOAM) with IPv6
+[    0.060449] NET: Registered PF_PACKET protocol family
+[    0.060473] Bridge firewalling registered
+[    0.060495] 9pnet: Installing 9P2000 support
+[    0.060518] Key type dns_resolver registered
+[    0.060577] NET: Registered PF_VSOCK protocol family
+[    0.061520] registered taskstats version 1
+[    0.061552] Loading compiled-in X.509 certificates
+[    0.062057] Demotion targets for Node 0: null
+[    0.062264] input: gpio-keys as /devices/platform/gpio-keys/input/input0
+[    0.062364] clk: Disabling unused clocks
+[    0.062383] PM: genpd: Disabling unused power domains
+[    0.062406] ALSA device list:
+[    0.062428]   No soundcards found.
+[    0.068981] EXT4-fs (vda): mounted filesystem ed7dc1eb-d58b-472e-9b46-6f1ffdc5c394 r/w with ordered data mode. Quota mode: none.
+[    0.069038] VFS: Mounted root (ext4 filesystem) on device 254:0.
+[    0.069267] devtmpfs: mounted
+[    0.072247] Freeing unused kernel memory: 10624K
+[    0.072298] Run /sbin/ashnazg-init as init process
+[    4.120862] random: crng init done
+udhcpc: started, v1.37.0
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 192.168.64.7, server 192.168.64.1
+udhcpc: lease of 192.168.64.7 obtained from 192.168.64.1, lease time 3600
+[    9.887996] docker0: port 1(vethee77a2b) entered blocking state
+[    9.888046] docker0: port 1(vethee77a2b) entered disabled state
+[    9.888089] vethee77a2b: entered allmulticast mode
+[    9.888141] vethee77a2b: entered promiscuous mode
+[    9.914294] eth0: renamed from vethec2446f
+[    9.914568] docker0: port 1(vethee77a2b) entered blocking state
+[    9.914595] docker0: port 1(vethee77a2b) entered forwarding state
+[   10.003571] init: mkdir("/dev/pts", 0755) failed File exists
+[   10.003601] init: mount("sysfs", "/sys", "sysfs", 0, NULL) failed Device or resource busy
+[   10.003627] init: mount("selinuxfs", "/sys/fs/selinux", "selinuxfs", 0, NULL) failed No such file or directory
+[   10.003666] init: mknod("/dev/kmsg", S_IFCHR | 0600, makedev(1, 11)) failed File exists
+[   10.003699] init: mknod("/dev/random", S_IFCHR | 0666, makedev(1, 8)) failed Invalid argument
+[   10.003726] init: mknod("/dev/urandom", S_IFCHR | 0666, makedev(1, 9)) failed File exists
+[   10.003766] init: mknod("/dev/ptmx", S_IFCHR | 0666, makedev(5, 2)) failed File exists
+[   10.003791] init: mknod("/dev/null", S_IFCHR | 0666, makedev(1, 3)) failed File exists
+[   10.003832] init: init first stage started!
+[   10.003875] init: Unable to open /lib/modules, skipping module loading.
+[   10.003926] init: [libfstab] Using Android DT directory /proc/device-tree/firmware/android/
+[   10.003965] init: [libfstab] ReadFstabFromDt(): failed to read fstab from dt
+[   10.004241] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.004417] init: Failed to create FirstStageMount : failed to read default fstab for first stage mount
+[   10.004450] init: Skipped setting INIT_AVB_VERSION (not in recovery mode)
+[   10.006840] init: init second stage started!
+[   10.011224] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.011268] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.013269] init: [libfstab] Using Android DT directory /proc/device-tree/firmware/android/
+[   10.013757] init: Overriding previous property 'ro.cp_system_other_odex':'1' with new value '0'
+[   10.015081] init: Could not set 'ro.hardware' to 'redroid' while loading .prop filesRead-only property was already set
+[   10.015235] init: Setting product property ro.product.brand to 'redroid' (from ro.product.product.brand)
+[   10.015270] init: Setting product property ro.product.device to 'redroid_arm64' (from ro.product.product.device)
+[   10.015303] init: Setting product property ro.product.manufacturer to 'redroid' (from ro.product.product.manufacturer)
+[   10.015335] init: Setting product property ro.product.model to 'redroid15_arm64' (from ro.product.product.model)
+[   10.015377] init: Setting product property ro.product.name to 'redroid_arm64' (from ro.product.product.name)
+[   10.015431] init: Setting property 'ro.build.fingerprint' to 'redroid/redroid_arm64/redroid_arm64:15/BP1A.250505.005.D1/eng.root:userdebug/test-keys'
+[   10.015477] init: Setting property 'ro.product.cpu.abilist' to 'arm64-v8a,armeabi-v7a,armeabi'
+[   10.015572] init: Setting property 'ro.product.cpu.abilist32' to 'armeabi-v7a,armeabi'
+[   10.015602] init: Setting property 'ro.product.cpu.abilist64' to 'arm64-v8a'
+[   10.016412] selinux: SELinux: Loaded file context from:
+[   10.016440] selinux: 		/system/etc/selinux/plat_file_contexts
+[   10.016460] selinux: 		/system_ext/etc/selinux/system_ext_file_contexts
+[   10.016475] selinux: 		/product/etc/selinux/product_file_contexts
+[   10.016502] selinux: 		/vendor/etc/selinux/vendor_file_contexts
+[   10.016529] selinux: 		/odm/etc/selinux/odm_file_contexts
+[   10.016552] init: Running restorecon...
+[   10.016565] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016592] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016609] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016625] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016632] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016658] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016682] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016707] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016732] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016758] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016782] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016797] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016821] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016848] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016872] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.016900] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.017837] init: Created socket '/dev/socket/property_service_for_system', mode 660, user 0, group 1000
+[   10.017900] init: Created socket '/dev/socket/property_service', mode 666, user 0, group 0
+[   10.018001] init: [libfs_mgr] vendor overlay: vndk version not defined
+[   10.018632] init: SetupMountNamespaces done
+[   10.018871] init: Forked subcontext for 'u:r:vendor_init:s0' with pid 9
+[   10.019162] init: Parsing file /system/etc/init/hw/init.rc...
+[   10.019555] init: Added '/init.environ.rc' to import list
+[   10.019575] init: Added '/system/etc/init/hw/init.usb.rc' to import list
+[   10.019596] init: Added '/init.redroid.rc' to import list
+[   10.019609] init: Added '/vendor/etc/init/hw/init.redroid.rc' to import list
+[   10.019629] init: Added '/system/etc/init/hw/init.usb.configfs.rc' to import list
+[   10.019650] init: Added '/system/etc/init/hw/init.zygote64_32.rc' to import list
+[   10.019853] init: Added '/system/etc/init/hw/init.boringssl.zygote64_32.rc' to import list
+[   10.020123] init: Parsing file /init.environ.rc...
+[   10.020315] init: Parsing file /system/etc/init/hw/init.usb.rc...
+[   10.020485] init: Parsing file /init.redroid.rc...
+[   10.020501] init: Unable to read config file '/init.redroid.rc': open() failed: No such file or directory
+[   10.020642] init: Parsing file /vendor/etc/init/hw/init.redroid.rc...
+[   10.020662] init: Unable to read config file '/vendor/etc/init/hw/init.redroid.rc': open() failed: No such file or directory
+[   10.020702] init: Parsing file /system/etc/init/hw/init.usb.configfs.rc...
+[   10.020871] init: Parsing file /system/etc/init/hw/init.zygote64_32.rc...
+[   10.020976] init: Added '/system/etc/init/hw/init.zygote64.rc' to import list
+[   10.021008] init: Parsing file /system/etc/init/hw/init.zygote64.rc...
+[   10.021109] init: Parsing file /system/etc/init/hw/init.boringssl.zygote64_32.rc...
+[   10.021222] init: Parsing directory /system/etc/init...
+[   10.021259] init: Parsing file /system/etc/init/UprobeStats-platform.rc...
+[   10.021375] init: Parsing file /system/etc/init/aconfigd.rc...
+[   10.021468] init: Parsing file /system/etc/init/android.system.suspend-service.rc...
+[   10.021619] init: Parsing file /system/etc/init/apexd.rc...
+[   10.021712] init: Parsing file /system/etc/init/atrace.rc...
+[   10.022134] init: Parsing file /system/etc/init/atrace_userdebug.rc...
+[   10.022282] init: Parsing file /system/etc/init/audioserver.rc...
+[   10.022419] init: Parsing file /system/etc/init/blank_screen.rc...
+[   10.022516] init: Parsing file /system/etc/init/bootanim.rc...
+[   10.022661] init: Parsing file /system/etc/init/bootstat-debug.rc...
+[   10.022789] init: Parsing file /system/etc/init/bootstat.rc...
+[   10.022899] init: Parsing file /system/etc/init/cameraserver.rc...
+[   10.023047] init: Parsing file /system/etc/init/clean_scratch_files.rc...
+[   10.023170] init: Parsing file /system/etc/init/cppreopts.rc...
+[   10.023268] init: Parsing file /system/etc/init/credstore.rc...
+[   10.023405] init: Parsing file /system/etc/init/dmesgd.rc...
+[   10.023550] init: Parsing file /system/etc/init/drmserver.rc...
+[   10.023697] init: Parsing file /system/etc/init/dumpstate.rc...
+[   10.023824] init: Parsing file /system/etc/init/flags_health_check.rc...
+[   10.023965] init: Parsing file /system/etc/init/gatekeeperd.rc...
+[   10.024056] init: Parsing file /system/etc/init/gpuservice.rc...
+[   10.024175] init: Parsing file /system/etc/init/gsid.rc...
+[   10.024314] init: Parsing file /system/etc/init/heapprofd.rc...
+[   10.024472] init: Parsing file /system/etc/init/idmap2d.rc...
+[   10.024607] init: Parsing file /system/etc/init/incidentd.rc...
+[   10.024700] init: Parsing file /system/etc/init/init-debug.rc...
+[   10.024810] init: Parsing file /system/etc/init/installd.rc...
+[   10.024981] init: Parsing file /system/etc/init/kcmdlinectrl.rc...
+[   10.025123] init: Parsing file /system/etc/init/keystore2.rc...
+[   10.025271] init: Parsing file /system/etc/init/llkd-debuggable.rc...
+[   10.025415] init: Parsing file /system/etc/init/llkd.rc...
+[   10.025512] init: Parsing file /system/etc/init/lmkd.rc...
+[   10.025667] init: Parsing file /system/etc/init/logcatd.rc...
+[   10.025796] init: Parsing file /system/etc/init/logd.rc...
+[   10.025917] init: Parsing file /system/etc/init/logtagd.rc...
+[   10.026022] init: Parsing file /system/etc/init/lpdumpd.rc...
+[   10.026170] init: Parsing file /system/etc/init/mdnsd.rc...
+[   10.026252] init: Parsing file /system/etc/init/mediaextractor.rc...
+[   10.026362] init: Parsing file /system/etc/init/mediametrics.rc...
+[   10.026471] init: Parsing file /system/etc/init/mediaserver.rc...
+[   10.026611] init: Parsing file /system/etc/init/misctrl.rc...
+[   10.026705] init: Parsing file /system/etc/init/mtectrl.rc...
+[   10.026813] init: Parsing file /system/etc/init/netbpfload.rc...
+[   10.026924] init: Parsing file /system/etc/init/netd.rc...
+[   10.027070] init: Parsing file /system/etc/init/odsign.rc...
+[   10.027158] init: Parsing file /system/etc/init/perfetto.rc...
+[   10.027320] init: Parsing file /system/etc/init/prefetch.rc...
+[   10.027487] init: Parsing file /system/etc/init/prng_seeder.rc...
+[   10.027610] init: Parsing file /system/etc/init/profcollectd.rc...
+[   10.027727] init: Parsing file /system/etc/init/recovery-persist.rc...
+[   10.027825] init: Parsing file /system/etc/init/rss_hwm_reset.rc...
+[   10.027972] init: Parsing file /system/etc/init/servicemanager.rc...
+[   10.028063] init: Parsing file /system/etc/init/simpleperf.rc...
+[   10.028170] init: Parsing file /system/etc/init/snapuserd.rc...
+[   10.028286] init: Parsing file /system/etc/init/storaged.rc...
+[   10.028421] init: Parsing file /system/etc/init/surfaceflinger.rc...
+[   10.028558] init: Parsing file /system/etc/init/tombstoned.rc...
+[   10.028654] init: Parsing file /system/etc/init/traced_perf.rc...
+[   10.028787] init: Parsing file /system/etc/init/tradeinmode.rc...
+[   10.028873] init: Parsing file /system/etc/init/uncrypt.rc...
+[   10.028981] init: Parsing file /system/etc/init/usbd.rc...
+[   10.029089] init: Parsing file /system/etc/init/virtual_camera.hal.rc...
+[   10.029226] init: Parsing file /system/etc/init/vold.rc...
+[   10.029322] init: Parsing file /system/etc/init/wifi.rc...
+[   10.029462] init: Parsing file /system/etc/init/wificond.rc...
+[   10.029598] init: Parsing directory /system_ext/etc/init...
+[   10.029727] init: Parsing file /system_ext/etc/init/android.hidl.allocator@1.0-service.rc...
+[   10.029880] init: Parsing file /system_ext/etc/init/hwservicemanager.rc...
+[   10.029977] init: Parsing directory /vendor/etc/init...
+[   10.030005] init: Parsing file /vendor/etc/init/android.hardware.audio.service.rc...
+[   10.030158] init: Parsing file /vendor/etc/init/android.hardware.bluetooth@1.1-service.sim.rc...
+[   10.030281] init: Parsing file /vendor/etc/init/android.hardware.gatekeeper@1.0-service.software.rc...
+[   10.030404] init: Parsing file /vendor/etc/init/android.hardware.graphics.allocator@2.0-service.rc...
+[   10.030520] init: Parsing file /vendor/etc/init/android.hardware.graphics.composer@2.1-service.rc...
+[   10.030667] init: Parsing file /vendor/etc/init/android.hardware.health-service.example.rc...
+[   10.030788] init: Parsing file /vendor/etc/init/android.hardware.keymaster@4.1-service.rc...
+[   10.030938] init: Parsing file /vendor/etc/init/android.hardware.media.omx@1.0-service.rc...
+[   10.031063] init: Parsing file /vendor/etc/init/android.hardware.thermal@2.0-service.rc...
+[   10.031184] init: Parsing file /vendor/etc/init/boringssl_self_test.rc...
+[   10.031320] init: Added '/vendor/etc/boringssl_self_test.zygote64_32.rc' to import list
+[   10.031357] init: Parsing file /vendor/etc/boringssl_self_test.zygote64_32.rc...
+[   10.031521] init: Parsing file /vendor/etc/init/init.redroid.rc...
+[   10.031558] init: Parsing file /vendor/etc/init/power-default.rc...
+[   10.031668] init: Parsing file /vendor/etc/init/redroid.c2.rc...
+[   10.031785] init: Parsing file /vendor/etc/init/redroid.common.rc...
+[   10.031899] init: Parsing file /vendor/etc/init/redroid.legacy.rc...
+[   10.032060] init: Parsing file /vendor/etc/init/redroid.omx.rc...
+[   10.032188] init: Parsing file /vendor/etc/init/rild.rc...
+[   10.032294] init: Parsing file /vendor/etc/init/uinputd.rc...
+[   10.032414] init: Parsing file /vendor/etc/init/vncserver.rc...
+[   10.032557] init: Parsing file /odm/etc/init...
+[   10.032576] init: Unable to read config file '/odm/etc/init': open() failed: No such file or directory
+[   10.032624] init: Parsing file /product/etc/init...
+[   10.032642] init: Unable to read config file '/product/etc/init': open() failed: No such file or directory
+[   10.032902] init: processing action (SetupCgroups) from (<Builtin Action>:0)
+[   10.033133] libprocessgroup: Failed to mount controller blkio: Operation not permitted
+[   10.033159] libprocessgroup: Failed to setup blkio cgroup
+[   10.033181] libprocessgroup: Mounting memcg with memory_recursiveprot failed. Retrying without.
+[   10.033219] libprocessgroup: Failed to mount cgroup v2: Device or resource busy
+[   10.033244] libprocessgroup: Failed to setup cgroup2 cgroup
+[   10.033268] libprocessgroup: Failed to mount controller cpu: Operation not permitted
+[   10.033294] libprocessgroup: Failed to setup cpu cgroup
+[   10.033467] libprocessgroup: Failed to mount controller cpuset: No such device
+[   10.033495] libprocessgroup: Failed to setup cpuset cgroup
+[   10.033520] cgroup: Unknown subsys name 'memory'
+[   10.033536] libprocessgroup: Failed to mount optional controller memory: Invalid argument
+[   10.033588] init: Failed to open device-mapper: No such file or directory
+[   10.033617] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.033642] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.033694] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.033728] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.033752] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.033787] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.033815] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.033844] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.033876] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.033902] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.033926] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.033953] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.033998] init: processing action (SetKptrRestrict) from (<Builtin Action>:0)
+[   10.034056] init: processing action (TestPerfEventSelinux) from (<Builtin Action>:0)
+[   10.034087] init: Permissive SELinux boot, forcing sys.init.perf_lsm_hooks to 1.
+[   10.034156] init: processing action (early-init) from (/system/etc/init/hw/init.rc:15)
+[   10.034241] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.034266] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.034658] init: Command 'symlink ../tun /dev/net/tun' action=early-init (/system/etc/init/hw/init.rc:42) took 0ms and failed: symlink() failed: File exists
+[   10.034872] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.034898] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.034935] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.034962] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.034993] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.035030] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.035060] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.035079] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.035112] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.035141] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.035164] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.035192] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.035247] init: starting service 'ueventd'...
+[   10.053331] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/blkio//cgroup.procs: No such file or directory
+[   10.053380] libprocessgroup: Failed to apply NormalIoPriority process profile
+[   10.053478] init: ... started service 'ueventd' has pid 10
+[   10.053550] init: starting service 'apexd-bootstrap'...
+[   10.053914] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/blkio//cgroup.procs: No such file or directory
+[   10.053956] libprocessgroup: Failed to apply NormalIoPriority process profile
+[   10.054074] init: ... started service 'apexd-bootstrap' has pid 11
+[   10.054102] init: SVC_EXEC service 'apexd-bootstrap' pid 11 (uid 0 gid 1000+0 context default) started; waiting...
+[   10.055939] ueventd: ueventd started!
+[   10.056282] selinux: SELinux: Loaded file context from:
+[   10.056317] selinux: 		/system/etc/selinux/plat_file_contexts
+[   10.056345] selinux: 		/system_ext/etc/selinux/system_ext_file_contexts
+[   10.056373] selinux: 		/product/etc/selinux/product_file_contexts
+[   10.056405] selinux: 		/vendor/etc/selinux/vendor_file_contexts
+[   10.056432] selinux: 		/odm/etc/selinux/odm_file_contexts
+[   10.056493] ueventd: Parsing file /system/etc/ueventd.rc...
+[   10.056744] ueventd: Added '/vendor/etc/ueventd.rc' to import list
+[   10.056772] ueventd: Added '/odm/etc/ueventd.rc' to import list
+[   10.056844] ueventd: Parsing file /vendor/etc/ueventd.rc...
+[   10.056882] ueventd: Unable to read config file '/vendor/etc/ueventd.rc': open() failed: No such file or directory
+[   10.056930] ueventd: Parsing file /odm/etc/ueventd.rc...
+[   10.056954] ueventd: Unable to read config file '/odm/etc/ueventd.rc': open() failed: No such file or directory
+[   10.057012] ueventd: [libfstab] Using Android DT directory /proc/device-tree/firmware/android/
+[   10.057070] ueventd: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.066404] apexd: Started. subcommand = --bootstrap
+[   10.066639] cutils-trace: Error opening trace file: No such file or directory (2)
+[   10.066681] apexd-bootstrap: Scanning /odm/apex for pre-installed ApexFiles
+[   10.066707] apexd-bootstrap: /odm/apex does not exist. Skipping
+[   10.066725] apexd-bootstrap: Scanning /vendor/apex for pre-installed ApexFiles
+[   10.066889] apexd-bootstrap: Found pre-installed APEX /vendor/apex/com.android.hardware.cas.apex
+[   10.067525] apexd-bootstrap: Scanning /product/apex for pre-installed ApexFiles
+[   10.067555] apexd-bootstrap: /product/apex does not exist. Skipping
+[   10.067580] apexd-bootstrap: Scanning /system_ext/apex for pre-installed ApexFiles
+[   10.067605] apexd-bootstrap: /system_ext/apex does not exist. Skipping
+[   10.067632] apexd-bootstrap: Scanning /system/apex for pre-installed ApexFiles
+[   10.067811] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.devicelock.apex
+[   10.068217] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.uwb.apex
+[   10.068636] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.extservices.apex
+[   10.069025] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.ondevicepersonalization.apex
+[   10.069409] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.apex.cts.shim.apex
+[   10.069833] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.btservices.apex
+[   10.070248] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.sdkext.apex
+[   10.070636] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.resolv.apex
+[   10.071018] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.nfcservices.apex
+[   10.071413] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.mediaprovider.apex
+[   10.071790] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.media.apex
+[   10.072169] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.appsearch.apex
+[   10.072571] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.healthfitness.apex
+[   10.072938] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.permission.apex
+[   10.073360] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.virt.apex
+[   10.073729] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.neuralnetworks.apex
+[   10.074123] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.ipsec.apex
+[   10.074486] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.os.statsd.apex
+[   10.074887] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.media.swcodec.apex
+[   10.075312] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.tethering.apex
+[   10.075720] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.art.apex
+[   10.076077] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.tzdata.apex
+[   10.076460] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.scheduling.apex
+[   10.076833] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.i18n.apex
+[   10.077224] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.wifi.apex
+[   10.077625] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.conscrypt.apex
+[   10.078032] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.profiling.apex
+[   10.078435] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.runtime.apex
+[   10.078842] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.configinfrastructure.apex
+[   10.079238] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.rkpd.apex
+[   10.079618] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.adbd.apex
+[   10.080002] apexd-bootstrap: Found pre-installed APEX /system/apex/com.android.adservices.apex
+[   10.080406] apexd-bootstrap: Found bootstrap APEX /system/apex/com.android.runtime.apex
+[   10.080437] apexd-bootstrap: Found bootstrap APEX /system/apex/com.android.i18n.apex
+[   10.080462] apexd-bootstrap: Found bootstrap APEX /system/apex/com.android.tzdata.apex
+[   10.080504] apexd-bootstrap: Need to pre-allocate 36 loop devices for 33 APEX packages
+[   10.080754] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.080784] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081450] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081493] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081553] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081590] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081647] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081682] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081738] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081773] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081836] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081864] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081914] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.081951] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082012] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082046] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082102] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082138] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082196] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082231] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082283] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082312] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082365] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082400] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082454] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082491] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082542] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082570] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082625] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082659] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082717] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082753] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082797] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082833] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082845] apexd-bootstrap: Found 8 idle loopback devices that were pre-allocated by kernel. Allocated 28 more.
+[   10.082898] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082911] apexd-bootstrap: Failed to open device-mapper: No such file or directory
+[   10.082934] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.082966] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.runtime]: Bad file descriptor
+[   10.083000] apexd-bootstrap: Failed to create empty device com.android.runtime
+[   10.083018] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083022] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.i18n]: Bad file descriptor
+[   10.083023] apexd-bootstrap: Failed to create empty device com.android.i18n
+[   10.083024] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.scheduling]: Bad file descriptor
+[   10.083053] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083083] apexd-bootstrap: Failed to create empty device com.android.scheduling
+[   10.083168] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.tethering]: Bad file descriptor
+[   10.083171] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083200] apexd-bootstrap: Failed to create empty device com.android.tethering
+[   10.083202] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.ipsec]: Bad file descriptor
+[   10.083203] apexd-bootstrap: Failed to create empty device com.android.ipsec
+[   10.083205] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.virt]: Bad file descriptor
+[   10.083231] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083252] apexd-bootstrap: Failed to create empty device com.android.virt
+[   10.083253] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.healthfitness]: Bad file descriptor
+[   10.083254] apexd-bootstrap: Failed to create empty device com.android.healthfitness
+[   10.083256] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.appsearch]: Bad file descriptor
+[   10.083344] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083361] apexd-bootstrap: Failed to create empty device com.android.appsearch
+[   10.083362] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.resolv]: Bad file descriptor
+[   10.083363] apexd-bootstrap: Failed to create empty device com.android.resolv
+[   10.083365] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.configinfrastructure]: Bad file descriptor
+[   10.083400] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083421] apexd-bootstrap: Failed to create empty device com.android.configinfrastructure
+[   10.083423] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.hardware.cas]: Bad file descriptor
+[   10.083423] apexd-bootstrap: Failed to create empty device com.android.hardware.cas
+[   10.083425] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.sdkext]: Bad file descriptor
+[   10.083524] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083529] apexd-bootstrap: Failed to create empty device com.android.sdkext
+[   10.083564] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083601] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.profiling]: Bad file descriptor
+[   10.083602] apexd-bootstrap: Failed to create empty device com.android.profiling
+[   10.083603] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.apex.cts.shim]: Bad file descriptor
+[   10.083691] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083712] apexd-bootstrap: Failed to create empty device com.android.apex.cts.shim
+[   10.083714] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.adbd]: Bad file descriptor
+[   10.083715] apexd-bootstrap: Failed to create empty device com.android.adbd
+[   10.083716] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.media.swcodec]: Bad file descriptor
+[   10.083743] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083763] apexd-bootstrap: Failed to create empty device com.android.media.swcodec
+[   10.083765] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.wifi]: Bad file descriptor
+[   10.083766] apexd-bootstrap: Failed to create empty device com.android.wifi
+[   10.083767] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.btservices]: Bad file descriptor
+[   10.083846] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083852] apexd-bootstrap: Failed to create empty device com.android.btservices
+[   10.083854] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.conscrypt]: Bad file descriptor
+[   10.083854] apexd-bootstrap: Failed to create empty device com.android.conscrypt
+[   10.083856] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.tzdata]: Bad file descriptor
+[   10.083891] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.083920] apexd-bootstrap: Failed to create empty device com.android.tzdata
+[   10.083921] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.art]: Bad file descriptor
+[   10.083922] apexd-bootstrap: Failed to create empty device com.android.art
+[   10.083923] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.permission]: Bad file descriptor
+[   10.084036] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.084063] apexd-bootstrap: Failed to create empty device com.android.permission
+[   10.084065] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.uwb]: Bad file descriptor
+[   10.084066] apexd-bootstrap: Failed to create empty device com.android.uwb
+[   10.084067] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.extservices]: Bad file descriptor
+[   10.084097] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.084120] apexd-bootstrap: Failed to create empty device com.android.extservices
+[   10.084122] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.ondevicepersonalization]: Bad file descriptor
+[   10.084122] apexd-bootstrap: Failed to create empty device com.android.ondevicepersonalization
+[   10.084124] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.rkpd]: Bad file descriptor
+[   10.084207] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.084210] apexd-bootstrap: Failed to create empty device com.android.rkpd
+[   10.084250] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.084268] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.media]: Bad file descriptor
+[   10.084268] apexd-bootstrap: Failed to create empty device com.android.media
+[   10.084270] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.os.statsd]: Bad file descriptor
+[   10.084356] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.084373] apexd-bootstrap: Failed to create empty device com.android.os.statsd
+[   10.084374] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.neuralnetworks]: Bad file descriptor
+[   10.084375] apexd-bootstrap: Failed to create empty device com.android.neuralnetworks
+[   10.084376] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.nfcservices]: Bad file descriptor
+[   10.084407] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.084434] apexd-bootstrap: Failed to create empty device com.android.nfcservices
+[   10.084435] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.mediaprovider]: Bad file descriptor
+[   10.084436] apexd-bootstrap: Failed to create empty device com.android.mediaprovider
+[   10.084438] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.adservices]: Bad file descriptor
+[   10.084515] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.084517] apexd-bootstrap: Failed to create empty device com.android.adservices
+[   10.084519] apexd-bootstrap: DM_DEV_CREATE failed for [com.android.devicelock]: Bad file descriptor
+[   10.084519] apexd-bootstrap: Failed to create empty device com.android.devicelock
+[   10.084694] loop0: detected capacity change from 0 to 21856
+[   10.084722] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.084777] loop1: detected capacity change from 0 to 77720
+[   10.084881] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.084930] loop2: detected capacity change from 0 to 1680
+[   10.085106] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.085283] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.109013] apexd-bootstrap: /dev/block/ is not a block device
+[   10.109016] apexd-bootstrap: /dev/block/ is not a block device
+[   10.109068] apexd-bootstrap: Failed to remove /dev/block/ prefix from /dev/block/
+[   10.109073] apexd-bootstrap: Failed to remove /dev/block/ prefix from /dev/block/
+[   10.109149] apexd-bootstrap: /dev/block/ is not a block device
+[   10.109182] apexd-bootstrap: Failed to remove /dev/block/ prefix from /dev/block/
+[   10.126182] EXT4-fs (loop2): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.126255] apexd-bootstrap: Successfully mounted package /system/apex/com.android.tzdata.apex on /apex/com.android.tzdata@352090000 duration=41
+[   10.126344] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.126389] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.126478] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.126522] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.126547] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.126596] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.126635] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.126659] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.126701] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.126740] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.126763] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.126810] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.127257] EXT4-fs (loop1): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.127266] EXT4-fs (loop0): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   10.127359] apexd-bootstrap: Successfully mounted package /system/apex/com.android.i18n.apex on /apex/com.android.i18n@1 duration=42
+[   10.127360] apexd-bootstrap: Successfully mounted package /system/apex/com.android.runtime.apex on /apex/com.android.runtime@1 duration=42
+[   10.127493] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.127517] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.127598] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.127642] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.127667] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.127714] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.127745] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.127774] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.127802] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.127834] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.127864] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.127906] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.128278] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.128315] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.128356] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.128384] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.128407] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.128435] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.128470] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.128502] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.128547] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.128615] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.128667] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.128695] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.128799] apexd-bootstrap: Activated 3 packages.
+[   10.129031] SELinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.129067] apexd-bootstrap: OnBootstrap done, duration=62
+[   10.129711] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.129735] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.129790] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.129826] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.129875] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.129924] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.129959] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.129993] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.130040] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.130082] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.130118] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.130159] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.130230] init: Service 'apexd-bootstrap' (pid 11) exited with status 0 waiting took 0.076000 seconds
+[   10.130277] init: Sending signal 9 to service 'apexd-bootstrap' (pid 11) process group...
+[   10.130341] libprocessgroup: Removed cgroup /sys/fs/cgroup/uid_0/pid_11
+[   10.139396] init: linkerconfig generated /linkerconfig with mounted APEX modules info
+[   10.139675] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.139703] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.139744] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.139776] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.139802] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.139843] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.139878] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.139903] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.139935] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.139966] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.139997] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.140027] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.140091] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   10.140127] init: processing action (early-init) from (/init.environ.rc:2)
+[   10.140187] init: processing action (ro.product.debugfs_restrictions.enabled=true && early-init) from (/system/etc/init/init-debug.rc:10)
+[   10.140264] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.140290] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.140342] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.140372] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.140394] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.140426] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.140459] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.140486] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.140514] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.140544] init: DM_DEV_STATUS failed for system: Bad file descriptor
+[   10.140569] init: DM_DEV_STATUS failed for vroot: Bad file descriptor
+[   10.140610] init: [libfstab] ReadDefaultFstab(): failed to find device default fstab
+[   10.140678] init: processing action (early-init) from (/system/etc/init/prng_seeder.rc:5)
+[   10.140721] init: starting service 'prng_seeder'...
+[   10.140751] init: Created socket '/dev/socket/prng_seeder', mode 666, user 1092, group 1092
+[   10.149026] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/blkio//cgroup.procs: No such file or directory
+[   10.149078] libprocessgroup: Failed to apply NormalIoPriority process profile
+[   10.149196] init: ... started service 'prng_seeder' has pid 16
+[   10.149229] init: processing action (ro.product.cpu.abilist32=* && early-init) from (/vendor/etc/boringssl_self_test.zygote64_32.rc:1)
+[   10.149429] init: starting service 'boringssl_self_test32_vendor'...
+[   10.149776] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/blkio//cgroup.procs: No such file or directory
+[   10.149812] libprocessgroup: Failed to apply NormalIoPriority process profile
+[   10.149912] init: ... started service 'boringssl_self_test32_vendor' has pid 17
+[   10.149937] init: SVC_EXEC service 'boringssl_self_test32_vendor' pid 17 (uid 0 gid 0+0 context default) started; waiting...
+[   10.150028] init: cannot execv('/vendor/bin/boringssl_self_test32'). See the 'Debugging init' section of init's README.md for tips: Exec format error
+[   10.150232] init: Service 'boringssl_self_test32_vendor' (pid 17) exited with status 127 waiting took 0.000000 seconds
+[   10.150261] init: Sending signal 9 to service 'boringssl_self_test32_vendor' (pid 17) process group...
+[   10.150303] libprocessgroup: Removed cgroup /sys/fs/cgroup/uid_0/pid_17
+[   10.150324] init: Service boringssl_self_test32_vendor has 'reboot_on_failure' option and failed, shutting down system.
+[   10.150383] init: Got shutdown_command 'reboot,boringssl-self-check-failed' Calling HandlePowerctlMessage()
+[   10.150421] init: Clear action queue and start shutdown trigger
+[   10.150461] init: Entering shutdown mode
+[   10.150537] init: processing action (shutdown_done) from (<Builtin Action>:0)
+[   10.150562] init: Reboot start, reason: reboot,boringssl-self-check-failed, reboot_target: boringssl-self-check-failed
+[   10.150591] init: Shutdown timeout: 6000 ms
+[   10.150604] init: Create reboot monitor thread.
+[   10.150653] init: shutdown_timeout_timespec.tv_sec: 316
+[   10.150689] init: Could not open '/metadata/bootstat/persist.sys.boot.reason' to persist reboot reason: No such file or directory
+[   10.150794] init: service 'ueventd' requested start, but it is already running (flags: 2084)
+[   10.150852] init: starting service 'blank_screen'...
+[   10.151199] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/blkio//cgroup.procs: No such file or directory
+[   10.151232] libprocessgroup: Failed to apply NormalIoPriority process profile
+[   10.151369] init: ... started service 'blank_screen' has pid 19
+[   10.151594] init: starting service 'servicemanager'...
+[   10.151903] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/blkio//cgroup.procs: No such file or directory
+[   10.151938] libprocessgroup: Failed to apply NormalIoPriority process profile
+[   10.151990] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/cpuset/foreground/cgroup.procs: No such file or directory
+[   10.152025] libprocessgroup: Failed to apply ProcessCapacityHigh process profile
+[   10.152047] init: failed to set task profiles
+[   10.152121] init: ... started service 'servicemanager' has pid 20
+[   10.152155] init: starting service 'vold'...
+[   10.152640] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/blkio//cgroup.procs: No such file or directory
+[   10.152692] libprocessgroup: Failed to apply NormalIoPriority process profile
+[   10.152762] init: ... started service 'vold' has pid 21
+[   10.152796] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/cpuset/foreground/cgroup.procs: No such file or directory
+[   10.152919] libprocessgroup: Failed to apply ProcessCapacityHigh process profile
+[   10.152986] init: failed to set task profiles
+[   10.153095] init: starting service 'hwservicemanager'...
+[   10.153666] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/blkio//cgroup.procs: No such file or directory
+[   10.153745] libprocessgroup: Failed to apply NormalIoPriority process profile
+[   10.153871] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/cpuset/system-background/cgroup.procs: No such file or directory
+[   10.153929] libprocessgroup: Failed to apply ServiceCapacityLow process profile
+[   10.153958] libprocessgroup: SetCgroup::ExecuteForProcess: failed to open /dev/cpuctl/foreground/cgroup.procs: No such file or directory
+[   10.153993] libprocessgroup: Failed to apply HighPerformance process profile
+[   10.154015] init: failed to set task profiles
+[   10.154386] init: ... started service 'hwservicemanager' has pid 22
+[   10.154427] init: Stopping 88 services by sending SIGTERM
+[   10.154457] init: Sending signal 15 to service 'prng_seeder' (pid 16) process group...
+[   10.154916] libprocessgroup: Removed cgroup /sys/fs/cgroup/uid_1092/pid_16
+[   10.155078] init: Service 'prng_seeder' (pid 16) received signal 15
+[   10.155111] init: Sending signal 9 to service 'prng_seeder' (pid 16) process group...
+[   10.155155] libprocessgroup: Failed to write 1 to /sys/fs/cgroup/uid_1092/pid_16/cgroup.kill: No such file or directory
+[   10.155196] libprocessgroup: Failed to open /sys/fs/cgroup/uid_1092/pid_16/cgroup.procs: No such file or directory
+[   10.156045] init: Waiting for 1 pids to be reaped took 0ms with 0 of them still running
+[   10.156070] init: Stopping 88 services by sending SIGKILL
+[   10.156088] init: Calling /system/bin/vdc volume abort_fuse
+[   10.158674] servicemanager: Starting sm instance on /dev/binder
+[   10.158717] ProcessState: Binder driver /dev/binder is unavailable. Using /dev/binder instead.
+[   10.158748] ProcessState: Binder driver '/dev/binder' could not be opened. Error: 2 (No such file or directory) Opening '/dev/binder' failed. Terminating.
+[   10.167240] vold: Failed to open default fstab: No such file or directory
+[   10.167270] vold: Error reading configuration... continuing anyways: No such file or directory
+[   10.167313] hw-ProcessState: Opening '/dev/hwbinder' failed: No such file or directory
+[   10.167345] hw-ProcessState:
+[   10.167367] hw-ProcessState: Binder driver could not be opened. Terminating.
+[   10.176138] DEBUG: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+[   10.176142] DEBUG: Build fingerprint: 'redroid/redroid_arm64/redroid_arm64:15/BP1A.250505.005.D1/eng.root:userdebug/test-keys'
+[   10.176176] DEBUG: Revision: '0'
+[   10.176211] DEBUG: ABI: 'arm64'
+[   10.176229] DEBUG: Timestamp: 2026-11-15 21:27:49.612656254+0000
+[   10.176253] DEBUG: Process uptime: 0s
+[   10.176283] DEBUG: Cmdline: /system/bin/vold --blkid_context=u:r:blkid:s0 --blkid_untrusted_context=u:r:blkid_untrusted:s0 --fsck_context=u:r:fsck:s0 --fsck_untrusted_context=u:r:fsck_untrusted:s0
+[   10.176301] DEBUG: pid: 21, tid: 21, name: vold  >>> /system/bin/vold <<<
+[   10.176378] DEBUG: uid: 0
+[   10.176407] DEBUG: tagged_addr_ctrl: 0000000000000001 (PR_TAGGED_ADDR_ENABLE)
+[   10.176419] DEBUG: pac_enabled_keys: 000000000000000f (PR_PAC_APIAKEY, PR_PAC_APIBKEY, PR_PAC_APDAKEY, PR_PAC_APDBKEY)
+[   10.176449] DEBUG: signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+[   10.176496] DEBUG: Abort message: 'Binder driver could not be opened. Terminating.'
+[   10.176535] DEBUG:     x0  0000000000000000  x1  0000000000000015  x2  0000000000000006  x3  0000fffff9f1c140
+[   10.176568] DEBUG:     x4  000000000000000a  x5  000000000000000a  x6  000000000000000a  x7  7f7f7f7f7f7f7f7f
+[   10.176613] DEBUG:     x8  00000000000000f0  x9  7f18a6bb95071944  x10 000000ff00000020  x11 0000ffff7f136424
+[   10.176658] DEBUG:     x12 0000fffff9f1b904  x13 0000000000000004  x14 0000000000000000  x15 0000ffff7ef13f31
+[   10.176704] DEBUG:     x16 0000ffff7f1e2058  x17 0000ffff7f1cb880  x18 0000ffff83068000  x19 0000000000000015
+[   10.176749] DEBUG:     x20 0000000000000015  x21 00000000ffffffff  x22 0000000000000002  x23 0000aaaad0700728
+[   10.176793] DEBUG:     x24 0000ffff7f1fb9b8  x25 0000000000000303  x26 0000000000000000  x27 0000000000000000
+[   10.176838] DEBUG:     x28 0000000000000000  x29 0000fffff9f1c1c0
+[   10.176883] DEBUG:     lr  0000ffff7f16aa60  sp  0000fffff9f1c140  pc  0000ffff7f16aa84  pst 0000000000000000
+[   10.176911] DEBUG: 11 total frames
+[   10.176955] DEBUG: backtrace:
+[   10.176973] DEBUG:       #00 pc 000000000005ba84  /apex/com.android.runtime/lib64/bionic/libc.so (abort+156) (BuildId: e9818ca81db5b81b81dbc595f73f7d87)
+[   10.176989] DEBUG:       #01 pc 0000000000013f0c  /system/lib64/libbase.so (android::base::DefaultAborter(char const*)+12) (BuildId: 5127de8a6bcdd5f5d7eda5e2d83a2425)
+[   10.177052] DEBUG:       #02 pc 0000000000015d1c  /system/lib64/libbase.so (android::base::SetAborter(std::__1::function<void (char const*)>&&)::$_0::__invoke(char const*)+80) (BuildId: 5127de8a6bcdd5f5d7eda5e2d83a2425)
+[   10.177110] DEBUG:       #03 pc 000000000000cff4  /system/lib64/liblog.so (__android_log_assert+288) (BuildId: 6c68336cecbef087f284c0ff8c02d974)
+[   10.177193] DEBUG:       #04 pc 0000000000046c64  /system/lib64/libhidlbase.so (android::hardware::ProcessState::ProcessState(unsigned long)+308) (BuildId: dfca8f7e5bc71ba84181bbaec4a8d282)
+[   10.177251] DEBUG:       #05 pc 0000000000046abc  /system/lib64/libhidlbase.so (std::__1::__call_once_param<std::__1::tuple<android::hardware::ProcessState::init(unsigned long, bool)::$_0&&>>::operator()[abi:nn190000]() (.__uniq.127783477419081024127110806863612922195)+56) (BuildId: dfca8f7e5bc71ba84181bbaec4a8d282)
+[   10.177326] DEBUG:       #06 pc 000000000008c920  /system/lib64/libc++.so (std::__1::__call_once(unsigned long volatile&, void*, void (*)(void*))+180) (BuildId: 4668837a29afdd9fdba531a239fbfb965280cc24)
+[   10.177421] DEBUG:       #07 pc 0000000000055174  /system/lib64/libhidlbase.so (android::hardware::ProcessState::self()+204) (BuildId: dfca8f7e5bc71ba84181bbaec4a8d282)
+[   10.177492] DEBUG:       #08 pc 0000000000055210  /system/lib64/libhidlbase.so (android::hardware::configureBinderRpcThreadpool(unsigned long, bool)+44) (BuildId: dfca8f7e5bc71ba84181bbaec4a8d282)
+[   10.177536] DEBUG:       #09 pc 000000000002e048  /system/bin/vold (main+1960) (BuildId: f018b978da36537978db81c9f4cfd3ed)
+[   10.177615] DEBUG:       #10 pc 0000000000055248  /apex/com.android.runtime/lib64/bionic/libc.so (__libc_init+116) (BuildId: e9818ca81db5b81b81dbc595f73f7d87)
+[   11.160114] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   12.161070] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   13.163756] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   14.166973] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   15.168149] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   16.176071] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   17.176812] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   18.177172] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   19.178886] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   20.183098] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   21.183840] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   22.194356] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   23.195939] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   24.199352] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   25.199700] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   26.209659] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   27.220142] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   28.221968] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   29.226521] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   30.231459] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   31.231876] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   32.232832] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   33.233962] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   34.235470] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   35.236292] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   36.236868] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   37.243049] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   38.253180] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   39.256066] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   40.260908] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   41.264023] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   42.267387] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   43.273119] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   44.273975] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   45.283948] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   46.284708] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   47.293221] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   48.293962] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   49.294702] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   50.298514] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   51.304336] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   52.304717] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   53.306041] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   54.308501] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   55.309952] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   56.315216] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   57.318237] vdc: Waited for servicemanager.ready for a second, waiting another...
+[   58.323058] vdc: Waited for servicemanager.ready for a second, waiting another...

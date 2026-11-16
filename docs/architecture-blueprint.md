@@ -1,4 +1,4 @@
-> **Design proposal, not an implementation report.** Preserved from the initial specification. Numerical figures and technical claims below are hypotheses unless supported by a benchmark artifact. Several mechanisms require additional platform work; see [ADR 001](adr-001-performance-stack.md) and the [v0.1 protocol](protocol-v0.1.md) for implemented scope and corrections. In particular, no zero-copy capture, <30 ms settled-action latency, automatic Compose-tag exposure, iOS-on-Linux readiness, or custom runtime boot claim is established by this document.
+> **Design proposal, not an implementation report.** Retains the initial design for reference, with explicit corrections to unsupported research claims. Numerical figures and technical claims below are hypotheses unless supported by a benchmark artifact. Several mechanisms require additional platform work; see [ADR 001](adr-001-performance-stack.md) and the [v0.1 protocol](protocol-v0.1.md) for implemented scope and corrections. In particular, no zero-copy capture, <30 ms settled-action latency, automatic Compose-tag exposure, iOS-on-Linux readiness, or custom runtime boot claim is established by this document.
 
 # Ashnazg (`ashnazg`)
 
@@ -235,7 +235,7 @@ Can we go beyond Android APKs and make **iOS applications** run on this same lig
 Let's examine what happens at the byte and register level, building on prior art from **Darling (`darlinghq`)**, **Indium / Iridium**, **Columbia University's Cider / Cycada**, **touchHLE**, and **QEMU-t8030 / Inferno**.
 
 #### 4A. The Starting Advantage: Identical ARM64 CPU Instructions (`AArch64`)
-When you compile Swift, Objective-C, C++, or Rust for an iPhone (`arm64-apple-ios`) and for an ARM64 Linux/Android container (`aarch64-linux-android`), the CPU instructions inside the code section (`__text` vs `.text`) are **100% identical ARMv8-A (`AArch64`) machine code**:
+iOS and ARM64 Linux can use the AArch64 instruction set, but their compiled programs are not interchangeable. Platform ABI, executable metadata, loader dependencies, system services and framework behavior remain distinct. The following instruction encodings illustrate the shared instruction set, not binary compatibility:
 ```hex
 FF 43 00 D1   ->  sub sp, sp, #0x10
 FD 7B 01 A9   ->  stp x29, x30, [sp, #0x10]
@@ -256,7 +256,7 @@ flowchart LR
 
 ##### Wall 1: The Binary Envelope (`Mach-O` `0xFEEDFACF` vs. `ELF` `0x7F 'E' 'L' 'F'`)
 - **The Bytes:** Linux expects `ELF` binaries starting with `7F 45 4C 46`. iOS binaries are **Mach-O** executables starting with `CF FA ED FE` (`0xFEEDFACF`), structured around `LC_SEGMENT_64` (`__TEXT`, `__DATA`, `__LINKEDIT`), `LC_DYLD_CHAINED_FIXUPS`, and `LC_LOAD_DYLIB`.
-- **The Solution (Solved in Open Source):** Using Linux's `binfmt_misc` kernel facility, any file beginning with `\xcf\xfa\xed\xfe` is routed to a Mach-O loader (`mldr`). Apple's dynamic linker (**`dyld`**) and Objective-C runtime (**`objc4` / `libobjc.A.dylib`**, including `objc_msgSend`) are open-source (`opensource.apple.com`) and already ported to Linux by the **Darling** project.
+- **Prior art to investigate (not proven for iOS):** Using Linux's `binfmt_misc` kernel facility, any file beginning with `\xcf\xfa\xed\xfe` is routed to a Mach-O loader (`mldr`). Apple's dynamic linker (**`dyld`**) and Objective-C runtime (**`objc4` / `libobjc.A.dylib`**, including `objc_msgSend`) are open-source (`opensource.apple.com`) and already ported to Linux by the **Darling** project.
 
 ##### Wall 2: Two Sneaky ARM64 Hardware ABI Divergences (`x18` & `16 KB` Pages)
 1. **Register `x18` (Platform Register):** Apple's ARM64 ABI reserves `x18` exclusively for kernel/pthread state and forbids user code from modifying it. Standard Linux/Android toolchains sometimes use `x18` as a scratch register or Shadow Call Stack pointer.
@@ -285,16 +285,16 @@ Modern iOS apps render via `CoreAnimation` $\rightarrow$ `Metal` (`MTLDevice`, `
 ##### Wall 5: The Real Boss Fight — Closed-Source `UIKitCore` & `SwiftUI`
 Unlike Android (where AOSP open-sources `android.view.*` and Jetpack Compose), Apple keeps `UIKitCore`, `SwiftUI`, and `BackBoardServices` proprietary.
 - **How Ashnazg Approaches iOS Support Pragmatically:**
-  1. **Track 1 — Cross-Platform Shared Runtime (Works Today for 85%+ of Teams):** React Native / Expo and Flutter apps share 95–99% of their JS/Dart/C++ code across iOS and Android. Running the Android build on Ashnazg's Linux container validates shared flows in CI in 4 seconds; on macOS hosts, Ashnazg drives **headless `CoreSimulator`** (`simctl` without `Simulator.app` GUI, using offscreen `IOSurface` buffers) through the **exact same MCP & CI protocol**.
+  1. **Track 1 — macOS Simulator backend (proposed):** Explore Xcode lifecycle tooling and XCTest/XCUIAutomation against an app built for the iOS Simulator target. Android tests of shared React Native/Flutter code do not establish iOS behavior. No Ashnazg iOS MCP backend, zero-copy capture or iOS runtime timing has been validated. See the [iOS research boundary](research/ios.md).
   2. **Track 2 — Experimental `ashnazg-darwin` Lab (Mach-O on Linux):** Combines Darling's `mldr`/`dyld`/`objc4` + `seccomp` syscall trampoline + `Indium` Metal-to-Vulkan, loading either clean-room `UIKit` stubs (inspired by `touchHLE`) or mounting an extracted iOS Simulator `dyld_shared_cache` with a headless `BackBoardd` shim.
 
 #### Summary Matrix: iOS-on-Linux Technical Readiness
 
 | Layer | Open-Source Foundation | Mechanism | Status |
 | :--- | :--- | :--- | :--- |
-| **1. CPU Execution** | Native ARMv8-A (`AArch64`) | Direct hardware execution on Apple Silicon & ARM64 Linux CI | **Solved (Native)** |
-| **2. Mach-O & Obj-C Runtime** | **Darling** (`mldr`, `dyld`, `objc4`) | Parses `0xFEEDFACF`, binds symbols, runs Apple's open-source `objc_msgSend` | **Solved (Open Source)** |
-| **3. XNU BSD & Mach Syscalls** | **`darlingserver`** / `seccomp_unotify` | Traps `svc #0x80` (`x16`), maps BSD calls to Linux & Mach ports to IPC | **Working (Needs iOS tuning)** |
+| **1. CPU Execution** | Native ARMv8-A (`AArch64`) | Direct hardware execution on Apple Silicon & ARM64 Linux CI | **Shared ISA; platform compatibility unverified** |
+| **2. Mach-O & Obj-C Runtime** | **Darling** (`mldr`, `dyld`, `objc4`) | Parses `0xFEEDFACF`, binds symbols, runs Apple's open-source `objc_msgSend` | **macOS prior art; iOS loader/runtime unverified** |
+| **3. XNU BSD & Mach Syscalls** | **`darlingserver`** / `seccomp_unotify` | Traps `svc #0x80` (`x16`), maps BSD calls to Linux & Mach ports to IPC | **Unverified for iOS; substantial ABI/service research** |
 | **4. Metal GPU → Vulkan** | **Indium + Iridium** (`air2spirv`) | Wraps `MTLDevice` over Vulkan 1.3; transpiles `AIR` shaders to `SPIR-V` | **Active R&D (Alpha)** |
 | **5. 64-bit UIKit / SwiftUI** | Simulator `dyld_shared_cache` / **touchHLE** | Either clean-room UIKit shim or hosting Simulator `dyld_shared_cache` | **Hard Research Frontier** |
 
@@ -341,7 +341,7 @@ Ashnazg exposes a unified control surface for both AI agents (via Model Context 
 - [ ] Publish reusable GitHub Action (`edufelip/ashnazg-action`) that loads `binder_linux`, boots the headless container in ~4s, and runs deterministic E2E test flows.
 
 ### Milestone 3: Zero-Setup macOS Apple Silicon MicroVM Launcher (`v0.3`)
-- [ ] Package a single-command macOS launcher (`ashnazg up`) powered by Apple `Virtualization.framework` with a pre-built 25 MB Linux 6.x kernel (`CONFIG_ANDROID_BINDER_IPC=y`, `CONFIG_ASHMEM=y`) so macOS developers never have to configure UTM or custom Docker Desktop kernels.
+- [ ] Package a single-command macOS launcher (`ashnazg up`) powered by Apple `Virtualization.framework` with a pre-built 25 MB Linux 6.x kernel (`CONFIG_ANDROID_BINDER_IPC=y`, Binderfs and memfd; ashmem is obsolete in current upstream Linux) so macOS developers never have to configure UTM or custom Docker Desktop kernels.
 
 ### Milestone 4: Unified Headless iOS Simulator Bridge & `ashnazg-darwin` Lab (`v0.4+`)
 - [ ] Add headless macOS `CoreSimulator` backend (`IOSurface` zero-copy WebP capture + `AXElement` fast socket agent) behind the identical `ashnazg` MCP and CI test runner interface.

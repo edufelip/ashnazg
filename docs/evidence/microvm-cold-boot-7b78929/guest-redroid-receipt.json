@@ -1,0 +1,37 @@
+{
+  "adb_port": 5555,
+  "container_id": "8aeced60d75eaeef8167f26490886d5a0909144a03b6be8d3bd228425a2f4b95",
+  "elapsed_seconds": 153.096,
+  "exit_code": 1,
+  "failure": "command timed out: /usr/bin/adb",
+  "finished_at_unix": 1794777093.7063937,
+  "github_sha": null,
+  "host": {
+    "architecture": "aarch64",
+    "kernel": "6.12.117",
+    "runner_image": null,
+    "system": "Linux"
+  },
+  "image": "redroid/redroid@sha256:81889852444606824d33eb0232fa5813bce3f0993afe871785120af0d7c991ad",
+  "image_index": "sha256:81889852444606824d33eb0232fa5813bce3f0993afe871785120af0d7c991ad",
+  "platform_digest": "sha256:b21c57533662275928832602f7c09b83cb198aa9b271135ae49d978857d6795f",
+  "requested_display": {
+    "ashmem": "memfd",
+    "dpi": 320,
+    "fps": 30,
+    "height": 1280,
+    "renderer": "software",
+    "width": 720
+  },
+  "run_id": "88a9907e-7f42-4582-bdd6-da99c457cca6",
+  "schema": 1,
+  "serial": "127.0.0.1:5555",
+  "setup_timings_seconds": {
+    "container_start": 137.978,
+    "preflight": 4.807
+  },
+  "source_dirty": null,
+  "source_sha": null,
+  "started_at_unix": 1794776940.6105084,
+  "status": "failure"
+}

@@ -1,0 +1,181 @@
+[    0.052873] loop: module loaded
+[    0.052963] virtio_blk virtio2: 1/0/0 default/read/poll queues
+[    0.053097] virtio_blk virtio2: [vda] 8388608 512-byte logical blocks (4.29 GB/4.00 GiB)
+[    0.053688] megasas: 07.727.03.00-rc1
+[    0.054096] tun: Universal TUN/TAP device driver, 1.6
+[    0.055149] thunder_xcv, ver 1.0
+[    0.055173] thunder_bgx, ver 1.0
+[    0.055194] nicpf, ver 1.0
+[    0.055265] hns3: Hisilicon Ethernet Network Driver for Hip08 Family - version
+[    0.055299] hns3: Copyright (c) 2017 Huawei Corporation.
+[    0.055322] hclge is initializing
+[    0.055342] e1000: Intel(R) PRO/1000 Network Driver
+[    0.055364] e1000: Copyright (c) 1999-2006 Intel Corporation.
+[    0.055397] e1000e: Intel(R) PRO/1000 Network Driver
+[    0.055428] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
+[    0.055451] igb: Intel(R) Gigabit Ethernet Network Driver
+[    0.055471] igb: Copyright (c) 2007-2014 Intel Corporation.
+[    0.055494] igbvf: Intel(R) Gigabit Virtual Function Network Driver
+[    0.055527] igbvf: Copyright (c) 2009 - 2012 Intel Corporation.
+[    0.055562] sky2: driver version 1.30
+[    0.055710] VFIO - User Level meta-driver version: 0.3
+[    0.055881] usbcore: registered new interface driver usb-storage
+[    0.056105] rtc-pl031 20050000.pl031: registered as rtc0
+[    0.056136] rtc-pl031 20050000.pl031: setting system clock to 2026-11-15T21:08:54 UTC (1794776934)
+[    0.056217] i2c_dev: i2c /dev entries driver
+[    0.056544] sdhci: Secure Digital Host Controller Interface driver
+[    0.056575] sdhci: Copyright(c) Pierre Ossman
+[    0.056626] Synopsys Designware Multimedia Card Interface Driver
+[    0.056691] sdhci-pltfm: SDHCI platform and OF driver helper
+[    0.056917] usbcore: registered new interface driver usbhid
+[    0.056942] usbhid: USB HID core driver
+[    0.057547] NET: Registered PF_INET6 protocol family
+[    0.057709] Segment Routing with IPv6
+[    0.057728] In-situ OAM (IOAM) with IPv6
+[    0.057755] NET: Registered PF_PACKET protocol family
+[    0.057777] Bridge firewalling registered
+[    0.057806] 9pnet: Installing 9P2000 support
+[    0.057831] Key type dns_resolver registered
+[    0.057875] NET: Registered PF_VSOCK protocol family
+[    0.058894] registered taskstats version 1
+[    0.058922] Loading compiled-in X.509 certificates
+[    0.059374] Demotion targets for Node 0: null
+[    0.059608] input: gpio-keys as /devices/platform/gpio-keys/input/input0
+[    0.059709] clk: Disabling unused clocks
+[    0.059740] PM: genpd: Disabling unused power domains
+[    0.059762] ALSA device list:
+[    0.059777]   No soundcards found.
+[    0.138962] EXT4-fs (vda): mounted filesystem ed7dc1eb-d58b-472e-9b46-6f1ffdc5c394 r/w with ordered data mode. Quota mode: none.
+[    0.139031] VFS: Mounted root (ext4 filesystem) on device 254:0.
+[    0.139396] devtmpfs: mounted
+[    0.139723] Freeing unused kernel memory: 10624K
+[    0.139758] Run /sbin/ashnazg-init as init process
+[    5.153588] random: crng init done
+udhcpc: started, v1.37.0
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 192.168.64.5, server 192.168.64.1
+udhcpc: lease of 192.168.64.5 obtained from 192.168.64.1, lease time 3600
+[  148.845966] docker0: port 1(veth7b47102) entered blocking state
+[  148.846059] docker0: port 1(veth7b47102) entered disabled state
+[  148.846085] veth7b47102: entered allmulticast mode
+[  148.846130] veth7b47102: entered promiscuous mode
+[  148.882518] eth0: renamed from veth224aabd
+[  148.883132] docker0: port 1(veth7b47102) entered blocking state
+[  148.883165] docker0: port 1(veth7b47102) entered forwarding state
+[  148.934746] init: mkdir("/dev/pts", 0755) failed File exists
+[  148.934787] init: mount("sysfs", "/sys", "sysfs", 0, NULL) failed Device or resource busy
+[  148.934865] init: mount("selinuxfs", "/sys/fs/selinux", "selinuxfs", 0, NULL) failed Invalid argument
+[  148.934894] init: mknod("/dev/kmsg", S_IFCHR | 0600, makedev(1, 11)) failed File exists
+[  148.934925] init: mknod("/dev/random", S_IFCHR | 0666, makedev(1, 8)) failed Invalid argument
+[  148.934959] init: mknod("/dev/urandom", S_IFCHR | 0666, makedev(1, 9)) failed File exists
+[  148.934981] init: mknod("/dev/ptmx", S_IFCHR | 0666, makedev(5, 2)) failed File exists
+[  148.935005] init: mknod("/dev/null", S_IFCHR | 0666, makedev(1, 3)) failed File exists
+[  148.935029] init: init first stage started!
+[  148.935072] init: Unable to open /lib/modules, skipping module loading.
+[  148.935382] printk: init: 5 output lines suppressed due to ratelimiting
+[  148.937957] init: init second stage started!
+[  148.939794] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  148.939826] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  148.942640] init: [libfstab] Using Android DT directory /proc/device-tree/firmware/android/
+[  148.942847] init: Overriding previous property 'ro.cp_system_other_odex':'1' with new value '0'
+[  148.943088] init: Could not set 'ro.hardware' to 'redroid' while loading .prop filesRead-only property was already set
+[  148.943268] init: Setting product property ro.product.brand to 'redroid' (from ro.product.product.brand)
+[  148.943305] init: Setting product property ro.product.device to 'redroid_arm64' (from ro.product.product.device)
+[  148.943334] init: Setting product property ro.product.manufacturer to 'redroid' (from ro.product.product.manufacturer)
+[  148.943363] init: Setting product property ro.product.model to 'redroid15_arm64' (from ro.product.product.model)
+[  148.947763] cgroup: Unknown subsys name 'memory'
+[  148.956432] ueventd: ueventd started!
+[  148.956801] selinux: SELinux: Loaded file context from:
+[  148.956827] selinux: 		/system/etc/selinux/plat_file_contexts
+[  148.956851] selinux: 		/system_ext/etc/selinux/system_ext_file_contexts
+[  148.956877] selinux: 		/product/etc/selinux/product_file_contexts
+[  148.956905] selinux: 		/vendor/etc/selinux/vendor_file_contexts
+[  148.956931] selinux: 		/odm/etc/selinux/odm_file_contexts
+[  148.956979] ueventd: Parsing file /system/etc/ueventd.rc...
+[  148.957007] ueventd: Added '/vendor/etc/ueventd.rc' to import list
+[  148.957034] ueventd: Added '/odm/etc/ueventd.rc' to import list
+[  148.962066] apexd: Started. subcommand = --bootstrap
+[  148.962138] cutils-trace: Error opening trace file: No such file or directory (2)
+[  148.962183] apexd-bootstrap: Scanning /odm/apex for pre-installed ApexFiles
+[  148.962211] apexd-bootstrap: /odm/apex does not exist. Skipping
+[  148.962238] apexd-bootstrap: Scanning /vendor/apex for pre-installed ApexFiles
+[  148.962283] apexd-bootstrap: Found pre-installed APEX /vendor/apex/com.android.hardware.cas.apex
+[  148.962431] apexd-bootstrap: Scanning /product/apex for pre-installed ApexFiles
+[  148.962467] apexd-bootstrap: /product/apex does not exist. Skipping
+[  148.962497] apexd-bootstrap: Scanning /system_ext/apex for pre-installed ApexFiles
+[  148.962537] apexd-bootstrap: /system_ext/apex does not exist. Skipping
+[  148.970793] loop0: detected capacity change from 0 to 21856
+[  148.970873] loop1: detected capacity change from 0 to 1680
+[  148.970920] loop2: detected capacity change from 0 to 77720
+[  149.011486] EXT4-fs (loop0): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[  149.011612] EXT4-fs (loop2): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[  149.020044] EXT4-fs (loop1): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[  149.021353] printk: apexd: 117 output lines suppressed due to ratelimiting
+[  149.045500] prng_seeder: Hanging forever because setup failed: Unable to open hwrng /dev/hw_random
+[  149.045500] 
+[  149.045540] Caused by:
+[  149.045550]     No such file or directory (os error 2)
+[  149.049992] servicemanager: Starting sm instance on /dev/binder
+[  149.050028] ProcessState: Binder driver /dev/binder is unavailable. Using /dev/binder instead.
+[  149.050243] ProcessState: Binder driver '/dev/binder' could not be opened. Error: 2 (No such file or directory) Opening '/dev/binder' failed. Terminating.
+[  149.054510] vold: Failed to open default fstab: No such file or directory
+[  149.054553] vold: Error reading configuration... continuing anyways: No such file or directory
+[  149.054604] hw-ProcessState: Opening '/dev/hwbinder' failed: No such file or directory
+[  149.054645] hw-ProcessState: 
+[  149.054671] hw-ProcessState: Binder driver could not be opened. Terminating.
+[  149.063908] DEBUG: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+[  149.063913] DEBUG: Build fingerprint: 'redroid/redroid_arm64/redroid_arm64:15/BP1A.250505.005.D1/eng.root:userdebug/test-keys'
+[  149.063948] DEBUG: Revision: '0'
+[  149.064008] DEBUG: ABI: 'arm64'
+[  149.064028] DEBUG: Timestamp: 2026-11-15 21:11:23.502291029+0000
+[  149.064047] DEBUG: Process uptime: 0s
+[  149.064082] DEBUG: Cmdline: /system/bin/vold --blkid_context=u:r:blkid:s0 --blkid_untrusted_context=u:r:blkid_untrusted:s0 --fsck_context=u:r:fsck:s0 --fsck_untrusted_context=u:r:fsck_untrusted:s0
+[  149.064102] DEBUG: pid: 21, tid: 21, name: vold  >>> /system/bin/vold <<<
+[  149.064173] DEBUG: uid: 0
+[  149.064200] DEBUG: tagged_addr_ctrl: 0000000000000001 (PR_TAGGED_ADDR_ENABLE)
+[  149.064214] DEBUG: pac_enabled_keys: 000000000000000f (PR_PAC_APIAKEY, PR_PAC_APIBKEY, PR_PAC_APDAKEY, PR_PAC_APDBKEY)
+[  149.064256] DEBUG: signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+[  149.064285] DEBUG: Abort message: 'Binder driver could not be opened. Terminating.'
+[  149.064318] DEBUG:     x0  0000000000000000  x1  0000000000000015  x2  0000000000000006  x3  0000ffffee841680
+[  149.064349] DEBUG:     x4  000000000000000a  x5  000000000000000a  x6  000000000000000a  x7  7f7f7f7f7f7f7f7f
+[  149.064397] DEBUG:     x8  00000000000000f0  x9  ada34abbf201306f  x10 000000ff00000020  x11 0000ffff942ae424
+[  149.064436] DEBUG:     x12 0000ffffee840e44  x13 0000000000000004  x14 0000000000000000  x15 0000ffff9480bf31
+[  149.064473] DEBUG:     x16 0000ffff9435a058  x17 0000ffff94343880  x18 0000ffff984b4000  x19 0000000000000015
+[  149.064526] DEBUG:     x20 0000000000000015  x21 00000000ffffffff  x22 0000000000000002  x23 0000aaaaddaa0728
+[  149.064577] DEBUG:     x24 0000ffff943739b8  x25 0000000000000303  x26 0000000000000000  x27 0000000000000000
+[  149.064623] DEBUG:     x28 0000000000000000  x29 0000ffffee841700
+[  149.064662] DEBUG:     lr  0000ffff942e2a60  sp  0000ffffee841680  pc  0000ffff942e2a84  pst 0000000000000000
+[  149.064691] DEBUG: 11 total frames
+[  149.064731] DEBUG: backtrace:
+[  149.064756] DEBUG:       #00 pc 000000000005ba84  /apex/com.android.runtime/lib64/bionic/libc.so (abort+156) (BuildId: e9818ca81db5b81b81dbc595f73f7d87)
+[  149.064776] DEBUG:       #01 pc 0000000000013f0c  /system/lib64/libbase.so (android::base::DefaultAborter(char const*)+12) (BuildId: 5127de8a6bcdd5f5d7eda5e2d83a2425)
+[  149.064825] DEBUG:       #02 pc 0000000000015d1c  /system/lib64/libbase.so (android::base::SetAborter(std::__1::function<void (char const*)>&&)::$_0::__invoke(char const*)+80) (BuildId: 5127de8a6bcdd5f5d7eda5e2d83a2425)
+[  149.064877] DEBUG:       #03 pc 000000000000cff4  /system/lib64/liblog.so (__android_log_assert+288) (BuildId: 6c68336cecbef087f284c0ff8c02d974)
+[  149.064950] DEBUG:       #04 pc 0000000000046c64  /system/lib64/libhidlbase.so (android::hardware::ProcessState::ProcessState(unsigned long)+308) (BuildId: dfca8f7e5bc71ba84181bbaec4a8d282)
+[  149.065001] DEBUG:       #05 pc 0000000000046abc  /system/lib64/libhidlbase.so (std::__1::__call_once_param<std::__1::tuple<android::hardware::ProcessState::init(unsigned long, bool)::$_0&&>>::operator()[abi:nn190000]() (.__uniq.127783477419081024127110806863612922195)+56) (BuildId: dfca8f7e5bc71ba84181bbaec4a8d282)
+[  149.065067] DEBUG:       #06 pc 000000000008c920  /system/lib64/libc++.so (std::__1::__call_once(unsigned long volatile&, void*, void (*)(void*))+180) (BuildId: 4668837a29afdd9fdba531a239fbfb965280cc24)
+[  149.065182] DEBUG:       #07 pc 0000000000055174  /system/lib64/libhidlbase.so (android::hardware::ProcessState::self()+204) (BuildId: dfca8f7e5bc71ba84181bbaec4a8d282)
+[  149.065236] DEBUG:       #08 pc 0000000000055210  /system/lib64/libhidlbase.so (android::hardware::configureBinderRpcThreadpool(unsigned long, bool)+44) (BuildId: dfca8f7e5bc71ba84181bbaec4a8d282)
+[  149.065298] DEBUG:       #09 pc 000000000002e048  /system/bin/vold (main+1960) (BuildId: f018b978da36537978db81c9f4cfd3ed)
+[  149.065369] DEBUG:       #10 pc 0000000000055248  /apex/com.android.runtime/lib64/bionic/libc.so (__libc_init+116) (BuildId: e9818ca81db5b81b81dbc595f73f7d87)
+[  150.055700] vdc: Waited for servicemanager.ready for a second, waiting another...
+[  151.057204] vdc: Waited for servicemanager.ready for a second, waiting another...
+[  152.060231] vdc: Waited for servicemanager.ready for a second, waiting another...
+[  153.061462] vdc: Waited for servicemanager.ready for a second, waiting another...
+[  154.063352] vdc: Waited for servicemanager.ready for a second, waiting another...
+[  155.066774] vdc: Waited for servicemanager.ready for a second, waiting another...
+[  156.077335] vdc: Waited for servicemanager.ready for a second, waiting another...
+[  157.084847] vdc: Waited for servicemanager.ready for a second, waiting another...
+[  158.085244] vdc: Waited for servicemanager.ready for a second, waiting another...
+[  159.034605] printk: init: 378 output lines suppressed due to ratelimiting
+[  159.036284] EXT4-fs (loop0): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  159.036417] EXT4-fs (loop2): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  159.036510] EXT4-fs (loop1): unmounting filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250.
+[  159.036659] printk: ueventd: 65 output lines suppressed due to ratelimiting
+[  159.110678] docker0: port 1(veth7b47102) entered disabled state
+[  159.110749] veth224aabd: renamed from eth0
+[  159.158548] docker0: port 1(veth7b47102) entered disabled state
+[  159.158715] veth7b47102 (unregistering): left allmulticast mode
+[  159.158769] veth7b47102 (unregistering): left promiscuous mode
+[  159.158800] docker0: port 1(veth7b47102) entered disabled state
+Ashnazg guest services exited with status 1; powering off

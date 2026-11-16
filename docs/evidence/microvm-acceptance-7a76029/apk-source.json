@@ -1,0 +1,35 @@
+{
+  "source_sha": "7a760294d3a485cc9f40308c791a58e160d620f1",
+  "workflow_run": 43771299927,
+  "artifact_id": 14184546345,
+  "files": [
+    {
+      "path": "agent-android/agent/build/outputs/apk/debug/agent-debug.apk",
+      "sha256": "13fc55668a22f6503244940c06cec57b0e096f9b6a9850c03f63e253730fff21",
+      "abis": []
+    },
+    {
+      "path": "agent-android/fixture/build/outputs/apk/debug/fixture-debug.apk",
+      "sha256": "c28d435b14e551a995942656f59f278e9367f8c7aa42d2e45c667330189afc5e",
+      "abis": []
+    },
+    {
+      "path": "fixtures/compose/build/outputs/apk/debug/compose-debug.apk",
+      "sha256": "9bd5b563d3d1ac359a3936886df728dd640bc5254bf24b90be62aab5dc697817",
+      "abis": [
+        "arm64-v8a",
+        "armeabi-v7a",
+        "x86",
+        "x86_64"
+      ]
+    },
+    {
+      "path": "fixtures/reactnative/build/outputs/apk/debug/reactnative-debug.apk",
+      "sha256": "d63afceca7f34816a76e5c7f2a4610d982ba5b9fdce6f85222f04fe8c0ebed0f",
+      "abis": [
+        "arm64-v8a",
+        "x86_64"
+      ]
+    }
+  ]
+}

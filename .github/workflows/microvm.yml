@@ -1,0 +1,150 @@
+name: MicroVM guest artifacts
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: microvm-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scope:
+    name: Determine guest build scope
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.scope.outputs.required }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, re, subprocess
+          base, head = os.environ['BASE_SHA'], os.environ['HEAD_SHA']
+          assert re.fullmatch('[0-9a-f]{40}', head), 'invalid source SHA'
+          if not base or set(base) == {'0'}:
+              required = True
+          else:
+              assert re.fullmatch('[0-9a-f]{40}', base), 'invalid base SHA'
+              paths = subprocess.check_output(['git', 'diff', '--name-only', '--no-renames', base, head], text=True).splitlines()
+              exact = {'.github/workflows/microvm.yml', 'scripts/build_microvm.sh', 'scripts/guest_packages.py',
+                       'scripts/redroid.py', 'scripts/linux_binder.py', 'scripts/ci_emulator.py'}
+              required = any(p.startswith('runtime/microvm/') or p in exact for p in paths)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
+              stream.write('required=' + str(required).lower() + '\n')
+          print('Guest image build required:', required)
+          PYTHON
+  guest-artifacts:
+    needs: scope
+    if: needs.scope.outputs.required == 'true'
+    name: Build Linux ARM64 guest artifacts
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 90
+    env:
+      SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      BUILD_JOBS: '4'
+      PYTHONPYCACHEPREFIX: /tmp/ashnazg-python-cache
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify source checkout and runner architecture
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(uname -s)" = Linux
+          case "$(uname -m)" in aarch64|arm64) ;; *) echo "native ARM64 runner required" >&2; exit 1 ;; esac
+          test -z "$(git status --porcelain --untracked-files=all)"
+          python3 -c 'import sys; assert sys.version_info >= (3, 9), sys.version'
+      - name: Require the reviewed guest package snapshot
+        run: |
+          test -f runtime/microvm/packages.lock.json || {
+            echo 'Generate and review the Authenticated guest package proposal artifact, then commit packages.lock.json before building' >&2
+            exit 1
+          }
+      - name: Install kernel and rootfs build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bc bison build-essential ca-certificates curl \
+            device-tree-compiler e2fsprogs flex git libelf-dev libncurses-dev \
+            libssl-dev perl python3 rsync xz-utils
+      - name: Record compiler cache key
+        id: toolchain
+        run: echo "gcc=$(gcc -dumpfullversion)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        with:
+          path: |
+            /tmp/ashnazg-microvm-kernel/linux-6.12.117.tar.xz
+            /tmp/ashnazg-microvm-kernel/alpine-minirootfs-3.22.8-aarch64.tar.gz
+          key: microvm-verified-archives-v1-linux-6.12.117-arm64-${{ steps.toolchain.outputs.gcc }}-${{ hashFiles('runtime/microvm/kernel.config') }}
+      - name: Run guest bridge and artifact manifest tests
+        run: python3 -m unittest tests.test_microvm_guest -v
+      - name: Check Python and shell syntax
+        run: |
+          python3 -m py_compile runtime/microvm/guest_bridge.py runtime/microvm/manifest.py runtime/microvm/guest-init.py
+          bash -n scripts/build_microvm.sh
+      - name: Build kernel and Alpine ext4 template
+        run: |
+          sudo git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          sudo env SOURCE_SHA="$SOURCE_SHA" BUILD_JOBS="$BUILD_JOBS" \
+            scripts/build_microvm.sh --work-dir /tmp/ashnazg-microvm-kernel \
+            --output-dir /tmp/ashnazg-microvm-artifacts
+      - name: Verify compressed artifact and contents
+        run: |
+          set -euo pipefail
+          cd /tmp/ashnazg-microvm-artifacts
+          sha256sum --check microvm-assets.tar.xz.sha256
+          tar -tJf microvm-assets.tar.xz | sort | diff -u - <(printf '%s\n' \
+            NOTICES.md kernel kernel.config kernel.generated.config linux-6.12.117.tar.xz manifest.json \
+            provenance.json packages.lock.json rootfs.ext4 | sort)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: microvm-linux-arm64-${{ env.SOURCE_SHA }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            /tmp/ashnazg-microvm-artifacts/microvm-assets.tar.xz
+            /tmp/ashnazg-microvm-artifacts/microvm-assets.tar.xz.sha256
+
+  host-launcher:
+    name: Build and test native macOS launcher
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Test native launcher contracts without booting a VM
+        run: swift test --package-path platform/macos
+      - name: Build native Virtualization.framework helper
+        run: swift build -c release --package-path platform/macos
+
+  microvm-gate:
+    name: MicroVM quality gate
+    if: always()
+    needs: [scope, guest-artifacts, host-launcher]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require applicable guest build and native launcher checks
+        env:
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          GUEST_REQUIRED: ${{ needs.scope.outputs.required }}
+          GUEST_RESULT: ${{ needs.guest-artifacts.result }}
+          HOST_RESULT: ${{ needs.host-launcher.result }}
+        run: |
+          test "$SCOPE_RESULT" = success
+          test "$HOST_RESULT" = success
+          case "$GUEST_REQUIRED" in
+            true) test "$GUEST_RESULT" = success ;;
+            false) test "$GUEST_RESULT" = skipped ;;
+            *) echo 'Missing guest build scope decision' >&2; exit 1 ;;
+          esac

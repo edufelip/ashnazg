@@ -1,0 +1,19 @@
+{
+  "base": {
+    "sha256": "36091efacd083c1cf5a8c837272530bff4fc72db1fbfdef559f52de0d890bca4",
+    "url": "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/aarch64/alpine-minirootfs-3.22.8-aarch64.tar.gz"
+  },
+  "indexes": [
+    {
+      "filename": "APKINDEX.3ec923cb.tar.gz",
+      "repository": "https://dl-cdn.alpinelinux.org/alpine/v3.22/main",
+      "sha256": "928e3b29349d9d3e4e39251d3f1e867b4e1dc60f7c073bf1f97516d57d02d64a"
+    },
+    {
+      "filename": "APKINDEX.96d0d294.tar.gz",
+      "repository": "https://dl-cdn.alpinelinux.org/alpine/v3.22/community",
+      "sha256": "7213c3360aee0824db03715bfa0dad2c365c8942893aecf0c4f3b26a389620ba"
+    }
+  ],
+  "source": "Alpine v3.22 repositories; native apk update authenticated the original indexes using the pinned rootfs keys; native apk add verified package signatures and dependency closure offline."
+}

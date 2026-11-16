@@ -1,0 +1,6 @@
+{
+  "workflow_run": "https://github.com/edufelip/ashnazg/actions/runs/43749525239",
+  "source_sha": "25ac74901621aa856b24fda234fcdbcbfe0f2452",
+  "lock_sha256": "3d7ffc8aee731e11df9edcbdee5efb8fbdf90bcb953177305133d0ac2b9b30d3",
+  "qualification": "Authenticated native package resolution and offline signature/dependency installation; no kernel build or VM boot proof."
+}

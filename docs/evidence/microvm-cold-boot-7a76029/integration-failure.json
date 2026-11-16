@@ -1,0 +1,19 @@
+{
+  "run_id": "20261115T231447.930625Z-32053",
+  "run_mode": {
+    "mcp": true,
+    "framework_fixtures": true
+  },
+  "framework_fixtures": true,
+  "source": {
+    "head": null,
+    "dirty": null,
+    "github_sha": null
+  },
+  "error": "IntegrationFailure: MCP returned error: {'code': -32603, 'message': 'adb install exited with status exit status: 1'}",
+  "diagnostic_evidence": [
+    "failure-diagnostics.json",
+    "failure-logs.json",
+    "failure-snapshot.json"
+  ]
+}

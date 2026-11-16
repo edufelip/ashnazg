@@ -1,0 +1,12 @@
+{
+  "recorded_at_utc": "2026-11-15T23:30:01.363977+00:00",
+  "command": [
+    "adb",
+    "forward",
+    "--list"
+  ],
+  "filter_serial": "127.0.0.1:15555",
+  "owned_entries": [],
+  "result": "no forwards for owned host serial after shutdown",
+  "foreign_entries_omitted": true
+}

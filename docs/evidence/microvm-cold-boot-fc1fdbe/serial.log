@@ -1,0 +1,1980 @@
+[    0.057159] loop: module loaded
+[    0.057264] virtio_blk virtio2: 1/0/0 default/read/poll queues
+[    0.057389] virtio_blk virtio2: [vda] 8388608 512-byte logical blocks (4.29 GB/4.00 GiB)
+[    0.057822] megasas: 07.727.03.00-rc1
+[    0.058191] tun: Universal TUN/TAP device driver, 1.6
+[    0.059290] thunder_xcv, ver 1.0
+[    0.059310] thunder_bgx, ver 1.0
+[    0.059332] nicpf, ver 1.0
+[    0.059408] hns3: Hisilicon Ethernet Network Driver for Hip08 Family - version
+[    0.059440] hns3: Copyright (c) 2017 Huawei Corporation.
+[    0.059451] hclge is initializing
+[    0.059473] e1000: Intel(R) PRO/1000 Network Driver
+[    0.059494] e1000: Copyright (c) 1999-2006 Intel Corporation.
+[    0.059543] e1000e: Intel(R) PRO/1000 Network Driver
+[    0.059564] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
+[    0.059597] igb: Intel(R) Gigabit Ethernet Network Driver
+[    0.059627] igb: Copyright (c) 2007-2014 Intel Corporation.
+[    0.059654] igbvf: Intel(R) Gigabit Virtual Function Network Driver
+[    0.059698] igbvf: Copyright (c) 2009 - 2012 Intel Corporation.
+[    0.059739] sky2: driver version 1.30
+[    0.059870] VFIO - User Level meta-driver version: 0.3
+[    0.060044] usbcore: registered new interface driver usb-storage
+[    0.060272] rtc-pl031 20050000.pl031: registered as rtc0
+[    0.060301] rtc-pl031 20050000.pl031: setting system clock to 2026-11-15T22:21:41 UTC (1794781301)
+[    0.060373] i2c_dev: i2c /dev entries driver
+[    0.060721] sdhci: Secure Digital Host Controller Interface driver
+[    0.060751] sdhci: Copyright(c) Pierre Ossman
+[    0.060802] Synopsys Designware Multimedia Card Interface Driver
+[    0.060869] sdhci-pltfm: SDHCI platform and OF driver helper
+[    0.061060] usbcore: registered new interface driver usbhid
+[    0.061084] usbhid: USB HID core driver
+[    0.061654] NET: Registered PF_INET6 protocol family
+[    0.061809] Segment Routing with IPv6
+[    0.061831] In-situ OAM (IOAM) with IPv6
+[    0.061866] NET: Registered PF_PACKET protocol family
+[    0.061891] Bridge firewalling registered
+[    0.061920] 9pnet: Installing 9P2000 support
+[    0.061961] Key type dns_resolver registered
+[    0.062016] NET: Registered PF_VSOCK protocol family
+[    0.063139] registered taskstats version 1
+[    0.063247] Loading compiled-in X.509 certificates
+[    0.063737] Demotion targets for Node 0: null
+[    0.063913] input: gpio-keys as /devices/platform/gpio-keys/input/input0
+[    0.064017] clk: Disabling unused clocks
+[    0.064047] PM: genpd: Disabling unused power domains
+[    0.064072] ALSA device list:
+[    0.064088]   No soundcards found.
+[    0.287473] EXT4-fs (vda): mounted filesystem c71ffbd1-d0bc-4aa0-a700-b8a8bed5fd10 r/w with ordered data mode. Quota mode: none.
+[    0.287568] VFS: Mounted root (ext4 filesystem) on device 254:0.
+[    0.287763] devtmpfs: mounted
+[    0.288054] Freeing unused kernel memory: 10624K
+[    0.288091] Run /sbin/ashnazg-init as init process
+[    4.314619] random: crng init done
+udhcpc: started, v1.37.0
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 192.168.64.8, server 192.168.64.1
+udhcpc: lease of 192.168.64.8 obtained from 192.168.64.1, lease time 3600
+[   93.715404] docker0: port 1(veth5a9a7a8) entered blocking state
+[   93.715521] docker0: port 1(veth5a9a7a8) entered disabled state
+[   93.715546] veth5a9a7a8: entered allmulticast mode
+[   93.715584] veth5a9a7a8: entered promiscuous mode
+[   93.752749] eth0: renamed from veth20a8b28
+[   93.753791] docker0: port 1(veth5a9a7a8) entered blocking state
+[   93.753821] docker0: port 1(veth5a9a7a8) entered forwarding state
+[   93.814869] init: mkdir("/dev/pts", 0755) failed File exists
+[   93.814929] init: mount("sysfs", "/sys", "sysfs", 0, NULL) failed Device or resource busy
+[   93.814979] init: mount("selinuxfs", "/sys/fs/selinux", "selinuxfs", 0, NULL) failed Invalid argument
+[   93.815030] init: mknod("/dev/kmsg", S_IFCHR | 0600, makedev(1, 11)) failed File exists
+[   93.815067] init: mknod("/dev/random", S_IFCHR | 0666, makedev(1, 8)) failed Invalid argument
+[   93.815090] init: mknod("/dev/urandom", S_IFCHR | 0666, makedev(1, 9)) failed File exists
+[   93.815107] init: mknod("/dev/ptmx", S_IFCHR | 0666, makedev(5, 2)) failed File exists
+[   93.815136] init: mknod("/dev/null", S_IFCHR | 0666, makedev(1, 3)) failed File exists
+[   93.815156] init: init first stage started!
+[   93.815195] init: Unable to open /lib/modules, skipping module loading.
+[   93.815476] printk: init: 5 output lines suppressed due to ratelimiting
+[   93.817403] init: init second stage started!
+[   93.819113] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   93.819159] selinux: SELinux: SELinux is disabled, skipping restorecon
+[   93.821135] init: [libfstab] Using Android DT directory /proc/device-tree/firmware/android/
+[   93.821297] init: Overriding previous property 'ro.cp_system_other_odex':'1' with new value '0'
+[   93.821549] init: Could not set 'ro.hardware' to 'redroid' while loading .prop filesRead-only property was already set
+[   93.821712] init: Setting product property ro.product.brand to 'redroid' (from ro.product.product.brand)
+[   93.821748] init: Setting product property ro.product.device to 'redroid_arm64_only' (from ro.product.product.device)
+[   93.821791] init: Setting product property ro.product.manufacturer to 'redroid' (from ro.product.product.manufacturer)
+[   93.821837] init: Setting product property ro.product.model to 'redroid15_arm64_only' (from ro.product.product.model)
+[   93.825730] cgroup: Unknown subsys name 'memory'
+[   93.837039] ueventd: ueventd started!
+[   93.837434] selinux: SELinux: Loaded file context from:
+[   93.837460] selinux: 		/system/etc/selinux/plat_file_contexts
+[   93.837493] selinux: 		/system_ext/etc/selinux/system_ext_file_contexts
+[   93.837584] selinux: 		/product/etc/selinux/product_file_contexts
+[   93.837635] selinux: 		/vendor/etc/selinux/vendor_file_contexts
+[   93.837669] selinux: 		/odm/etc/selinux/odm_file_contexts
+[   93.837766] ueventd: Parsing file /system/etc/ueventd.rc...
+[   93.837795] ueventd: Added '/vendor/etc/ueventd.rc' to import list
+[   93.837853] ueventd: Added '/odm/etc/ueventd.rc' to import list
+[   93.839752] apexd: Started. subcommand = --bootstrap
+[   93.839807] cutils-trace: Error opening trace file: No such file or directory (2)
+[   93.839849] apexd-bootstrap: Scanning /odm/apex for pre-installed ApexFiles
+[   93.839883] apexd-bootstrap: /odm/apex does not exist. Skipping
+[   93.839905] apexd-bootstrap: Scanning /vendor/apex for pre-installed ApexFiles
+[   93.839953] apexd-bootstrap: Found pre-installed APEX /vendor/apex/com.android.hardware.cas.apex
+[   93.840092] apexd-bootstrap: Scanning /product/apex for pre-installed ApexFiles
+[   93.840132] apexd-bootstrap: /product/apex does not exist. Skipping
+[   93.840160] apexd-bootstrap: Scanning /system_ext/apex for pre-installed ApexFiles
+[   93.840204] apexd-bootstrap: /system_ext/apex does not exist. Skipping
+[   93.843300] loop0: detected capacity change from 0 to 15240
+[   93.843344] loop1: detected capacity change from 0 to 70840
+[   93.843430] loop2: detected capacity change from 0 to 1680
+[   93.883717] EXT4-fs (loop0): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   93.886850] EXT4-fs (loop1): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   93.886946] EXT4-fs (loop2): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   93.887842] printk: apexd: 117 output lines suppressed due to ratelimiting
+[   93.913583] prng_seeder: Hanging forever because setup failed: Unable to open hwrng /dev/hw_random
+[   93.913583]
+[   93.913639] Caused by:
+[   93.913656]     No such file or directory (os error 2)
+[   93.927673] logd.auditd: start
+[   93.927697] logd.klogd: 93922473710
+[   93.928848] logd: Loaded bug_map file: /system_ext/etc/selinux/bug_map
+[   93.928876] logd: Loaded bug_map file: /vendor/etc/selinux/selinux_denial_metadata
+[   93.928917] logd: Loaded bug_map file: /system/etc/selinux/bug_map
+[   93.929574] logd: SocketListener: Failed to start unbound listener
+[   93.932567] servicemanager: Starting sm instance on /dev/binder
+[   93.932970] SELinux: SELinux: Loaded service context from:
+[   93.932998] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   93.933124] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   93.933168] SELinux: 		/product/etc/selinux/product_service_contexts
+[   93.933396] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   93.933435] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   93.943460] cutils-trace: Error opening trace file: No such file or directory (2)
+[   93.943873] SELinux: SELinux: Loaded service context from:
+[   93.943900] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   93.943996] vold: Failed to open default fstab: No such file or directory
+[   93.944036] vold: Error reading configuration... continuing anyways: No such file or directory
+[   93.980283] incfs: IncFs_Features: failed to open features dir, assuming v1/none.: No such file or directory
+[   94.042295] vold: keystore2 Keystore earlyBootEnded returned service specific error: -68
+[   94.076929] logd: logd reinit
+[   94.076976] logd: Cannot read /data/misc/logd/event-log-tags
+[   94.077215] logd: FrameworkListener: read() failed (Connection reset by peer)
+[   94.078635] apexd: Started. subcommand = (null)
+[   94.078719] cutils-trace: Error opening trace file: No such file or directory (2)
+[   94.079257] apexd: Scanning /odm/apex for pre-installed ApexFiles
+[   94.079293] apexd: /odm/apex does not exist. Skipping
+[   94.079316] apexd: Scanning /vendor/apex for pre-installed ApexFiles
+[   94.079367] apexd: Found pre-installed APEX /vendor/apex/com.android.hardware.cas.apex
+[   94.079491] apexd: Scanning /product/apex for pre-installed ApexFiles
+[   94.079519] apexd: /product/apex does not exist. Skipping
+[   94.079544] apexd: Scanning /system_ext/apex for pre-installed ApexFiles
+[   94.079577] apexd: /system_ext/apex does not exist. Skipping
+[   94.080844] loop3: detected capacity change from 0 to 1280
+[   94.080980] loop4: detected capacity change from 0 to 1560
+[   94.081112] loop5: detected capacity change from 0 to 536
+[   94.081179] loop6: detected capacity change from 0 to 3672
+[   94.081245] loop7: detected capacity change from 0 to 70840
+[   94.081357] loop8: detected capacity change from 0 to 46240
+[   94.081428] loop9: detected capacity change from 0 to 12808
+[   94.103057] EXT4-fs (loop21): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.108545] EXT4-fs (loop4): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.108648] EXT4-fs (loop8): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.108714] EXT4-fs (loop11): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.108796] EXT4-fs (loop9): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.108895] EXT4-fs (loop23): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.110086] EXT4-fs (loop6): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.116159] EXT4-fs (loop7): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.117141] EXT4-fs (loop24): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.118756] EXT4-fs (loop25): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.119670] EXT4-fs (loop19): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.120439] EXT4-fs (loop26): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.120544] EXT4-fs (loop3): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.120703] EXT4-fs (loop13): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.120798] EXT4-fs (loop5): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.120880] EXT4-fs (loop10): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.120998] EXT4-fs (loop12): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.121076] EXT4-fs (loop20): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.121321] EXT4-fs (loop15): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.121625] EXT4-fs (loop18): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.122110] EXT4-fs (loop14): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.122260] EXT4-fs (loop16): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.122327] EXT4-fs (loop27): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.122568] EXT4-fs (loop17): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.122726] EXT4-fs (loop22): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.123298] EXT4-fs (loop28): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.126958] EXT4-fs (loop32): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.128376] EXT4-fs (loop30): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.128438] EXT4-fs (loop35): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.128492] EXT4-fs (loop34): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.128554] EXT4-fs (loop33): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.128585] EXT4-fs (loop31): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.134849] EXT4-fs (loop29): mounted filesystem 7d1522e1-9dfa-5edb-a43e-98e3a4d20250 ro without journal. Quota mode: none.
+[   94.189737] cutils-trace: Error opening trace file: No such file or directory (2)
+[   94.353645] apexd: Started. subcommand = --snapshotde
+[   94.353760] cutils-trace: Error opening trace file: No such file or directory (2)
+[   94.354258] apexd-snapshotde: Marking APEXd as ready
+[   94.396020] NetBpfLoad: NetBpfLoad v0.46 (/apex/com.android.tethering/bin/netbpfload) api:35/35 kver:60c0075 (64-on-aarch64) uid:0 rc:01
+[   94.396179] NetBpfLoad: Tethering APEX version 352090000
+[   94.396226] NetBpfLoad: open('/proc/sys/net/core/bpf_jit_enable', O_WRONLY | O_CLOEXEC) -> No such file or directory
+[   94.396268] NetBpfLoad: write 1 to /proc/sys/net/core/bpf_jit_enable FAILED
+[   94.396305] NetBpfLoad: open('/proc/sys/net/core/bpf_jit_kallsyms', O_WRONLY | O_CLOEXEC) -> No such file or directory
+[   94.396350] NetBpfLoad: write 1 to /proc/sys/net/core/bpf_jit_kallsyms FAILED
+[   94.449322] printk: netbpfload: 371 output lines suppressed due to ratelimiting
+[   94.529810] healthd: No battery devices found
+[   94.539717] HealthLoop: Successfully attached the BPF filter to the uevent socket
+[   94.539763] healthd: battery none chg=
+[   98.840224] init: Control message: Could not find 'aidl/sensor_privacy' for ctl.interface_start from pid: 23 (/system/bin/servicemanager)
+[   98.948900] SELinux: SELinux: Loaded service context from:
+[   98.948950] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   98.949004] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   98.949041] SELinux: 		/product/etc/selinux/product_service_contexts
+[   98.949073] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[   98.949099] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[   98.949636] SELinux: SELinux: Loaded service context from:
+[   98.949671] SELinux: 		/system/etc/selinux/plat_service_contexts
+[   98.949701] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[   98.949746] SELinux: 		/product/etc/selinux/product_service_contexts
+[   99.524422] init: starting service 'lmkd'...
+[   99.524752] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[   99.547967] init: ... started service 'lmkd' has pid 405
+[   99.548042] init: failed to set task profiles
+[   99.557153] init: Service 'lmkd' (pid 405) exited with status 0
+[   99.557271] init: Sending signal 9 to service 'lmkd' (pid 405) process group...
+[   99.848814] init: Control message: Could not find 'aidl/sensor_privacy' for ctl.interface_start from pid: 23 (/system/bin/servicemanager)
+[  100.850360] init: Control message: Could not find 'aidl/sensor_privacy' for ctl.interface_start from pid: 23 (/system/bin/servicemanager)
+[  100.854906] init: service 'idmap2d' requested start, but it is already running (flags: 4)
+[  100.897428] healthd: battery none chg=
+[  101.202660] binder: 779:779 ioctl c00c620f ffffd351504c returned -22
+[  101.222657] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  101.222708] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  101.222747] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  101.222785] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  101.222817] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  101.222855] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  101.222886] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  101.224010] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  101.224062] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  101.224110] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  103.935172] AidlLazyServiceRegistrar: Process has 0 (of 1 available) client(s) in use after notification apexservice has clients: 0
+[  103.935280] AidlLazyServiceRegistrar: Shutdown prevented by forcePersist override flag.
+[  103.980494] SELinux: SELinux: Loaded service context from:
+[  103.980558] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  103.980596] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  103.980662] SELinux: 		/product/etc/selinux/product_service_contexts
+[  103.980685] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  103.980726] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  104.087512] SELinux: SELinux: Loaded service context from:
+[  104.087651] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  104.087776] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  104.087814] SELinux: 		/product/etc/selinux/product_service_contexts
+[  104.283158] init: processing action (sys.sysctl.extra_free_kbytes=*) from (/system/etc/init/hw/init.rc:1234)
+[  104.283552] init: starting service 'exec 20 (/system/bin/extra_free_kbytes.sh 10800)'...
+[  104.301375] init: ... started service 'exec 20 (/system/bin/extra_free_kbytes.sh 10800)' has pid 458
+[  104.301508] init: SVC_EXEC service 'exec 20 (/system/bin/extra_free_kbytes.sh 10800)' pid 458 (uid 0 gid 0+0 context default) started; waiting...
+[  104.334806] init: starting service 'artd'...
+[  104.349734] init: ... started service 'artd' has pid 470
+[  104.349827] init: Control message: Processed ctl.interface_start for 'aidl/artd' from pid: 23 (/system/bin/servicemanager)
+[  104.349959] init: Service 'exec 20 (/system/bin/extra_free_kbytes.sh 10800)' (pid 458) exited with status 0 waiting took 0.064000 seconds
+[  104.350029] init: Sending signal 9 to service 'exec 20 (/system/bin/extra_free_kbytes.sh 10800)' (pid 458) process group...
+[  104.529064] init: starting service 'lmkd'...
+[  106.898619] AidlLazyServiceRegistrar: Process has 1 (of 1 available) client(s) in use after notification apexservice has clients: 1
+[  106.898653] apexd: getSessions() received by ApexService
+[  106.898766] AidlLazyServiceRegistrar: Shutdown prevented by forcePersist override flag.
+[  108.933685] AidlLazyServiceRegistrar: Process has 0 (of 1 available) client(s) in use after notification apexservice has clients: 0
+[  108.933803] AidlLazyServiceRegistrar: Shutdown prevented by forcePersist override flag.
+[  109.024042] SELinux: SELinux: Loaded service context from:
+[  109.024121] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  109.024175] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  109.024223] SELinux: 		/product/etc/selinux/product_service_contexts
+[  109.024306] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  109.024348] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  109.036896] SELinux: SELinux: Loaded service context from:
+[  109.036963] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  109.037010] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  109.037092] SELinux: 		/product/etc/selinux/product_service_contexts
+[  109.531181] init: starting service 'lmkd'...
+[  109.531451] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  109.547372] init: failed to set task profiles
+[  109.547524] init: ... started service 'lmkd' has pid 696
+[  109.553608] init: Service 'lmkd' (pid 696) exited with status 0
+[  109.553691] init: Sending signal 9 to service 'lmkd' (pid 696) process group...
+[  110.873176] init: Sending signal 9 to service 'idmap2d' (pid 231) process group...
+[  110.874685] init: Control message: Processed ctl.stop for 'idmap2d' from pid: 296 (system_server)
+[  110.874905] init: Service 'idmap2d' (pid 231) received signal 9
+[  110.874959] init: Sending signal 9 to service 'idmap2d' (pid 231) process group...
+[  114.131878] SELinux: SELinux: Loaded service context from:
+[  114.131970] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  114.132032] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  114.132082] SELinux: 		/product/etc/selinux/product_service_contexts
+[  114.132156] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  114.132192] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  114.141413] SELinux: SELinux: Loaded service context from:
+[  114.141542] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  114.141649] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  114.141773] SELinux: 		/product/etc/selinux/product_service_contexts
+[  114.534322] init: starting service 'lmkd'...
+[  114.534541] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  114.550093] init: failed to set task profiles
+[  114.551746] init: ... started service 'lmkd' has pid 734
+[  114.555546] init: Service 'lmkd' (pid 734) exited with status 0
+[  114.555663] init: Sending signal 9 to service 'lmkd' (pid 734) process group...
+[  119.185554] SELinux: SELinux: Loaded service context from:
+[  119.185630] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  119.185682] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  119.185718] SELinux: 		/product/etc/selinux/product_service_contexts
+[  119.185760] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  119.185805] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  119.186697] SELinux: SELinux: Loaded service context from:
+[  119.187040] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  119.187106] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  119.187155] SELinux: 		/product/etc/selinux/product_service_contexts
+[  119.538862] init: starting service 'lmkd'...
+[  119.539391] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  119.563639] init: failed to set task profiles
+[  119.564614] init: ... started service 'lmkd' has pid 760
+[  119.571719] init: Service 'lmkd' (pid 760) exited with status 0
+[  119.571901] init: Sending signal 9 to service 'lmkd' (pid 760) process group...
+[  124.284961] SELinux: SELinux: Loaded service context from:
+[  124.285043] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  124.285101] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  124.285148] SELinux: 		/product/etc/selinux/product_service_contexts
+[  124.285192] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  124.285295] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  124.285891] SELinux: SELinux: Loaded service context from:
+[  124.285975] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  124.286023] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  124.286066] SELinux: 		/product/etc/selinux/product_service_contexts
+[  124.546597] init: starting service 'lmkd'...
+[  124.546960] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  124.558622] init: ... started service 'lmkd' has pid 834
+[  124.558637] init: failed to set task profiles
+[  124.563210] init: Service 'lmkd' (pid 834) exited with status 0
+[  124.563294] init: Sending signal 9 to service 'lmkd' (pid 834) process group...
+[  126.895213] init: Untracked pid 907 exited with status 0
+[  126.895251] init: Untracked pid 907 did not have an associated service entry and will not be reaped
+[  126.895425] init: Untracked pid 909 exited with status 0
+[  126.895498] init: Untracked pid 909 did not have an associated service entry and will not be reaped
+[  129.398476] SELinux: SELinux: Loaded service context from:
+[  129.398603] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  129.398685] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  129.398802] SELinux: 		/product/etc/selinux/product_service_contexts
+[  129.398835] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  129.398879] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  129.399757] SELinux: SELinux: Loaded service context from:
+[  129.399804] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  129.399876] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  129.399908] SELinux: 		/product/etc/selinux/product_service_contexts
+[  129.558375] init: starting service 'lmkd'...
+[  129.558486] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  129.578773] init: failed to set task profiles
+[  129.578868] init: ... started service 'lmkd' has pid 1010
+[  129.580920] init: Service 'lmkd' (pid 1010) exited with status 0
+[  129.580964] init: Sending signal 9 to service 'lmkd' (pid 1010) process group...
+[  134.495577] SELinux: SELinux: Loaded service context from:
+[  134.495712] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  134.495781] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  134.495847] SELinux: 		/product/etc/selinux/product_service_contexts
+[  134.495908] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  134.495981] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  134.497352] SELinux: SELinux: Loaded service context from:
+[  134.497525] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  134.497579] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  134.497628] SELinux: 		/product/etc/selinux/product_service_contexts
+[  134.561719] init: starting service 'lmkd'...
+[  134.561941] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  134.579138] init: failed to set task profiles
+[  134.579854] init: ... started service 'lmkd' has pid 1042
+[  134.586333] init: Service 'lmkd' (pid 1042) exited with status 0
+[  134.586400] init: Sending signal 9 to service 'lmkd' (pid 1042) process group...
+[  139.566952] init: starting service 'lmkd'...
+[  139.567245] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  139.582485] init: failed to set task profiles
+[  139.582617] init: ... started service 'lmkd' has pid 1073
+[  139.586785] init: Service 'lmkd' (pid 1073) exited with status 0
+[  139.586847] init: Sending signal 9 to service 'lmkd' (pid 1073) process group...
+[  139.595650] SELinux: SELinux: Loaded service context from:
+[  139.595706] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  139.595764] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  139.595815] SELinux: 		/product/etc/selinux/product_service_contexts
+[  139.595874] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  139.595935] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  139.596525] SELinux: SELinux: Loaded service context from:
+[  139.596570] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  139.596621] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  139.596667] SELinux: 		/product/etc/selinux/product_service_contexts
+[  140.942675] binder: undelivered TRANSACTION_COMPLETE
+[  140.942752] binder: undelivered transaction 13531, process died.
+[  140.942784] binder: undelivered TRANSACTION_COMPLETE
+[  140.942809] binder: undelivered transaction 13524, process died.
+[  140.943142] binder: undelivered transaction 13527, process died.
+[  140.943172] binder: undelivered transaction 13579, process died.
+[  144.569799] init: starting service 'lmkd'...
+[  144.570074] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  144.589928] init: failed to set task profiles
+[  144.590001] init: ... started service 'lmkd' has pid 1134
+[  144.596840] init: Service 'lmkd' (pid 1134) exited with status 0
+[  144.596951] init: Sending signal 9 to service 'lmkd' (pid 1134) process group...
+[  144.688826] SELinux: SELinux: Loaded service context from:
+[  144.688981] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  144.689164] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  144.689342] SELinux: 		/product/etc/selinux/product_service_contexts
+[  144.689422] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  144.689551] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  144.691060] SELinux: SELinux: Loaded service context from:
+[  144.691122] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  144.691185] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  144.691230] SELinux: 		/product/etc/selinux/product_service_contexts
+[  149.575461] init: starting service 'lmkd'...
+[  149.575773] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  149.598982] init: failed to set task profiles
+[  149.599085] init: ... started service 'lmkd' has pid 1150
+[  149.605346] init: Service 'lmkd' (pid 1150) exited with status 0
+[  149.605422] init: Sending signal 9 to service 'lmkd' (pid 1150) process group...
+[  149.779109] SELinux: SELinux: Loaded service context from:
+[  149.779189] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  149.779230] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  149.779270] SELinux: 		/product/etc/selinux/product_service_contexts
+[  149.779335] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  149.779391] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  149.780608] SELinux: SELinux: Loaded service context from:
+[  149.780661] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  149.780713] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  149.780773] SELinux: 		/product/etc/selinux/product_service_contexts
+[  154.584710] init: starting service 'lmkd'...
+[  154.584843] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  154.606497] init: failed to set task profiles
+[  154.606561] init: ... started service 'lmkd' has pid 1196
+[  154.608575] init: Service 'lmkd' (pid 1196) exited with status 0
+[  154.608614] init: Sending signal 9 to service 'lmkd' (pid 1196) process group...
+[  154.883633] SELinux: SELinux: Loaded service context from:
+[  154.883691] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  154.883748] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  154.883777] SELinux: 		/product/etc/selinux/product_service_contexts
+[  154.883808] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  154.883831] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  154.884180] SELinux: SELinux: Loaded service context from:
+[  154.884215] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  154.884248] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  154.884295] SELinux: 		/product/etc/selinux/product_service_contexts
+[  159.586773] init: starting service 'lmkd'...
+[  159.587336] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  159.610369] init: ... started service 'lmkd' has pid 1243
+[  159.610419] init: failed to set task profiles
+[  159.616930] init: Service 'lmkd' (pid 1243) exited with status 0
+[  159.617026] init: Sending signal 9 to service 'lmkd' (pid 1243) process group...
+[  159.935602] SELinux: SELinux: Loaded service context from:
+[  159.935721] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  159.935763] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  159.935788] SELinux: 		/product/etc/selinux/product_service_contexts
+[  159.935819] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  159.935852] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  159.936782] SELinux: SELinux: Loaded service context from:
+[  159.936846] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  159.936901] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  159.936950] SELinux: 		/product/etc/selinux/product_service_contexts
+[  162.154356] binder: 779:779 cannot find target node
+[  162.154398] binder: 779:779 transaction async to 0:0 failed 19570/29189/-22, size 92-0 line 3160
+[  163.938399] init: Service 'artd' (pid 470) exited with status 0 oneshot service took 59.602001 seconds in background
+[  163.938540] init: Sending signal 9 to service 'artd' (pid 470) process group...
+[  164.591624] init: starting service 'lmkd'...
+[  164.591729] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  164.607191] init: failed to set task profiles
+[  164.609359] init: ... started service 'lmkd' has pid 1261
+[  164.609626] init: Service 'lmkd' (pid 1261) exited with status 0
+[  164.609663] init: Sending signal 9 to service 'lmkd' (pid 1261) process group...
+[  165.003879] SELinux: SELinux: Loaded service context from:
+[  165.003959] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  165.003997] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  165.004037] SELinux: 		/product/etc/selinux/product_service_contexts
+[  165.004075] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  165.004139] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  165.170376] binder_alloc: 1726: binder_alloc_buf, no vma
+[  165.170423] binder: cannot allocate buffer: vma cleared, target dead or dying
+[  165.170425] binder: 779:1703 transaction reply to 1726:1906 failed 20725/29189/-3, size 8-0 line 3348
+[  165.170493] binder: send failed reply for transaction 19759 to 1726:1906
+[  165.172240] binder: undelivered TRANSACTION_COMPLETE
+[  165.172288] binder: undelivered transaction 20701, process died.
+[  165.172322] binder: undelivered TRANSACTION_COMPLETE
+[  165.172344] binder: undelivered TRANSACTION_ERROR: 29189
+[  165.192066] SELinux: SELinux: Loaded service context from:
+[  165.192184] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  165.192251] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  165.192315] SELinux: 		/product/etc/selinux/product_service_contexts
+[  169.593465] init: starting service 'lmkd'...
+[  169.593820] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  169.615537] init: failed to set task profiles
+[  169.617360] init: ... started service 'lmkd' has pid 1293
+[  169.620616] init: Service 'lmkd' (pid 1293) exited with status 0
+[  169.620666] init: Sending signal 9 to service 'lmkd' (pid 1293) process group...
+[  170.070804] SELinux: SELinux: Loaded service context from:
+[  170.070975] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  170.071100] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  170.071173] SELinux: 		/product/etc/selinux/product_service_contexts
+[  170.071259] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  170.071338] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  170.273430] SELinux: SELinux: Loaded service context from:
+[  170.273522] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  170.273581] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  170.273663] SELinux: 		/product/etc/selinux/product_service_contexts
+[  174.598659] init: starting service 'lmkd'...
+[  174.598949] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  174.614984] init: failed to set task profiles
+[  174.615084] init: ... started service 'lmkd' has pid 1313
+[  174.619098] init: Service 'lmkd' (pid 1313) exited with status 0
+[  174.619181] init: Sending signal 9 to service 'lmkd' (pid 1313) process group...
+[  175.127324] SELinux: SELinux: Loaded service context from:
+[  175.127482] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  175.127612] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  175.127687] SELinux: 		/product/etc/selinux/product_service_contexts
+[  175.127784] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  175.127853] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  175.331618] SELinux: SELinux: Loaded service context from:
+[  175.331797] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  175.331938] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  175.332049] SELinux: 		/product/etc/selinux/product_service_contexts
+[  177.238060] AidlLazyServiceRegistrar: Process has 1 (of 1 available) client(s) in use after notification apexservice has clients: 1
+[  177.238070] apexd: markBootCompleted() received by ApexService
+[  177.238126] AidlLazyServiceRegistrar: Shutdown prevented by forcePersist override flag.
+[  177.243341] init: processing action (sys.boot_completed=1) from (/system/etc/init/hw/init.rc:1225)
+[  177.243437] init: starting service 'exec 21 (/bin/rm -rf /data/per_boot)'...
+[  177.262449] init: ... started service 'exec 21 (/bin/rm -rf /data/per_boot)' has pid 1331
+[  177.262524] init: SVC_EXEC service 'exec 21 (/bin/rm -rf /data/per_boot)' pid 1331 (uid 1000 gid 1000+0 context default) started; waiting...
+[  179.601363] init: starting service 'lmkd'...
+[  179.601608] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  179.626451] init: ... started service 'lmkd' has pid 1387
+[  179.626466] init: failed to set task profiles
+[  179.631357] init: Service 'lmkd' (pid 1387) exited with status 0
+[  179.631422] init: Sending signal 9 to service 'lmkd' (pid 1387) process group...
+[  180.174617] SELinux: SELinux: Loaded service context from:
+[  180.174808] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  180.174921] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  180.175024] SELinux: 		/product/etc/selinux/product_service_contexts
+[  180.175133] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  180.175246] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  180.250637] SELinux: SELinux: Loaded service context from:
+[  180.250740] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  180.250796] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  180.250853] SELinux: 		/product/etc/selinux/product_service_contexts
+[  180.263634] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  180.263882] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  180.264108] selinux: SELinux: SELinux is disabled, skipping restorecon
+[  180.286819] init: processing action (sys.user.0.ce_available=true) from (/system/etc/init/wifi.rc:21)
+[  183.282669] apexd: destroyCeSnapshotsNotSpecified() received by ApexService user_id : 0 retain_rollback_ids : []
+[  183.417495] binder: release 610:610 transaction 28707 in, still active
+[  183.417585] binder: send failed reply for transaction 28707 to 1422:2272
+[  183.861667] logd: logdr: UID=1002 GID=1002 PID=1514 n tail=500 logMask=8 pid=852 start=0ns deadline=0ns
+[  183.867434] logd: logdr: UID=1002 GID=1002 PID=1514 n tail=500 logMask=1 pid=852 start=0ns deadline=0ns
+[  184.161987] apexd: DM_LIST_DEVICES failed: Bad file descriptor
+[  184.162086] apexd: Failed to fetch dm devices
+[  184.606224] init: starting service 'lmkd'...
+[  184.606592] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  184.618920] init: failed to set task profiles
+[  184.619097] init: ... started service 'lmkd' has pid 1539
+[  184.626089] init: Service 'lmkd' (pid 1539) exited with status 0
+[  184.626142] init: Sending signal 9 to service 'lmkd' (pid 1539) process group...
+[  186.090076] SELinux: SELinux: Loaded service context from:
+[  186.090165] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  186.090202] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  186.090239] SELinux: 		/product/etc/selinux/product_service_contexts
+[  186.090288] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  186.090332] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  186.101853] SELinux: SELinux: Loaded service context from:
+[  186.101927] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  186.101977] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  186.102030] SELinux: 		/product/etc/selinux/product_service_contexts
+[  187.128462] init: Untracked pid 1514 exited with status 0
+[  187.128539] init: Untracked pid 1514 did not have an associated service entry and will not be reaped
+[  187.132271] binder: undelivered death notification, b400fcb23ce4ef30
+[  187.137846] init: Untracked pid 1516 exited with status 0
+[  187.137898] init: Untracked pid 1516 did not have an associated service entry and will not be reaped
+[  189.609776] init: starting service 'lmkd'...
+[  189.610036] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  189.631183] init: failed to set task profiles
+[  189.631467] init: ... started service 'lmkd' has pid 1622
+[  189.635998] init: Service 'lmkd' (pid 1622) exited with status 0
+[  189.636054] init: Sending signal 9 to service 'lmkd' (pid 1622) process group...
+[  191.402600] SELinux: SELinux: Loaded service context from:
+[  191.402742] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  191.402823] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  191.402895] SELinux: 		/product/etc/selinux/product_service_contexts
+[  191.402966] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  191.403032] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  191.415612] SELinux: SELinux: Loaded service context from:
+[  191.415678] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  191.415724] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  191.415783] SELinux: 		/product/etc/selinux/product_service_contexts
+[  194.614627] init: starting service 'lmkd'...
+[  194.614766] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  194.626072] init: failed to set task profiles
+[  194.626358] init: ... started service 'lmkd' has pid 1689
+[  194.629249] init: Service 'lmkd' (pid 1689) exited with status 0
+[  194.629308] init: Sending signal 9 to service 'lmkd' (pid 1689) process group...
+[  196.690217] SELinux: SELinux: Loaded service context from:
+[  196.690347] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  196.690423] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  196.690483] SELinux: 		/product/etc/selinux/product_service_contexts
+[  196.690547] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  196.690607] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  196.702085] SELinux: SELinux: Loaded service context from:
+[  196.702152] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  196.702191] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  196.702246] SELinux: 		/product/etc/selinux/product_service_contexts
+[  199.623368] init: starting service 'lmkd'...
+[  199.623743] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  199.642828] init: failed to set task profiles
+[  199.642983] init: ... started service 'lmkd' has pid 1762
+[  199.649076] init: Service 'lmkd' (pid 1762) exited with status 0
+[  199.649159] init: Sending signal 9 to service 'lmkd' (pid 1762) process group...
+[  201.974466] SELinux: SELinux: Loaded service context from:
+[  201.974550] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  201.974593] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  201.974640] SELinux: 		/product/etc/selinux/product_service_contexts
+[  201.974681] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  201.974738] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  201.984752] SELinux: SELinux: Loaded service context from:
+[  201.984816] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  201.984857] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  201.984897] SELinux: 		/product/etc/selinux/product_service_contexts
+[  204.631132] init: starting service 'lmkd'...
+[  204.631420] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  204.642587] init: ... started service 'lmkd' has pid 1825
+[  204.642593] init: failed to set task profiles
+[  204.648782] init: Service 'lmkd' (pid 1825) exited with status 0
+[  204.648864] init: Sending signal 9 to service 'lmkd' (pid 1825) process group...
+[  207.264821] SELinux: SELinux: Loaded service context from:
+[  207.264895] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  207.264979] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  207.265003] SELinux: 		/product/etc/selinux/product_service_contexts
+[  207.265028] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  207.265087] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  207.274607] SELinux: SELinux: Loaded service context from:
+[  207.274646] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  207.274700] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  207.274724] SELinux: 		/product/etc/selinux/product_service_contexts
+[  207.430530] binder: undelivered TRANSACTION_COMPLETE
+[  207.430579] binder: undelivered transaction 33332, process died.
+[  207.430617] binder: undelivered TRANSACTION_COMPLETE
+[  207.430678] binder: undelivered transaction 33327, process died.
+[  207.430719] binder: undelivered transaction 33328, process died.
+[  207.430807] binder: undelivered transaction 33329, process died.
+[  207.635701] init: Untracked pid 1881 exited with status 0
+[  207.635746] init: Untracked pid 1881 did not have an associated service entry and will not be reaped
+[  207.635923] init: Untracked pid 1883 exited with status 0
+[  207.635958] init: Untracked pid 1883 did not have an associated service entry and will not be reaped
+[  209.639584] init: starting service 'lmkd'...
+[  209.639837] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  209.663162] init: failed to set task profiles
+[  209.663281] init: ... started service 'lmkd' has pid 1995
+[  209.668504] init: Service 'lmkd' (pid 1995) exited with status 0
+[  209.668564] init: Sending signal 9 to service 'lmkd' (pid 1995) process group...
+[  212.533025] SELinux: SELinux: Loaded service context from:
+[  212.533156] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  212.533264] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  212.533326] SELinux: 		/product/etc/selinux/product_service_contexts
+[  212.533382] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  212.533429] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  212.544937] SELinux: SELinux: Loaded service context from:
+[  212.544994] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  212.545051] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  212.545086] SELinux: 		/product/etc/selinux/product_service_contexts
+[  214.645344] init: starting service 'lmkd'...
+[  214.645513] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  214.653659] init: failed to set task profiles
+[  214.654216] init: ... started service 'lmkd' has pid 2062
+[  214.657606] init: Service 'lmkd' (pid 2062) exited with status 0
+[  214.657669] init: Sending signal 9 to service 'lmkd' (pid 2062) process group...
+[  216.460277] binder: undelivered TRANSACTION_COMPLETE
+[  216.460366] binder: undelivered transaction 34032, process died.
+[  216.460459] binder: release 2559:3065 transaction 33845 out, still active
+[  217.847663] SELinux: SELinux: Loaded service context from:
+[  217.847806] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  217.847908] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  217.847961] SELinux: 		/product/etc/selinux/product_service_contexts
+[  217.847997] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  217.848079] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  217.859625] SELinux: SELinux: Loaded service context from:
+[  217.859690] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  217.859728] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  217.859780] SELinux: 		/product/etc/selinux/product_service_contexts
+[  218.934675] AidlLazyServiceRegistrar: Process has 0 (of 1 available) client(s) in use after notification apexservice has clients: 0
+[  218.934768] AidlLazyServiceRegistrar: Trying to shut down the service. No clients in use for any service in process.
+[  218.935737] AidlLazyServiceRegistrar: Unregistered all clients and exiting
+[  218.936634] printk: binder:59_3: 148 output lines suppressed due to ratelimiting
+[  218.936745] init: Service 'apexd' (pid 59) exited with status 0 oneshot service took 124.861000 seconds in background
+[  218.936808] init: Sending signal 9 to service 'apexd' (pid 59) process group...
+[  219.650022] init: starting service 'lmkd'...
+[  219.650488] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  219.666622] init: failed to set task profiles
+[  219.666794] init: ... started service 'lmkd' has pid 2127
+[  219.670859] init: Service 'lmkd' (pid 2127) exited with status 0
+[  219.670930] init: Sending signal 9 to service 'lmkd' (pid 2127) process group...
+[  222.451565] binder: 2359:779 reply target not found
+[  222.451638] binder: 779:2359 transaction reply to 0:0 failed 34451/29189/0, size 1228-0 line 3090
+[  222.451704] binder: send failed reply for transaction 33845, target dead
+[  223.143020] SELinux: SELinux: Loaded service context from:
+[  223.143145] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  223.143209] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  223.143286] SELinux: 		/product/etc/selinux/product_service_contexts
+[  223.143352] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  223.143427] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  223.155116] SELinux: SELinux: Loaded service context from:
+[  223.155169] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  223.155201] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  223.155242] SELinux: 		/product/etc/selinux/product_service_contexts
+[  224.658307] init: starting service 'lmkd'...
+[  224.658681] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  224.670788] init: failed to set task profiles
+[  224.670939] init: ... started service 'lmkd' has pid 2186
+[  224.677585] init: Service 'lmkd' (pid 2186) exited with status 0
+[  224.677671] init: Sending signal 9 to service 'lmkd' (pid 2186) process group...
+[  228.420921] SELinux: SELinux: Loaded service context from:
+[  228.420979] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  228.421008] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  228.421044] SELinux: 		/product/etc/selinux/product_service_contexts
+[  228.421075] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  228.421111] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  228.428662] SELinux: SELinux: Loaded service context from:
+[  228.428707] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  228.428748] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  228.428780] SELinux: 		/product/etc/selinux/product_service_contexts
+[  229.667275] init: starting service 'lmkd'...
+[  229.667633] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  229.689958] init: ... started service 'lmkd' has pid 2271
+[  229.689982] init: failed to set task profiles
+[  229.696769] init: Service 'lmkd' (pid 2271) exited with status 0
+[  229.696901] init: Sending signal 9 to service 'lmkd' (pid 2271) process group...
+[  233.658804] SELinux: SELinux: Loaded service context from:
+[  233.658866] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  233.658949] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  233.658985] SELinux: 		/product/etc/selinux/product_service_contexts
+[  233.659025] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  233.659065] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  233.667520] SELinux: SELinux: Loaded service context from:
+[  233.667560] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  233.667578] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  233.667605] SELinux: 		/product/etc/selinux/product_service_contexts
+[  234.675141] init: starting service 'lmkd'...
+[  234.675451] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  234.690385] init: failed to set task profiles
+[  234.690645] init: ... started service 'lmkd' has pid 2336
+[  234.695050] init: Service 'lmkd' (pid 2336) exited with status 0
+[  234.695123] init: Sending signal 9 to service 'lmkd' (pid 2336) process group...
+[  238.960432] SELinux: SELinux: Loaded service context from:
+[  238.960551] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  238.960611] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  238.960677] SELinux: 		/product/etc/selinux/product_service_contexts
+[  238.960735] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  238.960793] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  238.971592] SELinux: SELinux: Loaded service context from:
+[  238.971659] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  238.971699] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  238.971751] SELinux: 		/product/etc/selinux/product_service_contexts
+[  239.690389] init: starting service 'lmkd'...
+[  239.690978] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  239.703443] init: failed to set task profiles
+[  239.703491] init: ... started service 'lmkd' has pid 2394
+[  239.708801] init: Service 'lmkd' (pid 2394) exited with status 0
+[  239.708892] init: Sending signal 9 to service 'lmkd' (pid 2394) process group...
+[  244.267218] SELinux: SELinux: Loaded service context from:
+[  244.267303] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  244.267373] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  244.267441] SELinux: 		/product/etc/selinux/product_service_contexts
+[  244.267504] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  244.267564] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  244.280835] SELinux: SELinux: Loaded service context from:
+[  244.280897] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  244.280950] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  244.281004] SELinux: 		/product/etc/selinux/product_service_contexts
+[  244.697551] init: starting service 'lmkd'...
+[  244.698250] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  244.713775] init: failed to set task profiles
+[  244.713852] init: ... started service 'lmkd' has pid 2485
+[  244.718857] init: Service 'lmkd' (pid 2485) exited with status 0
+[  244.718966] init: Sending signal 9 to service 'lmkd' (pid 2485) process group...
+[  249.526493] SELinux: SELinux: Loaded service context from:
+[  249.526557] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  249.526615] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  249.526667] SELinux: 		/product/etc/selinux/product_service_contexts
+[  249.526721] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  249.526766] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  249.527629] SELinux: SELinux: Loaded service context from:
+[  249.527665] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  249.527718] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  249.527759] SELinux: 		/product/etc/selinux/product_service_contexts
+[  249.706860] init: starting service 'lmkd'...
+[  249.707088] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  249.721929] init: failed to set task profiles
+[  249.721938] init: ... started service 'lmkd' has pid 2557
+[  249.726328] init: Service 'lmkd' (pid 2557) exited with status 0
+[  249.726387] init: Sending signal 9 to service 'lmkd' (pid 2557) process group...
+[  254.715831] init: starting service 'lmkd'...
+[  254.716165] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  254.739356] init: failed to set task profiles
+[  254.740244] init: ... started service 'lmkd' has pid 2639
+[  254.745472] init: Service 'lmkd' (pid 2639) exited with status 0
+[  254.745533] init: Sending signal 9 to service 'lmkd' (pid 2639) process group...
+[  254.818289] SELinux: SELinux: Loaded service context from:
+[  254.818365] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  254.818415] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  254.818456] SELinux: 		/product/etc/selinux/product_service_contexts
+[  254.818521] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  254.818580] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  254.829812] SELinux: SELinux: Loaded service context from:
+[  254.829856] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  254.829901] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  254.829947] SELinux: 		/product/etc/selinux/product_service_contexts
+[  259.722663] init: starting service 'lmkd'...
+[  259.723347] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  259.735043] init: ... started service 'lmkd' has pid 2717
+[  259.735105] init: failed to set task profiles
+[  259.741974] init: Service 'lmkd' (pid 2717) exited with status 0
+[  259.742036] init: Sending signal 9 to service 'lmkd' (pid 2717) process group...
+[  260.171073] SELinux: SELinux: Loaded service context from:
+[  260.171179] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  260.171213] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  260.171256] SELinux: 		/product/etc/selinux/product_service_contexts
+[  260.171306] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  260.171364] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  260.183012] SELinux: SELinux: Loaded service context from:
+[  260.183073] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  260.183129] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  260.183183] SELinux: 		/product/etc/selinux/product_service_contexts
+[  264.730864] init: starting service 'lmkd'...
+[  264.730969] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  264.750830] init: ... started service 'lmkd' has pid 2774
+[  264.750839] init: failed to set task profiles
+[  264.753979] init: Service 'lmkd' (pid 2774) exited with status 0
+[  264.754042] init: Sending signal 9 to service 'lmkd' (pid 2774) process group...
+[  265.494845] SELinux: SELinux: Loaded service context from:
+[  265.494933] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  265.494981] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  265.495043] SELinux: 		/product/etc/selinux/product_service_contexts
+[  265.495097] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  265.495134] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  265.507120] SELinux: SELinux: Loaded service context from:
+[  265.507172] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  265.507199] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  265.507250] SELinux: 		/product/etc/selinux/product_service_contexts
+[  269.733441] init: starting service 'lmkd'...
+[  269.733727] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  269.749675] init: failed to set task profiles
+[  269.751329] init: ... started service 'lmkd' has pid 2824
+[  269.753738] init: Service 'lmkd' (pid 2824) exited with status 0
+[  269.753799] init: Sending signal 9 to service 'lmkd' (pid 2824) process group...
+[  270.637547] SELinux: SELinux: Loaded service context from:
+[  270.637645] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  270.637689] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  270.637737] SELinux: 		/product/etc/selinux/product_service_contexts
+[  270.637783] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  270.637828] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  270.640160] binder: undelivered TRANSACTION_COMPLETE
+[  270.640228] binder: undelivered transaction 40738, process died.
+[  270.640280] binder: release 3518:3953 transaction 40464 out, still active
+[  270.640326] binder: undelivered TRANSACTION_COMPLETE
+[  270.812147] SELinux: SELinux: Loaded service context from:
+[  270.812246] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  270.812303] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  270.812366] SELinux: 		/product/etc/selinux/product_service_contexts
+[  273.636157] binder: 1622:779 reply target not found
+[  273.636239] binder: 779:1622 transaction reply to 0:0 failed 40994/29189/0, size 900-0 line 3090
+[  273.636314] binder: send failed reply for transaction 40464, target dead
+[  274.737291] init: starting service 'lmkd'...
+[  274.737527] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  274.754611] init: failed to set task profiles
+[  274.754708] init: ... started service 'lmkd' has pid 2887
+[  274.759137] init: Service 'lmkd' (pid 2887) exited with status 0
+[  274.759228] init: Sending signal 9 to service 'lmkd' (pid 2887) process group...
+[  276.066511] SELinux: SELinux: Loaded service context from:
+[  276.066569] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  276.066639] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  276.066669] SELinux: 		/product/etc/selinux/product_service_contexts
+[  276.066711] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  276.066734] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  276.073912] SELinux: SELinux: Loaded service context from:
+[  276.073962] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  276.073995] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  276.074026] SELinux: 		/product/etc/selinux/product_service_contexts
+[  279.748416] init: starting service 'lmkd'...
+[  279.748669] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  279.771106] init: failed to set task profiles
+[  279.771182] init: ... started service 'lmkd' has pid 2961
+[  279.777696] init: Service 'lmkd' (pid 2961) exited with status 0
+[  279.777754] init: Sending signal 9 to service 'lmkd' (pid 2961) process group...
+[  281.364305] SELinux: SELinux: Loaded service context from:
+[  281.364418] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  281.364484] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  281.364545] SELinux: 		/product/etc/selinux/product_service_contexts
+[  281.364605] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  281.364663] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  281.376028] SELinux: SELinux: Loaded service context from:
+[  281.376084] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  281.376135] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  281.376187] SELinux: 		/product/etc/selinux/product_service_contexts
+[  284.761611] init: starting service 'lmkd'...
+[  284.761868] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  284.778555] init: failed to set task profiles
+[  284.778654] init: ... started service 'lmkd' has pid 3019
+[  284.785895] init: Service 'lmkd' (pid 3019) exited with status 0
+[  284.785990] init: Sending signal 9 to service 'lmkd' (pid 3019) process group...
+[  286.624224] SELinux: SELinux: Loaded service context from:
+[  286.624278] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  286.624297] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  286.624335] SELinux: 		/product/etc/selinux/product_service_contexts
+[  286.624374] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  286.624410] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  286.631614] SELinux: SELinux: Loaded service context from:
+[  286.631664] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  286.631851] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  286.631900] SELinux: 		/product/etc/selinux/product_service_contexts
+[  288.362644] init: Untracked pid 3071 exited with status 0
+[  288.362683] init: Untracked pid 3071 did not have an associated service entry and will not be reaped
+[  288.362883] init: Untracked pid 3073 exited with status 0
+[  288.362907] init: Untracked pid 3073 did not have an associated service entry and will not be reaped
+[  289.766295] init: starting service 'lmkd'...
+[  289.766422] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  289.777464] init: failed to set task profiles
+[  289.779177] init: ... started service 'lmkd' has pid 3177
+[  289.779676] init: Service 'lmkd' (pid 3177) exited with status 0
+[  289.779709] init: Sending signal 9 to service 'lmkd' (pid 3177) process group...
+[  291.873778] SELinux: SELinux: Loaded service context from:
+[  291.873880] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  291.873964] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  291.874039] SELinux: 		/product/etc/selinux/product_service_contexts
+[  291.874109] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  291.874163] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  291.886188] SELinux: SELinux: Loaded service context from:
+[  291.886256] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  291.886311] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  291.886372] SELinux: 		/product/etc/selinux/product_service_contexts
+[  294.773496] init: starting service 'lmkd'...
+[  294.773881] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  294.790124] init: ... started service 'lmkd' has pid 3234
+[  294.790196] init: failed to set task profiles
+[  294.796418] init: Service 'lmkd' (pid 3234) exited with status 0
+[  294.796491] init: Sending signal 9 to service 'lmkd' (pid 3234) process group...
+[  297.189953] SELinux: SELinux: Loaded service context from:
+[  297.190033] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  297.190065] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  297.190105] SELinux: 		/product/etc/selinux/product_service_contexts
+[  297.190143] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  297.190188] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  297.201570] SELinux: SELinux: Loaded service context from:
+[  297.201648] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  297.201713] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  297.201754] SELinux: 		/product/etc/selinux/product_service_contexts
+[  299.778363] init: starting service 'lmkd'...
+[  299.778709] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  299.789933] init: failed to set task profiles
+[  299.793391] init: ... started service 'lmkd' has pid 3307
+[  299.795683] init: Service 'lmkd' (pid 3307) exited with status 0
+[  299.795764] init: Sending signal 9 to service 'lmkd' (pid 3307) process group...
+[  302.498153] SELinux: SELinux: Loaded service context from:
+[  302.498271] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  302.498327] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  302.498391] SELinux: 		/product/etc/selinux/product_service_contexts
+[  302.498447] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  302.498508] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  302.511953] SELinux: SELinux: Loaded service context from:
+[  302.512001] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  302.512035] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  302.512078] SELinux: 		/product/etc/selinux/product_service_contexts
+[  304.782851] init: starting service 'lmkd'...
+[  304.783044] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  304.798580] init: failed to set task profiles
+[  304.801369] init: ... started service 'lmkd' has pid 3375
+[  304.802651] init: Service 'lmkd' (pid 3375) exited with status 0
+[  304.802709] init: Sending signal 9 to service 'lmkd' (pid 3375) process group...
+[  307.794410] SELinux: SELinux: Loaded service context from:
+[  307.794490] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  307.794533] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  307.794591] SELinux: 		/product/etc/selinux/product_service_contexts
+[  307.794652] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  307.794706] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  307.805836] SELinux: SELinux: Loaded service context from:
+[  307.805885] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  307.805921] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  307.805953] SELinux: 		/product/etc/selinux/product_service_contexts
+[  309.793170] init: starting service 'lmkd'...
+[  309.793313] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  309.810693] init: failed to set task profiles
+[  309.810771] init: ... started service 'lmkd' has pid 3424
+[  309.812656] init: Service 'lmkd' (pid 3424) exited with status 0
+[  309.812693] init: Sending signal 9 to service 'lmkd' (pid 3424) process group...
+[  313.058165] SELinux: SELinux: Loaded service context from:
+[  313.058224] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  313.058247] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  313.058278] SELinux: 		/product/etc/selinux/product_service_contexts
+[  313.058298] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  313.058340] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  313.067124] SELinux: SELinux: Loaded service context from:
+[  313.067172] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  313.067214] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  313.067255] SELinux: 		/product/etc/selinux/product_service_contexts
+[  314.799337] init: starting service 'lmkd'...
+[  314.799936] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  314.830262] init: failed to set task profiles
+[  314.830393] init: ... started service 'lmkd' has pid 3488
+[  314.836575] init: Service 'lmkd' (pid 3488) exited with status 0
+[  314.836647] init: Sending signal 9 to service 'lmkd' (pid 3488) process group...
+[  318.313026] SELinux: SELinux: Loaded service context from:
+[  318.313110] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  318.313150] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  318.313183] SELinux: 		/product/etc/selinux/product_service_contexts
+[  318.313283] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  318.313332] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  318.324768] SELinux: SELinux: Loaded service context from:
+[  318.324834] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  318.324886] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  318.324932] SELinux: 		/product/etc/selinux/product_service_contexts
+[  318.767990] binder: release 4669:4669 transaction 44026 out, still active
+[  318.768092] binder: undelivered TRANSACTION_COMPLETE
+[  319.807142] init: starting service 'lmkd'...
+[  319.807680] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  319.827087] init: failed to set task profiles
+[  319.827236] init: ... started service 'lmkd' has pid 3554
+[  319.834325] init: Service 'lmkd' (pid 3554) exited with status 0
+[  319.834410] init: Sending signal 9 to service 'lmkd' (pid 3554) process group...
+[  321.758447] binder: 4344:779 reply target not found
+[  321.758539] binder: 779:4344 transaction reply to 0:0 failed 44498/29189/0, size 8-0 line 3090
+[  321.758597] binder: send failed reply for transaction 44026, target dead
+[  323.610621] SELinux: SELinux: Loaded service context from:
+[  323.610708] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  323.610763] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  323.610827] SELinux: 		/product/etc/selinux/product_service_contexts
+[  323.610902] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  323.610964] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  323.622689] SELinux: SELinux: Loaded service context from:
+[  323.622751] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  323.622799] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  323.622838] SELinux: 		/product/etc/selinux/product_service_contexts
+[  324.813741] init: starting service 'lmkd'...
+[  324.813839] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  324.820026] init: failed to set task profiles
+[  324.820146] init: ... started service 'lmkd' has pid 3626
+[  324.829615] init: Service 'lmkd' (pid 3626) exited with status 0
+[  324.829646] init: Sending signal 9 to service 'lmkd' (pid 3626) process group...
+[  328.910740] SELinux: SELinux: Loaded service context from:
+[  328.910865] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  328.910924] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  328.910985] SELinux: 		/product/etc/selinux/product_service_contexts
+[  328.911035] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  328.911093] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  328.922428] SELinux: SELinux: Loaded service context from:
+[  328.922493] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  328.922544] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  328.922571] SELinux: 		/product/etc/selinux/product_service_contexts
+[  329.826991] init: starting service 'lmkd'...
+[  329.827354] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  329.849886] init: failed to set task profiles
+[  329.850659] init: ... started service 'lmkd' has pid 3684
+[  329.856608] init: Service 'lmkd' (pid 3684) exited with status 0
+[  329.856676] init: Sending signal 9 to service 'lmkd' (pid 3684) process group...
+[  333.811014] binder: undelivered transaction 45701, process died.
+[  333.811127] binder: undelivered transaction 45697, process died.
+[  333.811781] binder: undelivered transaction 45723, process died.
+[  334.227480] SELinux: SELinux: Loaded service context from:
+[  334.227605] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  334.227666] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  334.227736] SELinux: 		/product/etc/selinux/product_service_contexts
+[  334.227800] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  334.227867] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  334.239218] SELinux: SELinux: Loaded service context from:
+[  334.239286] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  334.239333] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  334.239389] SELinux: 		/product/etc/selinux/product_service_contexts
+[  334.834063] init: starting service 'lmkd'...
+[  334.834342] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  334.849878] init: failed to set task profiles
+[  334.850048] init: ... started service 'lmkd' has pid 3750
+[  334.856509] init: Service 'lmkd' (pid 3750) exited with status 0
+[  334.856585] init: Sending signal 9 to service 'lmkd' (pid 3750) process group...
+[  339.495430] SELinux: SELinux: Loaded service context from:
+[  339.495507] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  339.495541] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  339.495579] SELinux: 		/product/etc/selinux/product_service_contexts
+[  339.495629] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  339.495701] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  339.507730] SELinux: SELinux: Loaded service context from:
+[  339.507783] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  339.507828] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  339.507864] SELinux: 		/product/etc/selinux/product_service_contexts
+[  339.837522] init: starting service 'lmkd'...
+[  339.837829] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  339.862589] init: failed to set task profiles
+[  339.863025] init: ... started service 'lmkd' has pid 3816
+[  339.868597] init: Service 'lmkd' (pid 3816) exited with status 0
+[  339.868665] init: Sending signal 9 to service 'lmkd' (pid 3816) process group...
+[  344.768766] SELinux: SELinux: Loaded service context from:
+[  344.768850] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  344.768879] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  344.768905] SELinux: 		/product/etc/selinux/product_service_contexts
+[  344.768961] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  344.769028] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  344.783239] SELinux: SELinux: Loaded service context from:
+[  344.783302] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  344.783361] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  344.783416] SELinux: 		/product/etc/selinux/product_service_contexts
+[  344.841484] init: starting service 'lmkd'...
+[  344.841569] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  344.863095] init: ... started service 'lmkd' has pid 3889
+[  344.863098] init: failed to set task profiles
+[  344.865096] init: Service 'lmkd' (pid 3889) exited with status 0
+[  344.865137] init: Sending signal 9 to service 'lmkd' (pid 3889) process group...
+[  349.849715] init: starting service 'lmkd'...
+[  349.850144] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  349.866027] init: ... started service 'lmkd' has pid 3939
+[  349.866443] init: failed to set task profiles
+[  349.872100] init: Service 'lmkd' (pid 3939) exited with status 0
+[  349.872163] init: Sending signal 9 to service 'lmkd' (pid 3939) process group...
+[  350.042836] SELinux: SELinux: Loaded service context from:
+[  350.042942] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  350.042983] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  350.043023] SELinux: 		/product/etc/selinux/product_service_contexts
+[  350.043065] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  350.043104] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  350.056496] SELinux: SELinux: Loaded service context from:
+[  350.056567] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  350.056607] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  350.056645] SELinux: 		/product/etc/selinux/product_service_contexts
+[  354.165592] init: Untracked pid 4003 exited with status 0
+[  354.165625] init: Untracked pid 4003 did not have an associated service entry and will not be reaped
+[  354.165762] init: Untracked pid 4005 exited with status 0
+[  354.165786] init: Untracked pid 4005 did not have an associated service entry and will not be reaped
+[  354.853297] init: starting service 'lmkd'...
+[  354.853453] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  354.864165] binder: release 2277:2277 transaction 47264 in, still active
+[  354.864268] binder: send failed reply for transaction 47264 to 2834:6342
+[  354.864305] binder: undelivered TRANSACTION_COMPLETE
+[  354.864331] binder: undelivered transaction 47268, process died.
+[  354.869382] init: failed to set task profiles
+[  354.869598] init: ... started service 'lmkd' has pid 4111
+[  354.869663] init: Service 'vendor.bluetooth-1-1' (pid 1512) received signal 4
+[  354.869721] init: Sending signal 9 to service 'vendor.bluetooth-1-1' (pid 1512) process group...
+[  354.869989] init: starting service 'vendor.bluetooth-1-1'...
+[  354.870721] init: ... started service 'vendor.bluetooth-1-1' has pid 4127
+[  354.873108] init: Service 'lmkd' (pid 4111) exited with status 0
+[  354.873201] init: Sending signal 9 to service 'lmkd' (pid 4111) process group...
+[  354.953607] logd: logdr: UID=1002 GID=1002 PID=4128 n tail=500 logMask=8 pid=1862 start=0ns deadline=0ns
+[  354.955429] logd: logdr: UID=1002 GID=1002 PID=4128 n tail=500 logMask=1 pid=1862 start=0ns deadline=0ns
+[  355.309974] SELinux: SELinux: Loaded service context from:
+[  355.310061] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  355.310129] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  355.310195] SELinux: 		/product/etc/selinux/product_service_contexts
+[  355.310247] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  355.310303] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  355.322165] SELinux: SELinux: Loaded service context from:
+[  355.322232] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  355.322287] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  355.322331] SELinux: 		/product/etc/selinux/product_service_contexts
+[  358.132505] binder: undelivered death notification, b400fcb23ce50320
+[  359.857800] init: starting service 'lmkd'...
+[  359.858079] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  359.878914] init: failed to set task profiles
+[  359.879014] init: ... started service 'lmkd' has pid 4191
+[  359.884555] init: Service 'lmkd' (pid 4191) exited with status 0
+[  359.884651] init: Sending signal 9 to service 'lmkd' (pid 4191) process group...
+[  360.615320] SELinux: SELinux: Loaded service context from:
+[  360.615392] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  360.615430] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  360.615479] SELinux: 		/product/etc/selinux/product_service_contexts
+[  360.615504] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  360.615539] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  360.626555] SELinux: SELinux: Loaded service context from:
+[  360.626591] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  360.626622] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  360.626649] SELinux: 		/product/etc/selinux/product_service_contexts
+[  363.857238] binder: undelivered TRANSACTION_COMPLETE
+[  363.857301] binder: undelivered transaction 47966, process died.
+[  364.864135] init: starting service 'lmkd'...
+[  364.864316] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  364.874847] init: failed to set task profiles
+[  364.875052] init: ... started service 'lmkd' has pid 4259
+[  364.877657] init: Service 'lmkd' (pid 4259) exited with status 0
+[  364.877717] init: Sending signal 9 to service 'lmkd' (pid 4259) process group...
+[  365.894269] SELinux: SELinux: Loaded service context from:
+[  365.894343] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  365.894388] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  365.894436] SELinux: 		/product/etc/selinux/product_service_contexts
+[  365.894474] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  365.894527] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  365.905474] SELinux: SELinux: Loaded service context from:
+[  365.905516] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  365.905568] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  365.905608] SELinux: 		/product/etc/selinux/product_service_contexts
+[  369.871200] init: starting service 'lmkd'...
+[  369.871349] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  369.887075] init: ... started service 'lmkd' has pid 4311
+[  369.887850] binder: undelivered TRANSACTION_COMPLETE
+[  369.887883] binder: undelivered transaction 48341, process died.
+[  369.898981] init: failed to set task profiles
+[  369.901566] init: Service 'lmkd' (pid 4311) exited with status 0
+[  369.901610] init: Sending signal 9 to service 'lmkd' (pid 4311) process group...
+[  371.180951] SELinux: SELinux: Loaded service context from:
+[  371.181019] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  371.181064] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  371.181105] SELinux: 		/product/etc/selinux/product_service_contexts
+[  371.181152] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  371.181205] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  371.188684] SELinux: SELinux: Loaded service context from:
+[  371.188757] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  371.188797] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  371.188839] SELinux: 		/product/etc/selinux/product_service_contexts
+[  374.879159] init: starting service 'lmkd'...
+[  374.879295] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  374.897421] init: failed to set task profiles
+[  374.897446] init: ... started service 'lmkd' has pid 4371
+[  374.899681] init: Service 'lmkd' (pid 4371) exited with status 0
+[  374.899722] init: Sending signal 9 to service 'lmkd' (pid 4371) process group...
+[  376.355303] SELinux: SELinux: Loaded service context from:
+[  376.355370] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  376.355434] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  376.355461] SELinux: 		/product/etc/selinux/product_service_contexts
+[  376.355497] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  376.355523] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  376.362389] SELinux: SELinux: Loaded service context from:
+[  376.362452] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  376.362475] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  376.362521] SELinux: 		/product/etc/selinux/product_service_contexts
+[  379.881899] init: starting service 'lmkd'...
+[  379.882124] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  379.898491] init: failed to set task profiles
+[  379.898518] init: ... started service 'lmkd' has pid 4436
+[  379.901577] init: Service 'lmkd' (pid 4436) exited with status 0
+[  379.901613] init: Sending signal 9 to service 'lmkd' (pid 4436) process group...
+[  381.566202] SELinux: SELinux: Loaded service context from:
+[  381.566260] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  381.566332] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  381.566361] SELinux: 		/product/etc/selinux/product_service_contexts
+[  381.566420] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  381.566456] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  381.576621] SELinux: SELinux: Loaded service context from:
+[  381.576684] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  381.576740] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  381.576777] SELinux: 		/product/etc/selinux/product_service_contexts
+[  384.888774] init: starting service 'lmkd'...
+[  384.889015] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  384.909615] init: failed to set task profiles
+[  384.912694] init: ... started service 'lmkd' has pid 4492
+[  384.919433] binder: undelivered TRANSACTION_COMPLETE
+[  384.919458] init: Service 'lmkd' (pid 4492) exited with status 0
+[  384.919488] binder: undelivered transaction 49584, process died.
+[  384.919550] init: Sending signal 9 to service 'lmkd' (pid 4492) process group...
+[  384.919796] binder: undelivered transaction 49593, process died.
+[  386.828470] SELinux: SELinux: Loaded service context from:
+[  386.828558] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  386.828635] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  386.828692] SELinux: 		/product/etc/selinux/product_service_contexts
+[  386.828756] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  386.828818] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  386.839421] SELinux: SELinux: Loaded service context from:
+[  386.839484] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  386.839531] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  386.839571] SELinux: 		/product/etc/selinux/product_service_contexts
+[  389.895303] init: starting service 'lmkd'...
+[  389.895801] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  389.914975] init: failed to set task profiles
+[  389.915049] init: ... started service 'lmkd' has pid 4591
+[  389.921960] init: Service 'lmkd' (pid 4591) exited with status 0
+[  389.922116] init: Sending signal 9 to service 'lmkd' (pid 4591) process group...
+[  392.108085] SELinux: SELinux: Loaded service context from:
+[  392.108179] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  392.108246] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  392.108303] SELinux: 		/product/etc/selinux/product_service_contexts
+[  392.108357] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  392.108414] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  392.118698] SELinux: SELinux: Loaded service context from:
+[  392.118754] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  392.118799] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  392.118839] SELinux: 		/product/etc/selinux/product_service_contexts
+[  394.903760] init: starting service 'lmkd'...
+[  394.904173] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  394.923002] init: failed to set task profiles
+[  394.923477] init: ... started service 'lmkd' has pid 4654
+[  394.928891] init: Service 'lmkd' (pid 4654) exited with status 0
+[  394.928999] init: Sending signal 9 to service 'lmkd' (pid 4654) process group...
+[  397.365621] SELinux: SELinux: Loaded service context from:
+[  397.365685] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  397.365748] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  397.365784] SELinux: 		/product/etc/selinux/product_service_contexts
+[  397.365807] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  397.365835] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  397.373916] SELinux: SELinux: Loaded service context from:
+[  397.373961] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  397.374016] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  397.374049] SELinux: 		/product/etc/selinux/product_service_contexts
+[  399.910784] init: starting service 'lmkd'...
+[  399.910890] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  399.926969] init: ... started service 'lmkd' has pid 4715
+[  399.926971] init: failed to set task profiles
+[  399.929407] init: Service 'lmkd' (pid 4715) exited with status 0
+[  399.929453] init: Sending signal 9 to service 'lmkd' (pid 4715) process group...
+[  402.551130] SELinux: SELinux: Loaded service context from:
+[  402.551185] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  402.551249] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  402.551289] SELinux: 		/product/etc/selinux/product_service_contexts
+[  402.551309] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  402.551362] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  402.559278] SELinux: SELinux: Loaded service context from:
+[  402.559345] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  402.559389] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  402.559425] SELinux: 		/product/etc/selinux/product_service_contexts
+[  404.926042] init: starting service 'lmkd'...
+[  404.926167] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  404.938680] init: failed to set task profiles
+[  404.938781] init: ... started service 'lmkd' has pid 4780
+[  404.940757] init: Service 'lmkd' (pid 4780) exited with status 0
+[  404.940849] init: Sending signal 9 to service 'lmkd' (pid 4780) process group...
+[  407.745587] SELinux: SELinux: Loaded service context from:
+[  407.745696] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  407.745855] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  407.745913] SELinux: 		/product/etc/selinux/product_service_contexts
+[  407.745961] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  407.746052] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  407.758116] SELinux: SELinux: Loaded service context from:
+[  407.758175] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  407.758233] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  407.758282] SELinux: 		/product/etc/selinux/product_service_contexts
+[  409.933298] init: starting service 'lmkd'...
+[  409.933472] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  409.946748] init: failed to set task profiles
+[  409.946808] init: ... started service 'lmkd' has pid 4871
+[  409.948750] init: Service 'lmkd' (pid 4871) exited with status 0
+[  409.948792] init: Sending signal 9 to service 'lmkd' (pid 4871) process group...
+[  412.948221] SELinux: SELinux: Loaded service context from:
+[  412.948261] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  412.948293] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  412.948305] SELinux: 		/product/etc/selinux/product_service_contexts
+[  412.948348] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  412.948384] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  412.956798] SELinux: SELinux: Loaded service context from:
+[  412.956841] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  412.956874] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  412.956910] SELinux: 		/product/etc/selinux/product_service_contexts
+[  414.938558] init: starting service 'lmkd'...
+[  414.938641] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  414.958151] init: failed to set task profiles
+[  414.958168] init: ... started service 'lmkd' has pid 4916
+[  414.960064] init: Service 'lmkd' (pid 4916) exited with status 0
+[  414.960109] init: Sending signal 9 to service 'lmkd' (pid 4916) process group...
+[  417.996646] SELinux: SELinux: Loaded service context from:
+[  417.996696] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  417.996725] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  417.996748] SELinux: 		/product/etc/selinux/product_service_contexts
+[  417.996772] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  417.996790] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  417.998411] SELinux: SELinux: Loaded service context from:
+[  417.998476] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  417.998507] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  417.998555] SELinux: 		/product/etc/selinux/product_service_contexts
+[  418.018627] binder: release 6350:6350 transaction 53187 in, still active
+[  418.018672] binder: send failed reply for transaction 53187 to 6980:7735
+[  418.018865] init: Service 'vendor.bluetooth-1-1' (pid 4127) received signal 4
+[  418.018895] init: Sending signal 9 to service 'vendor.bluetooth-1-1' (pid 4127) process group...
+[  418.020519] init: starting service 'vendor.bluetooth-1-1'...
+[  418.029292] init: ... started service 'vendor.bluetooth-1-1' has pid 4978
+[  418.145752] logd: logdr: UID=1002 GID=1002 PID=4980 n tail=500 logMask=8 pid=4496 start=0ns deadline=0ns
+[  418.149981] logd: logdr: UID=1002 GID=1002 PID=4980 n tail=500 logMask=1 pid=4496 start=0ns deadline=0ns
+[  419.944869] init: starting service 'lmkd'...
+[  419.945049] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  419.966791] init: failed to set task profiles
+[  419.966885] init: ... started service 'lmkd' has pid 5031
+[  419.969083] init: Service 'lmkd' (pid 5031) exited with status 0
+[  419.969126] init: Sending signal 9 to service 'lmkd' (pid 5031) process group...
+[  421.159496] init: Untracked pid 4980 exited with status 0
+[  421.159596] init: Untracked pid 4980 did not have an associated service entry and will not be reaped
+[  421.160106] binder: undelivered TRANSACTION_COMPLETE
+[  421.160147] binder: undelivered transaction 54868, process died.
+[  421.163128] binder: undelivered death notification, b400fcb23ce515b0
+[  421.164992] init: Untracked pid 4983 exited with status 0
+[  421.165049] init: Untracked pid 4983 did not have an associated service entry and will not be reaped
+[  421.691447] binder: 804:779 cannot find target node
+[  421.691535] binder: 779:804 transaction async to 0:0 failed 55162/29189/-22, size 60-0 line 3160
+[  423.420274] SELinux: SELinux: Loaded service context from:
+[  423.420357] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  423.420415] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  423.420465] SELinux: 		/product/etc/selinux/product_service_contexts
+[  423.420491] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  423.420527] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  423.431965] SELinux: SELinux: Loaded service context from:
+[  423.432031] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  423.432094] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  423.432142] SELinux: 		/product/etc/selinux/product_service_contexts
+[  424.955002] init: starting service 'lmkd'...
+[  424.955273] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  424.971618] init: ... started service 'lmkd' has pid 5114
+[  424.971725] init: failed to set task profiles
+[  424.978169] init: Service 'lmkd' (pid 5114) exited with status 0
+[  424.978225] init: Sending signal 9 to service 'lmkd' (pid 5114) process group...
+[  428.647404] SELinux: SELinux: Loaded service context from:
+[  428.647472] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  428.647531] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  428.647566] SELinux: 		/product/etc/selinux/product_service_contexts
+[  428.647596] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  428.647626] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  428.654430] SELinux: SELinux: Loaded service context from:
+[  428.654493] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  428.654549] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  428.654609] SELinux: 		/product/etc/selinux/product_service_contexts
+[  429.962861] init: starting service 'lmkd'...
+[  429.962952] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  429.982784] init: ... started service 'lmkd' has pid 5185
+[  429.982792] init: failed to set task profiles
+[  429.984690] init: Service 'lmkd' (pid 5185) exited with status 0
+[  429.984725] init: Sending signal 9 to service 'lmkd' (pid 5185) process group...
+[  433.852630] SELinux: SELinux: Loaded service context from:
+[  433.852694] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  433.852755] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  433.852790] SELinux: 		/product/etc/selinux/product_service_contexts
+[  433.852818] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  433.852845] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  433.859818] SELinux: SELinux: Loaded service context from:
+[  433.859898] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  433.859970] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  433.860015] SELinux: 		/product/etc/selinux/product_service_contexts
+[  434.969578] init: starting service 'lmkd'...
+[  434.969685] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  434.986917] init: ... started service 'lmkd' has pid 5276
+[  434.986940] init: failed to set task profiles
+[  434.988915] init: Service 'lmkd' (pid 5276) exited with status 0
+[  434.989000] init: Sending signal 9 to service 'lmkd' (pid 5276) process group...
+[  439.073390] SELinux: SELinux: Loaded service context from:
+[  439.073454] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  439.073498] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  439.073536] SELinux: 		/product/etc/selinux/product_service_contexts
+[  439.073570] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  439.073606] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  439.083196] SELinux: SELinux: Loaded service context from:
+[  439.083245] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  439.083274] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  439.083306] SELinux: 		/product/etc/selinux/product_service_contexts
+[  439.974400] init: starting service 'lmkd'...
+[  439.974942] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  440.002856] init: failed to set task profiles
+[  440.002938] init: ... started service 'lmkd' has pid 5333
+[  440.009135] init: Service 'lmkd' (pid 5333) exited with status 0
+[  440.009195] init: Sending signal 9 to service 'lmkd' (pid 5333) process group...
+[  444.283085] SELinux: SELinux: Loaded service context from:
+[  444.283138] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  444.283187] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  444.283236] SELinux: 		/product/etc/selinux/product_service_contexts
+[  444.283272] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  444.283293] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  444.291461] SELinux: SELinux: Loaded service context from:
+[  444.291531] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  444.291586] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  444.291611] SELinux: 		/product/etc/selinux/product_service_contexts
+[  444.993523] init: starting service 'lmkd'...
+[  444.993613] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  445.006783] init: ... started service 'lmkd' has pid 5411
+[  445.006791] init: failed to set task profiles
+[  445.008633] init: Service 'lmkd' (pid 5411) exited with status 0
+[  445.008683] init: Sending signal 9 to service 'lmkd' (pid 5411) process group...
+[  448.347669] binder: release 7741:7741 transaction 58055 in, still active
+[  448.347723] binder: send failed reply for transaction 58055 to 8132:8499
+[  448.347758] binder: undelivered TRANSACTION_COMPLETE
+[  448.347782] binder: undelivered transaction 58062, process died.
+[  448.347912] init: Service 'vendor.bluetooth-1-1' (pid 4978) received signal 4
+[  448.347945] init: Sending signal 9 to service 'vendor.bluetooth-1-1' (pid 4978) process group...
+[  448.348193] init: starting service 'vendor.bluetooth-1-1'...
+[  448.365447] init: ... started service 'vendor.bluetooth-1-1' has pid 5487
+[  448.444929] logd: logdr: UID=1002 GID=1002 PID=5489 n tail=500 logMask=8 pid=5232 start=0ns deadline=0ns
+[  448.447037] logd: logdr: UID=1002 GID=1002 PID=5489 n tail=500 logMask=1 pid=5232 start=0ns deadline=0ns
+[  449.523333] SELinux: SELinux: Loaded service context from:
+[  449.523435] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  449.523478] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  449.523536] SELinux: 		/product/etc/selinux/product_service_contexts
+[  449.523581] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  449.523640] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  449.534767] SELinux: SELinux: Loaded service context from:
+[  449.534817] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  449.534861] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  449.534907] SELinux: 		/product/etc/selinux/product_service_contexts
+[  449.997463] init: starting service 'lmkd'...
+[  449.997713] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  450.015354] init: failed to set task profiles
+[  450.015459] init: ... started service 'lmkd' has pid 5537
+[  450.021374] init: Service 'lmkd' (pid 5537) exited with status 0
+[  450.021451] init: Sending signal 9 to service 'lmkd' (pid 5537) process group...
+[  451.565860] init: Untracked pid 5489 exited with status 0
+[  451.565958] init: Untracked pid 5489 did not have an associated service entry and will not be reaped
+[  451.575275] init: Untracked pid 5493 exited with status 0
+[  451.575600] binder: undelivered death notification, b400fcb23ce50320
+[  451.576890] init: Untracked pid 5493 did not have an associated service entry and will not be reaped
+[  454.749196] SELinux: SELinux: Loaded service context from:
+[  454.749292] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  454.749327] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  454.749356] SELinux: 		/product/etc/selinux/product_service_contexts
+[  454.749381] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  454.749406] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  454.756059] SELinux: SELinux: Loaded service context from:
+[  454.756097] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  454.756140] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  454.756173] SELinux: 		/product/etc/selinux/product_service_contexts
+[  455.002926] init: starting service 'lmkd'...
+[  455.003097] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  455.018904] init: ... started service 'lmkd' has pid 5601
+[  455.018912] init: failed to set task profiles
+[  455.022386] init: Service 'lmkd' (pid 5601) exited with status 0
+[  455.022448] init: Sending signal 9 to service 'lmkd' (pid 5601) process group...
+[  459.943587] SELinux: SELinux: Loaded service context from:
+[  459.943657] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  459.943716] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  459.943751] SELinux: 		/product/etc/selinux/product_service_contexts
+[  459.943779] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  459.943810] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  459.950773] SELinux: SELinux: Loaded service context from:
+[  459.950826] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  459.950883] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  459.950940] SELinux: 		/product/etc/selinux/product_service_contexts
+[  460.006550] init: starting service 'lmkd'...
+[  460.006672] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  460.026399] init: ... started service 'lmkd' has pid 5666
+[  460.026412] init: failed to set task profiles
+[  460.028639] init: Service 'lmkd' (pid 5666) exited with status 0
+[  460.028679] init: Sending signal 9 to service 'lmkd' (pid 5666) process group...
+[  465.009439] init: starting service 'lmkd'...
+[  465.009637] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  465.033413] init: failed to set task profiles
+[  465.035309] init: ... started service 'lmkd' has pid 5712
+[  465.035352] init: Untracked pid 5716 exited with status 0
+[  465.035411] init: Untracked pid 5716 did not have an associated service entry and will not be reaped
+[  465.035452] init: Untracked pid 5714 exited with status 0
+[  465.035478] init: Untracked pid 5714 did not have an associated service entry and will not be reaped
+[  465.035833] init: Service 'lmkd' (pid 5712) exited with status 0
+[  465.035886] init: Sending signal 9 to service 'lmkd' (pid 5712) process group...
+[  465.155998] SELinux: SELinux: Loaded service context from:
+[  465.156043] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  465.156073] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  465.156106] SELinux: 		/product/etc/selinux/product_service_contexts
+[  465.156137] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  465.156165] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  465.164931] SELinux: SELinux: Loaded service context from:
+[  465.164978] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  465.165019] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  465.165047] SELinux: 		/product/etc/selinux/product_service_contexts
+[  470.014679] init: starting service 'lmkd'...
+[  470.014827] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  470.026585] init: failed to set task profiles
+[  470.028051] init: ... started service 'lmkd' has pid 5879
+[  470.029036] init: Service 'lmkd' (pid 5879) exited with status 0
+[  470.029111] init: Sending signal 9 to service 'lmkd' (pid 5879) process group...
+[  470.426980] SELinux: SELinux: Loaded service context from:
+[  470.427029] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  470.427057] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  470.427102] SELinux: 		/product/etc/selinux/product_service_contexts
+[  470.427131] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  470.427171] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  470.437382] SELinux: SELinux: Loaded service context from:
+[  470.437433] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  470.437473] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  470.437513] SELinux: 		/product/etc/selinux/product_service_contexts
+[  475.017133] init: starting service 'lmkd'...
+[  475.017573] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  475.043336] init: failed to set task profiles
+[  475.043363] init: ... started service 'lmkd' has pid 5936
+[  475.051374] init: Service 'lmkd' (pid 5936) exited with status 0
+[  475.051468] init: Sending signal 9 to service 'lmkd' (pid 5936) process group...
+[  475.763022] SELinux: SELinux: Loaded service context from:
+[  475.763094] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  475.763181] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  475.763224] SELinux: 		/product/etc/selinux/product_service_contexts
+[  475.763297] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  475.763370] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  475.772843] SELinux: SELinux: Loaded service context from:
+[  475.772903] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  475.772973] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  475.773018] SELinux: 		/product/etc/selinux/product_service_contexts
+[  476.075056] binder: 779:779 cannot find target node
+[  476.075156] binder: 779:779 transaction async to 0:0 failed 60455/29189/-22, size 92-0 line 3160
+[  476.077162] binder: 779:779 cannot find target node
+[  476.077211] binder: 779:779 transaction async to 0:0 failed 60462/29189/-22, size 92-0 line 3160
+[  480.022401] init: starting service 'lmkd'...
+[  480.022600] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  480.034045] init: failed to set task profiles
+[  480.034049] init: ... started service 'lmkd' has pid 6011
+[  480.036205] init: Service 'lmkd' (pid 6011) exited with status 0
+[  480.036249] init: Sending signal 9 to service 'lmkd' (pid 6011) process group...
+[  481.068938] SELinux: SELinux: Loaded service context from:
+[  481.069031] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  481.069061] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  481.069096] SELinux: 		/product/etc/selinux/product_service_contexts
+[  481.069153] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  481.069219] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  481.081477] SELinux: SELinux: Loaded service context from:
+[  481.081527] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  481.081559] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  481.081597] SELinux: 		/product/etc/selinux/product_service_contexts
+[  485.026602] init: starting service 'lmkd'...
+[  485.026888] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  485.039273] init: failed to set task profiles
+[  485.039491] init: ... started service 'lmkd' has pid 6061
+[  485.047242] init: Service 'lmkd' (pid 6061) exited with status 0
+[  485.047324] init: Sending signal 9 to service 'lmkd' (pid 6061) process group...
+[  486.362646] SELinux: SELinux: Loaded service context from:
+[  486.362729] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  486.362757] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  486.362791] SELinux: 		/product/etc/selinux/product_service_contexts
+[  486.362853] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  486.362902] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  486.375037] SELinux: SELinux: Loaded service context from:
+[  486.375082] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  486.375115] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  486.375154] SELinux: 		/product/etc/selinux/product_service_contexts
+[  490.035367] init: starting service 'lmkd'...
+[  490.035845] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  490.059331] init: ... started service 'lmkd' has pid 6125
+[  490.059354] init: failed to set task profiles
+[  490.066645] init: Service 'lmkd' (pid 6125) exited with status 0
+[  490.066741] init: Sending signal 9 to service 'lmkd' (pid 6125) process group...
+[  491.664084] SELinux: SELinux: Loaded service context from:
+[  491.664177] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  491.664229] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  491.664282] SELinux: 		/product/etc/selinux/product_service_contexts
+[  491.664337] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  491.664385] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  491.676021] SELinux: SELinux: Loaded service context from:
+[  491.676080] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  491.676127] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  491.676164] SELinux: 		/product/etc/selinux/product_service_contexts
+[  494.119712] binder: undelivered TRANSACTION_COMPLETE
+[  494.119770] binder: undelivered transaction 61668, process died.
+[  494.119836] binder: undelivered TRANSACTION_COMPLETE
+[  494.119879] binder: undelivered transaction 61653, process died.
+[  494.119906] binder: undelivered TRANSACTION_COMPLETE
+[  494.119932] binder: undelivered transaction 61666, process died.
+[  494.119971] binder: undelivered transaction 61764, process died.
+[  494.120689] binder: undelivered transaction 61755, process died.
+[  495.047026] init: starting service 'lmkd'...
+[  495.047288] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  495.058647] init: failed to set task profiles
+[  495.058729] init: ... started service 'lmkd' has pid 6203
+[  495.064885] init: Service 'lmkd' (pid 6203) exited with status 0
+[  495.064983] init: Sending signal 9 to service 'lmkd' (pid 6203) process group...
+[  496.965680] SELinux: SELinux: Loaded service context from:
+[  496.965783] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  496.965837] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  496.965907] SELinux: 		/product/etc/selinux/product_service_contexts
+[  496.965966] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  496.966025] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  496.977039] SELinux: SELinux: Loaded service context from:
+[  496.977091] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  496.977130] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  496.977177] SELinux: 		/product/etc/selinux/product_service_contexts
+[  500.054785] init: starting service 'lmkd'...
+[  500.055091] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  500.066854] init: failed to set task profiles
+[  500.067550] init: ... started service 'lmkd' has pid 6252
+[  500.073971] init: Service 'lmkd' (pid 6252) exited with status 0
+[  500.074059] init: Sending signal 9 to service 'lmkd' (pid 6252) process group...
+[  502.253876] SELinux: SELinux: Loaded service context from:
+[  502.253971] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  502.254046] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  502.254093] SELinux: 		/product/etc/selinux/product_service_contexts
+[  502.254143] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  502.254195] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  502.265161] SELinux: SELinux: Loaded service context from:
+[  502.265211] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  502.265447] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  502.265492] SELinux: 		/product/etc/selinux/product_service_contexts
+[  505.065732] init: starting service 'lmkd'...
+[  505.066167] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  505.079117] init: failed to set task profiles
+[  505.081414] init: ... started service 'lmkd' has pid 6311
+[  505.085738] init: Service 'lmkd' (pid 6311) exited with status 0
+[  505.085809] init: Sending signal 9 to service 'lmkd' (pid 6311) process group...
+[  507.528963] SELinux: SELinux: Loaded service context from:
+[  507.529064] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  507.529174] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  507.529239] SELinux: 		/product/etc/selinux/product_service_contexts
+[  507.529274] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  507.529334] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  507.543245] SELinux: SELinux: Loaded service context from:
+[  507.543307] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  507.543390] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  507.543470] SELinux: 		/product/etc/selinux/product_service_contexts
+[  510.077116] init: starting service 'lmkd'...
+[  510.077516] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  510.095341] init: failed to set task profiles
+[  510.097369] init: ... started service 'lmkd' has pid 6398
+[  510.100487] init: Service 'lmkd' (pid 6398) exited with status 0
+[  510.100560] init: Sending signal 9 to service 'lmkd' (pid 6398) process group...
+[  512.838799] SELinux: SELinux: Loaded service context from:
+[  512.838960] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  512.839070] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  512.839140] SELinux: 		/product/etc/selinux/product_service_contexts
+[  512.839214] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  512.839267] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  512.851522] SELinux: SELinux: Loaded service context from:
+[  512.851604] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  512.851659] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  512.851698] SELinux: 		/product/etc/selinux/product_service_contexts
+[  515.083607] init: starting service 'lmkd'...
+[  515.083902] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  515.098802] init: failed to set task profiles
+[  515.098846] init: ... started service 'lmkd' has pid 6454
+[  515.103036] init: Service 'lmkd' (pid 6454) exited with status 0
+[  515.103102] init: Sending signal 9 to service 'lmkd' (pid 6454) process group...
+[  518.061177] SELinux: SELinux: Loaded service context from:
+[  518.061237] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  518.061313] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  518.061359] SELinux: 		/product/etc/selinux/product_service_contexts
+[  518.061400] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  518.061426] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  518.068203] SELinux: SELinux: Loaded service context from:
+[  518.068248] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  518.068304] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  518.068341] SELinux: 		/product/etc/selinux/product_service_contexts
+[  520.091554] init: starting service 'lmkd'...
+[  520.092014] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  520.110911] init: failed to set task profiles
+[  520.111323] init: ... started service 'lmkd' has pid 6502
+[  520.118662] init: Service 'lmkd' (pid 6502) exited with status 0
+[  520.118760] init: Sending signal 9 to service 'lmkd' (pid 6502) process group...
+[  523.339873] SELinux: SELinux: Loaded service context from:
+[  523.339983] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  523.340044] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  523.340103] SELinux: 		/product/etc/selinux/product_service_contexts
+[  523.340153] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  523.340206] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  523.353661] SELinux: SELinux: Loaded service context from:
+[  523.353717] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  523.353754] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  523.353793] SELinux: 		/product/etc/selinux/product_service_contexts
+[  525.095918] init: starting service 'lmkd'...
+[  525.096260] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  525.127343] init: failed to set task profiles
+[  525.127399] init: ... started service 'lmkd' has pid 6564
+[  525.132067] init: Service 'lmkd' (pid 6564) exited with status 0
+[  525.132166] init: Sending signal 9 to service 'lmkd' (pid 6564) process group...
+[  527.212066] binder: release 8513:8513 transaction 64301 in, still active
+[  527.212113] binder: send failed reply for transaction 64301 to 9015:10303
+[  527.212270] init: Service 'vendor.bluetooth-1-1' (pid 5487) received signal 4
+[  527.212307] init: Sending signal 9 to service 'vendor.bluetooth-1-1' (pid 5487) process group...
+[  527.212587] init: starting service 'vendor.bluetooth-1-1'...
+[  527.222505] init: ... started service 'vendor.bluetooth-1-1' has pid 6606
+[  527.301279] logd: logdr: UID=1002 GID=1002 PID=6608 n tail=500 logMask=8 pid=5826 start=0ns deadline=0ns
+[  527.303221] logd: logdr: UID=1002 GID=1002 PID=6608 n tail=500 logMask=1 pid=5826 start=0ns deadline=0ns
+[  528.669977] SELinux: SELinux: Loaded service context from:
+[  528.670101] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  528.670184] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  528.670243] SELinux: 		/product/etc/selinux/product_service_contexts
+[  528.670295] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  528.670358] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  528.682604] SELinux: SELinux: Loaded service context from:
+[  528.682657] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  528.682715] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  528.682748] SELinux: 		/product/etc/selinux/product_service_contexts
+[  530.102082] init: starting service 'lmkd'...
+[  530.102503] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  530.127239] init: ... started service 'lmkd' has pid 6646
+[  530.127245] init: failed to set task profiles
+[  530.134403] init: Service 'lmkd' (pid 6646) exited with status 0
+[  530.134481] init: Sending signal 9 to service 'lmkd' (pid 6646) process group...
+[  530.413954] init: Untracked pid 6608 exited with status 0
+[  530.414034] init: Untracked pid 6608 did not have an associated service entry and will not be reaped
+[  530.417457] init: Untracked pid 6610 exited with status 0
+[  530.417564] init: Untracked pid 6610 did not have an associated service entry and will not be reaped
+[  530.422840] binder: undelivered death notification, b400fcb23ce4e7a0
+[  533.981796] SELinux: SELinux: Loaded service context from:
+[  533.981887] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  533.981940] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  533.981988] SELinux: 		/product/etc/selinux/product_service_contexts
+[  533.982042] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  533.982105] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  533.993385] SELinux: SELinux: Loaded service context from:
+[  533.993437] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  533.993533] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  533.993588] SELinux: 		/product/etc/selinux/product_service_contexts
+[  535.110722] init: starting service 'lmkd'...
+[  535.110972] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  535.130756] init: failed to set task profiles
+[  535.130786] init: ... started service 'lmkd' has pid 6716
+[  535.134502] init: Service 'lmkd' (pid 6716) exited with status 0
+[  535.134554] init: Sending signal 9 to service 'lmkd' (pid 6716) process group...
+[  539.245500] SELinux: SELinux: Loaded service context from:
+[  539.245608] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  539.245670] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  539.245734] SELinux: 		/product/etc/selinux/product_service_contexts
+[  539.245804] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  539.245860] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  539.256304] SELinux: SELinux: Loaded service context from:
+[  539.256393] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  539.258234] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  539.258334] SELinux: 		/product/etc/selinux/product_service_contexts
+[  540.116624] init: starting service 'lmkd'...
+[  540.116760] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  540.138863] init: ... started service 'lmkd' has pid 6784
+[  540.138875] init: failed to set task profiles
+[  540.141787] init: Service 'lmkd' (pid 6784) exited with status 0
+[  540.141845] init: Sending signal 9 to service 'lmkd' (pid 6784) process group...
+[  544.529919] SELinux: SELinux: Loaded service context from:
+[  544.529991] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  544.530049] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  544.530104] SELinux: 		/product/etc/selinux/product_service_contexts
+[  544.530167] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  544.530211] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  544.540131] SELinux: SELinux: Loaded service context from:
+[  544.540193] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  544.540238] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  544.540287] SELinux: 		/product/etc/selinux/product_service_contexts
+[  545.131430] init: starting service 'lmkd'...
+[  545.131854] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  545.162394] init: failed to set task profiles
+[  545.162397] init: ... started service 'lmkd' has pid 6875
+[  545.168441] init: Service 'lmkd' (pid 6875) exited with status 0
+[  545.168525] init: Sending signal 9 to service 'lmkd' (pid 6875) process group...
+[  549.818545] SELinux: SELinux: Loaded service context from:
+[  549.818622] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  549.818671] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  549.818712] SELinux: 		/product/etc/selinux/product_service_contexts
+[  549.818751] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  549.818786] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  549.828757] SELinux: SELinux: Loaded service context from:
+[  549.828808] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  549.828845] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  549.828883] SELinux: 		/product/etc/selinux/product_service_contexts
+[  550.140881] init: starting service 'lmkd'...
+[  550.140975] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  550.170879] init: failed to set task profiles
+[  550.172734] init: ... started service 'lmkd' has pid 6940
+[  550.172827] init: Service 'lmkd' (pid 6940) exited with status 0
+[  550.172856] init: Sending signal 9 to service 'lmkd' (pid 6940) process group...
+[  551.317050] binder: undelivered TRANSACTION_COMPLETE
+[  551.317099] binder: undelivered transaction 66563, process died.
+[  551.317167] binder: undelivered TRANSACTION_COMPLETE
+[  551.317188] binder: undelivered transaction 66547, process died.
+[  551.318114] binder: undelivered transaction 66596, process died.
+[  555.099567] SELinux: SELinux: Loaded service context from:
+[  555.099626] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  555.099698] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  555.099721] SELinux: 		/product/etc/selinux/product_service_contexts
+[  555.099780] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  555.099826] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  555.108103] SELinux: SELinux: Loaded service context from:
+[  555.108164] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  555.108200] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  555.108242] SELinux: 		/product/etc/selinux/product_service_contexts
+[  555.142607] init: starting service 'lmkd'...
+[  555.142697] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  555.162270] init: failed to set task profiles
+[  555.165399] init: ... started service 'lmkd' has pid 7022
+[  555.165457] init: Service 'lmkd' (pid 7022) exited with status 0
+[  555.165527] init: Sending signal 9 to service 'lmkd' (pid 7022) process group...
+[  560.150206] init: starting service 'lmkd'...
+[  560.150551] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  560.167136] init: failed to set task profiles
+[  560.169314] init: ... started service 'lmkd' has pid 7084
+[  560.170786] init: Service 'lmkd' (pid 7084) exited with status 0
+[  560.170834] init: Sending signal 9 to service 'lmkd' (pid 7084) process group...
+[  560.339084] binder: 779:841 ioctl 400c620e fcaf9d5f96bc returned -22
+[  560.339515] binder: 779:841 ioctl 400c620e fcaf9d5f96bc returned -22
+[  560.375224] binder: release 10636:10636 transaction 67090 out, still active
+[  560.375300] binder: undelivered TRANSACTION_COMPLETE
+[  560.380181] SELinux: SELinux: Loaded service context from:
+[  560.380247] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  560.380298] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  560.380353] SELinux: 		/product/etc/selinux/product_service_contexts
+[  560.380391] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  560.380440] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  560.394853] SELinux: SELinux: Loaded service context from:
+[  560.394910] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  560.394975] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  560.395007] SELinux: 		/product/etc/selinux/product_service_contexts
+[  565.165542] init: starting service 'lmkd'...
+[  565.165731] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  565.178815] init: failed to set task profiles
+[  565.178859] init: ... started service 'lmkd' has pid 7145
+[  565.182874] init: Service 'lmkd' (pid 7145) exited with status 0
+[  565.182949] init: Sending signal 9 to service 'lmkd' (pid 7145) process group...
+[  565.719253] SELinux: SELinux: Loaded service context from:
+[  565.719356] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  565.719419] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  565.719458] SELinux: 		/product/etc/selinux/product_service_contexts
+[  565.719504] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  565.719558] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  565.731550] SELinux: SELinux: Loaded service context from:
+[  565.731629] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  565.731703] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  565.731756] SELinux: 		/product/etc/selinux/product_service_contexts
+[  570.170724] init: starting service 'lmkd'...
+[  570.170954] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  570.186939] init: failed to set task profiles
+[  570.189382] init: ... started service 'lmkd' has pid 7201
+[  570.191711] init: Service 'lmkd' (pid 7201) exited with status 0
+[  570.191782] init: Sending signal 9 to service 'lmkd' (pid 7201) process group...
+[  571.045972] SELinux: SELinux: Loaded service context from:
+[  571.046055] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  571.046109] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  571.046168] SELinux: 		/product/etc/selinux/product_service_contexts
+[  571.046234] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  571.046294] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  571.058309] SELinux: SELinux: Loaded service context from:
+[  571.058359] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  571.058413] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  571.058457] SELinux: 		/product/etc/selinux/product_service_contexts
+[  575.180989] init: starting service 'lmkd'...
+[  575.181379] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  575.202252] init: failed to set task profiles
+[  575.203054] init: ... started service 'lmkd' has pid 7246
+[  575.209681] init: Service 'lmkd' (pid 7246) exited with status 0
+[  575.209771] init: Sending signal 9 to service 'lmkd' (pid 7246) process group...
+[  575.767777] init: Untracked pid 7260 exited with status 0
+[  575.767826] init: Untracked pid 7260 did not have an associated service entry and will not be reaped
+[  575.767914] init: Untracked pid 7262 exited with status 0
+[  575.767941] init: Untracked pid 7262 did not have an associated service entry and will not be reaped
+[  576.351124] SELinux: SELinux: Loaded service context from:
+[  576.351196] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  576.351227] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  576.351276] SELinux: 		/product/etc/selinux/product_service_contexts
+[  576.351306] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  576.351321] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  576.361127] SELinux: SELinux: Loaded service context from:
+[  576.361173] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  576.361208] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  576.361296] SELinux: 		/product/etc/selinux/product_service_contexts
+[  580.191782] init: starting service 'lmkd'...
+[  580.191911] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  580.206852] init: failed to set task profiles
+[  580.206899] init: ... started service 'lmkd' has pid 7392
+[  580.209871] init: Service 'lmkd' (pid 7392) exited with status 0
+[  580.209923] init: Sending signal 9 to service 'lmkd' (pid 7392) process group...
+[  581.589719] SELinux: SELinux: Loaded service context from:
+[  581.589823] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  581.589858] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  581.589898] SELinux: 		/product/etc/selinux/product_service_contexts
+[  581.589952] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  581.589997] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  581.601491] SELinux: SELinux: Loaded service context from:
+[  581.601552] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  581.601609] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  581.601660] SELinux: 		/product/etc/selinux/product_service_contexts
+[  585.197641] init: starting service 'lmkd'...
+[  585.197877] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  585.214793] init: failed to set task profiles
+[  585.215362] init: ... started service 'lmkd' has pid 7449
+[  585.220374] init: Service 'lmkd' (pid 7449) exited with status 0
+[  585.220441] init: Sending signal 9 to service 'lmkd' (pid 7449) process group...
+[  586.922694] SELinux: SELinux: Loaded service context from:
+[  586.922782] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  586.922882] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  586.922955] SELinux: 		/product/etc/selinux/product_service_contexts
+[  586.922969] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  586.923064] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  586.936569] SELinux: SELinux: Loaded service context from:
+[  586.936642] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  586.936729] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  586.936782] SELinux: 		/product/etc/selinux/product_service_contexts
+[  590.201544] init: starting service 'lmkd'...
+[  590.201690] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  590.218782] init: failed to set task profiles
+[  590.218835] init: ... started service 'lmkd' has pid 7505
+[  590.222695] init: Service 'lmkd' (pid 7505) exited with status 0
+[  590.222778] init: Sending signal 9 to service 'lmkd' (pid 7505) process group...
+[  592.229937] SELinux: SELinux: Loaded service context from:
+[  592.230029] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  592.230100] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  592.230129] SELinux: 		/product/etc/selinux/product_service_contexts
+[  592.230182] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  592.230229] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  592.241727] SELinux: SELinux: Loaded service context from:
+[  592.241782] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  592.241824] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  592.241871] SELinux: 		/product/etc/selinux/product_service_contexts
+[  595.208600] init: starting service 'lmkd'...
+[  595.208847] init: Created socket '/dev/socket/lmkd', mode 660, user 1000, group 1000
+[  595.231286] init: failed to set task profiles
+[  595.232347] init: ... started service 'lmkd' has pid 7550
+[  595.239705] init: Service 'lmkd' (pid 7550) exited with status 0
+[  595.239803] init: Sending signal 9 to service 'lmkd' (pid 7550) process group...
+[  597.528478] SELinux: SELinux: Loaded service context from:
+[  597.528589] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  597.528678] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  597.528737] SELinux: 		/product/etc/selinux/product_service_contexts
+[  597.528775] SELinux: 		/vendor/etc/selinux/vendor_service_contexts
+[  597.528835] SELinux: 		/odm/etc/selinux/odm_service_contexts
+[  597.540140] SELinux: SELinux: Loaded service context from:
+[  597.540211] SELinux: 		/system/etc/selinux/plat_service_contexts
+[  597.540298] SELinux: 		/system_ext/etc/selinux/system_ext_service_contexts
+[  597.540345] SELinux: 		/product/etc/selinux/product_service_contexts
+[  599.399920] binder: 6999:779 reply target not found
+[  599.400057] binder: 779:6999 transaction reply to 0:0 failed 69417/29189/0, size 4-0 line 3090
+[  599.400275] binder: send failed reply for transaction 67090, target dead

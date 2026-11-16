@@ -1,0 +1,72 @@
+{
+  "adb_port": 5555,
+  "command_exit_code": 0,
+  "container_id": "579fb41d9a1b7ea6c3091071bb34c44ed81059952cf951e21663971901fdac49",
+  "elapsed_seconds": 20.867,
+  "exit_code": 0,
+  "finished_at_unix": 1794786040.2445023,
+  "github_sha": "19ab5b633ec13abd7016ebd22711d39880f0d73c",
+  "host": {
+    "architecture": "x86_64",
+    "kernel": "7.0.0-1014-aws",
+    "runner_image": "ubuntu24",
+    "system": "Linux"
+  },
+  "image": "sha256:d6a3494537b974ae0f3de07fd123a715ad3a5ff62b10cdfc990b1822008c5721",
+  "image_index": null,
+  "image_profile": {
+    "ashmem": "memfd",
+    "dpi": 320,
+    "fps": 60,
+    "height": 1280,
+    "renderer": "guest",
+    "width": 720
+  },
+  "image_provenance": "artifacts/hwc/provenance.json",
+  "last_readiness": "focused, drawn app window has not persisted across readiness checks",
+  "readiness": "focused application window is drawn",
+  "requested_display": {
+    "ashmem": "memfd",
+    "dpi": 320,
+    "fps": 60,
+    "height": 1280,
+    "renderer": "guest",
+    "width": 720
+  },
+  "resource_samples": {
+    "after_command": {
+      "BlockIO": "878MB / 50.1MB",
+      "CPUPerc": "177.02%",
+      "Container": "ashnazg-redroid-beb8059f-40d2-4662-b7de-1f6494862f3a",
+      "ID": "579fb41d9a1b",
+      "MemPerc": "6.97%",
+      "MemUsage": "1.069GiB / 15.33GiB",
+      "Name": "ashnazg-redroid-beb8059f-40d2-4662-b7de-1f6494862f3a",
+      "NetIO": "63.1kB / 2.33MB",
+      "PIDs": "1082"
+    },
+    "before_command": {
+      "BlockIO": "878MB / 45.9MB",
+      "CPUPerc": "16.99%",
+      "Container": "ashnazg-redroid-beb8059f-40d2-4662-b7de-1f6494862f3a",
+      "ID": "579fb41d9a1b",
+      "MemPerc": "6.91%",
+      "MemUsage": "1.059GiB / 15.33GiB",
+      "Name": "ashnazg-redroid-beb8059f-40d2-4662-b7de-1f6494862f3a",
+      "NetIO": "40.6kB / 172kB",
+      "PIDs": "1082"
+    }
+  },
+  "run_id": "beb8059f-40d2-4662-b7de-1f6494862f3a",
+  "schema": 1,
+  "serial": "127.0.0.1:5555",
+  "setup_timings_seconds": {
+    "container_start": 0.817,
+    "preflight": 0.552,
+    "readiness": 12.262
+  },
+  "source_dirty": false,
+  "source_sha": "71b76dc9e68d9dbc0d2f820e31044d2934dac197",
+  "started_at_unix": 1794786019.3818302,
+  "status": "success"
+}

@@ -441,7 +441,7 @@ def mcp_send(process: subprocess.Popen, message: dict, response_id: int | None =
     return response
 
 
-def verify_mcp(binary: str, harness: DeviceHarness, artifact_dir: Path) -> list[str]:
+def verify_mcp(binary: str, harness: DeviceHarness, artifact_dir: Path, fixture_apk: Path) -> list[str]:
     # Framework compatibility checks may leave Compose or RN in the foreground.
     # Reset to the native contract fixture before driving MCP DTOs through it.
     setup_client = RpcClient(harness.token)
@@ -494,10 +494,9 @@ def verify_mcp(binary: str, harness: DeviceHarness, artifact_dir: Path) -> list[
             raise IntegrationFailure("MCP screenshot tool returned no PNG image content")
         artifact_dir.mkdir(parents=True, exist_ok=True)
         (artifact_dir / "mcp-screenshot.png").write_bytes(base64.b64decode(image_items[0]["data"], validate=True))
-        fixture_apk = str((Path(__file__).resolve().parents[1] /
-                           "agent-android/fixture/build/outputs/apk/debug/fixture-debug.apk").resolve())
-        call_tool(13, "app_install", {"path": fixture_apk, "launch": False})
-        launched = call_tool(14, "app_install", {"path": fixture_apk, "launch": True})
+        fixture_apk_path = str(fixture_apk.resolve())
+        call_tool(13, "app_install", {"path": fixture_apk_path, "launch": False})
+        launched = call_tool(14, "app_install", {"path": fixture_apk_path, "launch": True})
         launch_result = launched.get("result", {}).get("structuredContent")
         if not isinstance(launch_result, dict):
             raise IntegrationFailure(f"MCP app_install launch returned no structured result: {launched}")
@@ -730,7 +729,8 @@ def main() -> int:
             failure_snapshot = client.last_snapshot
             failure_logs = client.last_logs
             client = None
-        mcp_passed = [] if args.no_mcp else verify_http_auth(binary, harness) + verify_mcp(binary, harness, artifact_dir)
+        mcp_passed = [] if args.no_mcp else verify_http_auth(binary, harness) + verify_mcp(
+            binary, harness, artifact_dir, fixture.resolve())
         screenshots, diagnostics = artifact_evidence(artifact_dir)
         summary = {"device": harness.serial, "cold_setup_ms": round(harness.cold_setup_ms, 3),
                    "rpc_checks": rpc_passed, "mcp_checks": mcp_passed,

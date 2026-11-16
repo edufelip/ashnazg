@@ -1,0 +1,8 @@
+{
+  "case": "refuse simultaneous use of running state",
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "ashnazg-vm: state directory is already in use by another ashnazg-vm process\n",
+  "elapsed_seconds": 6.528,
+  "assertion": "exclusive state ownership refused the second launch before boot"
+}

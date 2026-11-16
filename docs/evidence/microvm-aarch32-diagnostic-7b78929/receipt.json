@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "asset_source_sha": "7b78929d6393249cf079f81fbb3a18ed8270c5c2",
+  "asset_workflow_run": 43760203244,
+  "qualification": "Diagnostic boot of an owned mutable disk; not acceptance of the immutable CI image.",
+  "diagnostic_changes": {
+    "guest_supervisor": "ADB probe retries from source77ee4c3",
+    "host_helper": "Same VM helper source with only printk.devkmsg=on added to kernel command line; ad-hoc signed.",
+    "guest_init": "Restored original guest init; the prior attempted proc-sysctl toggle failed and is not included in this boot."
+  },
+  "observed_first_fatal_error": "init: cannot execv('/vendor/bin/boringssl_self_test32'): Exec format error",
+  "consequence": "reboot_on_failure cleared the Android init action queue before Binderfs initialization; Binder ENOENT messages followed during shutdown.",
+  "pinned_vendor_test": {
+    "path": "/vendor/bin/boringssl_self_test32",
+    "elf_class": 32,
+    "machine": "EM_ARM",
+    "sha256": "2e5e21f80c986cb236e3949c59c1c3e70fa3cf870e1d777dedee7d6bf7a99989"
+  },
+  "kernel_compat_config": "CONFIG_COMPAT=y and CONFIG_COMPAT_BINFMT_ELF=y in the verified generated config.",
+  "runtime_conclusion": "This Virtualization.framework guest cannot execute this AArch32 program; kernel COMPAT support alone did not make it runnable.",
+  "next_candidate": {
+    "tag_metadata_source": "https://hub.docker.com/v2/repositories/redroid/redroid/tags/15.0.0_64only-latest",
+    "index_digest": "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
+    "qualification": "64-bit-only pinned candidate; not yet boot-qualified."
+  },
+  "android_readiness": false,
+  "shutdown": "Owned diagnostic VM stopped via its host helper after collecting the fatal startup evidence.",
+  "serial_evidence": {
+    "raw_file": "serial.log.gz",
+    "raw_sha256": "23c305b03e71e708e29499f0d36adebabaddee2c0f556dbef2a3abfcf8c78b66",
+    "readable_file": "serial.log",
+    "readable_normalization": "CRLF and trailing whitespace normalized; gzip preserves the exact original serial segment."
+  }
+}

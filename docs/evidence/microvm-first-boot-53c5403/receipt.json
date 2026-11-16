@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "artifact_source_sha": "53c5403ff5e60cc0c65e7eac9ad30e9abeece4b0",
+  "artifact_workflow_run": "https://github.com/edufelip/ashnazg/actions/runs/43752157623",
+  "archive_sha256": "62c5a65fe06edcde1ad724be2a67be9a7ec710bc004ce9136abb5a770569fd21",
+  "kernel_bytes": 46811648,
+  "rootfs_bytes": 4294967296,
+  "host": "macOS Apple Silicon; ad-hoc signed native Virtualization.framework helper",
+  "configuration_validation": "passed",
+  "rootfs_mount": "passed",
+  "pid1_reached": true,
+  "android_readiness": false,
+  "failure": "DHCP started while eth0 remained administratively down; udhcpc reported Network is down and timed out after 30 seconds.",
+  "shutdown": "guest performed controlled poweroff and host reported stopped before readiness",
+  "qualification": "First real VM bring-up, not Android or v0.3 runtime acceptance. Serial log preserved unchanged."
+}
