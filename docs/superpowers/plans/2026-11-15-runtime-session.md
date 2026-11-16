@@ -156,3 +156,24 @@ First create only `runtime/microvm/adb_agent_stream.py` and `tests/test_adb_agen
 Return a small socket-compatible owned wrapper whose `close()` atomically deregisters and closes only its own socket, restoring capacity; pool close shuts all active/handshaking streams, rejects new opens and contains no name-based deletion. The wrapper must work with the existing bounded selector-based `proxy_streams` (fileno, send, recv, setblocking, settimeout, shutdown, close), expose no request data in repr and never log raw server text. The confidentiality boundary excludes active hostile same-UID processes that can inspect the runtime's memory; ordinary concurrent ADB clients must remain independent and no shared mappings are changed. Use socketpair/fake loopback-server tests first, including fragmented replies, FAIL/invalid/oversized/truncated frames, fixed transport/service byte sequence, same-connection raw duplex/half-close, slow-progress deadline, capacity reuse, cancellation during handshake and close during traffic. Tests may patch the fixed server constant to an ephemeral fixture port; production has no endpoint override. No real ADB/device/VM proof is claimed.
 
 After review, root replaces backend `_forward_owned` and forward commands with this pool, uses it for authenticated ping and exposes `open_agent_stream(deadline)` only while ready/alive. Backend preparation returns no endpoint; session availability and stream-open methods replace the internal loopback endpoint API. The bridge proxies directly to that ready stream and retains its existing owned socket cleanup. Guest image packaging includes the new module. Cleanup never lists/removes guest forwards, so concurrent clients' mapping changes cannot be deleted. A real fresh guest must still qualify the Smart Socket handshake and stdin APK install before this path is accepted.
+
+
+## Current integration checkpoint
+
+The catalog, codec and complete package metadata foundations merged in PR #8 at
+`50de147fd5493d634e06447a2590b63ccc8a649b`. Its exact source `00f5d09e578020ad30bae823596cb4c9043e6d9d`
+passed all Quality/ReDroid checks; Quality run `43785701230` passed the real Linux
+memfd seal test and built/verified the updated ARM64 guest archive.
+
+The next branch integrates the guest session, direct agent streams, fixed stdin
+installer and opt-in Swift preparation. The list/remove forward design in Tasks
+2a/2b is superseded by Task 2e. Independent reviews of the integrated Python path
+and repaired Swift path found no remaining P1/P2 defects. Local checks completed
+286 Python tests (one Linux-only skip on macOS), 31 Swift tests, the Swift release
+build, actionlint and shell syntax. These checks do not establish a live native
+session. Matching Linux artifacts and fresh guest acceptance are the next gate.
+
+All 47 source recipe groups and 61 remote source inputs have been collected and
+hash-verified locally. The old ncurses snapshot was recovered byte-for-byte from
+Alpine's official v3.22 distfiles mirror; original SHA-512 remained authoritative.
+Notice collection, source packaging and the public release catalog are pending.

@@ -19,3 +19,5 @@ ashnazg-vm --assets DIR --state-dir DIR \
 ```
 
 Both agent flags are required together. Optional `--agent-port` and `--install-port` select the host loopback listeners (defaults `17777` and `17778`); they must differ from one another and from `--adb-port`. Without an APK, the existing VM-only ready behavior remains in effect. With an APK, the helper verifies the opened file, prepares it through the fixed guest control protocol, then publishes a private `.ashnazg-session-v1.json` credential and an `agent_ready` receipt after both relays bind. The receipt contains session/endpoints and artifact identity, never tokens. The private credential protects against other users through its owner-only file and directory permissions; another process running as the same user can read the helper's memory and files, so it is outside that confidentiality boundary. This explicit helper path does not yet provide zero-setup release acquisition or Rust CLI integration.
+
+This candidate path is covered by host tests and still requires fresh guest/vsock acceptance. Use a guest built from the matching candidate source; the historical VM-only artifact lacks the preparation protocol.

@@ -56,6 +56,38 @@ State is private and exclusively locked. The helper refuses non-empty unowned di
 
 SIGINT/SIGTERM closes and drains owned relays, requests guest shutdown, and waits for guest cleanup and poweroff. Guest shutdown is bounded; an error or timeout forces a bounded VM stop and records a failed receipt. PID 1 terminates its owned Android supervisor and Docker service before syncing and powering off. It never exits into a kernel panic on an ordinary shutdown or startup failure.
 
+## Opt-in authenticated agent session
+
+The candidate helper can prepare the Android agent without invoking host ADB.
+This path requires a guest built from the same candidate source containing the
+new session service; the historical `7a76029` and PR #8 guest artifacts do not
+contain that service. VM-only development remains available.
+
+```sh
+ashnazg-vm --assets /absolute/path/to/candidate/assets \
+  --state-dir /absolute/path/to/new/private/state \
+  --agent-apk /absolute/path/to/agent.apk --agent-sha256 EXPECTED_SHA256
+```
+
+The helper verifies the opened APK, sends its bounded upload over the owned
+host-to-guest channel, and waits for an authenticated agent ping in the guest.
+The guest uses its locked ADB to install the expected agent package. Agent RPC
+opens the fixed device service through ADB Smart Sockets; it creates no shared
+ADB forward and removes no other client's mappings.
+
+After preparation, the helper owns loopback agent/install relays (defaults
+`17777` and `17778`) and publishes `.ashnazg-session-v1.json` under its private,
+exclusively locked state directory. That file contains the fresh credentials;
+public `agent_ready` receipts contain only session, endpoint, artifact and timing
+metadata. Existing credential files are refused. Shutdown closes the relays,
+agent resources and owned credential before releasing state.
+
+Host tests cover framing, ownership, cancellation, FIFO refusal, nonblocking
+upload deadlines and relay half-close behavior. Fresh guest/vsock installation
+and full native session acceptance remain pending. The Rust `up` command and MCP
+server do not yet expose this opt-in helper setup; automatic artifact acquisition
+and native MCP installation are subsequent delivery steps.
+
 ## Recorded native cold boot
 
 The clean `7a760294d3a485cc9f40308c791a58e160d620f1` source and its [hosted artifact build](https://github.com/edufelip/ashnazg/actions/runs/43771299927) were tested with an ad-hoc-signed helper on Apple Silicon macOS. Both artifact ZIP digests, the inner archive checksum, manifest asset hashes and every requested kernel setting were verified before creating a fresh state directory. The retained [verification record](evidence/microvm-cold-boot-7a76029/verification.json) includes the two download receipts, API digest comparisons and all 79 kernel assignments; these checks were repeated when recording the evidence. The generated kernel has PSI and FUSE built in, with PSI enabled by default.
