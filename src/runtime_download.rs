@@ -2,7 +2,7 @@
 
 use crate::runtime_catalog::{CatalogEntry, RuntimeCatalog, catalog_url};
 use anyhow::{Result, anyhow, bail};
-use reqwest::header::{ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_LENGTH, LOCATION};
+use reqwest::header::{ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_LENGTH, HeaderMap, LOCATION};
 use reqwest::{Client, Url, redirect::Policy};
 use sha2::{Digest, Sha256};
 use std::{future::Future, time::Duration};
@@ -155,7 +155,7 @@ struct WireResponse<B> {
     location: Option<String>,
     content_length: Option<u64>,
     invalid_content_length: bool,
-    content_encoding: Option<String>,
+    invalid_content_encoding: bool,
     body: B,
 }
 
@@ -193,10 +193,7 @@ impl HttpTransport for ReqwestTransport<'_> {
             invalid_content_length: lengths.iter().count() > 1
                 || raw_header.is_some() && raw_length.is_none()
                 || raw_length.is_some_and(|v| v.parse::<u64>().is_err()),
-            content_encoding: headers
-                .get(CONTENT_ENCODING)
-                .and_then(|v| v.to_str().ok())
-                .map(str::to_owned),
+            invalid_content_encoding: !valid_content_encoding(headers),
             body: ReqwestBody(response),
         })
     }
@@ -360,11 +357,7 @@ fn validate_body_response<B>(
     if response.status != 200 {
         bail!("runtime download returned an unexpected status");
     }
-    if response
-        .content_encoding
-        .as_deref()
-        .is_some_and(|encoding| !encoding.eq_ignore_ascii_case("identity"))
-    {
+    if response.invalid_content_encoding {
         bail!("runtime download encoding is not allowed");
     }
     if response.invalid_content_length {
@@ -376,6 +369,18 @@ fn validate_body_response<B>(
         bail!("runtime artifact content length mismatch");
     }
     Ok(())
+}
+
+fn valid_content_encoding(headers: &HeaderMap) -> bool {
+    let mut values = headers.get_all(CONTENT_ENCODING).iter();
+    match (values.next(), values.next()) {
+        (None, None) => true,
+        (Some(value), None) => value
+            .to_str()
+            .is_ok_and(|encoding| encoding.eq_ignore_ascii_case("identity")),
+        (Some(_), Some(_)) => false,
+        (None, Some(_)) => false,
+    }
 }
 
 fn is_redirect(status: u16) -> bool {
@@ -422,16 +427,38 @@ mod tests {
             location: None,
             content_length: Some(3),
             invalid_content_length: false,
-            content_encoding: Some("gzip".into()),
+            invalid_content_encoding: true,
             body: (),
         };
         assert!(validate_body_response(&response, Some(3)).is_err());
         let response = WireResponse {
-            content_encoding: None,
+            invalid_content_encoding: false,
             ..response
         };
         assert!(validate_body_response(&response, Some(4)).is_err());
         assert!(validate_body_response(&response, Some(3)).is_ok());
+    }
+
+    #[test]
+    fn content_encoding_headers_are_validated_without_lossy_projection() {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(CONTENT_ENCODING, "identity".parse().unwrap());
+        headers.append(CONTENT_ENCODING, "gzip".parse().unwrap());
+        assert!(!valid_content_encoding(&headers));
+
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(
+            CONTENT_ENCODING,
+            reqwest::header::HeaderValue::from_bytes(&[0xff]).unwrap(),
+        );
+        assert!(!valid_content_encoding(&headers));
+
+        let mut headers = reqwest::header::HeaderMap::new();
+        assert!(valid_content_encoding(&headers));
+        headers.insert(CONTENT_ENCODING, "IdEnTiTy".parse().unwrap());
+        assert!(valid_content_encoding(&headers));
+        headers.insert(CONTENT_ENCODING, "identity, identity".parse().unwrap());
+        assert!(!valid_content_encoding(&headers));
     }
 
     use std::{
@@ -476,7 +503,7 @@ mod tests {
             location: location.map(str::to_owned),
             content_length: length,
             invalid_content_length: false,
-            content_encoding: None,
+            invalid_content_encoding: false,
             body: Chunks {
                 chunks: bytes.chunks(2).map(<[u8]>::to_vec).collect(),
                 delay: Duration::ZERO,
