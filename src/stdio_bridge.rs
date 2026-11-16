@@ -45,6 +45,9 @@ impl OwnedStdioBridge {
         output: BorrowedFd<'_>,
         caller_cancel: CancellationToken,
     ) -> Result<Self> {
+        if !cfg!(any(target_os = "macos", target_os = "linux")) {
+            bail!("stdio bridge descriptor isolation is unsupported on this platform");
+        }
         tokio::runtime::Handle::try_current().context("stdio bridge requires an active runtime")?;
         validate_endpoint(input, true)?;
         validate_endpoint(output, false)?;
@@ -305,6 +308,7 @@ pub fn hidden_child_fd(args: impl IntoIterator<Item = OsString>) -> Result<Optio
 /// Called by the executable before it initializes logging, signals, or Tokio.
 pub fn run_hidden_child(fd: RawFd) -> Result<()> {
     validate_ipc(fd)?;
+    close_inherited_descriptors(fd)?;
     // SAFETY: the hidden mode accepts only the descriptor deliberately inherited
     // by the parent owner after validating the socket type and family.
     let socket = unsafe { std::os::unix::net::UnixStream::from_raw_fd(fd) };
@@ -313,6 +317,94 @@ pub fn run_hidden_child(fd: RawFd) -> Result<()> {
         .context("invalid internal bridge invocation")?;
     std::thread::spawn(move || bridge_stdin(input_socket));
     bridge_stdout(socket)
+}
+
+// Run after exec, before creating copy threads. Enumerating here observes the
+// child's actual descriptor table, including parent descriptors opened after
+// spawn preparation, without allocating in a forked pre-exec hook.
+fn close_inherited_descriptors(keep: RawFd) -> Result<()> {
+    for fd in inherited_descriptors()? {
+        if fd <= libc::STDERR_FILENO || fd == keep {
+            continue;
+        }
+        // SAFETY: this startup-only child owns its descriptor table. No copy
+        // threads exist yet and the parent has an independent table after exec.
+        if unsafe { libc::close(fd) } != 0
+            && io::Error::last_os_error().raw_os_error() != Some(libc::EBADF)
+        {
+            bail!("cannot isolate bridge descriptors");
+        }
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn inherited_descriptors() -> Result<Vec<RawFd>> {
+    const MAX_BYTES: usize = 1024 * 1024;
+    let record_size = std::mem::size_of::<libc::proc_fdinfo>();
+    // SAFETY: querying our own process with a null buffer returns the required
+    // byte count. The second call writes only within the allocated record slice.
+    let needed = unsafe {
+        libc::proc_pidinfo(
+            libc::getpid(),
+            libc::PROC_PIDLISTFDS,
+            0,
+            std::ptr::null_mut(),
+            0,
+        )
+    };
+    if needed <= 0 || needed as usize > MAX_BYTES - 32 * record_size {
+        bail!("cannot isolate bridge descriptors");
+    }
+    let capacity = (needed as usize).div_ceil(record_size) + 32;
+    let mut records = vec![
+        libc::proc_fdinfo {
+            proc_fd: -1,
+            proc_fdtype: 0
+        };
+        capacity
+    ];
+    let capacity_bytes = records.len() * record_size;
+    let read = unsafe {
+        libc::proc_pidinfo(
+            libc::getpid(),
+            libc::PROC_PIDLISTFDS,
+            0,
+            records.as_mut_ptr().cast(),
+            capacity_bytes as libc::c_int,
+        )
+    };
+    if read <= 0 || read as usize >= capacity_bytes || !(read as usize).is_multiple_of(record_size)
+    {
+        bail!("cannot isolate bridge descriptors");
+    }
+    Ok(records[..read as usize / record_size]
+        .iter()
+        .map(|record| record.proc_fd)
+        .collect())
+}
+
+#[cfg(target_os = "linux")]
+fn inherited_descriptors() -> Result<Vec<RawFd>> {
+    let mut descriptors = Vec::new();
+    for entry in std::fs::read_dir("/proc/self/fd").context("cannot isolate bridge descriptors")? {
+        if descriptors.len() >= 131_072 {
+            bail!("cannot isolate bridge descriptors");
+        }
+        let fd = entry
+            .context("cannot isolate bridge descriptors")?
+            .file_name()
+            .to_str()
+            .and_then(|name| name.parse::<RawFd>().ok())
+            .ok_or_else(|| anyhow::anyhow!("cannot isolate bridge descriptors"))?;
+        descriptors.push(fd);
+    }
+    Ok(descriptors)
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "linux")))]
+fn inherited_descriptors() -> Result<Vec<RawFd>> {
+    bail!("stdio bridge descriptor isolation is unsupported on this platform")
 }
 
 fn validate_ipc(fd: RawFd) -> Result<()> {

@@ -1,12 +1,12 @@
 # Owned stdio bridge
 
-`OwnedStdioBridge` is a Unix-only adapter for a future native CLI bootstrap. It keeps blocking inherited stdio out of the MCP/session owner by moving it into a short-lived copy-only child process. It does not change MCP backend selection or the current default CLI behavior.
+`OwnedStdioBridge` is an adapter for macOS and Linux for a future native CLI bootstrap. It keeps blocking inherited stdio out of the MCP/session owner by moving it into a short-lived copy-only child process. It does not change MCP backend selection or the current default CLI behavior.
 
 ## Ownership and lifecycle
 
 `spawn` borrows and validates its input and output descriptors, then takes private descriptor clones for the bridge child. Input must be readable; output must be writable. Supported endpoints are pipes, local Unix stream sockets, and terminal descriptors. Datagram and non-local sockets, regular files, non-terminal character devices, invalid descriptors, and reversed access directions are rejected before the child starts. The bridge requires an active Tokio runtime.
 
-The parent and child communicate over a private Unix stream socketpair with bounded kernel buffering. Only the child endpoint is deliberately inherited. The child receives fixed internal arguments, no inherited environment, and no stderr diagnostics. Its protocol is raw bytes; it accepts no commands, paths, or caller-supplied process identifiers. The copy buffers are fixed at 16 KiB.
+The parent and child communicate over a private Unix stream socketpair with bounded kernel buffering. Only the child endpoint is deliberately inherited in addition to its standard descriptors. Before starting copy threads, the hidden child enumerates its own descriptors and closes all others. This happens after `exec`, so descriptors from a caller that omitted `FD_CLOEXEC` may exist during the trusted executable's loader/startup. The parent table and flags are unchanged. macOS uses `PROC_PIDLISTFDS`; Linux requires `/proc/self/fd`. Enumeration is bounded and failure terminates the bridge before copying protocol bytes. The child receives fixed internal arguments, no inherited environment, and no stderr diagnostics. Its protocol is raw bytes; it accepts no commands, paths, or caller-supplied process identifiers. The copy buffers are fixed at 16 KiB.
 
 `take_io` transfers the parent IPC stream once as owned async read/write halves. The read half carries bytes read from inherited stdin; the write half carries bytes to inherited stdout. Stdin EOF half-closes the child-to-parent direction after buffered bytes. A stdin read error terminates the bridge with failure rather than reporting a normal EOF. Parent write EOF ends the child output loop, even if its stdin reader is blocked.
 

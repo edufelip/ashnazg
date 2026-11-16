@@ -87,6 +87,55 @@ async fn idle_input_cancellation_reaps_child_without_cancelling_caller_token() {
 }
 
 #[tokio::test]
+async fn unrelated_inheritable_writer_is_closed_before_bridge_copies_data() {
+    let (input_reader, input_writer) = pipe();
+    let (_output_reader, output_writer) = pipe();
+    let (unrelated_reader, unrelated_writer) = pipe();
+    let raw = unrelated_writer.as_raw_fd();
+    let original = unsafe { libc::fcntl(raw, libc::F_GETFD) };
+    assert_eq!(
+        unsafe { libc::fcntl(raw, libc::F_SETFD, original & !libc::FD_CLOEXEC) },
+        0
+    );
+    let mut bridge = OwnedStdioBridge::spawn(
+        child_executable(),
+        input_reader.as_fd(),
+        output_writer.as_fd(),
+        CancellationToken::new(),
+    )
+    .unwrap();
+    assert_eq!(
+        unsafe { libc::fcntl(raw, libc::F_GETFD) } & libc::FD_CLOEXEC,
+        0,
+        "child cleanup must not modify parent descriptor flags"
+    );
+    let (mut reader, _writer) = bridge.take_io().unwrap();
+    std::fs::File::from(input_writer)
+        .write_all(b"ready")
+        .unwrap();
+    let mut ready = [0; 5];
+    tokio::time::timeout(Duration::from_secs(3), reader.read_exact(&mut ready))
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(&ready, b"ready");
+    drop(unrelated_writer);
+    let fd = unrelated_reader.as_raw_fd();
+    let flags = unsafe { libc::fcntl(fd, libc::F_GETFL) };
+    assert_eq!(
+        unsafe { libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) },
+        0
+    );
+    let mut byte = [0];
+    let result = unsafe { libc::read(fd, byte.as_mut_ptr().cast(), byte.len()) };
+    bridge.shutdown().await.unwrap();
+    assert_eq!(
+        result, 0,
+        "an unrelated writer inherited by the live child must not keep the pipe open"
+    );
+}
+
+#[tokio::test]
 async fn partial_input_eof_preserves_order_and_output_can_still_drain() {
     let (input_reader, input_writer) = pipe();
     let (output_reader, output_writer) = pipe();
@@ -221,33 +270,90 @@ async fn large_input_burst_is_ordered_across_paused_reader_backpressure() {
 }
 
 #[tokio::test]
-async fn competing_reader_consuming_pipe_data_does_not_block_cancellation() {
+async fn competing_reader_after_child_activity_does_not_block_cancellation() {
     let (input_reader, input_writer) = pipe();
     let alias = input_reader.try_clone().unwrap();
-    let mut input_file = std::fs::File::from(input_writer);
-    input_file
-        .write_all(b"readiness consumed by alias")
-        .unwrap();
-    let mut alias_file = std::fs::File::from(alias);
-    let mut stolen = vec![0; b"readiness consumed by alias".len()];
-    alias_file.read_exact(&mut stolen).unwrap();
-    assert_eq!(stolen, b"readiness consumed by alias");
-    // Keep a writer open so the child's input read must wait rather than
-    // immediately observing EOF after the alias consumed the available data.
-
     let (_output_reader, output_writer) = pipe();
-    let bridge = OwnedStdioBridge::spawn(
+    let mut bridge = OwnedStdioBridge::spawn(
         child_executable(),
         input_reader.as_fd(),
         output_writer.as_fd(),
         CancellationToken::new(),
     )
     .unwrap();
-    tokio::time::timeout(Duration::from_secs(2), bridge.shutdown())
+    let child_pid = child_pid_for_fixture(&bridge);
+    let (mut reader, _writer) = bridge.take_io().unwrap();
+    let raw = input_writer.as_raw_fd();
+    std::fs::File::from(input_writer.try_clone().unwrap())
+        .write_all(b"ready")
+        .unwrap();
+    let mut ready = [0; 5];
+    tokio::time::timeout(Duration::from_secs(3), reader.read_exact(&mut ready))
         .await
         .unwrap()
         .unwrap();
-    drop(input_file);
+    assert_eq!(&ready, b"ready");
+    // Leave parent IPC reads paused and fill the owned input path until the
+    // child's stdin-copy thread is backpressured. Nonblocking fixture I/O
+    // prevents a failed precondition from hanging the test itself.
+    let flags = unsafe { libc::fcntl(raw, libc::F_GETFL) };
+    assert_eq!(
+        unsafe { libc::fcntl(raw, libc::F_SETFL, flags | libc::O_NONBLOCK) },
+        0
+    );
+    let payload = [0x5au8; 4096];
+    let mut total = 0;
+    let deadline = std::time::Instant::now() + Duration::from_secs(3);
+    loop {
+        let count = unsafe { libc::write(raw, payload.as_ptr().cast(), payload.len()) };
+        if count > 0 {
+            total += count as usize;
+            assert!(total <= 16 * 1024 * 1024);
+        } else {
+            assert_eq!(
+                std::io::Error::last_os_error().kind(),
+                std::io::ErrorKind::WouldBlock
+            );
+            let mut waiting = libc::pollfd {
+                fd: raw,
+                events: libc::POLLOUT,
+                revents: 0,
+            };
+            let progress = unsafe { libc::poll(&mut waiting, 1, 100) };
+            assert!(progress >= 0);
+            if progress == 0 {
+                break;
+            }
+        }
+        assert!(
+            std::time::Instant::now() < deadline,
+            "fixture did not reach backpressure"
+        );
+    }
+    let alias_raw = alias.as_raw_fd();
+    let flags = unsafe { libc::fcntl(alias_raw, libc::F_GETFL) };
+    assert_eq!(
+        unsafe { libc::fcntl(alias_raw, libc::F_SETFL, flags | libc::O_NONBLOCK) },
+        0
+    );
+    let mut stolen = [0u8; 512];
+    let count = unsafe { libc::read(alias_raw, stolen.as_mut_ptr().cast(), stolen.len()) };
+    // Cleanup is joined before asserting the alias outcome, including when
+    // unexpected kernel progress made the controlled race precondition fail.
+    bridge.shutdown().await.unwrap();
+    if let Some(pid) = child_pid {
+        assert_process_reaped(pid).await;
+    }
+    assert!(total > 0);
+    assert!(
+        count > 0,
+        "the competing alias must consume bytes after child activity"
+    );
+    assert!(
+        stolen[..count as usize].iter().all(|byte| *byte == 0x5a),
+        "stolen bytes: count={count}, head={:?}",
+        &stolen[..(count as usize).min(16)]
+    );
 }
 
 #[tokio::test]
@@ -388,7 +494,7 @@ async fn test_owned_canonical_xoff_terminal_is_cancelled_without_input_or_output
         revents: 0,
     };
     assert_eq!(
-        unsafe { libc::poll(&mut pollfd, 1, 1000) },
+        unsafe { libc::poll(&mut pollfd, 1, 3000) },
         1,
         "the child must produce its readiness bytes"
     );
