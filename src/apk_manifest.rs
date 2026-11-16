@@ -47,7 +47,7 @@ fn identity(f: &File) -> Result<Identity> {
 
 struct Bounded<'a> {
     file: &'a File,
-    length: u64,
+    limit: std::cell::Cell<u64>,
     deadline: Instant,
     cancel: &'a CancellationToken,
     bytes: std::cell::Cell<u64>,
@@ -56,10 +56,14 @@ struct Bounded<'a> {
 impl ReaderAt for Bounded<'_> {
     fn read_at(&self, out: &mut [u8], offset: u64) -> std::io::Result<usize> {
         let fail = || std::io::Error::other("bounded read failed");
-        if check(self.deadline, self.cancel).is_err() || offset >= self.length || out.is_empty() {
-            return if out.is_empty() { Ok(0) } else { Err(fail()) };
+        if check(self.deadline, self.cancel).is_err() {
+            return Err(fail());
         }
-        let n = out.len().min(MAX_READ).min((self.length - offset) as usize);
+        let limit = self.limit.get();
+        if offset >= limit || out.is_empty() {
+            return Ok(0);
+        }
+        let n = out.len().min(MAX_READ).min((limit - offset) as usize);
         let calls = self.calls.get().saturating_add(1);
         let bytes = self.bytes.get().saturating_add(n as u64);
         if calls > MAX_CALLS || bytes > MAX_IO {
@@ -98,7 +102,7 @@ fn read_android_manifest_inner(
     }
     let io = Bounded {
         file,
-        length: before.size,
+        limit: std::cell::Cell::new(before.size),
         deadline,
         cancel,
         bytes: std::cell::Cell::new(0),
@@ -148,6 +152,9 @@ fn read_android_manifest_inner(
     if count != hint {
         bail!("APK manifest read failed")
     }
+    // From here on only local entry data is needed. In particular, a truncated
+    // descriptor must not borrow bytes from the central directory.
+    io.limit.set(cd);
     let (way, method, flags, compressed, uncompressed, crc, local_offset) =
         found.ok_or_else(|| anyhow!("APK manifest read failed"))?;
     if flags.is_encrypted()
@@ -190,6 +197,19 @@ fn read_android_manifest_inner(
     let (start, end) = entry.compressed_data_range();
     if end < start || end > cd || end > before.size || end - start != compressed {
         bail!("APK manifest read failed")
+    }
+    if streaming {
+        let descriptor = entry
+            .reader()
+            .data_descriptor()
+            .map_err(|_| anyhow!("APK manifest read failed"))?
+            .ok_or_else(|| anyhow!("APK manifest read failed"))?;
+        if descriptor.crc32() != crc
+            || descriptor.compressed_size() != compressed
+            || descriptor.uncompressed_size() != uncompressed
+        {
+            bail!("APK manifest read failed")
+        }
     }
     before_payload(file);
     let compressed_reader = entry.reader();
@@ -419,6 +439,43 @@ mod tests {
             bytes[6..8].copy_from_slice(&flag.to_le_bytes());
             bytes[cd + 8..cd + 10].copy_from_slice(&flag.to_le_bytes());
             assert!(read(&bytes).is_err());
+        }
+    }
+
+    #[test]
+    fn streaming_descriptor_must_exist_and_match_before_the_central_directory() {
+        for deflate in [false, true] {
+            let original = streaming_zip(b"payload", deflate);
+            let cd = u32::from_le_bytes(
+                original[original.len() - 6..original.len() - 2]
+                    .try_into()
+                    .unwrap(),
+            ) as usize;
+            let descriptor = cd - 16;
+            for field in [4, 8, 12] {
+                let mut bytes = original.clone();
+                bytes[descriptor + field] ^= 1;
+                assert!(
+                    read(&bytes).is_err(),
+                    "conflicting descriptor field {field} accepted"
+                );
+            }
+            for retained in 0..16 {
+                let mut bytes = original.clone();
+                bytes.drain(descriptor + retained..cd);
+                let eocd = bytes.len() - 22;
+                bytes[eocd + 16..eocd + 20]
+                    .copy_from_slice(&((descriptor + retained) as u32).to_le_bytes());
+                assert!(
+                    read(&bytes).is_err(),
+                    "truncated {retained}-byte descriptor accepted"
+                );
+            }
+            let mut unsigned = original;
+            unsigned.drain(descriptor..descriptor + 4);
+            let eocd = unsigned.len() - 22;
+            unsigned[eocd + 16..eocd + 20].copy_from_slice(&((cd - 4) as u32).to_le_bytes());
+            assert_eq!(read(&unsigned).unwrap(), b"payload");
         }
     }
 
