@@ -1,0 +1,13 @@
+{
+  "authorization_or_cookies_sent": false,
+  "final_host": "release-assets.githubusercontent.com",
+  "helper_signature_verified": true,
+  "matches_accepted_candidate": true,
+  "schema_version": 1,
+  "seconds": 0.922347167,
+  "sha256": "307b71608e2afd38d3e8743c482f8cce99700cdb9a14ac6b9f2c415a4fe34be3",
+  "size": 6678764,
+  "source_sha": "50434b8a056514fafd9fcb63cc534ce369880184",
+  "status": 200,
+  "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-v0.3.0-macos-aarch64.zip"
+}

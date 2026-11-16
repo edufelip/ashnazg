@@ -1,0 +1,12 @@
+{
+  "cli_launch_count": 1,
+  "controller_outside_policy": true,
+  "launches": [
+    {
+      "binary": "/private/tmp/ashnazg-runtime-release-50434b8-ugh0ozrx/public-mac-package/bin/ashnazg",
+      "profile_sha256": "dfc42c68e4c06ddb51dbe133d3496d737f1f20cbe832694669222b94633d1347"
+    }
+  ],
+  "profile_before_after_matches": true,
+  "schema_version": 1
+}

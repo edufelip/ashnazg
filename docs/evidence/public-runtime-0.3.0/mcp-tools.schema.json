@@ -1,0 +1,186 @@
+{
+  "app_install": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "launch": {
+        "default": null,
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "package": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "path": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "path"
+    ],
+    "type": "object"
+  },
+  "app_logs": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "sinceMs": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "tagFilter": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "type": "object"
+  },
+  "ui_act": {
+    "$defs": {
+      "Action": {
+        "enum": [
+          "tap",
+          "long_press",
+          "type",
+          "clear",
+          "scroll_to",
+          "back",
+          "deep_link"
+        ],
+        "type": "string"
+      },
+      "Direction": {
+        "enum": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "type": "string"
+      },
+      "Target": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "snapshotId": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "testId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "action": {
+        "$ref": "#/$defs/Action"
+      },
+      "direction": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Direction"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "target": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Target"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "text": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "action"
+    ],
+    "type": "object"
+  },
+  "ui_screenshot": {
+    "$defs": {
+      "ScreenshotFormat": {
+        "enum": [
+          "webp",
+          "png"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "format": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ScreenshotFormat"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "somOverlay": {
+        "default": false,
+        "type": "boolean"
+      }
+    },
+    "type": "object"
+  },
+  "ui_snapshot": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "includeInvisible": {
+        "default": false,
+        "type": "boolean"
+      }
+    },
+    "type": "object"
+  }
+}

@@ -2,7 +2,7 @@
 
 ## v0.3.0 experimental native runtime
 
-The release candidate workflow now builds the host package and native runtime from one exact main commit. A candidate is not a published release: runtime availability is established only after the accepted files appear in the public `v0.3.0` release and production acquisition succeeds.
+The [public v0.3.0 prerelease](https://github.com/edufelip/ashnazg/releases/tag/v0.3.0) is available. Its ten asset bodies match the accepted candidate; the released macOS host passed [public cold acquisition and a network-denied warm restart](evidence/public-runtime-0.3.0/README.md). The candidate workflow builds the host package and native runtime from one exact main commit and publishes the accepted bytes unchanged.
 
 The candidate contains Linux x86_64 and macOS ARM64 host ZIPs, a Linux ARM64 guest archive, the ad-hoc signed macOS ARM64 `ashnazg-vm` helper, agent/fixture APKs, a source-and-notice sidecar, the schema-1 runtime catalog, `candidate.json`, and download `SHA256SUMS`. The macOS ZIP also includes `bin/ashnazg-vm`. Both ZIPs include original host-dependency notice texts in `THIRD-PARTY-NOTICES.tar.xz` alongside the project MIT license. Catalog artifacts and the host build stamp identify the same full source SHA; generated catalogs are release outputs rather than committed source inputs.
 
@@ -11,6 +11,33 @@ On Apple Silicon macOS, the released `bin/ashnazg mcp` selects its owned VM when
 The helper carries the `com.apple.security.virtualization` entitlement and an ad-hoc signature. Host/helper binaries are not Developer ID signed or notarized; ordinary macOS security approval may be required. Debug-signed Android instrumentation and the experimental guest are development tools. SHA-256 verification supplies download integrity, not an independent publisher signature or intrinsic binary-to-source proof.
 
 The source sidecar retains upstream package sources, pinned packaging recipes/support files, license/notice material, project sources and kernel configuration/source, with a manifest binding the installed-package inventory to the prepared guest. ReDroid is downloaded at first boot and its OCI image is excluded from the distributed guest/source assets. Declared package license values and retained source evidence do not constitute a legal-clearance claim.
+
+### Native macOS ARM64 setup
+
+Download and verify the host ZIP in a new directory:
+
+```sh
+curl -fLO https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-v0.3.0-macos-aarch64.zip
+curl -fLO https://github.com/edufelip/ashnazg/releases/download/v0.3.0/SHA256SUMS
+awk '$2 == "ashnazg-v0.3.0-macos-aarch64.zip" {print}' SHA256SUMS | shasum -a 256 -c -
+mkdir ashnazg-v0.3.0
+unzip ashnazg-v0.3.0-macos-aarch64.zip -d ashnazg-v0.3.0
+```
+
+Configure your MCP client with the extracted executable's absolute path:
+
+```json
+{
+  "mcpServers": {
+    "ashnazg": {
+      "command": "/absolute/path/ashnazg-v0.3.0/bin/ashnazg",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Leave `ASHNAZG_TOKEN` absent to select the owned VM. First use downloads the matching runtime and pulls its pinned Android image; later sessions reuse the verified cache and persistent disk. Host ADB, aapt, and Android SDK setup are not required. MCP initialization completes before the VM is ready; a still-starting tool response can be retried. Stdio carries protocol messages, not an interactive prompt. Close an existing native session before starting another on the default ports. Ordinary macOS security approval may be required for the ad-hoc signed, non-notarized binaries.
 
 ### Prepare, qualify, publish
 

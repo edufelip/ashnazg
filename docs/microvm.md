@@ -1,6 +1,6 @@
 # Apple Silicon Linux VM backend
 
-This backend is under qualification. The native `ashnazg up` CLI and Swift Virtualization.framework helper have booted Android 15 on Apple Silicon macOS. Native fixture integration, a comparative benchmark and one restart have passed; a default-download bundle remains unqualified. The existing Android device and Linux container paths remain usable independently.
+The experimental Apple Silicon backend is distributed in the [public v0.3.0 release](https://github.com/edufelip/ashnazg/releases/tag/v0.3.0). The packaged native MCP CLI passed [public cold acquisition and a network-denied warm restart](evidence/public-runtime-0.3.0/README.md), including all five tools and joined shutdown. The source-specific sections below retain earlier qualification history. The existing Android device and Linux container paths remain usable independently.
 
 ## Build and inputs
 
@@ -158,16 +158,16 @@ A restart of the same owned disk passed [another 28 RPC and 10 MCP checks](evide
 
 The cold and restart screenshot sets are retained alongside the receipts. Native, Compose, React Native and MCP PNGs from the cold retest were visually inspected. These are one cold run and one restart, not a boot-time distribution or an idle-CPU measurement. The original failed run remains above as a separate result.
 
-## Qualification still required
+## Historical owner qualification and remaining coverage
 
 The Rust [native session owner](native-session.md) now supervises explicit local
 helper startup, authenticates the agent and supplies RPC/install clients. Its
 [one-restart acceptance](evidence/native-owner-acceptance-5256b94/receipt.json)
 passed three Rust factory installs, 28 RPC and seven MCP compatibility checks
 against the existing pinned guest, then joined orderly shutdown without host
-ADB. This does not yet expose automatic native sessions through CLI/MCP or
-qualify fresh-state startup with the new supervisor.
+ADB. That source-specific acceptance did not establish automatic CLI/MCP
+setup or fresh-state startup with the new supervisor.
 
-Remaining v0.3 delivery work includes broader injected-failure and repeated-start coverage, default bundle acquisition, agent/MCP setup integration, and distribution packaging. The local acceptance above establishes the tested generated image, Android fixture paths, initial restart and owned shutdown behavior; it does not qualify those remaining installation and recovery flows. No kernel-size, RAM, idle-CPU, boot-time or zero-copy screenshot target is established by compiling the helper. GitHub-hosted macOS builds cannot replace the local VM acceptance run.
+The later [public-release qualification](evidence/public-runtime-0.3.0/README.md) establishes distribution, automatic acquisition and native MCP setup for its tested macOS host. Broader injected-failure and repeated-start coverage remains separate. No kernel-size, RAM, idle-CPU, boot-time or zero-copy screenshot target is established by compiling the helper. GitHub-hosted macOS builds cannot replace the local VM acceptance run.
 
 [iOS research](research/ios.md) remains a separate track; the Linux guest does not provide iOS compatibility.

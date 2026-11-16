@@ -1,0 +1,11 @@
+{
+  "id": 7,
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "arguments": {
+      "includeInvisible": false
+    },
+    "name": "ui_snapshot"
+  }
+}

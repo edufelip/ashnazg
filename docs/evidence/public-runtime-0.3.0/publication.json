@@ -1,0 +1,102 @@
+{
+  "accepted_asset_match": true,
+  "provenance": {
+    "acceptance_commit": "90d0bda1ee4894add5c668f5e46dc65a456ea944",
+    "prepared_run_id": 43914898031,
+    "publication_branch": "main",
+    "publication_conclusion": "success",
+    "publication_event": "workflow_dispatch",
+    "publication_head_sha": "90d0bda1ee4894add5c668f5e46dc65a456ea944",
+    "publication_run_id": 43929683661,
+    "publication_workflow": ".github/workflows/release.yml",
+    "source_sha": "50434b8a056514fafd9fcb63cc534ce369880184"
+  },
+  "release": {
+    "asset_count": 10,
+    "assets": [
+      {
+        "digest": "sha256:87549b2df90506c6b8c38f10d0d90c8966f4030806e2da40cdd1f2da77dca32e",
+        "id": 755974732,
+        "name": "ashnazg-agent-v0.3.0.apk",
+        "size": 72129,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-agent-v0.3.0.apk"
+      },
+      {
+        "digest": "sha256:cafc888b119926235872c4bc23023c1dbbd7a986f33e11609e33244cccd49e1d",
+        "id": 755974729,
+        "name": "ashnazg-fixture-v0.3.0.apk",
+        "size": 13421,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-fixture-v0.3.0.apk"
+      },
+      {
+        "digest": "sha256:e5129a41cbdc1bc34a0176a5893726be6389e7213f926313b1f62048280c98c8",
+        "id": 755974730,
+        "name": "ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz",
+        "size": 230820656,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz"
+      },
+      {
+        "digest": "sha256:ea39160390bc42732d649f0a2690b9772026343a43a1b862848bea7cab4af68e",
+        "id": 755974735,
+        "name": "ashnazg-runtime-sources-v0.3.0-001.tar.xz",
+        "size": 481036496,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-runtime-sources-v0.3.0-001.tar.xz"
+      },
+      {
+        "digest": "sha256:6581604e6cd4176a36a124816eb6ce0ec60deb73bdf5b4e0abc8f3c8be3f22ac",
+        "id": 755974770,
+        "name": "ashnazg-runtime-v0.3.0.json",
+        "size": 1547,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-runtime-v0.3.0.json"
+      },
+      {
+        "digest": "sha256:ba5e80b636703498260d55f49ad1ee58dfcbce37fae2aa6c8031918253c28f32",
+        "id": 755974766,
+        "name": "ashnazg-v0.3.0-linux-x86_64.zip",
+        "size": 7078345,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-v0.3.0-linux-x86_64.zip"
+      },
+      {
+        "digest": "sha256:307b71608e2afd38d3e8743c482f8cce99700cdb9a14ac6b9f2c415a4fe34be3",
+        "id": 755974777,
+        "name": "ashnazg-v0.3.0-macos-aarch64.zip",
+        "size": 6678764,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-v0.3.0-macos-aarch64.zip"
+      },
+      {
+        "digest": "sha256:c454adf333a8b658c9c3add5645503e107aca36d76e857d380624528f3051574",
+        "id": 755974797,
+        "name": "ashnazg-vm-v0.3.0-macos-aarch64",
+        "size": 636688,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-vm-v0.3.0-macos-aarch64"
+      },
+      {
+        "digest": "sha256:4846dc01389eeeecf507f9f94c5192fb545bfbeb2b0a71191934c650e46aa86b",
+        "id": 755974840,
+        "name": "candidate.json",
+        "size": 1476,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/candidate.json"
+      },
+      {
+        "digest": "sha256:5bc78b8a13539e933c918add678179afafd8d5054067ed7dc4aed18ae0391573",
+        "id": 755974733,
+        "name": "SHA256SUMS",
+        "size": 872,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.0/SHA256SUMS"
+      }
+    ],
+    "draft": false,
+    "id": 447431512,
+    "prerelease": true,
+    "url": "https://github.com/edufelip/ashnazg/releases/tag/v0.3.0"
+  },
+  "repository": {
+    "name": "edufelip/ashnazg",
+    "url": "https://github.com/edufelip/ashnazg",
+    "visibility": "public"
+  },
+  "tag": {
+    "commit": "50434b8a056514fafd9fcb63cc534ce369880184",
+    "name": "v0.3.0"
+  }
+}
