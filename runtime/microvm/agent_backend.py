@@ -231,7 +231,7 @@ class GuestAdbBackend:
         args = ["shell", "-T", "cmd", "package", "install", "-r"]
         if package is not None:
             args.extend(["--pkg", package])
-        args.extend(["-S", str(size), "-"])
+        args.extend(["-S", str(size)])
         return args
 
     def _install(self, staged_apk, *, package, deadline):

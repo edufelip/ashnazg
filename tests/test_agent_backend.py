@@ -68,6 +68,7 @@ class BackendTests(unittest.TestCase):
         self.agent_pid = ''
         self.forwards = ''
         self.install_output = 'Success\n'
+        self.android_rejects_trailing_install_dash = False
         self.launch_output = 'Starting: Intent { cmp=example.app/.Main }\nStatus: ok\n'
         self.instrument_alive = True
         self.instrument_args = None
@@ -101,7 +102,11 @@ class BackendTests(unittest.TestCase):
                         if not self.agent_pid:
                             proc.returncode = 1
                     elif 'install' in argv:
-                        proc.stdout_data = self.install_output.encode()
+                        if self.android_rejects_trailing_install_dash and argv[-1:] == ['-']:
+                            proc.returncode = 255
+                            proc.stdout_data = b'IllegalArgumentException: Unknown option -\n'
+                        else:
+                            proc.stdout_data = self.install_output.encode()
                     elif 'query-activities' in argv:
                         proc.stdout_data = self.query_output
                     elif 'resolve-activity' in argv:
@@ -200,7 +205,7 @@ class BackendTests(unittest.TestCase):
         install = next(c for c in self.commands if 'install' in c)
         self.assertEqual(install, ['/usr/bin/adb', '-s', '127.0.0.1:5555', 'shell', '-T',
                                    'cmd', 'package', 'install', '-r', '--pkg',
-                                   'dev.ashnazg.agent', '-S', '3', '-'])
+                                   'dev.ashnazg.agent', '-S', '3'])
         proc = next(p for p in self.processes if 'install' in p.args)
         self.assertEqual(proc.kwargs['stdin'], staged.fileno())
         self.assertFalse(staged.closed)
@@ -291,7 +296,25 @@ class BackendTests(unittest.TestCase):
     def test_ordinary_install_omits_expected_package_flag(self):
         self.backend._install(Staged(), package=None, deadline=time.monotonic() + 2)
         command = next(c for c in self.commands if 'install' in c)
-        self.assertEqual(command[-3:], ['-S', '3', '-'])
+        self.assertEqual(command[-2:], ['-S', '3'])
+        self.assertNotIn('--pkg', command)
+
+    def test_prepare_agent_install_uses_android_stdin_contract(self):
+        self.android_rejects_trailing_install_dash = True
+        self.ping_server()
+
+        self.backend.prepare_agent(Staged(), 'a' * 64, deadline=time.monotonic() + 2)
+
+        command = next(c for c in self.commands if 'install' in c)
+        self.assertEqual(command[-2:], ['-S', '3'])
+
+    def test_ordinary_install_uses_android_stdin_contract(self):
+        self.android_rejects_trailing_install_dash = True
+
+        self.backend._install(Staged(), package=None, deadline=time.monotonic() + 2)
+
+        command = next(c for c in self.commands if 'install' in c)
+        self.assertEqual(command[-2:], ['-S', '3'])
         self.assertNotIn('--pkg', command)
 
     def test_install_launch_validates_package_and_requires_status_ok(self):
