@@ -19,6 +19,9 @@ use std::{
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(test)]
+mod launch;
+
 const MAX_HELPER_BYTES: u64 = 64 * 1024 * 1024;
 const MAX_PIPE_BYTES: usize = 64 * 1024;
 const MAX_LINE_BYTES: usize = 8 * 1024;
