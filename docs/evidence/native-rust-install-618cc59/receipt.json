@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "client_source_sha": "618cc5955866e72bb2e44d7a43c9936cf440a51e",
+  "client_module_sha256": "08d3fde1b985cb1b52039acfc6d424a4d4f141c470c56af07ef9181842d2aa96",
+  "host_checkout_sha": "618cc5955866e72bb2e44d7a43c9936cf440a51e",
+  "host_checkout_dirty": false,
+  "guest_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+  "guest_workflow_run": 43807503988,
+  "native_rust_installs": [
+    {
+      "apk_sha256": "162713fae95542b0c09efab4f494969ab992d73d9357fd6583665af942a30746",
+      "apk_size": 13421,
+      "package": "dev.ashnazg.fixture",
+      "launched": true,
+      "client": "Rust NativeInstallClient"
+    },
+    {
+      "apk_sha256": "876fc77a551cc49e8285bbd1f63f5c8be26d079994e5894b59546dd0d1913c78",
+      "apk_size": 8723520,
+      "package": "com.ashnazg.fixture.compose",
+      "launched": true,
+      "client": "Rust NativeInstallClient"
+    },
+    {
+      "apk_sha256": "74f6ed7ee72b8f75356a53c13220f58fdcc199100228b9fa09bc5a6fb18d9f37",
+      "apk_size": 57588073,
+      "package": "com.ashnazg.fixture.reactnative",
+      "launched": true,
+      "client": "Rust NativeInstallClient"
+    }
+  ],
+  "rpc_checks": 28,
+  "mcp_checks": 7,
+  "host_adb_used": false,
+  "mode": "restart of previously qualified owned state; no offline guest changes",
+  "helper_exit_code": 0,
+  "credential_removed": true,
+  "owned_listeners_closed": {
+    "15555": true,
+    "7777": true,
+    "17778": true
+  },
+  "ready_runtime_timings": {
+    "agent_startup_ms": 611,
+    "readiness_ms": 26532,
+    "total_startup_ms": 27298,
+    "vm_start_ms": 126
+  },
+  "stopped_runtime_timings": {
+    "agent_startup_ms": 611,
+    "readiness_ms": 26532,
+    "total_startup_ms": 49295,
+    "vm_start_ms": 126
+  },
+  "boundaries": [
+    "The test probe supplies caller-owned session credentials; production credential-file validation and helper identity binding remain separate session-owner work.",
+    "The Rust client performed the three valid fixture installations. Existing Python harness requests exercised bad-token and corrupt-upload rejection.",
+    "MCP compatibility checks exclude native MCP app_install and automatic CLI/bootstrap.",
+    "One restart observation, not cold-start, release, benchmark, CPU or default acquisition qualification.",
+    "Binary hashes identify tested outputs; no intrinsic binary-to-source provenance is claimed."
+  ],
+  "previous_guest_acceptance": {
+    "path": "../native-session-acceptance-0155f64/receipt.json",
+    "sha256": "98eb5c634d825a32a2a76d53721efb69316f85bd31780e5431e5588b077cd758"
+  },
+  "files": {
+    "acceptance-driver.py": {
+      "size": 14303,
+      "sha256": "3ea7a1d3af7588d009b66c05ada4e5cff8f75a38593ca87e407024c45c5e8a1a"
+    },
+    "acceptance.json": {
+      "size": 7501,
+      "sha256": "d6cb2f473ac431103fad8373998f67fd4527c2c0c81caab9715bd0f2e0107509"
+    },
+    "compose.png": {
+      "size": 20488,
+      "sha256": "db284c6c449ddd7e5113fc2e5c6f32b401b8baa0d802f3dd955863feb489a3ae"
+    },
+    "fixture-overlay.png": {
+      "size": 65992,
+      "sha256": "28bf5a028f4a937e23bf9740671b3983bfb94d2d7c13a947b083ebf23ee46703"
+    },
+    "fixture.webp": {
+      "size": 18608,
+      "sha256": "443616465ad14f28673e1b8233e2f8ca0b3cf264811693207ca0d6f5fde102e0"
+    },
+    "mcp.png": {
+      "size": 59520,
+      "sha256": "6e0bc2d549b73e569f9c10eb42fbb4b0ca82ac94d4ab31b0f46dd9853580d567"
+    },
+    "mcp.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "native-install-probe-Cargo.lock": {
+      "size": 61783,
+      "sha256": "b44a3170e66546b6e622d0da505d6edb7661ac36924d0534d57d4d60176d1497"
+    },
+    "native-install-probe-Cargo.toml": {
+      "size": 340,
+      "sha256": "b84a0ff32bf5e5c1fc28d4278b409cb4dc96615adda05a7347de5d6e2d97ff94"
+    },
+    "native-install-probe.rs": {
+      "size": 2222,
+      "sha256": "bf484b72bfaea1724bc6514e42bbd08a3b2f60b6d3b3e378584cf1aff7f743a4"
+    },
+    "preflight-verification.json": {
+      "size": 1577,
+      "sha256": "1cce181fb6a857c1ca1d9d3d37ac5e5258ec5195def361a33ce1bf12b5ddfd2b"
+    },
+    "reactnative.png": {
+      "size": 25767,
+      "sha256": "931dde656a99b120da542191ddf18dad7cd94434b2a77e70184c25aae2cc3e7d"
+    },
+    "runtime.json": {
+      "size": 740,
+      "sha256": "12cb0811bb852918edc230b0e1770258c1134b48152e3f8aea0222444868c21a"
+    },
+    "vm.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "vm.stdout": {
+      "size": 745,
+      "sha256": "e7e79012715a40324a66889bc02bfb9c93b1e8fe3d7865677f421a6216d9f996"
+    }
+  }
+}

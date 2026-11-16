@@ -1,6 +1,7 @@
 mod guest;
 mod host;
 pub mod mcp;
+pub mod native_install;
 pub mod runtime_acquire;
 pub mod runtime_cache;
 pub mod runtime_catalog;
