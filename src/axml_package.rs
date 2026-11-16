@@ -38,8 +38,9 @@ pub fn package_name(bytes: &[u8], deadline: Instant, cancel: &CancellationToken)
     let mut root_closed = false;
     let mut package: Option<String> = None;
     let mut resource_map_seen = false;
+    let mut nodes_started = false;
     let mut tags: Vec<(u32, u32)> = Vec::new();
-    let mut namespaces: Vec<(u32, u32)> = Vec::new();
+    let mut namespaces: Vec<NamespaceScope> = Vec::new();
     let mut chunks = 0usize;
 
     while cursor < bytes.len() {
@@ -60,7 +61,7 @@ pub fn package_name(bytes: &[u8], deadline: Instant, cancel: &CancellationToken)
                 pool = Some(StringPool::new(bytes, cursor, chunk_header, chunk_size)?);
             }
             0x0180 => {
-                if root_seen
+                if nodes_started
                     || resource_map_seen
                     || chunk_header != 8
                     || chunk_size < chunk_header
@@ -71,6 +72,7 @@ pub fn package_name(bytes: &[u8], deadline: Instant, cancel: &CancellationToken)
                 resource_map_seen = true;
             }
             0x0100 | 0x0101 => {
+                nodes_started = true;
                 let strings = pool
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("missing string pool"))?;
@@ -86,22 +88,47 @@ pub fn package_name(bytes: &[u8], deadline: Instant, cancel: &CancellationToken)
                     strings.validate_string(uri, &mut work)?;
                 }
                 if chunk_type == 0x0100 {
-                    if root_closed {
-                        bail!("namespace starts after document root");
+                    if root_closed
+                        || namespaces
+                            .last()
+                            .is_some_and(|scope| scope.depth == tags.len() && scope.owner_started)
+                    {
+                        bail!("invalid namespace scope");
                     }
                     if namespaces.len() >= MAX_DEPTH {
                         bail!("namespace nesting limit exceeded");
                     }
-                    namespaces.push((prefix, uri));
-                } else if namespaces.pop() != Some((prefix, uri)) {
-                    bail!("mismatched namespace end");
+                    namespaces.push(NamespaceScope {
+                        prefix,
+                        uri,
+                        depth: tags.len(),
+                        owner_started: false,
+                    });
+                } else {
+                    let scope = namespaces
+                        .pop()
+                        .ok_or_else(|| anyhow::anyhow!("mismatched namespace end"))?;
+                    if scope.prefix != prefix
+                        || scope.uri != uri
+                        || scope.depth != tags.len()
+                        || !scope.owner_started
+                    {
+                        bail!("mismatched namespace end");
+                    }
                 }
             }
             0x0102 => {
+                nodes_started = true;
                 let strings = pool
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("missing string pool"))?;
-                if root_closed || chunk_header != 16 || chunk_size < 36 {
+                if root_closed
+                    || chunk_header != 16
+                    || chunk_size < 36
+                    || namespaces
+                        .last()
+                        .is_some_and(|scope| scope.depth == tags.len() && scope.owner_started)
+                {
                     bail!("invalid start element");
                 }
                 let ns = u32_at(bytes, body)?;
@@ -217,13 +244,26 @@ pub fn package_name(bytes: &[u8], deadline: Instant, cancel: &CancellationToken)
                         }
                     }
                 }
+                for scope in namespaces.iter_mut().rev() {
+                    if scope.depth != tags.len() {
+                        break;
+                    }
+                    scope.owner_started = true;
+                }
                 tags.push((ns, name));
             }
             0x0103 => {
+                nodes_started = true;
                 let strings = pool
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("missing string pool"))?;
-                if chunk_header != 16 || chunk_size != 24 || tags.is_empty() {
+                if chunk_header != 16
+                    || chunk_size != 24
+                    || tags.is_empty()
+                    || namespaces
+                        .last()
+                        .is_some_and(|scope| scope.depth >= tags.len())
+                {
                     bail!("invalid end element");
                 }
                 let ns = u32_at(bytes, body)?;
@@ -241,10 +281,17 @@ pub fn package_name(bytes: &[u8], deadline: Instant, cancel: &CancellationToken)
                 }
             }
             0x0104 => {
+                nodes_started = true;
                 let strings = pool
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("missing string pool"))?;
-                if tags.is_empty() || chunk_header != 16 || chunk_size != 28 {
+                if tags.is_empty()
+                    || chunk_header != 16
+                    || chunk_size != 28
+                    || namespaces
+                        .last()
+                        .is_some_and(|scope| scope.depth >= tags.len())
+                {
                     bail!("invalid CDATA chunk");
                 }
                 let data = u32_at(bytes, body)?;
@@ -268,6 +315,13 @@ pub fn package_name(bytes: &[u8], deadline: Instant, cancel: &CancellationToken)
         bail!("incomplete binary XML document");
     }
     package.ok_or_else(|| anyhow::anyhow!("missing package attribute"))
+}
+
+struct NamespaceScope {
+    prefix: u32,
+    uri: u32,
+    depth: usize,
+    owner_started: bool,
 }
 
 struct Work<'a> {
@@ -794,6 +848,16 @@ mod tests {
         out
     }
 
+    fn namespace_chunk(start: bool) -> Vec<u8> {
+        let mut out = Vec::new();
+        put_chunk_header(&mut out, if start { 0x0100 } else { 0x0101 }, 16, 24);
+        out.extend_from_slice(&1u32.to_le_bytes());
+        out.extend_from_slice(&NO_INDEX.to_le_bytes());
+        out.extend_from_slice(&2u32.to_le_bytes());
+        out.extend_from_slice(&2u32.to_le_bytes());
+        out
+    }
+
     fn put_chunk_header(out: &mut Vec<u8>, kind: u16, header: usize, size: usize) {
         out.extend_from_slice(&kind.to_le_bytes());
         out.extend_from_slice(&(header as u16).to_le_bytes());
@@ -1073,5 +1137,112 @@ mod tests {
             parse(&bytes).is_err(),
             "excessive XML chunk count was accepted"
         );
+    }
+
+    #[test]
+    fn namespace_scope_must_enclose_its_element() {
+        let original = compiled(true, "manifest", &[package_attr("org.example.app")], 1);
+        let start = start_offset(&original);
+        let mut valid = original.clone();
+        valid.splice(start..start, namespace_chunk(true));
+        valid.extend_from_slice(&namespace_chunk(false));
+        update_document_size(&mut valid);
+        assert_eq!(parse(&valid).unwrap(), "org.example.app");
+
+        let mut premature = original.clone();
+        premature.splice(start..start, namespace_chunk(true));
+        let end = premature.len() - 24;
+        premature.splice(end..end, namespace_chunk(false));
+        update_document_size(&mut premature);
+        assert!(
+            parse(&premature).is_err(),
+            "namespace ended inside its owning root"
+        );
+
+        let mut unowned = original;
+        let mut scope = namespace_chunk(true);
+        scope.extend_from_slice(&namespace_chunk(false));
+        unowned.splice(start..start, scope);
+        update_document_size(&mut unowned);
+        assert!(
+            parse(&unowned).is_err(),
+            "namespace ended before an owning element"
+        );
+    }
+
+    #[test]
+    fn resource_map_must_precede_all_xml_node_events() {
+        let original = compiled(true, "manifest", &[package_attr("org.example.app")], 1);
+        let start = start_offset(&original);
+        let mut map = Vec::new();
+        put_chunk_header(&mut map, 0x0180, 8, 8);
+        let mut valid = original.clone();
+        valid.splice(start..start, map.clone());
+        update_document_size(&mut valid);
+        assert_eq!(parse(&valid).unwrap(), "org.example.app");
+
+        let mut late = original;
+        let mut prefix = namespace_chunk(true);
+        prefix.extend_from_slice(&map);
+        late.splice(start..start, prefix);
+        late.extend_from_slice(&namespace_chunk(false));
+        update_document_size(&mut late);
+        assert!(
+            parse(&late).is_err(),
+            "resource map followed a namespace node"
+        );
+    }
+
+    #[test]
+    fn nested_namespaces_close_before_the_parent_element() {
+        let original = compiled(true, "manifest", &[package_attr("org.example.app")], 2);
+        let start = start_offset(&original);
+        let child = start + 56;
+        let root_end = original.len() - 24;
+        let mut valid = original[..start].to_vec();
+        valid.extend_from_slice(&namespace_chunk(true));
+        valid.extend_from_slice(&original[start..child]);
+        valid.extend_from_slice(&namespace_chunk(true));
+        valid.extend_from_slice(&original[child..root_end]);
+        let child_namespace_end = valid.len();
+        valid.extend_from_slice(&namespace_chunk(false));
+        valid.extend_from_slice(&original[root_end..]);
+        valid.extend_from_slice(&namespace_chunk(false));
+        update_document_size(&mut valid);
+        assert_eq!(parse(&valid).unwrap(), "org.example.app");
+
+        let mut crossing = valid;
+        crossing[child_namespace_end..child_namespace_end + 48].rotate_left(24);
+        assert!(
+            parse(&crossing).is_err(),
+            "parent closed before child namespace"
+        );
+    }
+
+    #[test]
+    fn rejects_malformed_resource_maps_and_cdata_frames() {
+        let original = compiled(true, "manifest", &[package_attr("org.example.app")], 1);
+        let start = start_offset(&original);
+        for (header, size) in [(8, 10), (12, 12)] {
+            let mut map = Vec::new();
+            put_chunk_header(&mut map, 0x0180, header, size);
+            map.resize(size, 0);
+            let mut malformed = original.clone();
+            malformed.splice(start..start, map);
+            update_document_size(&mut malformed);
+            assert!(parse(&malformed).is_err());
+        }
+
+        let end = original.len() - 24;
+        let mut valid = original.clone();
+        valid.splice(end..end, cdata_chunk(0));
+        update_document_size(&mut valid);
+        assert_eq!(parse(&valid).unwrap(), "org.example.app");
+        let mut malformed = valid.clone();
+        malformed[end + 2..end + 4].copy_from_slice(&12u16.to_le_bytes());
+        assert!(parse(&malformed).is_err());
+        let mut malformed = valid;
+        malformed[end + 20..end + 22].copy_from_slice(&0u16.to_le_bytes());
+        assert!(parse(&malformed).is_err());
     }
 }
