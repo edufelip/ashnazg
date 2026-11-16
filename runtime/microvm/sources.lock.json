@@ -1,4 +1,10 @@
 {
+  "collected_from": {
+    "rootfs_sha256": "f1ac1fbf6b498a03841154448e394cba15effb1e300de08e5a3d71f6439890ee",
+    "runtime_components_sha256": "07bda6e9667ef29a422d02b6e6cbd2b2ddb8f86ddfb3255ed2d03df6af7733da",
+    "runtime_installed_db_sha256": "734751622e021d3d60024c270085ebb1b1d399b67305456a24412c8e7c3aa575",
+    "source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7"
+  },
   "expected": {
     "groups": 47,
     "packages": 142,
@@ -13492,6 +13498,10 @@
       "Source text was read as bytes only and not executed, evaluated, compiled, or built."
     ]
   },
+  "package_inputs": {
+    "base_archive_sha256": "36091efacd083c1cf5a8c837272530bff4fc72db1fbfdef559f52de0d890bca4",
+    "package_lock_sha256": "3d7ffc8aee731e11df9edcbdee5efb8fbdf90bcb953177305133d0ac2b9b30d3"
+  },
   "recipe_files": [
     {
       "cache_path": "recipes/abseil-cpp/main/0002-abseil.patch",
@@ -18233,12 +18243,6 @@
       "url": "https://github.com/facebook/zstd/archive/v1.5.7.tar.gz"
     }
   ],
-  "source_inventory": {
-    "rootfs_sha256": "f1ac1fbf6b498a03841154448e394cba15effb1e300de08e5a3d71f6439890ee",
-    "runtime_components_sha256": "07bda6e9667ef29a422d02b6e6cbd2b2ddb8f86ddfb3255ed2d03df6af7733da",
-    "runtime_installed_db_sha256": "734751622e021d3d60024c270085ebb1b1d399b67305456a24412c8e7c3aa575",
-    "source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7"
-  },
   "supplements": [
     {
       "cache_path": "supplemental/MIT-text-supplement.bin",

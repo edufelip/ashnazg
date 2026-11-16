@@ -61,7 +61,8 @@ def _fixture(root: Path):
                   "package_lock_sha256": _sha(b"{}\n"),
                   "kernel_config_fragment_sha256": _sha(b"CONFIG_TEST=y\n"),
                   "kernel_config_sha256": _sha(b"CONFIG_TEST=y\n"),
-                  "upstreams": {"kernel": {"source_bundle_sha256": _sha(b"kernel source")}}}
+                  "upstreams": {"kernel": {"source_bundle_sha256": _sha(b"kernel source")},
+                                "alpine_minirootfs": {"sha256": "c" * 64}}}
     asset_data = {
         "manifest.json": json.dumps(manifest, sort_keys=True).encode(),
         "provenance.json": json.dumps(provenance, sort_keys=True).encode(),
@@ -94,7 +95,8 @@ def _fixture(root: Path):
     lock = {
         "schema_version": 1,
         "expected": {"packages": 1, "groups": 1, "source_inputs": 1, "recipe_files": 1},
-        "source_inventory": {"source_sha": source_sha, "rootfs_sha256": _sha(b"rootfs"),
+        "package_inputs": {"base_archive_sha256": "c" * 64, "package_lock_sha256": _sha(b"{}\n")},
+        "collected_from": {"source_sha": "e" * 40, "rootfs_sha256": _sha(b"historical rootfs"),
                              "runtime_components_sha256": _sha(components),
                              "runtime_installed_db_sha256": _sha(installed_db)},
         "notice_evidence": {"candidate_count": 1, "legal_clearance": False},
@@ -208,9 +210,9 @@ class RuntimeSourcesTests(unittest.TestCase):
         case.mkdir()
         repo, assets, cache, vendor, lock, _, source_sha = _fixture(case)
         data = json.loads(lock.read_text())
-        data["source_inventory"]["runtime_installed_db_sha256"] = "e" * 64
+        data["package_inputs"]["package_lock_sha256"] = "e" * 64
         lock.write_text(json.dumps(data))
-        with self.assertRaisesRegex(ValueError, "installed DB binding"):
+        with self.assertRaisesRegex(ValueError, "package input binding"):
             build_source_sidecar(assets, repo, case / "binding.tar.xz", "0.3.0", source_sha,
                                  cache, vendor, lock)
 

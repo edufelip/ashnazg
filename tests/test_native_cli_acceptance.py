@@ -102,6 +102,10 @@ class NativeCliAcceptanceTests(unittest.TestCase):
         self.binary.write_text(FAKE.replace("#!/usr/bin/env python3", "#!" + sys.executable))
         self.binary.chmod(0o700)
         self.events = self.root / "events.txt"
+        verified_candidate = patch.object(acceptance, '_verified_candidate', return_value={
+            "source_sha": "a" * 40, "candidate_sha256": "b" * 64,
+            "provenance_scope": "test-owned fake candidate; not runtime proof"})
+        verified_candidate.start(); self.addCleanup(verified_candidate.stop)
         ports = patch.object(acceptance, '_ports_closed', side_effect=[
             {str(port): value for port in (15555, 7777, 17778)} for value in (True, False, True)])
         ports.start(); self.addCleanup(ports.stop)
@@ -124,7 +128,7 @@ class NativeCliAcceptanceTests(unittest.TestCase):
         self.configure_fake(**config)
         output = self.root / ("receipt-" + mode)
         arguments = [
-            "--binary", str(self.binary), "--fixture-apk", str(self.apk),
+            "--candidate-dir", str(self.root / "candidate"), "--binary", str(self.binary), "--fixture-apk", str(self.apk),
             "--output-dir", str(output),
             "--mode", mode, "--source-sha", "a" * 40,
         ]
@@ -182,7 +186,7 @@ class NativeCliAcceptanceTests(unittest.TestCase):
     def test_tool_error_is_written_as_sanitized_failure_receipt(self):
         self.configure_fake(error_tool="ui_act")
         output = self.root / "failed"
-        code = acceptance.main(["--binary", str(self.binary), "--fixture-apk", str(self.apk),
+        code = acceptance.main(["--candidate-dir", str(self.root / "candidate"), "--binary", str(self.binary), "--fixture-apk", str(self.apk),
                                 "--home", str(self.home), "--output-dir", str(output),
                                 "--mode", "eof", "--source-sha", "a" * 40])
         self.assertNotEqual(code, 0)
@@ -196,7 +200,7 @@ class NativeCliAcceptanceTests(unittest.TestCase):
         previous = acceptance.MAX_FRAME_BYTES
         acceptance.MAX_FRAME_BYTES = 300
         try:
-            code = acceptance.main(["--binary", str(self.binary), "--fixture-apk", str(self.apk),
+            code = acceptance.main(["--candidate-dir", str(self.root / "candidate"), "--binary", str(self.binary), "--fixture-apk", str(self.apk),
                                    "--home", str(self.home), "--output-dir", str(output),
                                    "--mode", "eof", "--source-sha", "a" * 40])
         finally:
@@ -264,6 +268,13 @@ class NativeCliAcceptanceTests(unittest.TestCase):
         code, _ = self.run_driver()
         self.assertNotEqual(code, 0)
         self.assertEqual(stat.S_IMODE(self.home.stat().st_mode), 0o755)
+
+    def test_png_rgb_and_opaque_rgba_have_identical_normalized_pixels(self):
+        def chunk(kind, body):
+            return struct.pack('>I', len(body)) + kind + body + struct.pack('>I', zlib.crc32(kind + body) & 0xffffffff)
+        rgb = (b"\x89PNG\r\n\x1a\n" + chunk(b'IHDR', struct.pack('>IIBBBBB', 1, 1, 8, 2, 0, 0, 0))
+               + chunk(b'IDAT', zlib.compress(bytes((0, 1, 0, 0)))) + chunk(b'IEND', b''))
+        self.assertEqual(acceptance.decode_png(rgb)['pixel_sha256'], acceptance.decode_png(PNG)['pixel_sha256'])
 
     def test_png_decode_checks_pixels_crc_and_complete_deflate(self):
         self.assertEqual(acceptance.decode_png(PNG)['pixel_sha256'], acceptance.sha256_bytes(bytes((1, 0, 0, 255))))

@@ -15,6 +15,7 @@ import socket
 import stat
 import struct
 import zlib
+import zipfile
 import subprocess
 import sys
 import threading
@@ -436,9 +437,14 @@ def decode_png(image: bytes) -> dict[str, Any]:
                 prediction = (left, up, diagonal)[distances.index(min(distances))]
             else: prediction = 0
             current[index] = (current[index] + prediction) & 255
-        pixels.extend(current)
+        if channels == 3:
+            for index in range(0, len(current), 3):
+                pixels.extend(current[index:index+3])
+                pixels.append(255)
+        else:
+            pixels.extend(current)
         prior = current
-    return {"width": width, "height": height, "channels": channels,
+    return {"width": width, "height": height, "channels": 4, "encoding_channels": channels,
             "pixel_sha256": sha256_bytes(pixels)}
 
 
@@ -538,8 +544,28 @@ def _prepare_home(home_arg: Path | None, output: Path) -> tuple[Path, bool]:
     return home, False
 
 
+def _verified_candidate(directory: Path, binary: Path, fixture: Path, source_sha: str) -> dict[str, Any]:
+    if __package__:
+        from scripts.runtime_release import verify_release
+    else:
+        from runtime_release import verify_release
+    verify_release(directory, source_sha=source_sha, version="0.3.0")
+    catalog_path = directory / "ashnazg-runtime-v0.3.0.json"
+    catalog = json.loads(catalog_path.read_text())
+    with zipfile.ZipFile(directory / "ashnazg-v0.3.0-macos-aarch64.zip") as archive:
+        metadata = json.loads(archive.read("manifest.json"))["files"]["bin/ashnazg"]
+    if binary.stat().st_size != metadata["size"] or sha256_file(binary) != metadata["sha256"]:
+        raise AcceptanceError("tested binary differs from source-bound candidate package")
+    expected_apk = catalog["artifacts"]["fixture"]
+    if fixture.stat().st_size != expected_apk["size"] or sha256_file(fixture) != expected_apk["sha256"]:
+        raise AcceptanceError("tested fixture differs from source-bound candidate artifact")
+    return {"source_sha": source_sha, "candidate_sha256": sha256_file(directory / "candidate.json"),
+            "catalog_sha256": sha256_file(catalog_path),
+            "provenance_scope": "verified prepared candidate metadata; not intrinsic binary-to-source attestation"}
+
+
 def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, output: Path,
-                   mode: str, source_sha: str) -> dict[str, Any]:
+                   mode: str, source_sha: str, candidate_dir: Path) -> dict[str, Any]:
     if mode not in ("eof", "sigterm"):
         raise AcceptanceError("--mode must be eof or sigterm")
     if not SOURCE_SHA_RE.fullmatch(source_sha):
@@ -550,6 +576,7 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
         raise AcceptanceError("--binary must be an executable file")
     if not fixture_apk.is_file():
         raise AcceptanceError("--fixture-apk must be a regular file")
+    candidate = _verified_candidate(candidate_dir, binary, fixture_apk, source_sha)
     output.mkdir(parents=True, exist_ok=True, mode=0o700)
     output_info = output.lstat()
     if not stat.S_ISDIR(output_info.st_mode) or output_info.st_uid != os.getuid() or stat.S_IMODE(output_info.st_mode) != 0o700:
@@ -580,6 +607,7 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
     receipt: dict[str, Any] = {
         "schema_version": 1, "status": "running", "mode": mode, "source_sha": source_sha,
         "driver_sha256": sha256_file(Path(__file__)),
+        "candidate": candidate,
         "inputs": {"binary": {"path": str(binary), "size": binary.stat().st_size, "sha256": sha256_file(binary)},
                    "fixture_apk": {"path": str(fixture_apk), "size": fixture_apk.stat().st_size,
                                    "sha256": sha256_file(fixture_apk)}},
@@ -738,6 +766,8 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
         receipt["screenshot"]["fresh_after_action"] = receipt["screenshot"]["snapshot_id"] >= action_snapshot["snapshotId"]
         if not receipt["screenshot"]["fresh_after_action"]:
             raise AcceptanceError("screenshot snapshot is not fresh after ui_act")
+        if any(receipt["screenshot"][key] != receipt["screenshot_before"][key] for key in ("width", "height")):
+            raise AcceptanceError("screenshot dimensions changed across the fixture action")
         if receipt["screenshot"]["pixel_sha256"] == receipt["screenshot_before"]["pixel_sha256"]:
             raise AcceptanceError("screenshot pixels did not change after the fixture action")
         receipt["screenshot"]["pixels_changed_after_action"] = True
@@ -851,6 +881,7 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", required=True, type=Path)
+    parser.add_argument("--candidate-dir", required=True, type=Path)
     parser.add_argument("--fixture-apk", required=True, type=Path)
     parser.add_argument("--home", type=Path, help="owned private HOME (defaults to output-dir/home)")
     parser.add_argument("--output-dir", required=True, type=Path)
@@ -858,7 +889,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--source-sha", required=True)
     args = parser.parse_args(argv)
     try:
-        run_acceptance(args.binary, args.fixture_apk, args.home, args.output_dir, args.mode, args.source_sha)
+        run_acceptance(args.binary, args.fixture_apk, args.home, args.output_dir, args.mode, args.source_sha, args.candidate_dir)
         print(json.dumps({"status": "passed", "receipt": str(args.output_dir / "receipt.json")}))
         return 0
     except Exception as exc:

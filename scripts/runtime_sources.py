@@ -716,12 +716,13 @@ def build_source_sidecar(assets_dir, repo_root, output, version, source_sha,
         raise ValueError("unsupported or invalid source lock")
     _reject_local_paths(lock)
     files, asset_hashes, manifest, provenance, inventory = _validate_assets(assets_dir, version, source_sha)
-    binding = lock.get("source_inventory", {})
-    actual_binding = {"source_sha": source_sha, "rootfs_sha256": asset_hashes["rootfs.ext4"][1],
-                      "runtime_components_sha256": _hash_bytes(files["runtime-components.json"]),
-                      "runtime_installed_db_sha256": _hash_bytes(files["runtime-installed.db"])}
-    if binding != actual_binding:
-        raise ValueError("guest source SHA/rootfs/inventory/installed DB binding differs from source lock")
+    # Sources describe the fixed Alpine package closure, not a single historical
+    # rootfs build. Bind the new sidecar to its actual guest below; keep the
+    # collection's original source/image hashes as historical evidence only.
+    package_inputs = {"base_archive_sha256": provenance.get("upstreams", {}).get("alpine_minirootfs", {}).get("sha256"),
+                      "package_lock_sha256": _hash_bytes(files["packages.lock.json"])}
+    if lock.get("package_inputs") != package_inputs:
+        raise ValueError("guest package input binding differs from source lock")
     actual_groups = validate_inventory_binding(inventory, lock)
     expected = lock.get("expected", {})
     if len(inventory.get("packages", [])) != expected.get("packages") or len(actual_groups) != expected.get("groups"):
@@ -809,6 +810,8 @@ def build_source_sidecar(assets_dir, repo_root, output, version, source_sha,
                            "notice_scope": "original candidate evidence retained; candidates are not a legal completeness or clearance determination"},
         "notice_evidence": lock.get("notice_evidence", {}),
         "base_archive": provenance.get("upstreams", {}).get("alpine_minirootfs", {}),
+        "package_inputs": package_inputs,
+        "collected_from": lock.get("collected_from", {}),
         "members": {},
     }
     try:
