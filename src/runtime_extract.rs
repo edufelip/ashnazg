@@ -576,6 +576,14 @@ const DEFAULT_MEMBER_LIMITS: [u64; 11] = [
     2 * 1024 * 1024,
     256 * 1024 * 1024,
 ];
+
+pub(crate) fn member_size_limit(name: &str) -> Option<u64> {
+    MEMBER_NAMES
+        .iter()
+        .position(|candidate| *candidate == name)
+        .map(|index| DEFAULT_MEMBER_LIMITS[index])
+}
+
 const EXPECTED_KERNEL_VERSION: &str = "6.12.117";
 const EXPECTED_BASE: &str = "alpine-3.22.8-aarch64";
 const EXPECTED_REDROID_INDEX: &str =
@@ -853,7 +861,7 @@ fn extract_with_limits(
     })
 }
 
-fn validate_manifest(
+pub(crate) fn validate_manifest(
     bytes: &[u8],
     catalog: &RuntimeCatalog,
     kernel: Option<&ExtractedMember>,
