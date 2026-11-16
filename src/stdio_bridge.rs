@@ -145,6 +145,12 @@ impl OwnedStdioBridge {
         self.test_child_pid
     }
 
+    /// Observes lifecycle completion without requesting shutdown. This does not
+    /// report the exit result; `shutdown` still joins and checks that result.
+    pub fn is_finished(&self) -> bool {
+        self.lifecycle.as_ref().is_some_and(JoinHandle::is_finished)
+    }
+
     pub async fn shutdown(mut self) -> Result<ExitReceipt> {
         self.control.cancel();
         if let Some(io) = self.io.take() {

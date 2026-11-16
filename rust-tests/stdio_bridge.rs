@@ -197,6 +197,15 @@ async fn ipc_output_eof_ends_child_without_joining_blocked_stdin_thread() {
         .unwrap()
         .unwrap();
     assert!(response.is_empty());
+    // Socket EOF can precede process-exit notification. Observe natural
+    // lifecycle completion before shutdown is allowed to request a stop.
+    tokio::time::timeout(Duration::from_secs(2), async {
+        while !bridge.is_finished() {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("output EOF must end and reap the child despite blocked stdin");
     assert_eq!(
         tokio::time::timeout(Duration::from_secs(2), bridge.shutdown())
             .await
