@@ -366,6 +366,49 @@ class BackendTests(unittest.TestCase):
         with self.assertRaises(backend.BackendError):
             self.backend.prepare_agent(Staged(), 'f' * 64, deadline=time.monotonic() + .3)
 
+    def test_ping_limits_each_blocking_wait_even_if_close_does_not_wake_it(self):
+        waits = []
+        connection = mock.Mock()
+        connection.settimeout.side_effect = waits.append
+        connection.send.return_value = 1
+        def stalled_read(_size):
+            self.backend._cancel.set()
+            raise socket.timeout()
+        connection.recv.side_effect = stalled_read
+        self.backend._instrumentation = FakeProcess([])
+        with mock.patch.object(self.backend._streams, 'open', return_value=connection):
+            with self.assertRaises(backend.BackendError):
+                self.backend._ping('e' * 64, time.monotonic() + 30)
+        self.assertTrue(waits)
+        self.assertLessEqual(max(waits), .05)
+        connection.close.assert_called_once()
+
+    def test_ping_keeps_partial_frame_across_short_io_timeouts(self):
+        connection = mock.Mock()
+        sent = bytearray()
+        def send(data):
+            if not sent:
+                sent.extend(data[:3])
+                return 3
+            sent.extend(data)
+            return len(data)
+        attempts = [0]
+        def partial_send(data):
+            attempts[0] += 1
+            if attempts[0] == 1:
+                raise socket.timeout()
+            return send(data)
+        connection.send.side_effect = partial_send
+        connection.recv.side_effect = [socket.timeout(), b'{"jsonrpc":"2.0",',
+                                      socket.timeout(), b'"id":1,"result":{"apiLevel":34}}\n']
+        self.backend._instrumentation = FakeProcess([])
+        with mock.patch.object(self.backend._streams, 'open', side_effect=[connection]) as opened:
+            self.backend._ping('e' * 64, time.monotonic() + 2)
+        self.assertEqual(json.loads(sent), {'jsonrpc': '2.0', 'id': 1,
+                                          'method': 'ping', 'token': 'e' * 64})
+        opened.assert_called_once()
+        connection.close.assert_called_once()
+
     def test_stream_failure_never_claims_or_removes_a_forward(self):
         self.stream_open_error = True
         with self.assertRaises(backend.BackendError):

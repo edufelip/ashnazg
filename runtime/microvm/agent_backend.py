@@ -23,6 +23,7 @@ MAX_COMMAND_OUTPUT = 64 * 1024
 MAX_PING_FRAME = 4096
 COMMAND_TERMINATE_SECONDS = 0.5
 CLOSE_SECONDS = 8.0  # Leave room inside the bridge's ten-second cleanup budget.
+PING_IO_WAIT_SECONDS = 0.05
 _PACKAGE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+\Z", re.ASCII)
 _JAVA_CLASS = re.compile(r"[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*\Z", re.ASCII)
 
@@ -294,6 +295,13 @@ class GuestAdbBackend:
                 raise interrupted
             raise BackendError("ADB operation failed") from None
 
+    def _ping_io_budget(self, deadline):
+        if self._cancel.is_set() or self._closed:
+            raise BackendError("ADB operation failed")
+        # Closing a socket in another thread need not wake its pending read on
+        # every host. Bound each wait independently of the overall boot budget.
+        return min(PING_IO_WAIT_SECONDS, self._remaining(deadline))
+
     def _ping(self, token, deadline):
         request = {"jsonrpc": "2.0", "id": 1, "method": "ping", "token": token}
         frame = json.dumps(request, separators=(",", ":")).encode("ascii") + b"\n"
@@ -305,16 +313,27 @@ class GuestAdbBackend:
             process = self._instrumentation
             if process is None or process.poll() is not None:
                 raise BackendError("ADB operation failed")
-            remaining = self._remaining(deadline)
+            self._remaining(deadline)
             connection = None
             try:
                 connection = self._streams.open(deadline=deadline)
-                connection.settimeout(self._remaining(deadline))
-                connection.sendall(frame)
+                sent = 0
+                while sent < len(frame):
+                    connection.settimeout(self._ping_io_budget(deadline))
+                    try:
+                        count = connection.send(frame[sent:])
+                    except socket.timeout:
+                        continue
+                    if count <= 0:
+                        raise ValueError()
+                    sent += count
                 response = bytearray()
                 while len(response) <= MAX_PING_FRAME:
-                    connection.settimeout(self._remaining(deadline))
-                    part = connection.recv(min(1024, MAX_PING_FRAME + 1 - len(response)))
+                    connection.settimeout(self._ping_io_budget(deadline))
+                    try:
+                        part = connection.recv(min(1024, MAX_PING_FRAME + 1 - len(response)))
+                    except socket.timeout:
+                        continue
                     if not part:
                         break
                     response.extend(part)
