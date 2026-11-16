@@ -668,7 +668,10 @@ fn validate_entry(
             "invalid or duplicate runtime member record"
         );
         ensure!(
-            record.size > 0 && valid_sha256(&record.sha256),
+            record.size > 0
+                && runtime_extract::member_size_limit(&record.name)
+                    .is_some_and(|maximum| record.size <= maximum)
+                && valid_sha256(&record.sha256),
             "invalid runtime member record"
         );
     }
@@ -1005,7 +1008,10 @@ mod tests {
                     std::thread::sleep(Duration::from_millis(5));
                 }
             }
-            let bytes = self.artifacts.get(entry.name()).unwrap();
+            let bytes = self
+                .artifacts
+                .get(entry.name())
+                .context("fixture artifact unavailable")?;
             file.write_all(bytes)?;
             Ok(DownloadReceipt {
                 size: bytes.len() as u64,
@@ -1028,10 +1034,10 @@ mod tests {
             .collect()
     }
 
-    fn archive_fixture() -> Vec<u8> {
+    fn archive_fixture(source_sha: &str) -> Vec<u8> {
         let kernel = b"tiny kernel";
         let rootfs = b"tiny rootfs";
-        let manifest = format!(r#"{{"schema_version":1,"version":"0.3.0","source_sha":"{SOURCE_SHA}","architecture":"aarch64","files":{{"kernel":{{"sha256":"{}","size":{}}},"rootfs.ext4":{{"sha256":"{}","size":{}}}}},"guest":{{"kernel_version":"6.12.117","base":"alpine-3.22.8-aarch64","redroid_index":"sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"}}}}"#, digest(kernel), kernel.len(), digest(rootfs), rootfs.len()).into_bytes();
+        let manifest = format!(r#"{{"schema_version":1,"version":"0.3.0","source_sha":"{source_sha}","architecture":"aarch64","files":{{"kernel":{{"sha256":"{}","size":{}}},"rootfs.ext4":{{"sha256":"{}","size":{}}}}},"guest":{{"kernel_version":"6.12.117","base":"alpine-3.22.8-aarch64","redroid_index":"sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"}}}}"#, digest(kernel), kernel.len(), digest(rootfs), rootfs.len()).into_bytes();
         let contents: BTreeMap<&str, Vec<u8>> = [
             ("kernel", kernel.to_vec()),
             ("rootfs.ext4", rootfs.to_vec()),
@@ -1066,11 +1072,15 @@ mod tests {
     }
 
     fn fixture_source() -> FixtureSource {
-        let guest = archive_fixture();
+        fixture_source_for(SOURCE_SHA)
+    }
+
+    fn fixture_source_for(source_sha: &str) -> FixtureSource {
+        let guest = archive_fixture(source_sha);
         let helper = b"helper bytes".to_vec();
         let agent = b"agent bytes".to_vec();
         let fixture = b"fixture bytes".to_vec();
-        let catalog = format!(r#"{{"schema_version":1,"version":"0.3.0","release_tag":"v0.3.0","source_sha":"{SOURCE_SHA}","artifacts":{{"guest":{{"name":"ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz","platform":"linux-aarch64","source_sha":"{SOURCE_SHA}","size":{},"sha256":"{}"}},"helper":{{"name":"ashnazg-vm-v0.3.0-macos-aarch64","platform":"macos-aarch64","source_sha":"{SOURCE_SHA}","size":{},"sha256":"{}"}},"agent":{{"name":"ashnazg-agent-v0.3.0.apk","platform":"android","source_sha":"{SOURCE_SHA}","size":{},"sha256":"{}"}},"fixture":{{"name":"ashnazg-fixture-v0.3.0.apk","platform":"android","source_sha":"{SOURCE_SHA}","size":{},"sha256":"{}"}}}},"source_archives":[]}}"#, guest.len(), digest(&guest), helper.len(), digest(&helper), agent.len(), digest(&agent), fixture.len(), digest(&fixture)).into_bytes();
+        let catalog = format!(r#"{{"schema_version":1,"version":"0.3.0","release_tag":"v0.3.0","source_sha":"{source_sha}","artifacts":{{"guest":{{"name":"ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz","platform":"linux-aarch64","source_sha":"{source_sha}","size":{},"sha256":"{}"}},"helper":{{"name":"ashnazg-vm-v0.3.0-macos-aarch64","platform":"macos-aarch64","source_sha":"{source_sha}","size":{},"sha256":"{}"}},"agent":{{"name":"ashnazg-agent-v0.3.0.apk","platform":"android","source_sha":"{source_sha}","size":{},"sha256":"{}"}},"fixture":{{"name":"ashnazg-fixture-v0.3.0.apk","platform":"android","source_sha":"{source_sha}","size":{},"sha256":"{}"}}}},"source_archives":[]}}"#, guest.len(), digest(&guest), helper.len(), digest(&helper), agent.len(), digest(&agent), fixture.len(), digest(&fixture)).into_bytes();
         let artifacts = [
             (
                 "ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz".to_owned(),
@@ -1158,6 +1168,53 @@ mod tests {
             .await
             .is_err()
         );
+        assert_eq!(source.calls.load(Ordering::SeqCst), calls);
+    }
+
+    #[tokio::test]
+    async fn oversized_cached_asset_and_matching_receipt_are_refused() {
+        let parent = tempfile::tempdir().unwrap();
+        let root = parent.path().canonicalize().unwrap().join("runtime-cache");
+        let source = Arc::new(fixture_source());
+        let result = acquire_runtime_with_source(
+            root.clone(),
+            VERSION.to_owned(),
+            SOURCE_SHA.to_owned(),
+            Instant::now() + Duration::from_secs(10),
+            CancellationToken::new(),
+            source.clone(),
+        )
+        .await
+        .unwrap();
+        let oversized = 2 * 1024 * 1024 + 1;
+        OpenOptions::new()
+            .write(true)
+            .open(result.assets.join("provenance.json"))
+            .unwrap()
+            .set_len(oversized)
+            .unwrap();
+        let receipt_path = result.assets.parent().unwrap().join("integrity.json");
+        let mut receipt: IntegrityReceipt =
+            serde_json::from_slice(&fs::read(&receipt_path).unwrap()).unwrap();
+        receipt
+            .members
+            .iter_mut()
+            .find(|member| member.name == "provenance.json")
+            .unwrap()
+            .size = oversized;
+        fs::write(receipt_path, serde_json::to_vec(&receipt).unwrap()).unwrap();
+        let calls = source.calls.load(Ordering::SeqCst);
+        let error = acquire_runtime_with_source(
+            root,
+            VERSION.to_owned(),
+            SOURCE_SHA.to_owned(),
+            Instant::now() + Duration::from_secs(10),
+            CancellationToken::new(),
+            source.clone(),
+        )
+        .await
+        .unwrap_err();
+        assert!(error.to_string().contains("member record"), "{error:#}");
         assert_eq!(source.calls.load(Ordering::SeqCst), calls);
     }
 
@@ -1317,13 +1374,15 @@ mod tests {
         let source = Arc::new(fake);
         let task_root = root.clone();
         let task_source = source.clone();
+        let parent_cancel = CancellationToken::new();
+        let task_cancel = parent_cancel.clone();
         let task = tokio::spawn(async move {
             acquire_runtime_with_source(
                 task_root,
                 VERSION.to_owned(),
                 SOURCE_SHA.to_owned(),
                 Instant::now() + Duration::from_secs(10),
-                CancellationToken::new(),
+                task_cancel,
                 task_source,
             )
             .await
@@ -1335,6 +1394,7 @@ mod tests {
         .unwrap();
         task.abort();
         let _ = task.await;
+        assert!(!parent_cancel.is_cancelled());
         let limit = Instant::now() + Duration::from_secs(2);
         loop {
             if let Some(guard) = CacheGuard::try_acquire(&root).unwrap() {
@@ -1346,6 +1406,207 @@ mod tests {
             std::thread::sleep(Duration::from_millis(10));
         }
         assert_eq!(fs::read_dir(root.join("staging")).unwrap().count(), 0);
+    }
+
+    #[tokio::test]
+    async fn unrelated_valid_runtime_remains_available_after_failed_cold_acquisition() {
+        let parent = tempfile::tempdir().unwrap();
+        let root = parent.path().canonicalize().unwrap().join("runtime-cache");
+        let other_sha = "1123456789abcdef0123456789abcdef01234567";
+        let other = Arc::new(fixture_source_for(other_sha));
+        let first = acquire_fixture(&root, other_sha, other.clone())
+            .await
+            .unwrap();
+        let before = fs::read(&first.helper).unwrap();
+        let mut bad = fixture_source();
+        bad.artifacts
+            .get_mut("ashnazg-agent-v0.3.0.apk")
+            .unwrap()
+            .push(0);
+        assert!(
+            acquire_fixture(&root, SOURCE_SHA, Arc::new(bad))
+                .await
+                .is_err()
+        );
+        assert_eq!(fs::read_dir(root.join("staging")).unwrap().count(), 0);
+        assert_eq!(fs::read_dir(root.join("entries")).unwrap().count(), 1);
+        assert_eq!(fs::read(&first.helper).unwrap(), before);
+        let calls = other.calls.load(Ordering::SeqCst);
+        assert!(
+            acquire_fixture(&root, other_sha, other.clone())
+                .await
+                .unwrap()
+                .cache_hit
+        );
+        assert_eq!(other.calls.load(Ordering::SeqCst), calls);
+        let requested = Arc::new(fixture_source());
+        assert!(
+            !acquire_fixture(&root, SOURCE_SHA, requested.clone())
+                .await
+                .unwrap()
+                .cache_hit
+        );
+        let calls = requested.calls.load(Ordering::SeqCst);
+        assert!(
+            acquire_fixture(&root, SOURCE_SHA, requested.clone())
+                .await
+                .unwrap()
+                .cache_hit
+        );
+        assert_eq!(requested.calls.load(Ordering::SeqCst), calls);
+    }
+
+    async fn acquire_fixture(
+        root: &Path,
+        sha: &str,
+        source: Arc<FixtureSource>,
+    ) -> anyhow::Result<RuntimeArtifacts> {
+        acquire_runtime_with_source(
+            root.to_owned(),
+            VERSION.to_owned(),
+            sha.to_owned(),
+            Instant::now() + Duration::from_secs(10),
+            CancellationToken::new(),
+            source,
+        )
+        .await
+    }
+
+    #[tokio::test]
+    async fn failed_download_and_extraction_never_publish_or_leave_stages() {
+        for failure in ["missing", "truncated", "manifest_source"] {
+            let parent = tempfile::tempdir().unwrap();
+            let root = parent.path().canonicalize().unwrap().join("runtime-cache");
+            let mut source = fixture_source();
+            if failure == "missing" {
+                source.artifacts.remove("ashnazg-vm-v0.3.0-macos-aarch64");
+            } else {
+                let guest_name = "ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz";
+                let guest = if failure == "truncated" {
+                    b"truncated XZ".to_vec()
+                } else {
+                    archive_fixture("1123456789abcdef0123456789abcdef01234567")
+                };
+                let mut catalog: serde_json::Value =
+                    serde_json::from_slice(&source.catalog).unwrap();
+                catalog["artifacts"]["guest"]["size"] = guest.len().into();
+                catalog["artifacts"]["guest"]["sha256"] = digest(&guest).into();
+                source.catalog = serde_json::to_vec(&catalog).unwrap();
+                source.artifacts.insert(guest_name.to_owned(), guest);
+            }
+            let error = acquire_fixture(&root, SOURCE_SHA, Arc::new(source))
+                .await
+                .unwrap_err();
+            assert!(
+                !error.to_string().contains("worker failed"),
+                "{failure}: {error:#}"
+            );
+            assert_eq!(
+                fs::read_dir(root.join("staging")).unwrap().count(),
+                0,
+                "{failure}"
+            );
+            assert_eq!(
+                fs::read_dir(root.join("entries")).unwrap().count(),
+                0,
+                "{failure}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn malformed_cached_receipts_fail_without_network_or_mutation() {
+        for failure in ["missing", "unknown", "size", "hash", "source"] {
+            let parent = tempfile::tempdir().unwrap();
+            let root = parent.path().canonicalize().unwrap().join("runtime-cache");
+            let source = Arc::new(fixture_source());
+            let first = acquire_fixture(&root, SOURCE_SHA, source.clone())
+                .await
+                .unwrap();
+            let path = first.helper.parent().unwrap().join("integrity.json");
+            let mut receipt: serde_json::Value =
+                serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+            match failure {
+                "missing" => {
+                    receipt["members"].as_array_mut().unwrap().pop();
+                }
+                "unknown" => {
+                    receipt["members"][0]["name"] = "unexpected".into();
+                }
+                "size" => {
+                    receipt["members"][0]["size"] = 0.into();
+                }
+                "hash" => {
+                    receipt["members"][0]["sha256"] = "bad".into();
+                }
+                _ => {
+                    receipt["source_sha"] = "1123456789abcdef0123456789abcdef01234567".into();
+                }
+            }
+            let bytes = serde_json::to_vec(&receipt).unwrap();
+            fs::write(&path, &bytes).unwrap();
+            let calls = source.calls.load(Ordering::SeqCst);
+            assert!(
+                acquire_fixture(&root, SOURCE_SHA, source.clone())
+                    .await
+                    .is_err(),
+                "{failure}"
+            );
+            assert_eq!(source.calls.load(Ordering::SeqCst), calls);
+            assert_eq!(fs::read(path).unwrap(), bytes);
+        }
+    }
+
+    #[tokio::test]
+    async fn two_catalogs_for_the_same_stamp_are_ambiguous() {
+        let parent = tempfile::tempdir().unwrap();
+        let root = parent.path().canonicalize().unwrap().join("runtime-cache");
+        let source = Arc::new(fixture_source());
+        let first = acquire_fixture(&root, SOURCE_SHA, source.clone())
+            .await
+            .unwrap();
+        {
+            let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
+            let stage = guard.create_stage().unwrap();
+            let entry = first.helper.parent().unwrap();
+            for item in fs::read_dir(entry).unwrap() {
+                let item = item.unwrap();
+                let name = item.file_name();
+                if name == "entry.json" || name == "stage.json" {
+                    continue;
+                }
+                let target = stage.path().join(&name);
+                if name == "assets" {
+                    fs::create_dir(&target).unwrap();
+                    fs::set_permissions(&target, fs::Permissions::from_mode(PRIVATE_DIR)).unwrap();
+                    for asset in fs::read_dir(item.path()).unwrap() {
+                        let asset = asset.unwrap();
+                        fs::copy(asset.path(), target.join(asset.file_name())).unwrap();
+                    }
+                } else {
+                    fs::copy(item.path(), target).unwrap();
+                }
+            }
+            let mut catalog = source.catalog.clone();
+            catalog.push(b'\n');
+            let key = catalog_hash(&catalog);
+            fs::write(stage.path().join("catalog.json"), catalog).unwrap();
+            let path = stage.path().join("integrity.json");
+            let mut receipt: IntegrityReceipt =
+                serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+            receipt.catalog_sha256 = key.clone();
+            fs::write(path, serde_json::to_vec(&receipt).unwrap()).unwrap();
+            stage.promote(&key).unwrap();
+        }
+        let calls = source.calls.load(Ordering::SeqCst);
+        let error = acquire_fixture(&root, SOURCE_SHA, source.clone())
+            .await
+            .unwrap_err();
+        assert!(
+            error.to_string().contains("multiple cache entries"),
+            "{error:#}"
+        );
+        assert_eq!(source.calls.load(Ordering::SeqCst), calls);
     }
 
     #[tokio::test]

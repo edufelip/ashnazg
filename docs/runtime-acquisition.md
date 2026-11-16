@@ -1,4 +1,4 @@
-# Runtime artifact acquisition primitives
+# Runtime artifact acquisition
 
 The Rust library now has the parts needed to acquire a native runtime safely.
 They are separate APIs; the CLI does not yet compose them or download a default
@@ -52,7 +52,8 @@ regular extracted assets. The bounded schema-1 integrity receipt records the
 catalog-bound compressed guest identity and a unique vector of all eleven
 extracted member names, sizes and hashes. Warm validation checks the catalog
 hash and stamp, receipt schema and uniqueness, exact names/types/modes/sizes,
-and the helper and APK hashes. It rehashes the bounded boot manifest and
+per-member size caps shared with the extractor, and the helper and APK hashes.
+It rehashes the bounded boot manifest and
 reapplies the pinned manifest checks using the receipt's kernel and rootfs
 identities. It does not reread the 4 GiB rootfs or rehash every other extracted
 asset. The Swift helper remains responsible for hashing kernel and rootfs
@@ -75,7 +76,7 @@ retained with native acceptance evidence. The accompanying catalog is
 explicitly local test metadata. Network tests use private fixtures, and Linux
 locking/rename validation remains pending hosted CI.
 
-The next layer must compose these APIs, validate cache hits, bootstrap the native
+The next layer must expose the coordinator through the CLI, bootstrap the native
 MCP session and route APK installation through the guest. Release packaging must
 publish matching helper, guest, APK, source and notice assets before default
 acquisition can be qualified on a clean machine.
