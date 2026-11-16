@@ -215,6 +215,42 @@ class RuntimeSourcesTests(unittest.TestCase):
             self.assertEqual(index["source_sha"], source_sha)
             self.assertEqual(len(index["members"]), len(names) - 1)
 
+    def test_empty_notice_member_is_retained_with_exact_digest(self):
+        for case in ("valid", "wrong_digest", "negative_size"):
+            with self.subTest(case=case):
+                root = self.root / case
+                root.mkdir()
+                repo, assets, cache, vendor, lock, _, source_sha = _fixture(root)
+                archive_bytes = io.BytesIO()
+                with tarfile.open(fileobj=archive_bytes, mode="w:gz") as archive:
+                    member = tarfile.TarInfo("demo/MODULE_LICENSE_PUBLIC_DOMAIN")
+                    member.size = 0
+                    archive.addfile(member, io.BytesIO(b""))
+                payload = archive_bytes.getvalue()
+                data = json.loads(lock.read_text())
+                source = data["source_inputs"][0]
+                source.update(size=len(payload), sha256=_sha(payload),
+                              declared_sha512=hashlib.sha512(payload).hexdigest())
+                (cache / source["cache_path"]).write_bytes(payload)
+                candidate = data["notice_candidates"][0]
+                candidate.pop("cache_path")
+                candidate.update(member_path=member.name, size=-1 if case == "negative_size" else 0,
+                                 sha256="0" * 64 if case == "wrong_digest" else _sha(b""))
+                lock.write_text(json.dumps(data))
+                output = root / "out.tar.xz"
+                if case != "valid":
+                    with self.assertRaisesRegex(ValueError, "notice candidate"):
+                        build_source_sidecar(assets, repo, output, "0.3.0", source_sha,
+                                             cache, vendor, lock)
+                    self.assertFalse(output.exists())
+                else:
+                    build_source_sidecar(assets, repo, output, "0.3.0", source_sha,
+                                         cache, vendor, lock)
+                    with tarfile.open(output, "r:xz") as archive:
+                        retained = archive.getmember("notice-evidence/demo/candidate-000001.bin")
+                        self.assertEqual(retained.size, 0)
+                        self.assertEqual(archive.extractfile(retained).read(), b"")
+
     def test_inventory_group_and_commit_mismatch_is_rejected(self):
         inventory = _fixture(self.root)[-2]
         inventory["packages"][0]["aports_commit"] = "e" * 40

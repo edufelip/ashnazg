@@ -789,7 +789,7 @@ def build_source_sidecar(assets_dir, repo_root, output, version, source_sha,
         origin, commit = record.get("origin"), record.get("commit")
         if not isinstance(origin, str) or not ORIGIN_RE.fullmatch(origin) or not isinstance(commit, str) or not SOURCE_SHA_RE.fullmatch(commit):
             raise ValueError("invalid notice candidate origin/commit")
-        if type(record.get("size")) is not int or not 0 < record["size"] <= MAX_INPUT_BYTES or not SHA256_RE.fullmatch(record.get("sha256", "")):
+        if type(record.get("size")) is not int or not 0 <= record["size"] <= MAX_INPUT_BYTES or not SHA256_RE.fullmatch(record.get("sha256", "")):
             raise ValueError("invalid notice candidate size or SHA-256")
         candidate_id = record.get("candidate_id")
         if not isinstance(candidate_id, str) or not re.fullmatch(r"candidate-[0-9]{6}", candidate_id):
