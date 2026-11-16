@@ -1,0 +1,20 @@
+{
+  "adb_listen": "127.0.0.1:15555",
+  "agent_apk_sha256": "f2a2dbcfd3f43e4dc9544442493712feec6e2ce19abe1904728c5b2209c0e4c7",
+  "android_serial": "127.0.0.1:5555",
+  "architecture": "aarch64",
+  "cpu_count": 2,
+  "error": "guest returned a malformed session response",
+  "kernel_sha256": "0ce892130fd4107ea564abe90d1f1daa773e0a8c7fddf97653df6f870dc3e389",
+  "manifest_source_sha": "4f130cc1485741b0ffc6f7bc3f6f4f2922d2c5bc",
+  "manifest_version": "0.3.0",
+  "memory_bytes": 2147483648,
+  "rootfs_template_sha256": "20f7bc3dfb8a90c1dddbc5850288f63dc73cd8e6390e6eb9696e82c436f863e7",
+  "schema_version": 1,
+  "status": "failed",
+  "timings": {
+    "readiness_ms": 110043,
+    "total_startup_ms": 113134,
+    "vm_start_ms": 98
+  }
+}

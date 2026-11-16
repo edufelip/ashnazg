@@ -88,6 +88,17 @@ and full native session acceptance remain pending. The Rust `up` command and MCP
 server do not yet expose this opt-in helper setup; automatic artifact acquisition
 and native MCP installation are subsequent delivery steps.
 
+The first matching hosted guest from source `4f130cc` passed its Linux build and
+all Quality/ReDroid checks, but [native session acceptance failed](evidence/native-session-failure-4f130cc/receipt.json).
+Android became ready after 110.043 seconds; the guest accepted the APK upload
+header, then returned `backend_failed`. A separate diagnostic run reproduced
+Android 15 rejecting the install command's trailing `-` as an unknown option.
+With the same APK and `-S SIZE`, omitting the pathname returned `Success`.
+The [pinned package-manager implementation](https://android.googlesource.com/platform/frameworks/base/+/cc8bb19595c661f5cf42f330457000e643c67d1b/services/core/java/com/android/server/pm/PackageManagerShellCommand.java)
+selects stdin when no positional arguments remain. The diagnostic used host ADB;
+it is not successful acceptance of the host-ADB-free session. The corrected
+guest must be rebuilt and tested through that full path before qualification.
+
 ## Recorded native cold boot
 
 The clean `7a760294d3a485cc9f40308c791a58e160d620f1` source and its [hosted artifact build](https://github.com/edufelip/ashnazg/actions/runs/43771299927) were tested with an ad-hoc-signed helper on Apple Silicon macOS. Both artifact ZIP digests, the inner archive checksum, manifest asset hashes and every requested kernel setting were verified before creating a fresh state directory. The retained [verification record](evidence/microvm-cold-boot-7a76029/verification.json) includes the two download receipts, API digest comparisons and all 79 kernel assignments; these checks were repeated when recording the evidence. The generated kernel has PSI and FUSE built in, with PSI enabled by default.

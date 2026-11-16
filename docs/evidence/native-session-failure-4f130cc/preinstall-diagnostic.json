@@ -1,0 +1,44 @@
+[
+  {
+    "argv": [
+      "connect",
+      "127.0.0.1:15555"
+    ],
+    "exit_code": 0,
+    "output": "connected to 127.0.0.1:15555\n"
+  },
+  {
+    "argv": [
+      "-s",
+      "127.0.0.1:15555",
+      "get-state"
+    ],
+    "exit_code": 0,
+    "output": "device\n"
+  },
+  {
+    "argv": [
+      "-s",
+      "127.0.0.1:15555",
+      "shell",
+      "-T",
+      "pm",
+      "path",
+      "dev.ashnazg.agent"
+    ],
+    "exit_code": 1,
+    "output": ""
+  },
+  {
+    "argv": [
+      "-s",
+      "127.0.0.1:15555",
+      "shell",
+      "-T",
+      "ps",
+      "-A"
+    ],
+    "exit_code": 0,
+    "output": "agent_named_process_count=0"
+  }
+]

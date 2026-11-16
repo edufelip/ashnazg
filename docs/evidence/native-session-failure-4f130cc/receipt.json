@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "status": "failed",
+  "source_sha": "4f130cc1485741b0ffc6f7bc3f6f4f2922d2c5bc",
+  "workflow_run": 43794811613,
+  "qualification": "Cold no-host-ADB session preparation failed; later ADB commands were diagnostic only, not acceptance.",
+  "observed_android_readiness_ms": 110043,
+  "preparation_diagnostic": {
+    "ack": "ready_for_payload",
+    "final_status": "error",
+    "error_code": "backend_failed",
+    "method": "Temporary helper logged only allowlisted fixed reply status/error values; no tokens or raw frames."
+  },
+  "reproduction": {
+    "original_stdin_command_exit": 255,
+    "original_error": "IllegalArgumentException: Unknown option -",
+    "without_path_exit": 0,
+    "without_path_output": "Success",
+    "artifact_bytes_unchanged": true,
+    "reference": "https://android.googlesource.com/platform/frameworks/base/+/cc8bb19595c661f5cf42f330457000e643c67d1b/services/core/java/com/android/server/pm/PackageManagerShellCommand.java",
+    "source_contract": "doRunInstall reads stdin when remaining args are empty; makeInstallParams consumes options first."
+  },
+  "serial_scope": "Includes cold failure and subsequent diagnostic restarts of the same writable guest. It is not a single cold-run log.",
+  "serial_hex64_redactions": 0,
+  "diagnostic_shutdown": {
+    "helper_exit_code": 0,
+    "host_adb_disconnected": true
+  },
+  "files": {
+    "cold-acceptance.json": {
+      "size": 2844,
+      "sha256": "796ec012bd49d55e2aa679230ccaaa1ea9ff54ec53f5fdc6ec1a782a7a4336ed"
+    },
+    "cold-helper.stderr": {
+      "size": 56,
+      "sha256": "4b9c92508dc77683ed936c39f1f37cbf70e5d68360d305779d584c0c2ef48b13"
+    },
+    "cold-runtime.json": {
+      "size": 731,
+      "sha256": "dd624d8e59fda5118fd99a3f93c40e1b72018e8af97ec97deb747e071f5f801b"
+    },
+    "combined-serial.log.gz": {
+      "size": 13314,
+      "sha256": "d9e86f34682b624e506c3ba87845f608692e67867adfd4c5ef80444162a2e97d"
+    },
+    "diagnostic-adb-disconnect.json": {
+      "size": 98,
+      "sha256": "8a0cf03b19fcc234251435fd7c4130646d206fb76a83095082537cb62e82bd13"
+    },
+    "preinstall-diagnostic.json": {
+      "size": 635,
+      "sha256": "2a349577776fac71d79ab75235982f1ef57c66c7a82888cf6d90553873208b96"
+    },
+    "sanitized-preparation-diagnostic.txt": {
+      "size": 169,
+      "sha256": "1b9eec10488e24376989270a9b4e4731477f1d53b2613bbc6b67c04723e112d7"
+    },
+    "stdin-install-failure.json": {
+      "size": 1346,
+      "sha256": "4c34861f47c71c3c5fd897ba54f1f5de038ccf3c084f43675354c67f9fb0f123"
+    },
+    "stdin-install-without-path.json": {
+      "size": 230,
+      "sha256": "3042107df4ea557b806f57b278f18ffff85b60325c67d011cc3d3196d0775079"
+    }
+  },
+  "next_gate": "Rebuild guest with corrected fixed install argv and repeat no-host-ADB cold/warm acceptance. No session success is claimed."
+}
