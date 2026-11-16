@@ -165,6 +165,10 @@ fn valid_hex(text: &str, length: usize) -> bool {
             .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 fn same_directory(a: Identity, b: Identity) -> bool {
+    // Directory identity and access policy protect path traversal. Size and
+    // timestamps also change for unrelated entries (notably in sticky temporary
+    // ancestors), so they are not directory integrity evidence. Files use full
+    // metadata equality; the credential name is independently required absent.
     a.dev == b.dev
         && a.ino == b.ino
         && a.kind() == libc::S_IFDIR as u32
@@ -567,6 +571,35 @@ mod tests {
             fs::read(unrelated).unwrap(),
             b"parent session must be preserved"
         );
+    }
+    #[test]
+    fn directory_content_changes_are_allowed_but_new_credentials_are_refused() {
+        let f = fixture();
+        let v = validate(&f.launch, deadline(), &CancellationToken::new()).unwrap();
+        for directory in [
+            f.launch.helper.parent().unwrap(),
+            f.launch.assets.as_path(),
+            f.launch.state_dir.as_path(),
+        ] {
+            let before = Identity::from_meta(&fs::metadata(directory).unwrap());
+            fs::write(directory.join("unrelated-caller-file"), b"keep").unwrap();
+            File::open(directory)
+                .unwrap()
+                .set_modified(std::time::UNIX_EPOCH + Duration::from_secs(1))
+                .unwrap();
+            let after = Identity::from_meta(&fs::metadata(directory).unwrap());
+            assert_ne!(before, after);
+            assert!(same_directory(before, after));
+        }
+        v.check_before_spawn(deadline(), &CancellationToken::new())
+            .unwrap();
+        let credential = f.launch.state_dir.join(".ashnazg-session-v1.json");
+        fs::write(&credential, b"unexpected session").unwrap();
+        assert!(
+            v.check_before_spawn(deadline(), &CancellationToken::new())
+                .is_err()
+        );
+        assert_eq!(fs::read(credential).unwrap(), b"unexpected session");
     }
     #[test]
     fn refuses_marker_file_symlink_directory_and_fifo() {
