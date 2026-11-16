@@ -217,6 +217,54 @@ class BackendTests(unittest.TestCase):
             self.assertEqual(process.kwargs.get('env', {}).get('ADB_SERVER_SOCKET'), 'tcp:127.0.0.1:5037')
             self.assertNotIn('ADB_TRACE', process.kwargs['env'])
 
+    def test_backend_ping_uses_real_smart_socket_handshake_without_forward_mutation(self):
+        from runtime.microvm import adb_agent_stream
+        listener = socket.socket()
+        listener.bind(('127.0.0.1', 0))
+        listener.listen(1)
+        listener.settimeout(1)
+        self.addCleanup(listener.close)
+        seen, failures = [], []
+        def exact(connection, size):
+            data = b''
+            while len(data) < size:
+                part = connection.recv(size - len(data))
+                if not part:
+                    raise OSError('fixture ended')
+                data += part
+            return data
+        def server():
+            try:
+                connection, _ = listener.accept()
+                with connection:
+                    connection.settimeout(1)
+                    for _ in range(2):
+                        size = int(exact(connection, 4), 16)
+                        seen.append(exact(connection, size))
+                        connection.sendall(b'OKAY')
+                    frame = b''
+                    while b'\n' not in frame:
+                        frame += exact(connection, 1)
+                    request = json.loads(frame)
+                    seen.append(request['token'])
+                    connection.sendall(json.dumps({'jsonrpc': '2.0', 'id': request['id'],
+                                                   'result': {'apiLevel': 35}}).encode() + b'\n')
+            except Exception as error:
+                failures.append(type(error).__name__)
+        worker = threading.Thread(target=server)
+        worker.start()
+        self.backend._streams.close()
+        self.backend._streams = backend.AgentStreamPool(cancel=self.backend._cancel)
+        with mock.patch.object(adb_agent_stream, 'ADB_SERVER_PORT', listener.getsockname()[1]):
+            self.backend.prepare_agent(Staged(), 'a' * 64, deadline=time.monotonic() + 2)
+        worker.join(1)
+        self.assertFalse(worker.is_alive())
+        self.assertFalse(failures)
+        self.assertEqual(seen, [b'host:transport:127.0.0.1:5555', b'tcp:7777', 'a' * 64])
+        self.assertTrue(self.backend.is_alive())
+        self.backend.close()
+        self.assertFalse(any('forward' in c for c in self.commands))
+
     def test_existing_foreign_forward_is_never_changed(self):
         self.forwards = 'someone_else tcp:17777 tcp:7777\n'
         self.ping_server()
