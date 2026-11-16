@@ -47,10 +47,12 @@ The rootfs digest is a producer-supplied build binding. This parser does not ins
 
 ## Tests and integration checkpoint
 
-- [ ] Write unittest fixtures first for base archive hash/member/size refusal, valid base+lock union, lock upgrades over base, missing/changed/unmapped packages, malformed/duplicate database identities, file-list separation, incomplete source fields, strict lock fields/booleans, exact source grouping, deterministic output, and CLI exit/output behavior. Use small constructed tar fixtures; no real package downloads.
-- [ ] Run `python3 -m unittest tests.test_runtime_inventory -v` before implementation and retain the expected failure.
-- [ ] Implement with standard library only; do not modify the guest builder or existing package lock in this task.
-- [ ] Re-run focused tests, existing package-lock tests, compilation and `git diff --check`; commit only the two owned files.
-- [ ] Root compares the resulting inventory against the retained real `7a76029` rootfs and pinned base, then requests independent review before integrating it into the builder/release gate.
+- [x] Write unittest fixtures first for base archive hash/member/size refusal, valid base+lock union, lock upgrades over base, missing/changed/unmapped packages, malformed/duplicate database identities, file-list separation, incomplete source fields, strict lock fields/booleans, exact source grouping, deterministic output, and CLI exit/output behavior. Use small constructed tar fixtures; no real package downloads.
+- [x] Run `python3 -m unittest tests.test_runtime_inventory -v` before implementation and retain the expected failure.
+- [x] Implement with standard library only; do not modify the guest builder or existing package lock in this task.
+- [x] Re-run focused tests, existing package-lock tests, compilation and `git diff --check`; commit only the two owned files.
+- [x] Root compares the resulting inventory against the retained real `7a76029` rootfs and pinned base, then requests independent review before integrating it into the builder/release gate.
 
 Root's preliminary read-only inspection found 142 final package records, 133 matching lock names/versions with one architecture mismatch, nine names absent from the lock, and 47 distinct origin/build-commit pairs. The verified minirootfs contains 16 package records; several are upgraded by locked packages. These are input observations to verify with the implementation, not hard-coded expected counts for future builds. The architecture mismatch is `busybox-binsh`: installed and base records are `aarch64`, while the verified locked APK metadata is `noarch` at the same version. This is not architecture equivalence. The builder removes its downloaded APK staging cache before composing the rootfs. No complete source archive or notice inventory has yet been assembled.
+
+The retained [real-input receipt](../../evidence/rootfs-inventory-7a76029/receipt.json) records 142 packages: 132 locked identities and 10 verified base records, grouped into 47 source origin/commit pairs. Root rehashed the immutable ext4 and extracted its database with read-only debugfs; the new parser and builder binding passed independent reviews. The builder now reads back the database from its composed ext4 and archives it plus the inventory, with digest references in provenance. The next Linux CI build must qualify that new builder path; this historical input check does not prove a new build or source closure.

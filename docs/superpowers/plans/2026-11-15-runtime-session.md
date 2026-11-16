@@ -43,10 +43,12 @@ Provide pure `build_catalog(version, source_sha, artifacts, source_archives=()) 
 
 `write_catalog` serializes deterministic sorted JSON with one final newline, refuses to replace an existing output or unowned path, and writes through an owned temporary file/atomic promotion. The CLI takes `--version`, `--source-sha`, four role flags (`--guest`, `--helper`, `--agent`, `--fixture`), repeated `--source-archive`, and `--output`. Producer provenance is supplied by the release workflow's validated source; this library computes byte integrity and does not claim to prove a binary's source revision intrinsically.
 
-- [ ] Write unittest fixtures first, including a valid catalog, deterministic bytes, source/version/name errors, missing/duplicate roles, booleans rejected by catalog validation, symlink/nonregular inputs, role caps, source-part uniqueness, mutation during hashing, output refusal/aliasing, and no self-hash cycle.
-- [ ] Run `python3 -m unittest tests.test_runtime_catalog -v` before implementation and retain the expected failure.
-- [ ] Implement catalog creation and a matching strict `validate_catalog` function using the contract above; validate generated catalogs before writing.
-- [ ] Re-run focused tests, compilation and `git diff --check`; commit only the two owned files. Do not publish, change release versions, edit workflows or manufacture artifact hashes.
+- [x] Write unittest fixtures first, including a valid catalog, deterministic bytes, source/version/name errors, missing/duplicate roles, booleans rejected by catalog validation, symlink/nonregular inputs, role caps, source-part uniqueness, mutation during hashing, output refusal/aliasing, and no self-hash cycle.
+- [x] Run `python3 -m unittest tests.test_runtime_catalog -v` before implementation and retain the expected failure.
+- [x] Implement catalog creation and a matching strict `validate_catalog` function using the contract above; validate generated catalogs before writing.
+- [x] Re-run focused tests, compilation and `git diff --check`; commit only the two owned files. Do not publish, change release versions, edit workflows or manufacture artifact hashes.
+
+Catalog implementation and focused verification are complete. The producer has passed independent review and root repaired the populated intermediate-symlink case using held directory descriptors. This does not create a published catalog or qualify artifact acquisition.
 
 ## Guest session protocol contract
 

@@ -16,6 +16,15 @@ from source base commit
 tokens through its `android_servers` JNI registration. This is a hidden,
 version-sensitive platform API and is not a production contract.
 
+## Lease policy core
+
+The service's pure Java `LeasePolicy` now implements a bounded 16-lease state
+machine with a 30-second renewable TTL and a two-second quiet grace. Its tests
+use an injected monotonic clock, including wraparound, expiry, overlap, renewal
+ordering and concurrency. It chooses a desired rate only. Authentication,
+privileged service integration, agent response-flush hooks and physical mode
+acknowledgement are still required before this becomes an activity governor.
+
 ## Build
 
 The script uses only an already installed JDK and Android SDK platform 35 with

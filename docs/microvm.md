@@ -16,6 +16,28 @@ The required Quality workflow calls the MicroVM validation workflow. Native Swif
 
 The image workflow produces a compressed bundle containing `manifest.json`, `kernel`, `rootfs.ext4`, source/config/notices and package-lock provenance. Extract it into a dedicated directory and verify its archive checksum. The helper verifies the fixed kernel/rootfs paths, file types, sizes and SHA-256 values before use. A manifest source SHA identifies its build revision; it is not a publisher signature.
 
+## Complete package metadata
+
+New guest builds read the installed APK database back from the composed ext4 image,
+compare it with the build tree, and require complete identity/source metadata
+mapping before packaging. The archive includes `runtime-installed.db` and
+`runtime-components.json`; `provenance.json` records their hashes. The inventory
+includes inherited Alpine packages as well as installed locked additions.
+
+A [retained inspection](evidence/rootfs-inventory-7a76029/receipt.json) of the
+previously accepted `7a76029` image maps 142 installed packages into 47 source
+origin/build-commit groups. Of these, 132 match locked APK identities and 10 match
+the verified base. `busybox-binsh` retains its exact `aarch64` base record while
+the downloaded same-version candidate is `noarch`; the inventory explicitly
+records that candidate as not installed. The downloaded APK staging directory
+and package cache contain no retained APKs in this inspected image.
+
+This is metadata evidence. Corresponding source archives and component notices
+remain uncollected (`source_closure_status: not_collected`), so this inventory
+does not qualify a public runtime bundle release. The updated builder still
+requires a Linux CI run; the retained inspection does not establish a new image
+build or boot.
+
 ## Local run
 
 ```sh
