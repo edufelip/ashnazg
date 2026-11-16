@@ -212,9 +212,14 @@ def sha256(path):
 
 files = {name: {"sha256": sha256(assets / name), "size": (assets / name).stat().st_size}
          for name in ("kernel", "rootfs.ext4")}
-# Capture the actual composed rootfs package database, including base packages.
-# The image was built from this tree immediately before this metadata phase.
-installed_db = (rootfs / "lib/apk/db/installed").read_bytes()
+# Read back from the composed image, then compare with the source tree. debugfs
+# is read-only without -w; an extraction error also fails the equality/parser checks.
+installed_db = subprocess.run(
+    ["debugfs", "-R", "cat /lib/apk/db/installed", str(assets / "rootfs.ext4")],
+    check=True, capture_output=True,
+).stdout
+if installed_db != (rootfs / "lib/apk/db/installed").read_bytes():
+    raise RuntimeError("composed rootfs package database differs from build tree")
 inventory = build_inventory(
     installed_db=installed_db, base_archive=alpine_archive.read_bytes(),
     package_lock=(assets / "packages.lock.json").read_bytes(),
