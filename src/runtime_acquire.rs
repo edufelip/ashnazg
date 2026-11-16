@@ -46,7 +46,9 @@ pub struct RuntimeArtifacts {
     pub source_sha: String,
     pub catalog_sha256: String,
     pub helper: PathBuf,
+    pub helper_sha256: String,
     pub agent_apk: PathBuf,
+    pub agent_apk_sha256: String,
     pub fixture_apk: PathBuf,
     pub assets: PathBuf,
     pub cache_hit: bool,
@@ -747,7 +749,9 @@ fn artifacts_at(
         source_sha: source_sha.to_owned(),
         catalog_sha256: key.to_owned(),
         helper: path.join(catalog.artifact(ArtifactRole::Helper).name()),
+        helper_sha256: catalog.artifact(ArtifactRole::Helper).sha256().to_owned(),
         agent_apk: path.join(catalog.artifact(ArtifactRole::Agent).name()),
+        agent_apk_sha256: catalog.artifact(ArtifactRole::Agent).sha256().to_owned(),
         fixture_apk: path.join(catalog.artifact(ArtifactRole::Fixture).name()),
         assets: path.join("assets"),
         cache_hit,
@@ -1133,6 +1137,10 @@ mod tests {
         assert_eq!(first.source_sha, second.source_sha);
         assert_eq!(first.catalog_sha256, second.catalog_sha256);
         assert_eq!(first.helper, second.helper);
+        assert_eq!(first.helper_sha256, digest(b"helper bytes"));
+        assert_eq!(first.agent_apk_sha256, digest(b"agent bytes"));
+        assert_eq!(first.helper_sha256, second.helper_sha256);
+        assert_eq!(first.agent_apk_sha256, second.agent_apk_sha256);
         assert_eq!(first.agent_apk, second.agent_apk);
         assert_eq!(first.fixture_apk, second.fixture_apk);
         assert_eq!(first.assets, second.assets);
