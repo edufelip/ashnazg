@@ -193,6 +193,7 @@ func parseAgentReadyResponse(_ data: Data, expectedSessionID: String) throws {
 
 private func strictResponseObject(_ data: Data, keys: Set<String>) throws -> [String: Any] {
     guard data.count <= 4096, let line = String(data: data, encoding: .utf8), line.hasSuffix("\n"),
+          !line.utf8.contains(92), // Fixed ASCII protocol fields need no JSON escapes.
           !line.dropLast().contains("\n"),
           let object = try JSONSerialization.jsonObject(with: Data(line.dropLast().utf8), options: [.fragmentsAllowed]) as? [String: Any],
           Set(object.keys) == keys else { throw AssetError.invalid("guest returned a malformed session response") }
@@ -232,4 +233,12 @@ func sendAgentPrepare(fd: Int32, apk: OpenedAgentAPK, identity: AgentSessionIden
     }
     guard Darwin.shutdown(fd, SHUT_WR) == 0 else { throw AssetError.invalid("cannot finish agent APK upload") }
     try parseAgentReadyResponse(readLine(fd, maxBytes: 4096, deadline: wholeDeadline, signals: signals), expectedSessionID: identity.sessionID)
+}
+
+func prepareAgentSession(fd: Int32, apk: OpenedAgentAPK, identity: AgentSessionIdentity,
+                         wholeDeadline: StartupDeadline, signals: SignalController? = nil) async throws {
+    try await Task.detached(priority: .userInitiated) {
+        try sendAgentPrepare(fd: fd, apk: apk, identity: identity,
+                             wholeDeadline: wholeDeadline, signals: signals)
+    }.value
 }

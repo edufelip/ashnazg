@@ -593,7 +593,7 @@ func runHelper(_ options: HelperOptions) async throws {
             guard preparationBudget > 0 else { throw AssetError.invalid("agent preparation deadline expired") }
             let preparationDeadline = StartupDeadline(after: .milliseconds(preparationBudget))
             let control = try await connect(to: socket, port: 10777, deadline: preparationDeadline, signals: signals)
-            do { configureNoSIGPIPE(control.fileDescriptor); try sendAgentPrepare(fd: control.fileDescriptor, apk: apk, identity: identity, wholeDeadline: preparationDeadline, signals: signals) }
+            do { configureNoSIGPIPE(control.fileDescriptor); try await prepareAgentSession(fd: control.fileDescriptor, apk: apk, identity: identity, wholeDeadline: preparationDeadline, signals: signals) }
             catch { control.close(); throw error }
             control.close()
             let agentRelay = RelayServer(vm: machine, port: options.agentPort, guestPort: 17777)

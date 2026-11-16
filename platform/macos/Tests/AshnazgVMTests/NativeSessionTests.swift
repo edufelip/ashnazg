@@ -27,6 +27,11 @@ final class NativeSessionTests: XCTestCase {
         XCTAssertThrowsError(try parseAgentAck(Data("{\"schema_version\":1,\"schema_version\":1,\"status\":\"ready_for_payload\"}\n".utf8)))
     }
 
+    func testPrepareRejectsEscapedDuplicateResponseKeys() throws {
+        let duplicate = #"{"schema_version":1,"schema_\u0076ersion":1,"status":"ready_for_payload"}"# + "\n"
+        XCTAssertThrowsError(try parseAgentAck(Data(duplicate.utf8)))
+    }
+
     func testRandomTokensAreDistinctLowercaseAndRedactedFromDescription() throws {
         var values = [Data(repeating: 0x11, count: 32), Data(repeating: 0x22, count: 32)]
         let identity = try makeAgentSessionIdentity { _ in values.removeFirst() }
@@ -74,14 +79,14 @@ final class NativeSessionTests: XCTestCase {
         DispatchQueue.global().async {
             defer { finished.signal() }
             let header: String
-            do { header = try self.readSocketLine(peerFD) }
+            do { header = try Self.readSocketLine(peerFD) }
             catch { return }
             guard header.contains("prepare_agent"), !header.contains("\"bytes\"") else { return }
-            try? self.writeSocket(Data("{\"schema_version\":1,\"status\":\"ready_for_payload\"}\n".utf8), to: peerFD)
-            guard (try? self.readSocketBytes(peerFD, count: bytes.count)) == bytes else { return }
+            try? Self.writeSocket(Data("{\"schema_version\":1,\"status\":\"ready_for_payload\"}\n".utf8), to: peerFD)
+            guard (try? Self.readSocketBytes(peerFD, count: bytes.count)) == bytes else { return }
             var eof: UInt8 = 0
             guard Darwin.read(peerFD, &eof, 1) == 0 else { return }
-            try? self.writeSocket(Data("{\"schema_version\":1,\"status\":\"agent_ready\",\"session_id\":\"\(id.sessionID)\"}\n".utf8), to: peerFD)
+            try? Self.writeSocket(Data("{\"schema_version\":1,\"status\":\"agent_ready\",\"session_id\":\"\(id.sessionID)\"}\n".utf8), to: peerFD)
         }
         let deadline = StartupDeadline(after: .seconds(3))
         XCTAssertNoThrow(try sendAgentPrepare(fd: clientFD, apk: apk, identity: id, wholeDeadline: deadline))
@@ -102,8 +107,8 @@ final class NativeSessionTests: XCTestCase {
         let finished = DispatchSemaphore(value: 0)
         DispatchQueue.global().async {
             defer { finished.signal() }
-            _ = try? self.readSocketLine(peer)
-            try? self.writeSocket(Data("{\"schema_version\":1,\"status\":\"no\"}\n".utf8), to: peer)
+            _ = try? Self.readSocketLine(peer)
+            try? Self.writeSocket(Data("{\"schema_version\":1,\"status\":\"no\"}\n".utf8), to: peer)
             var item = pollfd(fd: peer, events: Int16(POLLIN), revents: 0)
             XCTAssertEqual(poll(&item, 1, 100), 0, "unexpected APK payload before a valid ACK")
         }
@@ -181,10 +186,47 @@ final class NativeSessionTests: XCTestCase {
         defer { Darwin.close(pair[0]); Darwin.close(pair[1]) }
         let peer = pair[1], elapsed = DispatchTime.now().uptimeNanoseconds
         let peerDone = DispatchSemaphore(value: 0)
-        DispatchQueue.global().async { _ = try? self.readSocketLine(peer); peerDone.signal() }
+        DispatchQueue.global().async { _ = try? Self.readSocketLine(peer); peerDone.signal() }
         XCTAssertThrowsError(try sendAgentPrepare(fd: pair[0], apk: apk, identity: identity, wholeDeadline: StartupDeadline(after: .milliseconds(70))))
         XCTAssertLessThan(DispatchTime.now().uptimeNanoseconds - elapsed, 500_000_000)
         Darwin.shutdown(pair[0], SHUT_RDWR)
+        XCTAssertEqual(peerDone.wait(timeout: .now() + 1), .success)
+    }
+
+    @MainActor
+    func testAgentPreparationAllowsMainActorProgressDuringUpload() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let path = directory.appendingPathComponent("agent.apk")
+        let payload = Data("apk".utf8)
+        try payload.write(to: path)
+        let digest = SHA256.hash(data: payload).map { String(format: "%02x", $0) }.joined()
+        let apk = try OpenedAgentAPK(path: path, expectedSHA256: digest)
+        defer { apk.close() }
+        let identity = try makeAgentSessionIdentity()
+        var pair: [Int32] = [0, 0]
+        XCTAssertEqual(socketpair(AF_UNIX, SOCK_STREAM, 0, &pair), 0)
+        for fd in pair { configureNoSIGPIPE(fd) }
+        defer { for fd in pair { Darwin.shutdown(fd, SHUT_RDWR); Darwin.close(fd) } }
+        let peer = pair[1]
+        let actorProgress = DispatchSemaphore(value: 0)
+        let peerDone = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            defer { peerDone.signal() }
+            do {
+                _ = try Self.readSocketLine(peer)
+                Task { @MainActor in actorProgress.signal() }
+                guard actorProgress.wait(timeout: .now() + 1) == .success else { return }
+                try Self.writeSocket(Data("{\"schema_version\":1,\"status\":\"ready_for_payload\"}\n".utf8), to: peer)
+                _ = try Self.readSocketBytes(peer, count: payload.count)
+                var byte: UInt8 = 0
+                guard Darwin.read(peer, &byte, 1) == 0 else { return }
+                try Self.writeSocket(Data("{\"schema_version\":1,\"status\":\"agent_ready\",\"session_id\":\"\(identity.sessionID)\"}\n".utf8), to: peer)
+            } catch { }
+        }
+        try await prepareAgentSession(fd: pair[0], apk: apk, identity: identity,
+                                      wholeDeadline: StartupDeadline(after: .seconds(2)))
         XCTAssertEqual(peerDone.wait(timeout: .now() + 1), .success)
     }
 
@@ -198,18 +240,18 @@ final class NativeSessionTests: XCTestCase {
         let guest = guestPair[0], guestApp = guestPair[1]
         let work = DispatchGroup(); work.enter()
         DispatchQueue.global().async { RelayServer.bridge(client, guest); work.leave() }
-        try writeSocket(Data("request".utf8), to: clientApp)
+        try Self.writeSocket(Data("request".utf8), to: clientApp)
         XCTAssertEqual(Darwin.shutdown(clientApp, SHUT_WR), 0)
-        XCTAssertEqual(try readSocketBytes(guestApp, count: 7), Data("request".utf8))
+        XCTAssertEqual(try Self.readSocketBytes(guestApp, count: 7), Data("request".utf8))
         var byte: UInt8 = 0
         XCTAssertEqual(Darwin.read(guestApp, &byte, 1), 0, "guest must observe propagated request EOF")
-        try writeSocket(Data("reply\n".utf8), to: guestApp)
-        XCTAssertEqual(try readSocketLine(clientApp), "reply")
+        try Self.writeSocket(Data("reply\n".utf8), to: guestApp)
+        XCTAssertEqual(try Self.readSocketLine(clientApp), "reply")
         XCTAssertEqual(Darwin.shutdown(guestApp, SHUT_WR), 0)
         XCTAssertEqual(work.wait(timeout: .now() + 2), .success)
     }
 
-    private func writeSocket(_ data: Data, to fd: Int32) throws {
+    private static func writeSocket(_ data: Data, to fd: Int32) throws {
         try data.withUnsafeBytes { raw in
             var offset = 0
             while offset < raw.count {
@@ -220,7 +262,7 @@ final class NativeSessionTests: XCTestCase {
             }
         }
     }
-    private func readSocketLine(_ fd: Int32) throws -> String {
+    private static func readSocketLine(_ fd: Int32) throws -> String {
         var bytes = Data()
         while bytes.count < 4096 {
             var byte: UInt8 = 0
@@ -232,7 +274,7 @@ final class NativeSessionTests: XCTestCase {
         }
         throw NSError(domain: "socket", code: 1)
     }
-    private func readSocketBytes(_ fd: Int32, count: Int) throws -> Data {
+    private static func readSocketBytes(_ fd: Int32, count: Int) throws -> Data {
         var bytes = Data(count: count)
         try bytes.withUnsafeMutableBytes { raw in
             var offset = 0
