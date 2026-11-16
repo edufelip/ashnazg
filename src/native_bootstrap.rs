@@ -61,6 +61,7 @@ pub async fn start_native(
     config: NativeBootstrapConfig,
     cancel: CancellationToken,
 ) -> anyhow::Result<NativeSession> {
+    ensure!(!cancel.is_cancelled(), "native runtime startup cancelled");
     if !cfg!(all(target_os = "macos", target_arch = "aarch64")) {
         bail!("native runtime requires macOS/aarch64");
     }
@@ -288,6 +289,22 @@ mod tests {
     use super::*;
     use std::fs;
     use std::path::PathBuf;
+
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    #[tokio::test]
+    async fn already_cancelled_bootstrap_does_not_create_private_directories() {
+        let home = tempfile::tempdir().unwrap();
+        let config =
+            config_for_user(home.path().canonicalize().unwrap(), Some(&"a".repeat(40))).unwrap();
+        let library = config.home.join("Library");
+        let cancel = CancellationToken::new();
+        cancel.cancel();
+        assert!(start_native(config, cancel).await.is_err());
+        assert!(
+            !library.exists(),
+            "a cancelled initializer must not start path setup"
+        );
+    }
 
     #[test]
     fn config_rejects_missing_source_stamp() {
