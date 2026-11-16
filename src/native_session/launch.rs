@@ -1,3 +1,9 @@
+//! Descriptor-bound validation of caller-selected local launch inputs.
+//!
+//! Retaining the result through spawn detects observed path replacement. The
+//! platform executes the named helper; this does not protect against a hostile
+//! process running as the same user between the final check and execution.
+
 use super::NativeSessionLaunch;
 use anyhow::Result;
 use sha2::{Digest, Sha256};
@@ -365,7 +371,7 @@ pub(super) fn validate(
         expected: state_id,
         directory: true,
     };
-    let state_dir = if let Some(id) = state_id {
+    let state_marker = if let Some(id) = state_id {
         let f = openat(
             state.parent.as_raw_fd(),
             leaf,
@@ -380,17 +386,12 @@ pub(super) fn validate(
             expected: id,
             held: f.try_clone().map_err(|_| fail())?,
         });
-        f
-    } else {
-        state_parent
-    };
-    let marker = CString::new(".ashnazg-session-v1.json").unwrap();
-    if named(&state_dir, &marker)?.is_some() {
-        return Err(fail());
-    }
-    let state_marker = if state_id.is_some() {
+        let marker = CString::new(".ashnazg-session-v1.json").unwrap();
+        if named(&f, &marker)?.is_some() {
+            return Err(fail());
+        }
         Some(EntryBinding {
-            parent: state_dir,
+            parent: f,
             name: marker,
             expected: None,
             directory: false,
@@ -548,6 +549,26 @@ mod tests {
         assert_eq!(fs::read(marker).unwrap(), b"keep");
     }
     #[test]
+    fn missing_state_does_not_adopt_or_reject_a_parent_session() {
+        let f = fixture();
+        fs::remove_dir(&f.launch.state_dir).unwrap();
+        let unrelated = f
+            .launch
+            .state_dir
+            .parent()
+            .unwrap()
+            .join(".ashnazg-session-v1.json");
+        fs::write(&unrelated, b"parent session must be preserved").unwrap();
+        let v = validate(&f.launch, deadline(), &CancellationToken::new()).unwrap();
+        v.check_before_spawn(deadline(), &CancellationToken::new())
+            .unwrap();
+        assert!(!f.launch.state_dir.exists());
+        assert_eq!(
+            fs::read(unrelated).unwrap(),
+            b"parent session must be preserved"
+        );
+    }
+    #[test]
     fn refuses_marker_file_symlink_directory_and_fifo() {
         let cases = ["file", "symlink", "directory", "fifo"];
         for kind in cases {
@@ -657,6 +678,20 @@ mod tests {
             .iter()
             .map(|b| format!("{b:02x}"))
             .collect();
+        assert!(validate(&bad, deadline(), &CancellationToken::new()).is_err());
+
+        // A private leaf parent must not hide a writable intermediate ancestor.
+        let f = fixture();
+        let ancestor = f._tmp.path().join("ancestor");
+        let parent = ancestor.join("private");
+        fs::create_dir_all(&parent).unwrap();
+        fs::set_permissions(&ancestor, fs::Permissions::from_mode(0o777)).unwrap();
+        fs::set_permissions(&parent, fs::Permissions::from_mode(0o700)).unwrap();
+        let helper = parent.join("helper");
+        fs::copy(&f.launch.helper, &helper).unwrap();
+        fs::set_permissions(&helper, fs::Permissions::from_mode(0o700)).unwrap();
+        let mut bad = f.launch;
+        bad.helper = helper;
         assert!(validate(&bad, deadline(), &CancellationToken::new()).is_err());
 
         if uid() == 0 {
@@ -820,6 +855,8 @@ mod tests {
             v.check_before_spawn(deadline(), &CancellationToken::new())
                 .is_err()
         );
+        drop(v);
+        fs::remove_dir_all(moved).unwrap();
     }
     #[test]
     fn directory_policy_allows_root_sticky_and_rejects_writable_without_sticky() {
