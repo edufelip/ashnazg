@@ -1,10 +1,7 @@
 #![cfg(unix)]
 
-use std::future::Future;
 use std::io::{Read, Seek, Write};
 use std::os::fd::{AsFd, AsRawFd, FromRawFd, OwnedFd};
-use std::pin::Pin;
-use std::task::Poll;
 use std::time::Duration;
 
 use ashnazg::stdio_bridge::OwnedStdioBridge;
@@ -235,7 +232,8 @@ async fn competing_reader_consuming_pipe_data_does_not_block_cancellation() {
     let mut stolen = vec![0; b"readiness consumed by alias".len()];
     alias_file.read_exact(&mut stolen).unwrap();
     assert_eq!(stolen, b"readiness consumed by alias");
-    drop(input_file);
+    // Keep a writer open so the child's input read must wait rather than
+    // immediately observing EOF after the alias consumed the available data.
 
     let (_output_reader, output_writer) = pipe();
     let bridge = OwnedStdioBridge::spawn(
@@ -249,11 +247,12 @@ async fn competing_reader_consuming_pipe_data_does_not_block_cancellation() {
         .await
         .unwrap()
         .unwrap();
+    drop(input_file);
 }
 
 #[tokio::test]
 async fn full_output_pipe_backpressure_is_cancelled_and_reaped() {
-    let (input_reader, _input_writer) = pipe();
+    let (input_reader, input_writer) = pipe();
     let (output_reader, output_writer) = pipe();
     let output_fd = output_writer.as_fd().as_raw_fd();
     let old_flags = unsafe { libc::fcntl(output_fd, libc::F_GETFL) };
@@ -286,14 +285,20 @@ async fn full_output_pipe_backpressure_is_cancelled_and_reaped() {
     )
     .unwrap();
     let child_pid = child_pid_for_fixture(&bridge);
-    let (_reader, mut writer) = bridge.take_io().unwrap();
-    let payload = vec![0x42; 2 * 1024 * 1024];
-    let mut blocked_write = Box::pin(writer.write_all(&payload));
-    assert!(
-        polls_pending_once(blocked_write.as_mut()).await,
-        "a full output pipe must propagate bounded backpressure to async IPC"
+    let (mut reader, mut writer) = bridge.take_io().unwrap();
+    std::fs::File::from(input_writer)
+        .write_all(b"ready")
+        .unwrap();
+    let mut ready = [0; 5];
+    tokio::time::timeout(Duration::from_secs(2), reader.read_exact(&mut ready))
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        &ready, b"ready",
+        "the actual child must be running before backpressure"
     );
-    drop(blocked_write);
+    drive_output_until_backpressured(&mut writer).await;
     tokio::time::timeout(Duration::from_secs(2), bridge.shutdown())
         .await
         .unwrap()
@@ -304,11 +309,24 @@ async fn full_output_pipe_backpressure_is_cancelled_and_reaped() {
     drop(output_reader);
 }
 
-fn polls_pending_once<F: Future>(mut future: Pin<&mut F>) -> impl Future<Output = bool> + '_ {
-    std::future::poll_fn(move |cx| match future.as_mut().poll(cx) {
-        Poll::Pending => Poll::Ready(true),
-        Poll::Ready(_) => Poll::Ready(false),
-    })
+async fn drive_output_until_backpressured(writer: &mut tokio::net::unix::OwnedWriteHalf) {
+    let chunk = [0x42; 16 * 1024];
+    let mut total = 0;
+    loop {
+        match tokio::time::timeout(Duration::from_millis(100), writer.write(&chunk)).await {
+            Ok(Ok(count)) if count > 0 => total += count,
+            Err(_) => break,
+            result => panic!("unexpected write result before backpressure: {result:?}"),
+        }
+        assert!(
+            total <= 16 * 1024 * 1024,
+            "IPC must not accumulate unbounded output"
+        );
+    }
+    assert!(
+        total > 0,
+        "first-poll pending alone is not evidence of backpressure"
+    );
 }
 
 #[tokio::test]
@@ -348,16 +366,12 @@ async fn test_owned_canonical_xoff_terminal_is_cancelled_without_input_or_output
     );
     settings.c_lflag |= libc::ICANON;
     settings.c_iflag |= libc::IXON;
+    settings.c_cc[libc::VSTOP] = 0x13;
+    settings.c_cc[libc::VSTART] = 0x11;
     assert_eq!(
         unsafe { libc::tcsetattr(slave.as_raw_fd(), libc::TCSANOW, &settings) },
         0
     );
-    let xoff = [libc::VSTOP as u8];
-    assert_eq!(
-        unsafe { libc::write(master.as_raw_fd(), xoff.as_ptr().cast(), 1) },
-        1
-    );
-
     let mut bridge = OwnedStdioBridge::spawn(
         child_executable(),
         slave.as_fd(),
@@ -367,13 +381,35 @@ async fn test_owned_canonical_xoff_terminal_is_cancelled_without_input_or_output
     .expect("test-owned terminal descriptors should be accepted");
     let child_pid = child_pid_for_fixture(&bridge);
     let (_reader, mut writer) = bridge.take_io().unwrap();
-    let payload = vec![0x42; 2 * 1024 * 1024];
-    let mut blocked_write = Box::pin(writer.write_all(&payload));
-    assert!(
-        polls_pending_once(blocked_write.as_mut()).await,
-        "canonical input and XOFF output must reach blocked inherited I/O"
+    writer.write_all(b"ready").await.unwrap();
+    let mut pollfd = libc::pollfd {
+        fd: master.as_raw_fd(),
+        events: libc::POLLIN,
+        revents: 0,
+    };
+    assert_eq!(
+        unsafe { libc::poll(&mut pollfd, 1, 1000) },
+        1,
+        "the child must produce its readiness bytes"
     );
-    drop(blocked_write);
+    let mut ready = [0; 5];
+    assert_eq!(
+        unsafe { libc::read(master.as_raw_fd(), ready.as_mut_ptr().cast(), ready.len()) },
+        5
+    );
+    assert_eq!(&ready, b"ready");
+    let xoff = [settings.c_cc[libc::VSTOP]];
+    assert_eq!(
+        unsafe { libc::write(master.as_raw_fd(), xoff.as_ptr().cast(), 1) },
+        1
+    );
+    drive_output_until_backpressured(&mut writer).await;
+    pollfd.revents = 0;
+    assert_eq!(
+        unsafe { libc::poll(&mut pollfd, 1, 0) },
+        0,
+        "XOFF must actually suppress terminal output"
+    );
     tokio::time::timeout(Duration::from_secs(2), bridge.shutdown())
         .await
         .unwrap()
@@ -579,6 +615,67 @@ async fn malformed_hidden_descriptor_is_rejected_by_actual_executable() {
     assert!(
         output.stderr.is_empty(),
         "hidden child must not emit descriptor details"
+    );
+}
+
+#[test]
+fn inherited_stdin_read_error_exits_child_with_failure_instead_of_eof() {
+    use std::os::unix::process::CommandExt;
+    struct ReapOnDrop(std::process::Child);
+    impl Drop for ReapOnDrop {
+        fn drop(&mut self) {
+            let _ = self.0.kill();
+            let _ = self.0.wait();
+        }
+    }
+    let directory = tempfile::tempdir().unwrap();
+    let (parent, child_socket) = unix_socket_pair(libc::SOCK_STREAM);
+    let raw = child_socket.as_raw_fd();
+    let mut command = std::process::Command::new(child_executable());
+    command
+        .args(["--__ashnazg-stdio-bridge", "--fd", &raw.to_string()])
+        .stdin(std::fs::File::open(directory.path()).unwrap())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null());
+    // This actual-child fault fixture deliberately supplies an inherited fd
+    // whose read returns EISDIR. The public parent API rejects directories.
+    unsafe {
+        command.pre_exec(move || {
+            let flags = libc::fcntl(raw, libc::F_GETFD);
+            if flags < 0 || libc::fcntl(raw, libc::F_SETFD, flags & !libc::FD_CLOEXEC) < 0 {
+                return Err(std::io::Error::last_os_error());
+            }
+            Ok(())
+        });
+    }
+    let mut child = ReapOnDrop(command.spawn().unwrap());
+    drop(child_socket);
+    let mut parent = std::os::unix::net::UnixStream::from(parent);
+    parent
+        .set_read_timeout(Some(Duration::from_secs(3)))
+        .unwrap();
+    let mut eof = [0];
+    assert_eq!(
+        parent.read(&mut eof).unwrap(),
+        0,
+        "wait for the child to attempt the failing input read before measuring its exit"
+    );
+    let deadline = std::time::Instant::now() + Duration::from_millis(500);
+    let status = loop {
+        if let Some(status) = child.0.try_wait().unwrap() {
+            break status;
+        }
+        if std::time::Instant::now() >= deadline {
+            child.0.kill().unwrap();
+            break child.0.wait().unwrap();
+        }
+        std::thread::sleep(Duration::from_millis(5));
+    };
+    drop(parent);
+    assert_eq!(
+        status.code(),
+        Some(1),
+        "read errors must fail without waiting for parent output EOF"
     );
 }
 

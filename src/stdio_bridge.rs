@@ -351,7 +351,11 @@ fn bridge_stdin(mut socket: std::os::unix::net::UnixStream) {
                 }
             }
             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(_) => break,
+            // EOF is a half-close, but a failed inherited read must not look
+            // like a successful client disconnect. This thread belongs only
+            // to the disposable bridge child; exiting terminates its blocked
+            // output thread and lets the parent observe a failing exit.
+            Err(_) => std::process::exit(1),
         }
     }
     let _ = socket.shutdown(std::net::Shutdown::Write);
