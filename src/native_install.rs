@@ -697,7 +697,7 @@ pub(crate) fn valid_hex(s: &str, n: usize) -> bool {
         && s.bytes()
             .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
-fn valid_package(s: &str) -> bool {
+pub(crate) fn valid_package(s: &str) -> bool {
     if s.len() > 255 || !s.is_ascii() {
         return false;
     }
