@@ -18168,7 +18168,7 @@
       "origin": "sqlite",
       "sha256": "a7a58d6022c090c528e3167026167b3141d682efc6a3c188b473ba59f1788fc7",
       "size": 3864,
-      "url": "https://www.sqlite.org/src/raw"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/sqlite-3490200-LICENSE.md"
     },
     {
       "cache_path": "sources/sqlite/sqlite-autoconf-3490200.tar.gz",

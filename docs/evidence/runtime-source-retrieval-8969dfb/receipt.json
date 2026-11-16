@@ -1,0 +1,41 @@
+{
+  "failed_prepare": {
+    "candidate_produced": false,
+    "error": "download Content-Length differs from lock",
+    "run_id": 43898507184,
+    "source_sha": "8969dfb81c845753188dce5f5d4174d23e1fcaad"
+  },
+  "limits": [
+    "The subsequent GET observation does not independently establish which response CI received.",
+    "Retrieval URL changed; size and digest pins are unchanged.",
+    "No source sidecar, prepared candidate, VM acceptance, or public release is established by this receipt."
+  ],
+  "schema_version": 1,
+  "subsequent_get_observation": {
+    "content_encoding": null,
+    "content_type": "text/html; charset=utf-8",
+    "expected_sha256": "a7a58d6022c090c528e3167026167b3141d682efc6a3c188b473ba59f1788fc7",
+    "expected_size": 3864,
+    "filename": "sqlite-3490200-LICENSE.md",
+    "final_host": "www.sqlite.org",
+    "final_path": "/src/doc/trunk/README.md",
+    "finished_at": "2026-11-16T15:55:37+00:00",
+    "initial_host": "www.sqlite.org",
+    "initial_path": "/src/raw",
+    "observed_content_length": 49133,
+    "record_order": 53,
+    "request_method": "GET",
+    "started_at": "2026-11-16T15:55:36+00:00",
+    "status": 200,
+    "user_agent": "ashnazg-source-sidecar/1"
+  },
+  "verified_retrieval": {
+    "filename": "sqlite-3490200-LICENSE.md",
+    "matches_locked_size_sha256_declared_sha512": true,
+    "production_download_function_passed": true,
+    "sha256": "a7a58d6022c090c528e3167026167b3141d682efc6a3c188b473ba59f1788fc7",
+    "sha512": "38844727b09d11ded660c069d19a5289100405b0b243e75338060d237e3190fd99f0270611d214862beeb54a67993c2a337f917fdc452084f812d1371ce9869b",
+    "size": 3864,
+    "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/sqlite-3490200-LICENSE.md"
+  }
+}

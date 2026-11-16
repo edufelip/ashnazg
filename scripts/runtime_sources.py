@@ -261,7 +261,10 @@ def _download(record, *, remaining, deadline):
             raise ValueError("download redirected away from HTTPS")
         content_length = response.headers.get("Content-Length")
         if content_length and int(content_length) != record["size"]:
-            raise ValueError("download Content-Length differs from lock")
+            name = _safe_relpath(record.get("filename", record.get("path", "input")))
+            raise ValueError("download Content-Length differs from lock for " + name
+                             + ": expected " + str(record["size"])
+                             + " bytes, received " + str(int(content_length)))
         while True:
             now = time.monotonic()
             if now - started > MAX_FILE_DOWNLOAD_SECONDS or now > deadline:
@@ -786,7 +789,7 @@ def build_source_sidecar(assets_dir, repo_root, output, version, source_sha,
         origin, commit = record.get("origin"), record.get("commit")
         if not isinstance(origin, str) or not ORIGIN_RE.fullmatch(origin) or not isinstance(commit, str) or not SOURCE_SHA_RE.fullmatch(commit):
             raise ValueError("invalid notice candidate origin/commit")
-        if type(record.get("size")) is not int or not 0 < record["size"] <= MAX_INPUT_BYTES or not SHA256_RE.fullmatch(record.get("sha256", "")):
+        if type(record.get("size")) is not int or not 0 <= record["size"] <= MAX_INPUT_BYTES or not SHA256_RE.fullmatch(record.get("sha256", "")):
             raise ValueError("invalid notice candidate size or SHA-256")
         candidate_id = record.get("candidate_id")
         if not isinstance(candidate_id, str) or not re.fullmatch(r"candidate-[0-9]{6}", candidate_id):
