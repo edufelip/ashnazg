@@ -11,8 +11,11 @@ The client opens one regular APK descriptor without following a final symlink or
 blocking on a FIFO, hashes it, waits for the guest's payload ACK and streams that
 same descriptor. It verifies the streamed hash, half-closes the upload and requires
 a matching installation result followed by EOF. Requests are never replayed.
-An optional validated package requests launch after installation; the caller must
-infer that package from the APK if its user-facing API offers automatic inference.
+An optional validated package requests launch after installation. The separate
+`install_with_inferred_launch` method infers the package inside that same worker
+before hashing and uploading. Explicit package and no-launch calls bypass
+inference. Observed changes to descriptor identity, size, mtime or ctime refuse
+installation, including same-size rewrites whose mtime was restored.
 
 The separate `apk_manifest::infer_package` helper now reads the exact root
 `AndroidManifest.xml` from an already-open APK and infers its compiled package
@@ -23,10 +26,15 @@ streaming descriptors and observed file metadata changes, including ctime.
 The decoder handles UTF-8 and UTF-16 string pools and narrow XML framing. It does
 not replace Android's APK validation.
 
-This helper is not yet connected to `NativeInstallClient` or MCP. Automatic launch
-inference must happen inside the installation worker using its retained descriptor;
-inferring from one open file and then installing a reopened pathname would lose
-that binding. The CLI and existing MCP behavior remain as described below.
+`NativeInstallClient::install_with_inferred_launch` calls this helper with its
+retained descriptor and upload deadline. It never infers from one open file and
+installs a reopened pathname. MCP and CLI routing do not use this new method yet.
+
+Loopback fixtures check the inferred request's package, digest and uploaded bytes
+for stored and deflated manifests. Deterministic preparation checkpoints exercise
+path replacement after open, inference and hashing; they also exercise same-size
+package rewrites with restored mtime, cancellation and the original upload
+deadline. These are host fixtures, not live Android installation evidence.
 
 One blocking worker owns the file and socket. Upload has a 30-second deadline from
 call entry; the result has a 180-second limit, both capped by the caller's absolute

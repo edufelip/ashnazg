@@ -19,6 +19,9 @@ const MAX_READ: usize = 64 * 1024;
 const MAX_CALLS: u32 = 100_000;
 const TARGET: &[u8] = b"AndroidManifest.xml";
 
+#[cfg(test)]
+pub(crate) use tests::zip as fixture_apk;
+
 /// Infers one package from an already-open APK without changing its cursor.
 ///
 /// ZIP integrity and narrow compiled-manifest framing are checked under one
@@ -307,7 +310,7 @@ mod tests {
     use std::{io::Write, time::Duration};
     use tempfile::NamedTempFile;
 
-    fn zip(payload: &[u8], deflate: bool, tail: &[u8]) -> Vec<u8> {
+    pub(crate) fn zip(payload: &[u8], deflate: bool, tail: &[u8]) -> Vec<u8> {
         let compressed = if deflate {
             let mut e = DeflateEncoder::new(Vec::new(), Compression::default());
             e.write_all(payload).unwrap();
