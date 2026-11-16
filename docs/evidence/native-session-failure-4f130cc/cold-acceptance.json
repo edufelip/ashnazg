@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "mode": "cold",
+  "status": "failed",
+  "source_sha": "4f130cc1485741b0ffc6f7bc3f6f4f2922d2c5bc",
+  "host_source_sha": "71a3eca12ba20bfbd17959f2b8e01341653b373d",
+  "workflow_run": 43794811613,
+  "host_adb_used": false,
+  "rpc_checks": [],
+  "mcp_checks": [],
+  "session_checks": [],
+  "agent_apk_sha256": "f2a2dbcfd3f43e4dc9544442493712feec6e2ce19abe1904728c5b2209c0e4c7",
+  "preflight": {
+    "schema_version": 1,
+    "source_sha": "4f130cc1485741b0ffc6f7bc3f6f4f2922d2c5bc",
+    "workflow_run": 43794811613,
+    "archive_sha256": "34ab3ad4b6161aa0d3da9b973e2f1402e770c59690193adfa7bccb3ed79ba82a",
+    "guest_download": {
+      "artifact_id": 14194557067,
+      "artifact_name": "microvm-linux-arm64-4f130cc1485741b0ffc6f7bc3f6f4f2922d2c5bc",
+      "zip_sha256": "26d021c8123ac87600a7c43120108fdf681e2d28a0f27dc97d19be464c54e2b2",
+      "zip_size": 230293538
+    },
+    "apk_download": {
+      "artifact_id": 14193957169,
+      "artifact_name": "android-apks",
+      "zip_sha256": "831e3eddbb0ad8dd8121113cf1c5041ea6c3f8bd9263a6501d0dfc6576b940a5",
+      "zip_size": 28254726
+    },
+    "fixed_regular_members": [
+      "NOTICES.md",
+      "kernel",
+      "kernel.config",
+      "kernel.generated.config",
+      "linux-6.12.117.tar.xz",
+      "manifest.json",
+      "packages.lock.json",
+      "provenance.json",
+      "rootfs.ext4",
+      "runtime-components.json",
+      "runtime-installed.db"
+    ],
+    "kernel_config_sha256": "1d3f71c5cd4f4f5402136658877a4baa9c6973a55e236da26f03383b7d7967ae",
+    "kernel_generated_config_sha256": "70960e57afb670d381ffde6284c48faf7934be7e0acdfd6ccdadfcb789718694",
+    "asset_manifest_validated": true,
+    "assets": "/private/tmp/ashnazg-native-session-4f130cc-guest/assets",
+    "all_fragment_settings_verified": true
+  },
+  "helper_pid": 70015,
+  "error_type": "RuntimeError",
+  "error": "helper exited before agent readiness",
+  "helper_exit_code": 1,
+  "final_runtime_receipt": {
+    "adb_listen": "127.0.0.1:15555",
+    "agent_apk_sha256": "f2a2dbcfd3f43e4dc9544442493712feec6e2ce19abe1904728c5b2209c0e4c7",
+    "android_serial": "127.0.0.1:5555",
+    "architecture": "aarch64",
+    "cpu_count": 2,
+    "error": "guest returned a malformed session response",
+    "kernel_sha256": "0ce892130fd4107ea564abe90d1f1daa773e0a8c7fddf97653df6f870dc3e389",
+    "manifest_source_sha": "4f130cc1485741b0ffc6f7bc3f6f4f2922d2c5bc",
+    "manifest_version": "0.3.0",
+    "memory_bytes": 2147483648,
+    "rootfs_template_sha256": "20f7bc3dfb8a90c1dddbc5850288f63dc73cd8e6390e6eb9696e82c436f863e7",
+    "schema_version": 1,
+    "status": "failed",
+    "timings": {
+      "readiness_ms": 110043,
+      "total_startup_ms": 113134,
+      "vm_start_ms": 98
+    }
+  },
+  "credential_removed": true,
+  "owned_listeners_closed": {
+    "15555": true,
+    "7777": true,
+    "17778": true
+  }
+}
