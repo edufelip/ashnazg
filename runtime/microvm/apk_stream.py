@@ -1,4 +1,4 @@
-"""Strict framing and private staging for one APK upload per connection."""
+"""Strict framing and sealed anonymous storage for one APK upload per connection."""
 
 from __future__ import annotations
 
@@ -7,13 +7,12 @@ import json
 import math
 import os
 import re
-import secrets
+import fcntl
 import socket
-import stat
+import threading
 import time
 import uuid
 from dataclasses import dataclass, field, replace
-from pathlib import Path
 from typing import Optional
 
 
@@ -190,94 +189,50 @@ def _revalidate_header(header):
     return header
 
 
-def _open_staging_directory(staging_dir):
-    path = os.fspath(staging_dir)
+def _new_memfd():
+    descriptor = None
     try:
-        before = os.lstat(path)
-        if not stat.S_ISDIR(before.st_mode) or stat.S_ISLNK(before.st_mode):
-            raise UploadError("unsafe staging directory")
-        if before.st_uid != os.getuid() or before.st_mode & 0o077:
-            raise UploadError("unsafe staging directory")
-        flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
-        fd = os.open(path, flags)
-        try:
-            after = os.fstat(fd)
-            if (not stat.S_ISDIR(after.st_mode) or after.st_uid != os.getuid() or after.st_mode & 0o077 or
-                    (before.st_dev, before.st_ino) != (after.st_dev, after.st_ino)):
-                raise UploadError("unsafe staging directory")
-        except BaseException:
-            os.close(fd)
+        descriptor = os.memfd_create("ashnazg-apk", os.MFD_CLOEXEC | os.MFD_ALLOW_SEALING)
+        os.fchmod(descriptor, 0o600)
+        return descriptor
+    except BaseException as exc:
+        if descriptor is not None:
+            os.close(descriptor)
+        if not isinstance(exc, Exception):
             raise
-        return fd, os.path.abspath(path)
-    except UploadError:
-        raise
-    except OSError:
-        raise UploadError("staging directory unavailable") from None
+        raise UploadError("anonymous APK storage requires Linux memfd support") from None
 
 
-def _create_staged_file(dir_fd):
-    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
-    for _ in range(16):
-        name = "upload-" + secrets.token_hex(16) + ".apk"
-        try:
-            fd = os.open(name, flags, 0o600, dir_fd=dir_fd)
-        except FileExistsError:
-            continue
-        try:
-            st = os.fstat(fd)
-            return name, fd, st.st_dev, st.st_ino
-        except BaseException:
-            os.close(fd)
-            # Without an inode identity, unlinking by name could remove a
-            # replacement. Preserve the entry and report unverified cleanup.
-            raise UploadError("unable to inspect staged upload; cleanup ownership unverified") from None
-    raise UploadError("unable to create staged upload")
-
-
-def _remove_owned_file(dir_fd, name, device, inode):
-    try:
-        current = os.stat(name, dir_fd=dir_fd, follow_symlinks=False)
-    except FileNotFoundError:
-        return
-    if (current.st_dev, current.st_ino) != (device, inode):
-        raise OSError("staged file was replaced before cleanup")
-    os.unlink(name, dir_fd=dir_fd)
+def _seal_memfd(descriptor):
+    seals = fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL
+    fcntl.fcntl(descriptor, fcntl.F_ADD_SEALS, seals)
+    if fcntl.fcntl(descriptor, fcntl.F_GET_SEALS) & seals != seals:
+        raise UploadError("anonymous APK sealing failed")
 
 
 class StagedApk:
-    """An owned staged APK whose exact directory entry is removed on close."""
+    """Verified immutable upload; callers borrow its descriptor while it is open."""
 
-    def __init__(self, path, size, sha256, dir_fd, name, device, inode):
-        self.path = path
+    def __init__(self, descriptor, size, sha256):
         self.size = size
         self.sha256 = sha256
-        self._dir_fd = dir_fd
-        self._name = name
-        self._device = device
-        self._inode = inode
-        self._closed = False
+        self._descriptor = descriptor
+        self._lock = threading.Lock()
+
+    def fileno(self):
+        with self._lock:
+            if self._descriptor is None:
+                raise ValueError("staged APK is closed")
+            return self._descriptor
 
     def close(self):
-        if self._closed:
-            return
-        self._closed = True
-        failure = None
-        try:
-            _remove_owned_file(self._dir_fd, self._name, self._device, self._inode)
-        except OSError as exc:
-            failure = exc
-        try:
-            os.close(self._dir_fd)
-        except OSError as exc:
-            if failure is None:
-                failure = exc
-        self._dir_fd = -1
-        if failure is not None:
-            raise failure
+        with self._lock:
+            descriptor, self._descriptor = self._descriptor, None
+        if descriptor is not None:
+            os.close(descriptor)
 
     def __enter__(self):
-        if self._closed:
-            raise ValueError("staged APK is closed")
+        self.fileno()
         return self
 
     def __exit__(self, _exc_type, _exc, _traceback):
@@ -285,19 +240,16 @@ class StagedApk:
         return False
 
 
-def receive_apk(sock, header, *, staging_dir, deadline, clock=time.monotonic):
-    """Receive exact APK bytes, verify digest and sender half-close, then stage."""
+def receive_apk(sock, header, *, deadline, clock=time.monotonic):
+    """Verify exact APK bytes and half-close, then return sealed anonymous storage."""
     validated = _revalidate_header(header)
     effective_deadline = _effective_deadline(deadline, clock)
     if validated._deadline is not None:
         effective_deadline = min(effective_deadline,
                                  _effective_deadline(validated._deadline, clock))
-    dir_fd, directory_path = _open_staging_directory(staging_dir)
-    name = None
-    file_fd = None
-    device = inode = None
+    descriptor = None
     try:
-        name, file_fd, device, inode = _create_staged_file(dir_fd)
+        descriptor = _new_memfd()
         digest = hashlib.sha256()
         received = 0
         while received < validated.apk_size:
@@ -307,49 +259,28 @@ def receive_apk(sock, header, *, staging_dir, deadline, clock=time.monotonic):
             view = memoryview(chunk)
             while view:
                 _set_timeout(sock, effective_deadline, clock)
-                try:
-                    written = os.write(file_fd, view)
-                except OSError:
-                    raise UploadError("staged upload write failed") from None
+                written = os.write(descriptor, view)
                 if written <= 0:
-                    raise UploadError("staged upload write failed")
+                    raise UploadError("anonymous upload write failed")
                 view = view[written:]
             digest.update(chunk)
             received += len(chunk)
         if digest.hexdigest() != validated.apk_sha256:
             raise UploadError("upload digest mismatch")
-        # This final one-byte read both requires a sender write-half-close and
-        # rejects any byte beyond the declared payload under the same deadline.
-        extra = _recv(sock, 1, effective_deadline, clock)
-        if extra:
+        if _recv(sock, 1, effective_deadline, clock):
             raise UploadError("upload contains trailing bytes")
-        try:
-            os.fsync(file_fd)
-        except OSError:
-            raise UploadError("staged upload finalization failed") from None
+        _seal_memfd(descriptor)
+        os.lseek(descriptor, 0, os.SEEK_SET)
         _set_timeout(sock, effective_deadline, clock)
-        os.close(file_fd)
-        file_fd = None
-        return StagedApk(os.path.join(directory_path, name), received, digest.hexdigest(),
-                         dir_fd, name, device, inode)
+        result = StagedApk(descriptor, received, digest.hexdigest())
+        descriptor = None
+        return result
     except BaseException as exc:
-        cleanup_failure = None
-        if file_fd is not None:
+        if descriptor is not None:
             try:
-                os.close(file_fd)
-            except OSError as close_exc:
-                cleanup_failure = close_exc
-        if name is not None:
-            try:
-                _remove_owned_file(dir_fd, name, device, inode)
-            except OSError as cleanup_exc:
-                cleanup_failure = cleanup_exc
-        try:
-            os.close(dir_fd)
-        except OSError as close_exc:
-            cleanup_failure = cleanup_failure or close_exc
-        if cleanup_failure is not None:
-            raise UploadError("upload failed and staged file cleanup failed") from cleanup_failure
-        if isinstance(exc, UploadError):
+                os.close(descriptor)
+            except OSError:
+                raise UploadError("upload failed and descriptor cleanup failed") from None
+        if isinstance(exc, UploadError) or not isinstance(exc, Exception):
             raise
         raise UploadError("upload failed") from None

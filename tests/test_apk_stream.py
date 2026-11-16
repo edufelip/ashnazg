@@ -2,7 +2,7 @@ import hashlib
 import json
 import os
 import socket
-import stat
+import fcntl
 import tempfile
 import threading
 import time
@@ -46,6 +46,19 @@ def frame(value):
 
 
 class ApkStreamTests(unittest.TestCase):
+    def setUp(self):
+        if not hasattr(os, "memfd_create"):
+            def anonymous_fixture():
+                with tempfile.TemporaryFile() as file:
+                    return os.dup(file.fileno())
+            self.new_memfd = mock.patch("runtime.microvm.apk_stream._new_memfd",
+                                        side_effect=anonymous_fixture, create=True)
+            self.seal_memfd = mock.patch("runtime.microvm.apk_stream._seal_memfd", create=True)
+            self.new_memfd.start()
+            self.seal_memfd.start()
+            self.addCleanup(self.new_memfd.stop)
+            self.addCleanup(self.seal_memfd.stop)
+
     def parse(self, raw, *, timeout=0.5):
         receiver, sender = socket.socketpair()
         receiver.settimeout(timeout)
@@ -133,7 +146,7 @@ class ApkStreamTests(unittest.TestCase):
         with self.assertRaises(UploadError):
             self.parse(frame({**install, "launch": False, "package": "dev.app"}))
 
-    def upload(self, payload, *, declared=APK, digest=None, staging_dir=None, send_extra=False,
+    def upload(self, payload, *, declared=APK, digest=None, send_extra=False,
                half_close=True, send_delay=0, deadline=None, clock=time.monotonic):
         receiver, sender = socket.socketpair()
         value = header_object(apk_size=len(declared), apk_sha256=digest or hashlib.sha256(declared).hexdigest())
@@ -159,7 +172,7 @@ class ApkStreamTests(unittest.TestCase):
         result = None
         error = None
         try:
-            result = receive_apk(receiver, parsed, staging_dir=staging_dir, deadline=deadline or clock() + 2, clock=clock)
+            result = receive_apk(receiver, parsed, deadline=deadline or clock() + 2, clock=clock)
         except Exception as exc:
             error = exc
         finally:
@@ -169,19 +182,36 @@ class ApkStreamTests(unittest.TestCase):
             self.assertFalse(worker.is_alive())
         return result, error, errors
 
-    def test_upload_stages_exact_payload_and_context_removes_it(self):
-        with tempfile.TemporaryDirectory() as temp:
-            result, error, _ = self.upload(APK, staging_dir=temp)
-            self.assertIsNone(error)
-            self.assertEqual(Path(result.path).read_bytes(), APK)
-            self.assertEqual(result.size, len(APK))
-            self.assertEqual(result.sha256, hashlib.sha256(APK).hexdigest())
-            path = Path(result.path)
-            with result:
-                self.assertTrue(path.exists())
-            self.assertFalse(path.exists())
+    def test_upload_is_anonymous_and_close_releases_only_its_descriptor(self):
+        result, error, _ = self.upload(APK)
+        self.assertIsNone(error)
+        descriptor = result.fileno()
+        self.assertEqual(os.read(descriptor, len(APK)), APK)
+        self.assertEqual(os.fstat(descriptor).st_nlink, 0)
+        self.assertEqual(result.size, len(APK))
+        self.assertEqual(result.sha256, hashlib.sha256(APK).hexdigest())
+        with result:
+            self.assertEqual(os.fstat(descriptor).st_size, len(APK))
+        result.close()
+        with self.assertRaises(OSError):
+            os.fstat(descriptor)
+        with self.assertRaises(ValueError):
+            result.fileno()
 
-    def test_early_eof_hash_mismatch_and_extra_bytes_remove_partial_file(self):
+    @unittest.skipUnless(hasattr(os, "memfd_create"), "real Linux memfd proof requires Linux")
+    def test_real_linux_upload_is_sealed_against_content_changes(self):
+        result, error, _ = self.upload(APK)
+        self.assertIsNone(error)
+        with result:
+            descriptor = result.fileno()
+            expected = fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL
+            self.assertEqual(fcntl.fcntl(descriptor, fcntl.F_GET_SEALS) & expected, expected)
+            with self.assertRaises(OSError):
+                os.write(descriptor, b"changed")
+            with self.assertRaises(OSError):
+                os.ftruncate(descriptor, 0)
+
+    def test_early_eof_hash_mismatch_and_extra_bytes_close_partial_upload(self):
         with tempfile.TemporaryDirectory() as temp:
             cases = [
                 (APK[:-1], len(APK), hashlib.sha256(APK).hexdigest(), False),
@@ -197,7 +227,7 @@ class ApkStreamTests(unittest.TestCase):
                 sender.sendall(payload + (b"x" if extra else b""))
                 sender.shutdown(socket.SHUT_WR)
                 with self.assertRaises(UploadError):
-                    receive_apk(receiver, parsed, staging_dir=temp, deadline=time.monotonic() + 1)
+                    receive_apk(receiver, parsed, deadline=time.monotonic() + 1)
                 receiver.close()
                 sender.close()
                 self.assertEqual(list(Path(temp).iterdir()), [])
@@ -210,7 +240,7 @@ class ApkStreamTests(unittest.TestCase):
         sender.close()
 
         with tempfile.TemporaryDirectory() as temp:
-            result, error, _ = self.upload(APK, staging_dir=temp, send_delay=0.06,
+            result, error, _ = self.upload(APK, send_delay=0.06,
                                            deadline=time.monotonic() + 0.11)
             self.assertIsNone(result)
             self.assertIsInstance(error, UploadError)
@@ -272,7 +302,7 @@ class ApkStreamTests(unittest.TestCase):
         parsed = read_upload_header(connection, deadline=100.0, clock=clock)
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaises(UploadError):
-                staged = receive_apk(connection, parsed, staging_dir=directory,
+                staged = receive_apk(connection, parsed,
                                      deadline=100.0, clock=clock)
                 staged.close()
             self.assertEqual(list(Path(directory).iterdir()), [])
@@ -283,7 +313,7 @@ class ApkStreamTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             receiver, sender = socket.socketpair()
             with self.assertRaises(UploadError):
-                receive_apk(receiver, invalid, staging_dir=temp, deadline=time.monotonic() + 1)
+                receive_apk(receiver, invalid, deadline=time.monotonic() + 1)
             self.assertEqual(list(Path(temp).iterdir()), [])
             receiver.close()
             sender.close()
@@ -296,92 +326,60 @@ class ApkStreamTests(unittest.TestCase):
             sender.sendall(APK)
             started = time.monotonic()
             with self.assertRaises(UploadError):
-                receive_apk(receiver, parsed, staging_dir=temp, deadline=started + 0.12)
+                receive_apk(receiver, parsed, deadline=started + 0.12)
             self.assertLess(time.monotonic() - started, 1)
             self.assertEqual(list(Path(temp).iterdir()), [])
             receiver.close()
             sender.close()
 
-    def test_refuses_symlink_nonprivate_and_nonowned_staging_directories(self):
-        with tempfile.TemporaryDirectory() as temp:
-            base = Path(temp)
-            private = base / "private"
-            private.mkdir(mode=0o700)
-            link = base / "link"
-            link.symlink_to(private)
-            loose = base / "loose"
-            loose.mkdir(mode=0o755)
-            for path in (link, loose):
-                with self.subTest(path=path):
-                    result, error, _ = self.upload(APK, staging_dir=path)
-                    self.assertIsNone(result)
-                    self.assertIsInstance(error, UploadError)
-            receiver, sender = socket.socketpair()
-            sender.sendall(frame(header_object()))
-            parsed = read_upload_header(receiver, deadline=time.monotonic() + 1)
-            with patch_owner_uid(123456):
-                with self.assertRaises(UploadError):
-                    receive_apk(receiver, parsed, staging_dir=private, deadline=time.monotonic() + 1)
-            receiver.close()
-            sender.close()
-
-    def test_close_preserves_replacement_and_reports_cleanup_failure(self):
-        with tempfile.TemporaryDirectory() as temp:
-            result, error, _ = self.upload(APK, staging_dir=temp)
-            self.assertIsNone(error)
-            path = Path(result.path)
-            path.unlink()
-            path.symlink_to("missing-target")
-            with self.assertRaises(OSError):
-                result.close()
-            self.assertTrue(path.is_symlink())
-
-    def test_initial_metadata_failure_does_not_remove_an_unproven_replacement(self):
-        with tempfile.TemporaryDirectory() as directory:
-            original_fstat = os.fstat
-            replacement = []
-
-            def fail_file_metadata(fd):
-                info = original_fstat(fd)
-                if stat.S_ISREG(info.st_mode):
-                    path = next(Path(directory).glob("upload-*.apk"))
-                    path.unlink()
-                    path.write_bytes(b"foreign replacement")
-                    replacement.append(path)
-                    raise OSError("metadata unavailable")
-                return info
-
-            with mock.patch("runtime.microvm.apk_stream.os.fstat", side_effect=fail_file_metadata):
-                result, error, _ = self.upload(APK, staging_dir=directory)
+    def test_missing_anonymous_storage_fails_without_creating_a_path(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            with mock.patch("runtime.microvm.apk_stream._new_memfd", create=True,
+                            side_effect=UploadError("anonymous storage unavailable")):
+                result, error, _ = self.upload(APK)
             self.assertIsNone(result)
             self.assertIsInstance(error, UploadError)
-            self.assertEqual(len(replacement), 1)
-            self.assertTrue(replacement[0].exists(), "unproven replacement must be preserved")
-            self.assertEqual(replacement[0].read_bytes(), b"foreign replacement")
+            self.assertEqual(list(Path(temporary).iterdir()), [])
 
-    def test_context_exception_removes_completed_file(self):
-        with tempfile.TemporaryDirectory() as temp:
-            result, error, _ = self.upload(APK, staging_dir=temp)
-            self.assertIsNone(error)
-            path = Path(result.path)
-            with self.assertRaisesRegex(RuntimeError, "sentinel"):
-                with result:
-                    raise RuntimeError("sentinel")
-            self.assertFalse(path.exists())
+    def test_cleanup_never_unlinks_a_same_uid_replacement(self):
+        result, error, _ = self.upload(APK)
+        self.assertIsNone(error)
+        with tempfile.TemporaryDirectory() as temporary:
+            foreign = Path(temporary) / "foreign.apk"
+            foreign.write_bytes(b"replacement")
+            with mock.patch("runtime.microvm.apk_stream.os.unlink") as unlink:
+                result.close()
+            unlink.assert_not_called()
+            self.assertEqual(foreign.read_bytes(), b"replacement")
 
+    def test_sealing_failure_closes_the_owned_descriptor(self):
+        # The host fixture substitutes storage only; Linux exercises real memfd.
+        from runtime.microvm import apk_stream
+        original = apk_stream._new_memfd
+        opened = []
+        def record_creation():
+            descriptor = original()
+            opened.append(descriptor)
+            return descriptor
+        with mock.patch("runtime.microvm.apk_stream._new_memfd", side_effect=record_creation), \
+             mock.patch("runtime.microvm.apk_stream._seal_memfd", create=True,
+                        side_effect=OSError("seal failed")):
+            result, error, _ = self.upload(APK)
+        self.assertIsNone(result)
+        self.assertIsInstance(error, UploadError)
+        self.assertEqual(len(opened), 1)
+        with self.assertRaises(OSError):
+            os.fstat(opened[0])
 
-class patch_owner_uid:
-    """Patch os.getuid without adding a dependency on mock helpers."""
-
-    def __init__(self, uid):
-        self.uid = uid
-
-    def __enter__(self):
-        self.old = os.getuid
-        os.getuid = lambda: self.uid
-
-    def __exit__(self, *args):
-        os.getuid = self.old
+    def test_context_exception_closes_completed_upload(self):
+        result, error, _ = self.upload(APK)
+        self.assertIsNone(error)
+        descriptor = result.fileno()
+        with self.assertRaisesRegex(RuntimeError, "sentinel"):
+            with result:
+                raise RuntimeError("sentinel")
+        with self.assertRaises(OSError):
+            os.fstat(descriptor)
 
 
 if __name__ == "__main__":
