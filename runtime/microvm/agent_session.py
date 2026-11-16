@@ -78,6 +78,8 @@ class GuestSession:
         self._interruptible = {}
         self._closed = False
         self._backend_close_started = False
+        self._backend_close_done = False
+        self._backend_close_failed = False
 
     def __repr__(self):
         with self._condition:
@@ -150,10 +152,18 @@ class GuestSession:
             if self._backend_close_started:
                 return
             self._backend_close_started = True
+        failed = False
         try:
             self._backend.close()
-        except BaseException:
-            pass
+        except BaseException as error:
+            failed = True
+            if not isinstance(error, Exception):
+                raise
+        finally:
+            with self._condition:
+                self._backend_close_failed = failed
+                self._backend_close_done = True
+                self._condition.notify_all()
 
     def _invalidate_dead_backend(self):
         with self._condition:
@@ -368,9 +378,12 @@ class GuestSession:
             raise SessionError("invalid drain timeout")
         end = time.monotonic() + duration
         with self._condition:
-            while self._inflight:
+            while (self._inflight or
+                   ((self._closed or self._backend_close_started) and not self._backend_close_done)):
                 remaining = end - time.monotonic()
                 if remaining <= 0:
                     raise SessionError("session drain timed out") from None
                 self._condition.wait(remaining)
+            if self._backend_close_failed:
+                raise SessionError("backend cleanup failed") from None
         return True

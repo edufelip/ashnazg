@@ -314,6 +314,31 @@ class GuestSessionTests(unittest.TestCase):
         client.close()
         self.assertTrue(self.session.drain(timeout=0.05))
 
+    def test_drain_waits_for_backend_cleanup_and_reports_failure_without_secret(self):
+        entered, release = threading.Event(), threading.Event()
+        def blocked_close():
+            entered.set()
+            release.wait(2)
+        self.backend.close = blocked_close
+        closer = threading.Thread(target=self.session.close)
+        closer.start()
+        try:
+            self.assertTrue(entered.wait(1))
+            with self.assertRaisesRegex(SessionError, "timed out"):
+                self.session.drain(timeout=0.01)
+        finally:
+            release.set()
+            closer.join(1)
+        self.assertFalse(closer.is_alive())
+        self.assertTrue(self.session.drain(timeout=0.05))
+
+        failed = GuestSession(FakeBackend())
+        failed._backend.close = mock.Mock(side_effect=RuntimeError(INSTALL))
+        failed.close()
+        with self.assertRaisesRegex(SessionError, "backend cleanup failed") as caught:
+            failed.drain(timeout=0.05)
+        self.assertNotIn(INSTALL, str(caught.exception))
+
     def test_close_is_idempotent_and_repr_and_replies_never_contain_tokens(self):
         self.assertNotIn(RPC, repr(self.session))
         self.assertNotIn(INSTALL, repr(self.session))
