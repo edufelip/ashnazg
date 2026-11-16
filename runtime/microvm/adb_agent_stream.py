@@ -71,8 +71,16 @@ class AgentStreamPool:
             self._read_status(connection, end)
             self._check(end)
             connection.setblocking(True)
-            handed_off = True
-            return _OwnedAgentStream(self, connection)
+            # Linearize handoff with close(): an admitted socket that close has
+            # already removed cannot be published as a successful open.
+            with self._lock:
+                now = float(self._clock())
+                if (self._closed or self._cancelled() or connection not in self._sockets
+                        or not math.isfinite(now) or now >= end):
+                    raise AgentStreamError()
+                owned = _OwnedAgentStream(self, connection)
+                handed_off = True
+                return owned
         except AgentStreamError:
             raise
         except (OSError, ValueError, OverflowError, TypeError):

@@ -103,6 +103,30 @@ class AdbAgentStreamTests(unittest.TestCase):
         owned.close()
         owned.close()
 
+    def test_pool_close_before_handoff_does_not_return_a_closed_stream(self):
+        def handler(conn):
+            self._read_request(conn)
+            conn.sendall(b"OKAY")
+            self._read_request(conn)
+            conn.sendall(b"OKAY")
+        self.server(handler)
+        pool = stream.AgentStreamPool()
+        original_socket = socket.socket
+        class ClosingSocket:
+            def __init__(self, value): self.value = value
+            def __getattr__(self, name): return getattr(self.value, name)
+            def setblocking(self, flag):
+                self.value.setblocking(flag)
+                if flag:
+                    pool.close()
+        def make_socket(*args, **kwargs):
+            value = original_socket(*args, **kwargs)
+            return value if kwargs.get('fileno') is not None else ClosingSocket(value)
+        with mock.patch.object(stream.socket, 'socket', side_effect=make_socket):
+            with self.assertRaises(stream.AgentStreamError):
+                pool.open(deadline=time.monotonic() + 2)
+        self.assertEqual(pool._slots, 0)
+
     def test_fail_frame_is_discarded_and_secret_text_never_escapes(self):
         secret = b"password=do-not-leak"
 
