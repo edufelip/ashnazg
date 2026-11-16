@@ -144,6 +144,45 @@ process shutdown on an open stdin merely because a library serve future returns.
 Resolve interruptible stdio ownership in the CLI integration before claiming
 signal-driven CLI acceptance.
 
+Concrete adapter interface:
+
+```rust
+pub async fn serve_native_io<R, W>(session: NativeSession, read: R, write: W,
+    cancel: CancellationToken) -> anyhow::Result<()>;
+pub async fn serve_native_http(session: NativeSession,
+    listener: tokio::net::TcpListener, bearer: String,
+    cancel: CancellationToken) -> anyhow::Result<()>;
+```
+
+The I/O parameters must be owned, `Send`, `Unpin`, `'static` asynchronous reader
+and writer types. The HTTP listener must be loopback. Keep legacy `serve_stdio`,
+`serve_http`, `AshnazgServer::new` and `HostConfig` usable unchanged. Obtain native
+clients from the consumed session's factories and `serial` from `adb_addr()`.
+Use `install_with_inferred_launch` only for launch without an explicit package.
+
+Keep one active native installation, matching guest upload admission; reject a
+second immediately rather than queue unbounded requests. Use an admission lock
+and tracked tasks so closing admission is atomic with task registration. Request
+abandonment cancels a per-request child token, while its tracked task continues
+awaiting the install worker. A small `tokio-util` `rt` feature addition for
+`TaskTracker` is allowed; no new crate versions are needed. Wait for tracked
+operations before stopping the helper. All blocking filesystem bounds remain
+cooperative as documented by the installer.
+
+Run serving and teardown inside one owned async task. A caller dropping the public
+future must cancel that task's lifecycle without aborting its teardown owner.
+Normal EOF/HTTP cancellation, startup failure, helper exit and dropped callers all
+stop admission and join normal cleanup; preserve both serving and shutdown
+failures with fixed errors. A private test session-owner seam can exercise this
+order without weakening the public `NativeSession` platform or identity checks.
+Use real duplex/HTTP MCP messages and loopback upload peers for contract tests;
+test owners are fixture proof and do not replace real helper/VM acceptance.
+
+The adapter implementation can be an isolated Luna task owning `src/mcp.rs`, the
+minimal Cargo feature change, and `docs/native-mcp.md`. Root keeps ownership of
+session metadata, final integration, review and real acceptance. Do not change
+`main.rs`, release acquisition/defaults, guest/Swift code or unrelated workflows.
+
 CLI acquisition/default changes remain separate: matching release assets/catalog
 are not public yet. First qualify the library adapter using explicit owned local
 inputs and a real MCP client: native `app_install` with and without package,

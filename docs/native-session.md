@@ -24,6 +24,9 @@ ping on the caller's Tokio runtime. The owner acknowledges activation before
 runtime. The former reuses the authenticated connection; the latter installs
 through the fixed guest backend without invoking host ADB. The Swift helper
 still verifies the kernel, rootfs template and agent APK bytes before readiness.
+`adb_addr()` returns the non-secret host relay endpoint bound by that readiness
+receipt, separately from the guest's internal Android serial. It is session
+metadata and does not perform a liveness check.
 
 The startup budget is the smaller of the caller deadline and configured helper
 timeout. Passing readiness ends that startup deadline. `wait_terminated()` can be
