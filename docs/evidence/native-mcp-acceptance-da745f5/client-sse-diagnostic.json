@@ -1,0 +1,13 @@
+{
+  "error_class": "ProofFailure",
+  "message": "invalid MCP response",
+  "last_response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "mcp-session-id": "150eb040-d37a-4f3c-a5c7-68f2d1971668"
+    },
+    "body_prefix": "data: \nid: 0\nretry: 3000\n\ndata: {\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"ashnazg\",\"version\":\"0.1.0\"}}}\n\n",
+    "body_bytes": 178
+  }
+}

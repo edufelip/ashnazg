@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+  "apk_workflow_run": 43807503988,
+  "apk_artifact_id": 14199660456,
+  "member": "AndroidManifest.xml",
+  "files": [
+    {
+      "path": "native.axml",
+      "size": 2608,
+      "sha256": "4faebbbe1496123e6287189847c9f82582d68764630cfe4d145e88b14ffa6e40",
+      "expected_package": "dev.ashnazg.fixture",
+      "source_apk_sha256": "162713fae95542b0c09efab4f494969ab992d73d9357fd6583665af942a30746"
+    },
+    {
+      "path": "compose.axml",
+      "size": 5108,
+      "sha256": "57009bffce243a29e28ec1826f7f36d62e2e0d988ee6fa76175d5d8a60abdbc6",
+      "expected_package": "com.ashnazg.fixture.compose",
+      "source_apk_sha256": "876fc77a551cc49e8285bbd1f63f5c8be26d079994e5894b59546dd0d1913c78"
+    },
+    {
+      "path": "reactnative.axml",
+      "size": 6152,
+      "sha256": "3890c571f2000d8ca3dc34d776d1d8ea08edd85e2e9d4b8fdf66336ea9c79503",
+      "expected_package": "com.ashnazg.fixture.reactnative",
+      "source_apk_sha256": "74f6ed7ee72b8f75356a53c13220f58fdcc199100228b9fa09bc5a6fb18d9f37"
+    }
+  ]
+}

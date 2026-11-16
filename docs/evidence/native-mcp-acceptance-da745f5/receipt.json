@@ -1,0 +1,580 @@
+{
+  "schema_version": 1,
+  "host_source_sha": "da745f5c3ff474eb0ef3d4b02d3f7a3981604f38",
+  "guest_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+  "scope": "Explicit native library MCP over authenticated loopback HTTP on reused owned state. No CLI, stdio interruption, cold-start distribution, release or acquisition claim.",
+  "runs": {
+    "initial-client-failure": {
+      "status": "failed",
+      "receipt_sha256": "106b765d79c27b2831fde2fd2b12fefefbb957f420c7af7a5b339dfbcb1f6ede",
+      "checks": 0,
+      "tool_calls": 0,
+      "elapsed_seconds": 42.374,
+      "failure_class": "ProofFailure"
+    },
+    "restart-normal": {
+      "status": "passed",
+      "receipt_sha256": "f8678ca4fefe3919e73f1c9996f839b1c5736436a4ff5c20942a5fe3dca972aa",
+      "checks": 19,
+      "tool_calls": 30,
+      "elapsed_seconds": 49.824,
+      "failure_class": null,
+      "helper_total_startup_ms": 39770,
+      "interrupted": false,
+      "owned_cleanup_verified": true
+    },
+    "restart-sigterm": {
+      "status": "passed",
+      "receipt_sha256": "05a716e5a5fb170528a62462e4c571f14ab3b6a2823711f2511a3770eaa533f6",
+      "checks": 19,
+      "tool_calls": 30,
+      "elapsed_seconds": 49.509,
+      "failure_class": null,
+      "helper_total_startup_ms": 40522,
+      "interrupted": true,
+      "owned_cleanup_verified": true
+    }
+  },
+  "payloads": {
+    "client-sse-diagnostic.json": {
+      "size": 503,
+      "sha256": "b50dce69212c381a57a8fc4c3cf278abf53d435106af312d0725c8c684cff53f"
+    },
+    "initial-client-failure/acceptance.py": {
+      "size": 15452,
+      "sha256": "518b8df40eec8027702f4a9fc3c08609ae7eeedef168313528cd647c4031359f"
+    },
+    "initial-client-failure/build-receipt.json": {
+      "size": 831,
+      "sha256": "72af6e960be7408e66e392ee80e1d736e87da7ca481186eec0165fa490ae677b"
+    },
+    "initial-client-failure/cleanup.json": {
+      "size": 296,
+      "sha256": "1ba715ffc8f7c427e6456dd2cd0b8460a89f8e3da22d483e0bbadaa8778d1526"
+    },
+    "initial-client-failure/environment-contract.json": {
+      "size": 193,
+      "sha256": "dd76b6bfcedef297bb34ab703f69f50f993b4946616a8b49bf3e7d981e63553b"
+    },
+    "initial-client-failure/mcp_http.py": {
+      "size": 6135,
+      "sha256": "7343095302f86ec2c476cd0e47ac3d2f297e511f16ca7001314fd8a69af41269"
+    },
+    "initial-client-failure/preflight.json": {
+      "size": 1089,
+      "sha256": "091eff3b2bb0f1eca4aab81f14ab23dec1cef9dbc8308c8178a05c3bdfd68d0f"
+    },
+    "initial-client-failure/probe.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "initial-client-failure/ready.json": {
+      "size": 262,
+      "sha256": "b4a45f93ce08b18bdd7c231baaa9b351b9f5bd3314631f5c67fa0dbba9a66ee4"
+    },
+    "initial-client-failure/receipt.json": {
+      "size": 2678,
+      "sha256": "106b765d79c27b2831fde2fd2b12fefefbb957f420c7af7a5b339dfbcb1f6ede"
+    },
+    "initial-client-failure/runtime.json": {
+      "size": 740,
+      "sha256": "ef379b166d48828af3e7508511f011bc500231c14eb64cb6e0f245c6a6cdedfc"
+    },
+    "initial-client-failure/serial-uncompressed.json": {
+      "size": 101,
+      "sha256": "b9729d761a0b620ee0118e63532fb8a8bcba944ba2f89104d4aa6715107ad571"
+    },
+    "initial-client-failure/serial.log.gz": {
+      "size": 25506,
+      "sha256": "7ee0a61d9dad0e7bd2f93d12d22e554e4048d881bd0fbb4ae9d84ea9cc186357"
+    },
+    "initial-client-failure/stopped.json": {
+      "size": 280,
+      "sha256": "5e59f65969d796325f60b8794da90cf6b2dc1c6b125f0d8e91016455df3e7f67"
+    },
+    "restart-normal/001-initialize.json": {
+      "size": 213,
+      "sha256": "2f6b8163367903541b6636ea748fbc7a883fa2aa647766f2c951947f297ea29b"
+    },
+    "restart-normal/002-tools-list.json": {
+      "size": 6135,
+      "sha256": "d133f18612fe72455814ddf26fe5fba2986c2714da6620d8fe7b320210cc187c"
+    },
+    "restart-normal/003-app_install.json": {
+      "size": 377,
+      "sha256": "ef30e09b6a58cbddda91df6d3072b1eda43dbf01699b3b3e090200978859f8f2"
+    },
+    "restart-normal/004-ui_snapshot.json": {
+      "size": 13830,
+      "sha256": "6b3abb0b2d2483d63759c35fef1fee70149b28283aec4b4af4d6e705ea080108"
+    },
+    "restart-normal/005-ui_act.json": {
+      "size": 13027,
+      "sha256": "8a7ff040be337b87ff0384e9ada1a8f570bf28d1b611534829ef4166fe895b77"
+    },
+    "restart-normal/006-ui_act.json": {
+      "size": 13027,
+      "sha256": "2d2b09ff4f3bed5ba612964cb79f508e425190ff8fc0036599af2db7ac1f93f6"
+    },
+    "restart-normal/007-ui_act.json": {
+      "size": 13061,
+      "sha256": "5d8c9413231699cd1fe9d7c5b39faeb546a8a5ad71d96c4c7fd37dc5684f983d"
+    },
+    "restart-normal/008-ui_act.json": {
+      "size": 13027,
+      "sha256": "541cb502d588be1a12cca3448bb86aa5c5432183eb3a5d63b5dc0cf74b5219bc"
+    },
+    "restart-normal/009-ui_screenshot.json": {
+      "size": 589,
+      "sha256": "62208be398610c5ece5e74b49c75a4a5e90e730b26c47e90ac289be84245c936"
+    },
+    "restart-normal/010-app_install.json": {
+      "size": 394,
+      "sha256": "cb9942919cc4f18952a9744d01220664ca5679e234f7e561a339374b55098333"
+    },
+    "restart-normal/011-ui_snapshot.json": {
+      "size": 5690,
+      "sha256": "d58db78a2a9c6e69be261d888b3b9ea8f28637d749c033c4a41d173a5b5d7287"
+    },
+    "restart-normal/012-ui_act.json": {
+      "size": 5216,
+      "sha256": "8157cda3f9f5bb3e08b39941082d9a18c41908d08bb9bbc3810d099d401aea55"
+    },
+    "restart-normal/013-ui_act.json": {
+      "size": 5216,
+      "sha256": "80fd85502003e085d0a34016babf9c97c7cfe33bf8f2e5426c16e5c87e6b56f6"
+    },
+    "restart-normal/014-ui_act.json": {
+      "size": 3724,
+      "sha256": "0ee6dd2e7eb68aa33cd53eb5dd3fc647b4303aa1c2405046745fa12f1eacddea"
+    },
+    "restart-normal/015-ui_act.json": {
+      "size": 5216,
+      "sha256": "6a66e0b10d56f39807a511ed38b1e6820fa19dac2b2c823b01afef7bad35ba5e"
+    },
+    "restart-normal/016-ui_screenshot.json": {
+      "size": 516,
+      "sha256": "3b7dd4bec53c51b81363bb95e78f3629a8606434f7ed96323a49e35a1dea2138"
+    },
+    "restart-normal/017-app_install.json": {
+      "size": 402,
+      "sha256": "a4fc6c23bc35b253a05213ec61fe3a5d44ca1bdfb6423ad6bf575fc535b77213"
+    },
+    "restart-normal/018-ui_snapshot.json": {
+      "size": 5345,
+      "sha256": "9ffcacc25378231dcc74f84cde815754710e750bd3b347c515cf18e3588d46c9"
+    },
+    "restart-normal/019-ui_act.json": {
+      "size": 4831,
+      "sha256": "aea45d5dd52716e7fbfff634e9a41cc7232cc9f2c4b8813ef6eb2cb895ddc1b3"
+    },
+    "restart-normal/020-ui_act.json": {
+      "size": 4831,
+      "sha256": "525b4a817be3e94953a2149f5cc7907bd8b364bcc0e0c354ac4cb92ac2aa3b2a"
+    },
+    "restart-normal/021-ui_act.json": {
+      "size": 4865,
+      "sha256": "31fd86bbf098da489d2ba482a4ee00be92de04e12819a3b8c131e78eabc5890c"
+    },
+    "restart-normal/022-ui_act.json": {
+      "size": 4831,
+      "sha256": "ee2fdc7cf493865dcc78bc903008aa3b5f05dd93e3b03845481b3ebb7cc0755d"
+    },
+    "restart-normal/023-ui_screenshot.json": {
+      "size": 516,
+      "sha256": "2a9123370253c817edd2047022cfcf1d3a7642edbb5574c798dec71611aa1600"
+    },
+    "restart-normal/024-app_install.json": {
+      "size": 342,
+      "sha256": "0badc77a28fc2679a6791e30c2fcbfd87bfb4cb67f1905e3ea1566f25d8255dd"
+    },
+    "restart-normal/025-ui_snapshot.json": {
+      "size": 4526,
+      "sha256": "6b2a70e147c82681456d1300495c403a6b8243a80124d9752614227a14d66e92"
+    },
+    "restart-normal/026-app_install.json": {
+      "size": 119,
+      "sha256": "10466cf43b4b98f9c7d13f6ef9adfdd904b5d770c8cddb2be934ceea4a640063"
+    },
+    "restart-normal/027-app_install.json": {
+      "size": 121,
+      "sha256": "ea0b463548f175d5b2699f695a9f5afc268ce7b8e86510e36fa953be27323a97"
+    },
+    "restart-normal/028-app_install.json": {
+      "size": 378,
+      "sha256": "73dc57e508503a79bfc2e693a5ce9e37d424c95431afbb59ad30c3be00de81cd"
+    },
+    "restart-normal/029-ui_snapshot.json": {
+      "size": 13833,
+      "sha256": "f6a7547414ca81ea4d66657b4b59f6306e0dfaa2990f5238f26964da811d1f36"
+    },
+    "restart-normal/030-ui_act.json": {
+      "size": 13787,
+      "sha256": "ee4fdad986c9b6c8f15bd024cbee01ebe18b3fce39b8850801b692bdcbf99410"
+    },
+    "restart-normal/031-ui_act.json": {
+      "size": 13030,
+      "sha256": "995bcd3a9a56d6f33b68ea40360e901243844519c2386529149db3752d5b4746"
+    },
+    "restart-normal/032-app_logs.json": {
+      "size": 268,
+      "sha256": "179f38a58afdb063fb05a20f5a6a5e39fdb6c94decf9b66968950a7fd574d522"
+    },
+    "restart-normal/acceptance.py": {
+      "size": 16342,
+      "sha256": "927dbebd4a768849e506ae81fe830285784200adb19dd678f49a2be2a687e980"
+    },
+    "restart-normal/build-receipt.json": {
+      "size": 831,
+      "sha256": "e5f11062b697172e6eb94dd0e1a7b931f8591fe17d3f81d3b985af971c1e837d"
+    },
+    "restart-normal/cleanup.json": {
+      "size": 296,
+      "sha256": "1ba715ffc8f7c427e6456dd2cd0b8460a89f8e3da22d483e0bbadaa8778d1526"
+    },
+    "restart-normal/compose-screenshot.json": {
+      "size": 304,
+      "sha256": "c3b78cf9dd444286748bcd3caef34dba31fdf161c102ea73d13dab6943f43a64"
+    },
+    "restart-normal/compose.png": {
+      "size": 20193,
+      "sha256": "5ee6a7d506ccf5390a552d772ac285987444f938fe1de69a8574b4c4bb36ba28"
+    },
+    "restart-normal/environment-contract.json": {
+      "size": 246,
+      "sha256": "5a7950cf95692e1a2a4a97e76b8f5d6b049213130bebd66a9181f7247a33c1ab"
+    },
+    "restart-normal/malformed.apk": {
+      "size": 33,
+      "sha256": "9a202ac3ee87418ba45e1d7b68b0783ac54c05b684b6c899b47bea3d500d0776"
+    },
+    "restart-normal/mcp_http.py": {
+      "size": 6443,
+      "sha256": "8cd5da103570fd07183dd261ff4d1a7a5fec6b010036485acedbff7293d84cc0"
+    },
+    "restart-normal/native-screenshot.json": {
+      "size": 508,
+      "sha256": "9731678cde467925da66078566f1530adbb90ec02fc8aa9df8a6c502f52e749a"
+    },
+    "restart-normal/native.png": {
+      "size": 58405,
+      "sha256": "b40f6b7411f3facded9c55e46f301be1cc29ca2e56a50ff3ef0084ed98017bd7"
+    },
+    "restart-normal/preflight.json": {
+      "size": 1089,
+      "sha256": "c04a2d7b3ceabe921a0e11dc2ed9189436f070e2c8c5fc2564c0f69d5bd9127b"
+    },
+    "restart-normal/probe-Cargo.lock": {
+      "size": 63096,
+      "sha256": "3252313d777cafaad1a3a0a4edaab087a03969a848002119c49834b6956e8522"
+    },
+    "restart-normal/probe-Cargo.toml": {
+      "size": 335,
+      "sha256": "1ed51ca8c110069420a47fbeb7d10b4a2e3f2e3ec78d352aa943f975c2a21ca2"
+    },
+    "restart-normal/probe-source.rs": {
+      "size": 4456,
+      "sha256": "10b0fb48e3f5e268f049c6809651657be6b447aa78a49927507ba788af97b58e"
+    },
+    "restart-normal/probe.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "restart-normal/reactnative-screenshot.json": {
+      "size": 304,
+      "sha256": "f4fb1971189e23291f95be46985e67a7fb36f223dd9a0c60198f3dd1b70cfa25"
+    },
+    "restart-normal/reactnative.png": {
+      "size": 25050,
+      "sha256": "07b0597b294d7af50fd78d07c2f22900887ce54753a281984155021d702fb6cd"
+    },
+    "restart-normal/ready.json": {
+      "size": 262,
+      "sha256": "7db4ed2c24c8a3993e427bb94cfc1fc179caa3f55c92db6b4955b51778159b65"
+    },
+    "restart-normal/receipt.json": {
+      "size": 9207,
+      "sha256": "f8678ca4fefe3919e73f1c9996f839b1c5736436a4ff5c20942a5fe3dca972aa"
+    },
+    "restart-normal/runtime.json": {
+      "size": 740,
+      "sha256": "81b4300942860e5ff907697ce0ed8740a4b9b8d2cfceed8a083d5600169960c7"
+    },
+    "restart-normal/serial-uncompressed.json": {
+      "size": 101,
+      "sha256": "8979eb5e55b40f3807f7a406fbaf9a4de3bd617a3d7d4fa7bbcb4a34eff82fe1"
+    },
+    "restart-normal/serial.log.gz": {
+      "size": 28504,
+      "sha256": "4e6ddd123423ecd63f0173310d6d2d0843426f0979529b10857fcfc3654c1aec"
+    },
+    "restart-normal/stopped.json": {
+      "size": 280,
+      "sha256": "a5f665fcac65692aafd25762adc3a8f14bf24f95ef22a1b94586f1a084ac1d36"
+    },
+    "restart-sigterm/001-initialize.json": {
+      "size": 213,
+      "sha256": "2f6b8163367903541b6636ea748fbc7a883fa2aa647766f2c951947f297ea29b"
+    },
+    "restart-sigterm/002-tools-list.json": {
+      "size": 6135,
+      "sha256": "d133f18612fe72455814ddf26fe5fba2986c2714da6620d8fe7b320210cc187c"
+    },
+    "restart-sigterm/003-app_install.json": {
+      "size": 377,
+      "sha256": "ef30e09b6a58cbddda91df6d3072b1eda43dbf01699b3b3e090200978859f8f2"
+    },
+    "restart-sigterm/004-ui_snapshot.json": {
+      "size": 13830,
+      "sha256": "6b3abb0b2d2483d63759c35fef1fee70149b28283aec4b4af4d6e705ea080108"
+    },
+    "restart-sigterm/005-ui_act.json": {
+      "size": 13027,
+      "sha256": "8a7ff040be337b87ff0384e9ada1a8f570bf28d1b611534829ef4166fe895b77"
+    },
+    "restart-sigterm/006-ui_act.json": {
+      "size": 13027,
+      "sha256": "2d2b09ff4f3bed5ba612964cb79f508e425190ff8fc0036599af2db7ac1f93f6"
+    },
+    "restart-sigterm/007-ui_act.json": {
+      "size": 13061,
+      "sha256": "5d8c9413231699cd1fe9d7c5b39faeb546a8a5ad71d96c4c7fd37dc5684f983d"
+    },
+    "restart-sigterm/008-ui_act.json": {
+      "size": 13027,
+      "sha256": "541cb502d588be1a12cca3448bb86aa5c5432183eb3a5d63b5dc0cf74b5219bc"
+    },
+    "restart-sigterm/009-ui_screenshot.json": {
+      "size": 589,
+      "sha256": "c11d9f8dbb00d1041a7e313158c6cd0c73d40eba7affad13a706698cc05077a2"
+    },
+    "restart-sigterm/010-app_install.json": {
+      "size": 394,
+      "sha256": "cb9942919cc4f18952a9744d01220664ca5679e234f7e561a339374b55098333"
+    },
+    "restart-sigterm/011-ui_snapshot.json": {
+      "size": 5684,
+      "sha256": "c4b3850389e1bdcd57e6b79fad4a2578162f078759324c443c82c55a8947daa2"
+    },
+    "restart-sigterm/012-ui_act.json": {
+      "size": 5216,
+      "sha256": "8157cda3f9f5bb3e08b39941082d9a18c41908d08bb9bbc3810d099d401aea55"
+    },
+    "restart-sigterm/013-ui_act.json": {
+      "size": 5216,
+      "sha256": "80fd85502003e085d0a34016babf9c97c7cfe33bf8f2e5426c16e5c87e6b56f6"
+    },
+    "restart-sigterm/014-ui_act.json": {
+      "size": 3724,
+      "sha256": "0ee6dd2e7eb68aa33cd53eb5dd3fc647b4303aa1c2405046745fa12f1eacddea"
+    },
+    "restart-sigterm/015-ui_act.json": {
+      "size": 5216,
+      "sha256": "6a66e0b10d56f39807a511ed38b1e6820fa19dac2b2c823b01afef7bad35ba5e"
+    },
+    "restart-sigterm/016-ui_screenshot.json": {
+      "size": 516,
+      "sha256": "3e7aa2670d9d23a739f197f96b74497b538a6a32cda25102010533caefab33a3"
+    },
+    "restart-sigterm/017-app_install.json": {
+      "size": 402,
+      "sha256": "a4fc6c23bc35b253a05213ec61fe3a5d44ca1bdfb6423ad6bf575fc535b77213"
+    },
+    "restart-sigterm/018-ui_snapshot.json": {
+      "size": 5345,
+      "sha256": "9ffcacc25378231dcc74f84cde815754710e750bd3b347c515cf18e3588d46c9"
+    },
+    "restart-sigterm/019-ui_act.json": {
+      "size": 4831,
+      "sha256": "aea45d5dd52716e7fbfff634e9a41cc7232cc9f2c4b8813ef6eb2cb895ddc1b3"
+    },
+    "restart-sigterm/020-ui_act.json": {
+      "size": 4831,
+      "sha256": "525b4a817be3e94953a2149f5cc7907bd8b364bcc0e0c354ac4cb92ac2aa3b2a"
+    },
+    "restart-sigterm/021-ui_act.json": {
+      "size": 4865,
+      "sha256": "31fd86bbf098da489d2ba482a4ee00be92de04e12819a3b8c131e78eabc5890c"
+    },
+    "restart-sigterm/022-ui_act.json": {
+      "size": 4831,
+      "sha256": "ee2fdc7cf493865dcc78bc903008aa3b5f05dd93e3b03845481b3ebb7cc0755d"
+    },
+    "restart-sigterm/023-ui_screenshot.json": {
+      "size": 516,
+      "sha256": "c4ec3a2c23a2ade48359fbf926cdeb430f208d7f88c6c0434cfb51a843e30a16"
+    },
+    "restart-sigterm/024-app_install.json": {
+      "size": 342,
+      "sha256": "0badc77a28fc2679a6791e30c2fcbfd87bfb4cb67f1905e3ea1566f25d8255dd"
+    },
+    "restart-sigterm/025-ui_snapshot.json": {
+      "size": 4526,
+      "sha256": "6b2a70e147c82681456d1300495c403a6b8243a80124d9752614227a14d66e92"
+    },
+    "restart-sigterm/026-app_install.json": {
+      "size": 119,
+      "sha256": "10466cf43b4b98f9c7d13f6ef9adfdd904b5d770c8cddb2be934ceea4a640063"
+    },
+    "restart-sigterm/027-app_install.json": {
+      "size": 121,
+      "sha256": "ea0b463548f175d5b2699f695a9f5afc268ce7b8e86510e36fa953be27323a97"
+    },
+    "restart-sigterm/028-app_install.json": {
+      "size": 378,
+      "sha256": "73dc57e508503a79bfc2e693a5ce9e37d424c95431afbb59ad30c3be00de81cd"
+    },
+    "restart-sigterm/029-ui_snapshot.json": {
+      "size": 13833,
+      "sha256": "f6a7547414ca81ea4d66657b4b59f6306e0dfaa2990f5238f26964da811d1f36"
+    },
+    "restart-sigterm/030-ui_act.json": {
+      "size": 13787,
+      "sha256": "ee4fdad986c9b6c8f15bd024cbee01ebe18b3fce39b8850801b692bdcbf99410"
+    },
+    "restart-sigterm/031-ui_act.json": {
+      "size": 13030,
+      "sha256": "995bcd3a9a56d6f33b68ea40360e901243844519c2386529149db3752d5b4746"
+    },
+    "restart-sigterm/032-app_logs.json": {
+      "size": 268,
+      "sha256": "179f38a58afdb063fb05a20f5a6a5e39fdb6c94decf9b66968950a7fd574d522"
+    },
+    "restart-sigterm/acceptance.py": {
+      "size": 16342,
+      "sha256": "927dbebd4a768849e506ae81fe830285784200adb19dd678f49a2be2a687e980"
+    },
+    "restart-sigterm/build-receipt.json": {
+      "size": 831,
+      "sha256": "e5f11062b697172e6eb94dd0e1a7b931f8591fe17d3f81d3b985af971c1e837d"
+    },
+    "restart-sigterm/cleanup.json": {
+      "size": 296,
+      "sha256": "1ba715ffc8f7c427e6456dd2cd0b8460a89f8e3da22d483e0bbadaa8778d1526"
+    },
+    "restart-sigterm/compose-screenshot.json": {
+      "size": 304,
+      "sha256": "c3b78cf9dd444286748bcd3caef34dba31fdf161c102ea73d13dab6943f43a64"
+    },
+    "restart-sigterm/compose.png": {
+      "size": 20249,
+      "sha256": "a7aa2dee17ce416074e4dc44cc4ffc9ecf10f4534ac3bf5553141e0a97d50004"
+    },
+    "restart-sigterm/environment-contract.json": {
+      "size": 246,
+      "sha256": "5a7950cf95692e1a2a4a97e76b8f5d6b049213130bebd66a9181f7247a33c1ab"
+    },
+    "restart-sigterm/malformed.apk": {
+      "size": 33,
+      "sha256": "9a202ac3ee87418ba45e1d7b68b0783ac54c05b684b6c899b47bea3d500d0776"
+    },
+    "restart-sigterm/mcp_http.py": {
+      "size": 6443,
+      "sha256": "8cd5da103570fd07183dd261ff4d1a7a5fec6b010036485acedbff7293d84cc0"
+    },
+    "restart-sigterm/native-screenshot.json": {
+      "size": 508,
+      "sha256": "9731678cde467925da66078566f1530adbb90ec02fc8aa9df8a6c502f52e749a"
+    },
+    "restart-sigterm/native.png": {
+      "size": 58469,
+      "sha256": "0f254946461bfbc6fbe528891f81c341cb005a189da188e5c0db4d2ca4fa1db7"
+    },
+    "restart-sigterm/preflight.json": {
+      "size": 1089,
+      "sha256": "c04a2d7b3ceabe921a0e11dc2ed9189436f070e2c8c5fc2564c0f69d5bd9127b"
+    },
+    "restart-sigterm/probe-Cargo.lock": {
+      "size": 63096,
+      "sha256": "3252313d777cafaad1a3a0a4edaab087a03969a848002119c49834b6956e8522"
+    },
+    "restart-sigterm/probe-Cargo.toml": {
+      "size": 335,
+      "sha256": "1ed51ca8c110069420a47fbeb7d10b4a2e3f2e3ec78d352aa943f975c2a21ca2"
+    },
+    "restart-sigterm/probe-source.rs": {
+      "size": 4456,
+      "sha256": "10b0fb48e3f5e268f049c6809651657be6b447aa78a49927507ba788af97b58e"
+    },
+    "restart-sigterm/probe.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "restart-sigterm/reactnative-screenshot.json": {
+      "size": 304,
+      "sha256": "f4fb1971189e23291f95be46985e67a7fb36f223dd9a0c60198f3dd1b70cfa25"
+    },
+    "restart-sigterm/reactnative.png": {
+      "size": 25078,
+      "sha256": "395bcb2512d04a2f8cd848a2775df623f328df4f46414604ee23749765659212"
+    },
+    "restart-sigterm/ready.json": {
+      "size": 262,
+      "sha256": "308e2695892b6f51491303aef8e39a8e698bd7f7622c0ac1915cfa24a45672c2"
+    },
+    "restart-sigterm/receipt.json": {
+      "size": 9208,
+      "sha256": "05a716e5a5fb170528a62462e4c571f14ab3b6a2823711f2511a3770eaa533f6"
+    },
+    "restart-sigterm/runtime.json": {
+      "size": 740,
+      "sha256": "832bb662ac6884ad2374a4f2fef6b46ea4b856efd41196f65822bcb3a430170e"
+    },
+    "restart-sigterm/serial-uncompressed.json": {
+      "size": 101,
+      "sha256": "beb3e8cad0052fde693f7fbe2da753f63bafdaff4555f1c147632bce0d1b1391"
+    },
+    "restart-sigterm/serial.log.gz": {
+      "size": 31640,
+      "sha256": "be9025ef8f5c5f53cb65a922a80e3941243f5218bcb414ac5d4af4516d39c541"
+    },
+    "restart-sigterm/stopped.json": {
+      "size": 279,
+      "sha256": "a72c1a884335b67b607644504a60101c49e1137b299e6e5fdc7e49f7b2343bd8"
+    },
+    "test-mcp-http.py": {
+      "size": 1452,
+      "sha256": "a365475e0f93b738271b5c159dca222d3de48782f436db99dc0cfd19014d016d"
+    },
+    "README.md": {
+      "size": 2669,
+      "sha256": "6433caaf030f7b361814f2d57d629adf0962bb2644eaa45ae217cd82309f93c0"
+    }
+  },
+  "dependency_binding": {
+    "probe_registry_packages": 255,
+    "all_probe_registry_identities_and_checksums_in_host_lock": true,
+    "host_lock_sha256": "cc7f7a017e58f4b01bb2c4e7f4c15d005b3f5b7f54703f03a223010553b820b8",
+    "probe_lock_sha256": "3252313d777cafaad1a3a0a4edaab087a03969a848002119c49834b6956e8522",
+    "host_only_registry_packages": [
+      {
+        "name": "fastrand",
+        "version": "2.5.0"
+      },
+      {
+        "name": "tempfile",
+        "version": "3.27.0"
+      }
+    ]
+  },
+  "source_files": {
+    "src/mcp.rs": "cbfc6a4b60fe2a642fb00504c6e91c94acedf28cf968d2d4b7070ac4f2c0cf44",
+    "src/native_install.rs": "1ffcaea37b6da6da3f26f5e3595b426d74d7b8d2d3e0e571b393caa585dfba89",
+    "src/native_session.rs": "3882d701d5fea5b15168cd43def14447c0b780e5033c0b7b212cf0005c116b28",
+    "src/native_session/launch.rs": "b008a118d8f99961a1223be3d0377fa19a79b983477594b56dd6f28912ea9d02",
+    "src/session_credentials.rs": "8e3e94228baa052bcac936aa3b97c966a83b0dc8df373bc6c39c776835c1f230",
+    "src/apk_manifest.rs": "c8842969df3c68c1be65a054edf00f596c5000969a1d4434b16ccb69630346ec",
+    "src/axml_package.rs": "4c2336cf30bcd9eda55b4f513ef87b44b853a7534a9c5c2e20e44b372e1fc03e",
+    "src/guest.rs": "d0f0ead1630f7babb6ea059448c94c74d95d6fd701ef3231a33e7ddb483c4209",
+    "src/lib.rs": "de259f4228d06f2a040fe6e0a36b9814c57794853ac018e9d80d07a6a832fc2f",
+    "Cargo.toml": "dbcfa99310bfb59f0b2a6c4a0c8df86caebdb7650a2de483cd63a2aab85cff00",
+    "Cargo.lock": "cc7f7a017e58f4b01bb2c4e7f4c15d005b3f5b7f54703f03a223010553b820b8"
+  },
+  "limits": [
+    "These are two restarts of retained owned state, not a cold-start distribution.",
+    "SIGTERM was delivered after the request sequence while the server remained active; in-flight cancellation and stdio EOF were tested with fixtures.",
+    "Credential scanning is reported by the bound driver; the retained files cannot independently attest the external runtime environment.",
+    "Disk and state identity are preserved; disk bytes are expected to change.",
+    "The initial failed run records zero completed acceptance checks; the client decoder was corrected without changing host or guest code."
+  ]
+}

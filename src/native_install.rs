@@ -39,6 +39,307 @@ mod tests {
         stream
     }
 
+    fn install_fixture(
+        listener: TcpListener,
+        expected_body: Vec<u8>,
+        expected_package: Option<&str>,
+    ) -> std::thread::JoinHandle<()> {
+        let expected_package = expected_package.map(str::to_owned);
+        std::thread::spawn(move || {
+            let mut stream = fixture_connection(&listener);
+            let mut line = Vec::new();
+            while !line.ends_with(b"\n") {
+                assert!(line.len() < MAX_FRAME);
+                let mut byte = [0];
+                stream.read_exact(&mut byte).unwrap();
+                line.push(byte[0]);
+            }
+            let header: Value = serde_json::from_slice(&line).unwrap();
+            assert_eq!(header["launch"], expected_package.is_some());
+            assert_eq!(
+                header.get("package").and_then(Value::as_str),
+                expected_package.as_deref()
+            );
+            assert_eq!(header["apk_size"], expected_body.len());
+            let digest = Sha256::digest(&expected_body)
+                .iter()
+                .map(|b| format!("{b:02x}"))
+                .collect::<String>();
+            assert_eq!(header["apk_sha256"], digest);
+            stream
+                .write_all(b"{\"schema_version\":1,\"status\":\"ready_for_payload\"}\n")
+                .unwrap();
+            let mut body = Vec::new();
+            stream.read_to_end(&mut body).unwrap();
+            assert_eq!(body, expected_body);
+            let reply = serde_json::json!({
+                "schema_version":1,"status":"installed",
+                "session_id":"123e4567-e89b-12d3-a456-426614174000",
+                "launched":expected_package.is_some(),
+            });
+            stream.write_all(format!("{reply}\n").as_bytes()).unwrap();
+        })
+    }
+
+    #[tokio::test]
+    async fn inferred_launch_binds_header_package_hash_and_uploaded_archive() {
+        for deflate in [false, true] {
+            let bytes = crate::apk_manifest::fixture_apk(
+                include_bytes!("../rust-tests/fixtures/apk-manifests/native.axml"),
+                deflate,
+                &[],
+            );
+            let apk = tempfile::NamedTempFile::new().unwrap();
+            std::fs::write(apk.path(), &bytes).unwrap();
+            let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+            let client = NativeInstallClient::new(
+                listener.local_addr().unwrap(),
+                "123e4567-e89b-12d3-a456-426614174000".into(),
+                "a".repeat(64),
+            )
+            .unwrap();
+            let server = install_fixture(listener, bytes, Some("dev.ashnazg.fixture"));
+            let result = client
+                .install_with_inferred_launch(
+                    apk.path().into(),
+                    Instant::now() + Duration::from_secs(5),
+                    CancellationToken::new(),
+                )
+                .await
+                .unwrap();
+            assert!(result.launched);
+            assert_eq!(result.package.as_deref(), Some("dev.ashnazg.fixture"));
+            server.join().unwrap();
+        }
+    }
+
+    #[tokio::test]
+    async fn explicit_package_and_no_launch_bypass_manifest_inference() {
+        for package in [None, Some("com.explicit.app")] {
+            let apk = tempfile::NamedTempFile::new().unwrap();
+            let bytes = b"fixture accepted by the fake guest, without a ZIP manifest".to_vec();
+            std::fs::write(apk.path(), &bytes).unwrap();
+            let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+            let client = NativeInstallClient::new(
+                listener.local_addr().unwrap(),
+                "123e4567-e89b-12d3-a456-426614174000".into(),
+                "a".repeat(64),
+            )
+            .unwrap();
+            let server = install_fixture(listener, bytes, package);
+            let result = client
+                .install(
+                    apk.path().into(),
+                    package.map(str::to_owned),
+                    Instant::now() + Duration::from_secs(5),
+                    CancellationToken::new(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(result.launched, package.is_some());
+            assert_eq!(result.package.as_deref(), package);
+            server.join().unwrap();
+        }
+    }
+
+    #[tokio::test]
+    async fn invalid_inferred_manifests_fail_before_connecting_without_reflection() {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let client = NativeInstallClient::new(
+            listener.local_addr().unwrap(),
+            "123e4567-e89b-12d3-a456-426614174000".into(),
+            "a".repeat(64),
+        )
+        .unwrap();
+        for bytes in [
+            b"secret-untrusted-apk".to_vec(),
+            crate::apk_manifest::fixture_apk(b"<manifest package=\"secret\"/>", false, &[]),
+        ] {
+            let apk = tempfile::NamedTempFile::new().unwrap();
+            std::fs::write(apk.path(), bytes).unwrap();
+            let error = client
+                .install_with_inferred_launch(
+                    apk.path().into(),
+                    Instant::now() + Duration::from_secs(1),
+                    CancellationToken::new(),
+                )
+                .await
+                .unwrap_err();
+            assert_eq!(error.to_string(), "APK package inference failed");
+        }
+        assert!(
+            matches!(listener.accept(), Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock)
+        );
+    }
+
+    #[test]
+    fn same_size_mutation_with_restored_mtime_changes_the_snapshot() {
+        let apk = tempfile::NamedTempFile::new().unwrap();
+        std::fs::write(apk.path(), b"original").unwrap();
+        let modified = apk.as_file().metadata().unwrap().modified().unwrap();
+        let before = Snapshot::read(apk.as_file()).unwrap();
+        apk.as_file().write_at(b"changed!", 0).unwrap();
+        apk.as_file()
+            .set_times(std::fs::FileTimes::new().set_modified(modified))
+            .unwrap();
+        assert_eq!(
+            apk.as_file().metadata().unwrap().modified().unwrap(),
+            modified
+        );
+        assert!(before.unchanged(apk.as_file()).is_err());
+    }
+
+    fn inferred_request(endpoint: SocketAddr, path: PathBuf) -> WorkerRequest {
+        WorkerRequest {
+            endpoint,
+            session: "123e4567-e89b-12d3-a456-426614174000".into(),
+            token: Zeroizing::new("a".repeat(64)),
+            path,
+            launch: LaunchRequest::Infer,
+            deadline: Instant::now() + Duration::from_secs(3),
+            started: Instant::now(),
+            cancel: CancellationToken::new(),
+        }
+    }
+
+    fn different_same_size_apks() -> (Vec<u8>, Vec<u8>) {
+        let manifest = include_bytes!("../rust-tests/fixtures/apk-manifests/native.axml");
+        let mut changed = manifest.to_vec();
+        let old: Vec<_> = "dev.ashnazg.fixture"
+            .encode_utf16()
+            .flat_map(u16::to_le_bytes)
+            .collect();
+        let new: Vec<_> = "dev.changed.fixture"
+            .encode_utf16()
+            .flat_map(u16::to_le_bytes)
+            .collect();
+        assert_eq!(old.len(), new.len());
+        let matches: Vec<_> = manifest
+            .windows(old.len())
+            .enumerate()
+            .filter_map(|(i, b)| {
+                (b == old && manifest.get(i + old.len()..i + old.len() + 2) == Some(&[0, 0]))
+                    .then_some(i)
+            })
+            .collect();
+        assert_eq!(matches.len(), 1);
+        changed[matches[0]..matches[0] + old.len()].copy_from_slice(&new);
+        (
+            crate::apk_manifest::fixture_apk(manifest, false, &[]),
+            crate::apk_manifest::fixture_apk(&changed, false, &[]),
+        )
+    }
+
+    #[test]
+    fn inferred_preparation_never_switches_to_a_replacement_path() {
+        let (original, replacement) = different_same_size_apks();
+        assert_eq!(original.len(), replacement.len());
+        for at in [
+            InstallStage::Opened,
+            InstallStage::PackageSelected,
+            InstallStage::Hashed,
+        ] {
+            let dir = tempfile::tempdir().unwrap();
+            let path = dir.path().join("app.apk");
+            let retained = dir.path().join("retained.apk");
+            std::fs::write(&path, &original).unwrap();
+            let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+            listener.set_nonblocking(true).unwrap();
+            let mut reached = false;
+            let result = install_worker_inner(
+                inferred_request(listener.local_addr().unwrap(), path.clone()),
+                |stage, file| {
+                    if stage == at {
+                        reached = true;
+                        std::fs::rename(&path, &retained).unwrap();
+                        std::fs::write(&path, &replacement).unwrap();
+                        let mut opened_bytes = vec![0; original.len()];
+                        file.read_exact_at(&mut opened_bytes, 0).unwrap();
+                        assert_eq!(opened_bytes, original);
+                    }
+                },
+            );
+            assert!(reached);
+            assert!(result.is_err());
+            assert!(
+                matches!(listener.accept(), Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock)
+            );
+            assert_eq!(std::fs::read(path).unwrap(), replacement);
+            assert_eq!(std::fs::read(retained).unwrap(), original);
+        }
+    }
+
+    #[test]
+    fn inferred_preparation_refuses_rewritten_packages_even_with_restored_mtime() {
+        let (original, replacement) = different_same_size_apks();
+        for at in [InstallStage::PackageSelected, InstallStage::Hashed] {
+            let apk = tempfile::NamedTempFile::new().unwrap();
+            std::fs::write(apk.path(), &original).unwrap();
+            let modified = apk.as_file().metadata().unwrap().modified().unwrap();
+            let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+            listener.set_nonblocking(true).unwrap();
+            let mut reached = false;
+            let result = install_worker_inner(
+                inferred_request(listener.local_addr().unwrap(), apk.path().into()),
+                |stage, _| {
+                    if stage == at {
+                        reached = true;
+                        apk.as_file().write_all_at(&replacement, 0).unwrap();
+                        apk.as_file()
+                            .set_times(std::fs::FileTimes::new().set_modified(modified))
+                            .unwrap();
+                    }
+                },
+            );
+            assert!(reached);
+            assert!(result.is_err());
+            assert_eq!(
+                apk.as_file().metadata().unwrap().modified().unwrap(),
+                modified
+            );
+            assert!(
+                matches!(listener.accept(), Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock)
+            );
+        }
+    }
+
+    #[test]
+    fn inferred_preparation_preserves_cancellation_and_the_entry_upload_budget() {
+        let (bytes, _) = different_same_size_apks();
+        let apk = tempfile::NamedTempFile::new().unwrap();
+        std::fs::write(apk.path(), bytes).unwrap();
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let mut request = inferred_request(listener.local_addr().unwrap(), apk.path().into());
+        request.started = Instant::now() - Duration::from_secs(31);
+        let mut reached = false;
+        assert!(install_worker_inner(request, |_, _| reached = true).is_err());
+        assert!(!reached);
+        for at in [
+            InstallStage::Opened,
+            InstallStage::PackageSelected,
+            InstallStage::Hashed,
+        ] {
+            let request = inferred_request(listener.local_addr().unwrap(), apk.path().into());
+            let token = request.cancel.clone();
+            let mut reached = false;
+            assert!(
+                install_worker_inner(request, |stage, _| {
+                    if stage == at {
+                        reached = true;
+                        token.cancel();
+                    }
+                })
+                .is_err()
+            );
+            assert!(reached);
+        }
+        assert!(
+            matches!(listener.accept(), Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock)
+        );
+    }
+
     #[test]
     fn final_eof_after_deadline_is_not_success() {
         let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
@@ -284,9 +585,12 @@ mod tests {
             s.write_all(b"{\"schema_version\":1,\"status\":\"ready_for_payload\"}\n")
                 .unwrap();
             let mut body = Vec::new();
-            s.read_to_end(&mut body).unwrap();
-            assert_eq!(body, b"original apk bytes");
-            s.write_all(b"{\"schema_version\":1,\"status\":\"installed\",\"session_id\":\"123e4567-e89b-12d3-a456-426614174000\",\"launched\":false}\n").unwrap();
+            let _ = s.read_to_end(&mut body);
+            if !body.is_empty() {
+                assert_eq!(body, b"original apk bytes");
+                s.write_all(b"{\"schema_version\":1,\"status\":\"installed\",\"session_id\":\"123e4567-e89b-12d3-a456-426614174000\",\"launched\":false}\n").unwrap();
+            }
+            body
         });
         let client = NativeInstallClient::new(
             endpoint,
@@ -318,10 +622,16 @@ mod tests {
         std::fs::rename(&apk, &moved).unwrap();
         std::fs::write(&apk, b"replacement bytes").unwrap();
         continue_tx.send(()).unwrap();
-        task.await
-            .unwrap()
-            .unwrap_or_else(|e| panic!("install failed: {e}"));
-        server.join().unwrap();
+        let result = task.await.unwrap();
+        let body = server.join().unwrap();
+        // Platforms may observe the rename in ctime and refuse it. Either
+        // outcome must preserve the original descriptor and replacement path.
+        if result.is_ok() {
+            assert_eq!(body, b"original apk bytes");
+        } else {
+            assert!(body.is_empty());
+        }
+        assert_eq!(std::fs::read(apk).unwrap(), b"replacement bytes");
     }
 
     #[tokio::test]
@@ -639,8 +949,37 @@ impl NativeInstallClient {
         deadline: Instant,
         cancel: CancellationToken,
     ) -> Result<NativeInstallResult> {
+        self.install_request(
+            apk,
+            launch_package.map_or(LaunchRequest::None, LaunchRequest::Explicit),
+            deadline,
+            cancel,
+        )
+        .await
+    }
+
+    /// Installs and launches the package inferred from the same retained APK
+    /// descriptor that is hashed and uploaded. Inference shares the upload's
+    /// absolute budget and has its own five-second cap.
+    pub async fn install_with_inferred_launch(
+        &self,
+        apk: PathBuf,
+        deadline: Instant,
+        cancel: CancellationToken,
+    ) -> Result<NativeInstallResult> {
+        self.install_request(apk, LaunchRequest::Infer, deadline, cancel)
+            .await
+    }
+
+    async fn install_request(
+        &self,
+        apk: PathBuf,
+        launch: LaunchRequest,
+        deadline: Instant,
+        cancel: CancellationToken,
+    ) -> Result<NativeInstallResult> {
         let call_started = Instant::now();
-        if launch_package.as_ref().is_some_and(|p| !valid_package(p)) {
+        if matches!(&launch, LaunchRequest::Explicit(p) if !valid_package(p)) {
             bail!("invalid native install package");
         }
         if deadline <= Instant::now() || cancel.is_cancelled() {
@@ -657,7 +996,7 @@ impl NativeInstallClient {
                 session: session_id,
                 token: secret,
                 path: apk,
-                package: launch_package,
+                launch,
                 deadline,
                 started: call_started,
                 cancel: child,
@@ -697,7 +1036,7 @@ pub(crate) fn valid_hex(s: &str, n: usize) -> bool {
         && s.bytes()
             .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
-fn valid_package(s: &str) -> bool {
+pub(crate) fn valid_package(s: &str) -> bool {
     if s.len() > 255 || !s.is_ascii() {
         return false;
     }
@@ -717,6 +1056,8 @@ struct Snapshot {
     len: u64,
     mtime: i64,
     mtime_nsec: i64,
+    ctime: i64,
+    ctime_nsec: i64,
 }
 impl Snapshot {
     fn read(file: &File) -> Result<Self> {
@@ -730,6 +1071,8 @@ impl Snapshot {
             len: m.len(),
             mtime: m.mtime(),
             mtime_nsec: m.mtime_nsec(),
+            ctime: m.ctime(),
+            ctime_nsec: m.ctime_nsec(),
         })
     }
     fn unchanged(self, file: &File) -> Result<()> {
@@ -822,19 +1165,39 @@ struct WorkerRequest {
     session: String,
     token: Zeroizing<String>,
     path: PathBuf,
-    package: Option<String>,
+    launch: LaunchRequest,
     deadline: Instant,
     started: Instant,
     cancel: CancellationToken,
 }
 
+enum LaunchRequest {
+    None,
+    Explicit(String),
+    Infer,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum InstallStage {
+    Opened,
+    PackageSelected,
+    Hashed,
+}
+
 fn install_worker(request: WorkerRequest) -> Result<NativeInstallResult> {
+    install_worker_inner(request, |_, _| {})
+}
+
+fn install_worker_inner(
+    request: WorkerRequest,
+    mut checkpoint_hook: impl FnMut(InstallStage, &File),
+) -> Result<NativeInstallResult> {
     let WorkerRequest {
         endpoint,
         session,
         mut token,
         path,
-        package,
+        launch,
         deadline,
         started,
         cancel,
@@ -845,6 +1208,18 @@ fn install_worker(request: WorkerRequest) -> Result<NativeInstallResult> {
     checkpoint(deadline, upload_deadline, &cancel, true)?;
     let mut file = open_apk(&path)?;
     let before = Snapshot::read(&file)?;
+    checkpoint_hook(InstallStage::Opened, &file);
+    let package = match launch {
+        LaunchRequest::None => None,
+        LaunchRequest::Explicit(package) => Some(package),
+        LaunchRequest::Infer => Some(crate::apk_manifest::infer_package(
+            &file,
+            deadline.min(upload_deadline),
+            &cancel,
+        )?),
+    };
+    checkpoint_hook(InstallStage::PackageSelected, &file);
+    before.unchanged(&file)?;
     let mut hasher = Sha256::new();
     let mut buffer = [0u8; MAX_CHUNK];
     let mut counted = 0u64;
@@ -865,6 +1240,7 @@ fn install_worker(request: WorkerRequest) -> Result<NativeInstallResult> {
     if counted != before.len {
         bail!("APK changed during hashing");
     }
+    checkpoint_hook(InstallStage::Hashed, &file);
     before.unchanged(&file)?;
     let digest = hasher
         .finalize()

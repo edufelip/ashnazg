@@ -20,9 +20,12 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1"
+rawzip = { version = "=0.5.2", default-features = false, features = ["std"] }
+flate2 = { version = "=1.1.11", default-features = false, features = ["rust_backend"] }
 libc = "0.2"
 axum = { version = "0.8", features = ["http1", "json", "tokio"] }
 base64 = "0.22"
+futures-util = { version = "=0.3.34", default-features = false, features = ["std"] }
 clap = { version = "4", features = ["derive", "env"] }
 rmcp = { version = "3.10", features = ["server", "macros", "transport-io", "transport-streamable-http-server"] }
 reqwest = { version = "=0.13.5", default-features = false, features = ["rustls", "http2"] }
@@ -34,7 +37,7 @@ tar = "=0.4.46"
 xz2 = "=0.1.7"
 subtle = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal", "time", "io-util"] }
-tokio-util = "0.7"
+tokio-util = { version = "0.7", features = ["rt"] }
 thiserror = "2"
 zeroize = "1"
 tower = { version = "0.5", features = ["util"] }

@@ -1,3 +1,5 @@
+pub mod apk_manifest;
+mod axml_package;
 mod guest;
 mod host;
 pub mod mcp;

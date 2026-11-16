@@ -1,0 +1,19 @@
+{
+  "jsonrpc": "2.0",
+  "id": 16,
+  "result": {
+    "content": [
+      {
+        "type": "image",
+        "mimeType": "image/png",
+        "data_sha256": "5ee6a7d506ccf5390a552d772ac285987444f938fe1de69a8574b4c4bb36ba28",
+        "decoded_bytes": 20193
+      },
+      {
+        "type": "text",
+        "text": "{\"mimeType\":\"image/png\",\"snapshotId\":20,\"marks\":[{\"id\":2,\"rect\":[48,96,376,192]},{\"id\":4,\"rect\":[48,208,278,304]}],\"width\":720,\"height\":1280}"
+      }
+    ],
+    "isError": false
+  }
+}

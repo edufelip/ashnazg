@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "guest_manifest_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+  "guest_manifest_sha256": "cf234e24e36f5ba0c6b3c1fd771b279c2b876ed79daae1a3fcd837d4f635a768",
+  "guest_files": {
+    "kernel": {
+      "size": 47684096,
+      "sha256": "170c38ecc0b5830290b1a5de9686a4becbbbe3aa8c4ec745c2aa360d40b6ae7e"
+    },
+    "rootfs.ext4": {
+      "size": 4294967296,
+      "sha256": "f1ac1fbf6b498a03841154448e394cba15effb1e300de08e5a3d71f6439890ee"
+    }
+  },
+  "helper_sha256": "4d722dff2987c1cca2bf6740c3a5cb6227d5c95e58175e35d91f8d140c9f08a5",
+  "helper_codesign_verified": true,
+  "agent_apk_sha256": "683f167443eb83c197e55d9302aca9a30117537d56dda3ebd28dcb1fc7f9bdd3",
+  "scope": "Reused immutable guest and existing owned state; no new guest or helper build",
+  "driver_sha256": "927dbebd4a768849e506ae81fe830285784200adb19dd678f49a2be2a687e980",
+  "client_sha256": "8cd5da103570fd07183dd261ff4d1a7a5fec6b010036485acedbff7293d84cc0",
+  "probe_build_receipt_sha256": "e5f11062b697172e6eb94dd0e1a7b931f8591fe17d3f81d3b985af971c1e837d",
+  "vm_launched": false
+}

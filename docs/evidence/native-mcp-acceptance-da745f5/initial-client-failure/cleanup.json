@@ -1,0 +1,14 @@
+{
+  "probe_exit_code": 0,
+  "helper_absent": true,
+  "credential_absent": true,
+  "listeners_closed": {
+    "15555": true,
+    "7777": true,
+    "17778": true,
+    "17779": true
+  },
+  "state_identity_preserved": true,
+  "disk_identity_preserved": true,
+  "disk_bytes_unchanged_claimed": false
+}

@@ -11,8 +11,32 @@ The client opens one regular APK descriptor without following a final symlink or
 blocking on a FIFO, hashes it, waits for the guest's payload ACK and streams that
 same descriptor. It verifies the streamed hash, half-closes the upload and requires
 a matching installation result followed by EOF. Requests are never replayed.
-An optional validated package requests launch after installation; the caller must
-infer that package from the APK if its user-facing API offers automatic inference.
+An optional validated package requests launch after installation. The separate
+`install_with_inferred_launch` method infers the package inside that same worker
+before hashing and uploading. Explicit package and no-launch calls bypass
+inference. Observed changes to descriptor identity, size, mtime or ctime refuse
+installation, including same-size rewrites whose mtime was restored.
+
+The separate `apk_manifest::infer_package` helper now reads the exact root
+`AndroidManifest.xml` from an already-open APK and infers its compiled package
+name without host tools. Stored and raw DEFLATE entries are supported; archive,
+directory, I/O, decompression and XML work are bounded under one five-second
+deadline, capped by the caller's deadline. It checks CRC and size claims,
+streaming descriptors and observed file metadata changes, including ctime.
+The decoder handles UTF-8 and UTF-16 string pools and narrow XML framing. It does
+not replace Android's APK validation.
+
+`NativeInstallClient::install_with_inferred_launch` calls this helper with its
+retained descriptor and upload deadline. It never infers from one open file and
+installs a reopened pathname. The explicit [native MCP adapter](native-mcp.md)
+uses this method for launch without a package. The existing CLI's compatibility
+mode does not use the native session automatically.
+
+Loopback fixtures check the inferred request's package, digest and uploaded bytes
+for stored and deflated manifests. Deterministic preparation checkpoints exercise
+path replacement after open, inference and hashing; they also exercise same-size
+package rewrites with restored mtime, cancellation and the original upload
+deadline. These are host fixtures, not live Android installation evidence.
 
 One blocking worker owns the file and socket. Upload has a 30-second deadline from
 call entry; the result has a 180-second limit, both capped by the caller's absolute
@@ -41,6 +65,7 @@ Rust client.
 This qualifies the tested library-to-helper installation path on one owned restart.
 That earlier probe's credential reader is test scaffolding. The explicit native
 session owner now supplies the production credential binding and installation
-client factory. The CLI, MCP `app_install` and release acquisition do not use this
-session path yet.
+client factory. The newer [native MCP restart acceptance](native-mcp.md) covers
+library-level `app_install` using that session factory. Automatic CLI setup and
+release acquisition remain separate.
 There is no new cold-start, release, comparative performance or CPU claim.

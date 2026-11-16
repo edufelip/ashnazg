@@ -68,6 +68,7 @@ struct OwnerChannels {
 pub struct NativeSession {
     pid: u32,
     session_id: String,
+    adb_addr: SocketAddr,
     guest: crate::GuestClient,
     install: Arc<crate::native_install::NativeInstallClient>,
     cancel: CancellationToken,
@@ -119,6 +120,7 @@ impl NativeSession {
         let started = Instant::now();
         let deadline =
             deadline.min(started + Duration::from_secs(u64::from(launch.startup_timeout_secs)));
+        let adb_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), launch.adb_port);
         let worker_cancel = cancel.child_token();
         let mut drop_guard = StartupDrop(Some(worker_cancel.clone()));
         let (candidate_tx, candidate_rx) = mpsc::sync_channel(1);
@@ -216,6 +218,7 @@ impl NativeSession {
         Ok(Self {
             pid,
             session_id,
+            adb_addr,
             guest,
             install,
             cancel: worker_cancel,
@@ -229,6 +232,11 @@ impl NativeSession {
     }
     pub fn session_id(&self) -> &str {
         &self.session_id
+    }
+    /// The host ADB relay confirmed by the owned helper's readiness receipt.
+    /// This is session metadata; it does not perform a liveness check.
+    pub fn adb_addr(&self) -> SocketAddr {
+        self.adb_addr
     }
     pub fn guest_client(&self) -> Result<crate::GuestClient> {
         if self.exit.borrow().is_some() || self.exit.has_changed().is_err() {
@@ -1107,6 +1115,7 @@ mod tests {
             "--agent-sha256".to_owned(),
             launch.agent_apk_sha256.clone(),
         ];
+        let expected_adb: SocketAddr = format!("127.0.0.1:{}", launch.adb_port).parse().unwrap();
         // Bypass only the public platform gate; run real production validation,
         // spawn, receipt/credential binding and the caller-runtime handshake.
         let session = NativeSession::start_impl(
@@ -1117,6 +1126,7 @@ mod tests {
         )
         .await
         .unwrap();
+        assert_eq!(session.adb_addr(), expected_adb);
         let second = session
             .guest_client()
             .unwrap()
@@ -1697,6 +1707,23 @@ mod tests {
             ))
             .is_err()
         );
+    }
+
+    #[test]
+    fn readiness_binds_the_host_adb_relay_separately_from_the_guest_serial() {
+        let dir = canonical_test_dir();
+        let launch = fixture_launch(dir.path(), 17777, 17778, "exit 0", "$$", "agent_ready");
+        let ready = READY.replace("127.0.0.1:15555", "127.0.0.1:15556");
+        assert!(parse_receipt(ready.as_bytes(), &launch).is_ok());
+        for wrong in [
+            "127.0.0.1:5555",
+            "0.0.0.0:15556",
+            "[::1]:15556",
+            "emulator-5554",
+        ] {
+            let wrong = ready.replace("127.0.0.1:15556", wrong);
+            assert!(parse_receipt(wrong.as_bytes(), &launch).is_err());
+        }
     }
 
     #[test]

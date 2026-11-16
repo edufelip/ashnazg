@@ -1,0 +1,17 @@
+{
+  "jsonrpc": "2.0",
+  "id": 32,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"lines\":[],\"truncated\":true}"
+      }
+    ],
+    "structuredContent": {
+      "lines": [],
+      "truncated": true
+    },
+    "isError": false
+  }
+}
