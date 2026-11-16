@@ -147,7 +147,7 @@ jobs:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
       - name: Test release producers and build agent and fixture once
         run: |
-          python3 -m unittest tests.test_package_release tests.test_runtime_catalog tests.test_runtime_release tests.test_runtime_sources tests.test_release_workflow -v
+          python3 -m unittest tests.test_package_release tests.test_runtime_catalog tests.test_runtime_release tests.test_runtime_sources tests.test_rust_notices tests.test_native_cli_acceptance tests.test_release_workflow -v
           cd agent-android && ./gradlew :agent:assembleDebug :fixture:assembleDebug
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
