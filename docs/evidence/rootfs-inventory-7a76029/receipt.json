@@ -1,0 +1,62 @@
+{
+  "base": {
+    "sha256": "36091efacd083c1cf5a8c837272530bff4fc72db1fbfdef559f52de0d890bca4",
+    "url": "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/aarch64/alpine-minirootfs-3.22.8-aarch64.tar.gz"
+  },
+  "extraction": {
+    "apk_cache": "/var/cache/apk contains only . and ..",
+    "command": "debugfs -R \"cat /lib/apk/db/installed\" rootfs.ext4",
+    "downloaded_apk_staging": "/tmp/ashnazg-packages absent",
+    "mode": "read-only, no -w",
+    "retained_database_matches_fresh_extraction": true,
+    "tool": "debugfs 1.47.4"
+  },
+  "files": {
+    "base-installed.db": {
+      "sha256": "ac248449d704210e0e2a08917a1ffa66c37be93382af11cbfb296b11a88a1292",
+      "size": 15335
+    },
+    "busybox-binsh.PKGINFO": {
+      "sha256": "35f97e3836c69ca3461f61ed7133a30feb6641a858df5299d7225b0986068900",
+      "size": 616
+    },
+    "runtime-components.json": {
+      "sha256": "07eefd1ff61fa2e466d1dc664690f560e86252312835fced011f6684b1f5d53d",
+      "size": 226355
+    },
+    "runtime-installed.db": {
+      "sha256": "734751622e021d3d60024c270085ebb1b1d399b67305456a24412c8e7c3aa575",
+      "size": 199873
+    }
+  },
+  "guest_source_sha": "7a760294d3a485cc9f40308c791a58e160d620f1",
+  "inventory_tool_sha256": "2337a1ab44b91e2610ca299774e4a7e9814bea3aeadfb1bd77d2cdd7e749e5e6",
+  "inventory_tool_source_sha": "cc3f8810679afbcf1fdcbeedc0572f4a2d0dddb3",
+  "locked_candidate_metadata": {
+    "architecture": "noarch",
+    "bytes_verified_against_lock": true,
+    "filename": "busybox-binsh-1.37.0-r20.apk",
+    "metadata_file": "busybox-binsh.PKGINFO",
+    "name": "busybox-binsh",
+    "sha256": "9180dcee3f67ea806fe45361cffab94f8ce7e417d5f373bb0d989e88eb609903",
+    "size": 1544,
+    "url": "https://dl-cdn.alpinelinux.org/alpine/v3.22/main/aarch64/busybox-binsh-1.37.0-r20.apk",
+    "version": "1.37.0-r20"
+  },
+  "mapping_counts": {
+    "base": 10,
+    "locked_apk": 132
+  },
+  "metadata_status": "complete",
+  "package_count": 142,
+  "proof_limits": [
+    "Metadata inventory only; corresponding source archives, recipe closure and license notices are not collected.",
+    "Identity association with locked APKs does not independently prove installed file contents equal those APK payloads.",
+    "Historical source7a76029 artifact; no new guest build or boot is claimed."
+  ],
+  "rootfs_hash_recomputed": true,
+  "rootfs_sha256": "03d6b73d0f7927d0eab2a78daca7579186ee3f0c5a06b07abc52846419543553",
+  "schema_version": 1,
+  "source_closure_status": "not_collected",
+  "source_group_count": 47
+}

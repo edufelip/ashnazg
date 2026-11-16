@@ -37,7 +37,8 @@ jobs:
               assert re.fullmatch('[0-9a-f]{40}', base), 'invalid base SHA'
               paths = subprocess.check_output(['git', 'diff', '--name-only', '--no-renames', base, head], text=True).splitlines()
               exact = {'.github/workflows/microvm.yml', 'scripts/build_microvm.sh', 'scripts/guest_packages.py',
-                       'scripts/redroid.py', 'scripts/linux_binder.py', 'scripts/ci_emulator.py'}
+                       'scripts/redroid.py', 'scripts/linux_binder.py', 'scripts/ci_emulator.py',
+                       'scripts/runtime_inventory.py', 'tests/test_runtime_inventory.py'}
               required = any(p.startswith('runtime/microvm/') or p in exact for p in paths)
           with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
               stream.write('required=' + str(required).lower() + '\n')
@@ -87,7 +88,7 @@ jobs:
             /tmp/ashnazg-microvm-kernel/alpine-minirootfs-3.22.8-aarch64.tar.gz
           key: microvm-verified-archives-v1-linux-6.12.117-arm64-${{ steps.toolchain.outputs.gcc }}-${{ hashFiles('runtime/microvm/kernel.config') }}
       - name: Run guest bridge and artifact manifest tests
-        run: python3 -m unittest tests.test_microvm_guest -v
+        run: python3 -m unittest tests.test_microvm_guest tests.test_apk_stream tests.test_runtime_inventory -v
       - name: Check Python and shell syntax
         run: |
           python3 -m py_compile runtime/microvm/guest_bridge.py runtime/microvm/manifest.py runtime/microvm/guest-init.py
@@ -105,7 +106,7 @@ jobs:
           sha256sum --check microvm-assets.tar.xz.sha256
           tar -tJf microvm-assets.tar.xz | sort | diff -u - <(printf '%s\n' \
             NOTICES.md kernel kernel.config kernel.generated.config linux-6.12.117.tar.xz manifest.json \
-            provenance.json packages.lock.json rootfs.ext4 | sort)
+            provenance.json packages.lock.json runtime-components.json runtime-installed.db rootfs.ext4 | sort)
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: microvm-linux-arm64-${{ env.SOURCE_SHA }}
