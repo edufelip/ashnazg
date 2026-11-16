@@ -256,7 +256,13 @@ def _download(record, *, remaining, deadline):
     request = urllib.request.Request(record["url"], headers={"User-Agent": "ashnazg-source-sidecar/1"})
     started = time.monotonic()
     chunks, size = [], 0
-    with opener.open(request, timeout=30) as response:
+    try:
+        response = opener.open(request, timeout=30)
+    except urllib.error.HTTPError as error:
+        error.close()
+        name = _safe_relpath(record.get("filename", record.get("path", "input")))
+        raise ValueError("download HTTP " + str(error.code) + " for " + name) from None
+    with response:
         if urllib.parse.urlsplit(response.geturl()).scheme != "https":
             raise ValueError("download redirected away from HTTPS")
         content_length = response.headers.get("Content-Length")
