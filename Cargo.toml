@@ -36,7 +36,7 @@ tar = "=0.4.46"
 xz2 = "=0.1.7"
 subtle = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal", "time", "io-util"] }
-tokio-util = "0.7"
+tokio-util = { version = "0.7", features = ["rt"] }
 thiserror = "2"
 zeroize = "1"
 tower = { version = "0.5", features = ["util"] }
