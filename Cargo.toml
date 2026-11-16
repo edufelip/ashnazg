@@ -55,3 +55,7 @@ path = "rust-tests/stdio_bridge.rs"
 [[test]]
 name = "build_identity"
 path = "rust-tests/build_identity.rs"
+
+[[test]]
+name = "cli_bootstrap"
+path = "rust-tests/cli_bootstrap.rs"
