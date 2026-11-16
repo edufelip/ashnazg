@@ -183,4 +183,3 @@ def serve_session_control(connection, session, *, peer_cid, is_ready,
             connection.close()
         except OSError:
             pass
-
