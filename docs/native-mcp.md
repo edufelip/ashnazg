@@ -21,11 +21,17 @@ that request; they do not cancel initialization. Initialization failure leaves
 the MCP transport available until transport shutdown, with no external-backend
 fallback.
 
+An already-cancelled tool request cannot acquire a ready backend. Readiness
+notifications share the same absolute deadline, and leaving a waiter releases
+its admission slot. The HTTP fixture performs a successful authenticated tool
+call against a test-owned guest peer.
+
 `serve_native_io` owns its asynchronous reader and writer. It works with an
 application-owned transport such as a duplex stream; the library intentionally
 does not wrap Tokio's standard input. On macOS, Tokio's standard input uses an
 uninterruptible blocking read, so this API does not promise signal-safe CLI
-shutdown.
+shutdown. The [native CLI wrapper](native-cli.md) separately uses the disposable
+stdio bridge and joins it on signal or protocol shutdown.
 
 The HTTP listener must already be bound to a loopback address. Its bearer is
 independent of the guest credential and must be a nonempty, valid HTTP header
@@ -53,6 +59,13 @@ retained, and helper shutdown is joined before returning the serving failure.
 HTTP validates its already-bound loopback listener and bearer before invoking
 the initializer. HTTP cancellation also interrupts unfinished request bodies,
 so they cannot hold helper teardown open.
+
+Initializer callbacks must honor their cancellation token and finish cleanup
+of resources they own before returning. Callback construction/polling failures
+become fixed startup errors; serving construction/polling failures retain any
+returned session through joined teardown. A serving failure remains an error
+when initialization subsequently ends through cancellation. EOF before MCP
+initialization is likewise reported as a serving failure after cleanup.
 
 The [retained native MCP acceptance](evidence/native-mcp-acceptance-da745f5/receipt.json)
 tested host source `da745f5` against the retained `0155f64` guest and pinned,
