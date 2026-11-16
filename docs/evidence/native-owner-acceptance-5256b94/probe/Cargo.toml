@@ -1,0 +1,11 @@
+[package]
+name="ashnazg-native-session-proof"
+version="0.0.0"
+edition="2024"
+[dependencies]
+ashnazg={path="/Users/eduwaldo/.t3/worktrees/ashnazg/t3-a04e62d5-118037da6f6e517d"}
+anyhow="1"
+serde={version="1",features=["derive"]}
+serde_json="1"
+tokio={version="1",features=["macros","rt-multi-thread","signal","io-std","io-util"]}
+tokio-util="0.7"

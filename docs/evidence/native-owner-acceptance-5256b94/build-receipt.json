@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "host_source_sha": "5256b944db25d617d889df10f718e5b497e6cafa",
+  "root_lock_sha256": "d00e16cf67c710bd708d890e3a2848fa5bb34c6549fb3fd453b76d30593a1b3a",
+  "probe_lock_sha256": "66619f1969c95f24394ab20400843a719ff208c0846928f5e2f2ff176e6ed19c",
+  "runtime_dependency_packages_and_checksums_match_root_lock": true,
+  "runtime_dependency_package_count": 249,
+  "root_only_test_packages": [
+    {
+      "name": "fastrand",
+      "version": "2.5.0"
+    },
+    {
+      "name": "tempfile",
+      "version": "3.27.0"
+    }
+  ],
+  "build_command": "cargo build --locked --offline --manifest-path probe/Cargo.toml",
+  "dependency_comparison_completed": "pinned lock hashes revalidated before this execution; package/checksum subset comparison retained from prior audit",
+  "helper_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7"
+}

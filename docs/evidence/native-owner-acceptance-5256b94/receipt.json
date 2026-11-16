@@ -1,0 +1,167 @@
+{
+  "driver_checkout_sha": "0a677855031c41075f4628a2e331f8b9697e4c04",
+  "files": [
+    {
+      "path": "acceptance.json",
+      "sha256": "31a2e3121ba4c1c66827f7986d7b5fcf10bfe5dfd1ef4f4031713b320afa3f8e",
+      "size": 8546
+    },
+    {
+      "path": "acceptance.py",
+      "sha256": "a1b698aefd743d80535ce7ade0e8e4447270c892ec237212ff8ca45145429a23",
+      "size": 11004
+    },
+    {
+      "path": "build-receipt.json",
+      "sha256": "29f76dbac2afcfeaacca543b3139f428b2d0029864d97e19ceef8311cb0968f4",
+      "size": 856
+    },
+    {
+      "path": "harness-binding-test.json",
+      "sha256": "f4b783a5df29aa5b4f5f50a9fd18dbe219d8522ab5d26329ac4bee848083fb5d",
+      "size": 301
+    },
+    {
+      "path": "launch.json",
+      "sha256": "9192f32d56fbe8026aa2075598c776fc69623aebe943458642abdbfeb8816ca2",
+      "size": 681
+    },
+    {
+      "path": "owner.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "path": "probe/Cargo.lock",
+      "sha256": "66619f1969c95f24394ab20400843a719ff208c0846928f5e2f2ff176e6ed19c",
+      "size": 61762
+    },
+    {
+      "path": "probe/Cargo.toml",
+      "sha256": "a480f4bfe359da7224261da3949e4be601befb5fd5723282e9587d59e3c26b0f",
+      "size": 345
+    },
+    {
+      "path": "probe/src/main.rs",
+      "sha256": "b06e9fcb47a86aeee2277d893399bc4d1c19e46777d7e66b3429ea427519f68f",
+      "size": 3437
+    },
+    {
+      "path": "ready-runtime.json",
+      "sha256": "95a8a3e1222063007eae75482273094bb53d437b8a126cd8f445145cf57ac247",
+      "size": 837
+    },
+    {
+      "path": "reused-harness-source.py",
+      "sha256": "3ea7a1d3af7588d009b66c05ada4e5cff8f75a38593ca87e407024c45c5e8a1a",
+      "size": 14303
+    },
+    {
+      "path": "rpc/fixture-overlay.png",
+      "sha256": "b33fc702dc8596e969d8eade9d3fe25cee8f468dd8d4163867558c5ba557a32b",
+      "size": 65097
+    },
+    {
+      "path": "rpc/fixture.webp",
+      "sha256": "0d9067b4ac5a086da291623a4fb7746990a15e221c74bad99a83a8b4a83cae01",
+      "size": 18616
+    },
+    {
+      "path": "runtime.json",
+      "sha256": "315c9022afc1d56e804fb1343d87ff30c0c1836e7ed8144af496b5ca1d30c691",
+      "size": 740
+    },
+    {
+      "path": "serial.log.gz",
+      "sha256": "23e26036eb2aa9992b9cbe462c9f5420185767a19196377c1b6adb5dd93dff9a",
+      "size": 22663
+    },
+    {
+      "path": "warm-compose.png",
+      "sha256": "9755aaa6719146f75813ca243b21177e70efc2922c4ab8bcec9fabda0016db08",
+      "size": 20548
+    },
+    {
+      "path": "warm-mcp.png",
+      "sha256": "4537037b7b8b1b328a0f35d742388c286fe9ac347e83175e9cdef5dad71e663b",
+      "size": 59507
+    },
+    {
+      "path": "warm-mcp.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "path": "warm-reactnative.png",
+      "sha256": "46a52636a1c3a488c464a764b17b982d23d2c8bbc4c6998a638f5f03dc93131b",
+      "size": 25774
+    }
+  ],
+  "guest_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+  "harness_runtime_binding": {
+    "executed_prefix_sha256": "420a03b0966c9f694ea2a553386a8c239a16d2ea7dc334bce8fd9dd785bacfbf",
+    "loaded_file_sha256": "3ea7a1d3af7588d009b66c05ada4e5cff8f75a38593ca87e407024c45c5e8a1a",
+    "path": "reused-harness-source.py",
+    "verified_before_exec": true
+  },
+  "host_adb_used": false,
+  "host_source_sha": "5256b944db25d617d889df10f718e5b497e6cafa",
+  "limits": [
+    "No fresh-state cold run of the new supervisor",
+    "No automatic CLI or MCP session wiring",
+    "MCP app_install not exercised; native installs used the Rust session factory",
+    "No live acquisition, release publication, benchmark or CPU claim",
+    "Invalid-token and corrupt-upload checks used Python protocol scaffolding",
+    "Filesystem identity preserved; persistent disk bytes are expected to change during Android operation",
+    "The retained helper is locally ad-hoc signed, not Developer ID signed or notarized"
+  ],
+  "local_catalog_published": false,
+  "mode": "one restart of previously owned persistent state",
+  "offline_guest_patches": false,
+  "reused_harness_executed_prefix_sha256": "420a03b0966c9f694ea2a553386a8c239a16d2ea7dc334bce8fd9dd785bacfbf",
+  "schema_version": 1,
+  "scope": [
+    "NativeSession public startup on Apple Silicon macOS",
+    "authenticated GuestClient factory and retained-child credential binding",
+    "three NativeInstallClient factory installations and launches",
+    "28 RPC checks and 7 legacy MCP compatibility checks",
+    "requested graceful shutdown with child reap, credentials removed and owned listeners closed"
+  ],
+  "serial_capture": {
+    "credential_redaction": "Acceptance driver replaced any exact current credential values before retention; it also scanned retained output before reporting success.",
+    "path": "serial.log.gz",
+    "uncompressed_sha256": "a0d401de6b1a97df0ecb70f9c77e27c2610c9abb91bdf322bf6b340007821a99",
+    "uncompressed_size": 161400
+  },
+  "source_parity": {
+    "new_host_library": [
+      "src/native_session.rs",
+      "src/native_session/launch.rs",
+      "src/session_credentials.rs",
+      "src/native_install.rs"
+    ],
+    "scope": "Parity applies to listed exercised helper and legacy host/harness paths, not all host sources.",
+    "unchanged_from_guest_source": [
+      "platform/macos/Sources",
+      "platform/macos/Package.swift",
+      "platform/macos/entitlements.plist",
+      "scripts/integration.py",
+      "scripts/harness.py",
+      "src/host.rs",
+      "src/main.rs",
+      "src/mcp.rs",
+      "src/protocol.rs"
+    ]
+  },
+  "status": "passed",
+  "supersedes": {
+    "evidence_commit": "0a677855031c41075f4628a2e331f8b9697e4c04",
+    "prior_receipt_sha256": "5d2a96429bfa2ef733c3e2f855a2e296f2b2fee5b146454e825b530ffb2d37a1",
+    "reason": "Prior driver did not capture the loaded harness hash before execution. This fresh full repeat binds and records the exact loaded file and prefix before exec; it does not retroactively attest the earlier run."
+  },
+  "timings": {
+    "driver_observed_ready_seconds_including_preflight": 38.572,
+    "driver_total_seconds_including_checks_and_shutdown": 59.389,
+    "helper_ready_receipt_seconds": 27.464
+  }
+}

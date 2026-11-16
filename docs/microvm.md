@@ -160,6 +160,14 @@ The cold and restart screenshot sets are retained alongside the receipts. Native
 
 ## Qualification still required
 
+The Rust [native session owner](native-session.md) now supervises explicit local
+helper startup, authenticates the agent and supplies RPC/install clients. Its
+[one-restart acceptance](evidence/native-owner-acceptance-5256b94/receipt.json)
+passed three Rust factory installs, 28 RPC and seven MCP compatibility checks
+against the existing pinned guest, then joined orderly shutdown without host
+ADB. This does not yet expose automatic native sessions through CLI/MCP or
+qualify fresh-state startup with the new supervisor.
+
 Remaining v0.3 delivery work includes broader injected-failure and repeated-start coverage, default bundle acquisition, agent/MCP setup integration, and distribution packaging. The local acceptance above establishes the tested generated image, Android fixture paths, initial restart and owned shutdown behavior; it does not qualify those remaining installation and recovery flows. No kernel-size, RAM, idle-CPU, boot-time or zero-copy screenshot target is established by compiling the helper. GitHub-hosted macOS builds cannot replace the local VM acceptance run.
 
 [iOS research](research/ios.md) remains a separate track; the Linux guest does not provide iOS compatibility.

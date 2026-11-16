@@ -678,7 +678,7 @@ impl Drop for CancelOnDrop {
     }
 }
 
-fn canonical_uuid(s: &str) -> bool {
+pub(crate) fn canonical_uuid(s: &str) -> bool {
     if s.len() != 36 || !s.is_ascii() || s.bytes().any(|b| b.is_ascii_uppercase()) {
         return false;
     }
@@ -692,7 +692,7 @@ fn canonical_uuid(s: &str) -> bool {
         .enumerate()
         .all(|(i, b)| [8, 13, 18, 23].contains(&i) || b.is_ascii_hexdigit())
 }
-fn valid_hex(s: &str, n: usize) -> bool {
+pub(crate) fn valid_hex(s: &str, n: usize) -> bool {
     s.len() == n
         && s.bytes()
             .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))

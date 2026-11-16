@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "matching_loaded_bytes_accepted": true,
+  "altered_file_rejected_before_exec": true,
+  "loaded_file_sha256": "3ea7a1d3af7588d009b66c05ada4e5cff8f75a38593ca87e407024c45c5e8a1a",
+  "executed_prefix_sha256": "420a03b0966c9f694ea2a553386a8c239a16d2ea7dc334bce8fd9dd785bacfbf"
+}

@@ -4,7 +4,8 @@
 authenticated loopback relay. It uses guest ADB through the existing fixed guest
 backend; it never runs host ADB. The caller supplies an already-owned endpoint,
 session ID and installation token. Credential discovery, protected-file validation
-and binding those values to a spawned helper belong to the future session owner.
+and binding those values to a spawned helper are now provided by the explicit
+[native session owner](native-session.md).
 
 The client opens one regular APK descriptor without following a final symlink or
 blocking on a FIFO, hashes it, waits for the guest's payload ACK and streams that
@@ -38,6 +39,8 @@ authentication and corrupt-upload rejection; those requests were not sent by the
 Rust client.
 
 This qualifies the tested library-to-helper installation path on one owned restart.
-The probe's credential reader is test scaffolding. The CLI, MCP `app_install`,
-automatic session supervisor and release acquisition do not use this client yet.
+That earlier probe's credential reader is test scaffolding. The explicit native
+session owner now supplies the production credential binding and installation
+client factory. The CLI, MCP `app_install` and release acquisition do not use this
+session path yet.
 There is no new cold-start, release, comparative performance or CPU claim.
