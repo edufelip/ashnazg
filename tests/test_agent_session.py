@@ -354,6 +354,36 @@ class GuestSessionTests(unittest.TestCase):
         self.assertGreater(self.backend.prepared[0][2], time.monotonic())
         self.assertLessEqual(self.backend.prepared[0][2], end)
 
+    def test_transport_header_time_cannot_reset_the_upload_deadline(self):
+        now = [125.0]
+        backend = FakeBackend()
+        session = GuestSession(backend, clock=lambda: now[0])
+        server, client = socket.socketpair()
+        client.settimeout(1)
+        worker = threading.Thread(target=lambda: session.serve_prepare(
+            server, peer_cid=2, deadline=1000.0, upload_deadline=130.0))
+        worker.start()
+        try:
+            client.sendall(frame(prepare_header()))
+            with client.makefile("rb", buffering=0) as reader:
+                ack = reader.readline(4096)
+            self.assertIn(b"ready_for_payload", ack)
+            now[0] = 131.0
+            try:
+                client.sendall(APK)
+                client.shutdown(socket.SHUT_WR)
+            except OSError:
+                pass
+            worker.join(1)
+            self.assertFalse(worker.is_alive())
+            self.assertFalse(backend.prepared)
+            self.assertIsNone(session.agent_endpoint())
+        finally:
+            client.close()
+            session.close()
+            server.close()
+            worker.join(1)
+
     def test_fake_clock_caps_whole_operation_and_backend_receives_absolute_deadline(self):
         backend = FakeBackend()
         session = GuestSession(backend, clock=lambda: 100.0)

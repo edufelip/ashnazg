@@ -198,7 +198,7 @@ class GuestSession:
             self._inflight -= 1
             self._condition.notify_all()
 
-    def _serve(self, connection, *, peer_cid, deadline, operation):
+    def _serve(self, connection, *, peer_cid, deadline, operation, upload_deadline=None):
         if peer_cid != HOST_CID:
             try:
                 effective = self._deadline(deadline)
@@ -238,7 +238,13 @@ class GuestSession:
         staged = None
         prepare_attempt = operation == "prepare_agent"
         try:
-            header = read_upload_header(protocol_connection, deadline=effective, clock=self._clock)
+            upload_limit = effective
+            if upload_deadline is not None:
+                # A transport dispatcher may have already spent part of the
+                # upload budget reading the shared channel's first frame.
+                upload_limit = self._deadline(upload_deadline)
+                upload_limit = min(effective, upload_limit)
+            header = read_upload_header(protocol_connection, deadline=upload_limit, clock=self._clock)
             if header.op != operation:
                 raise _RequestFailure("invalid_request")
             if operation == "prepare_agent":
@@ -259,7 +265,7 @@ class GuestSession:
                     raise _RequestFailure("unauthorized")
 
             self._send(protocol_connection, {"schema_version": 1, "status": "ready_for_payload"}, effective)
-            staged = receive_apk(protocol_connection, header, deadline=effective, clock=self._clock)
+            staged = receive_apk(protocol_connection, header, deadline=upload_limit, clock=self._clock)
             self._remaining(effective)
 
             if operation == "prepare_agent":
@@ -316,9 +322,10 @@ class GuestSession:
                 staged.close()
             self._finish(connection)
 
-    def serve_prepare(self, connection, *, peer_cid, deadline):
+    def serve_prepare(self, connection, *, peer_cid, deadline, upload_deadline=None):
         """Serve one host-CID prepare request and close the borrowed connection."""
-        self._serve(connection, peer_cid=peer_cid, deadline=deadline, operation="prepare_agent")
+        self._serve(connection, peer_cid=peer_cid, deadline=deadline, operation="prepare_agent",
+                    upload_deadline=upload_deadline)
 
     def serve_install(self, connection, *, peer_cid, deadline):
         """Serve one authenticated APK installation and close the borrowed connection."""
