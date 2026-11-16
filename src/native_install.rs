@@ -1,3 +1,9 @@
+//! Bounded installation over a caller-owned helper session's loopback relay.
+//!
+//! The session owner must validate the private credentials and bind them to its
+//! spawned helper. This client validates wire shape, not helper process identity,
+//! and never discovers credentials or runs host ADB.
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -6,6 +12,61 @@ mod tests {
     use std::os::unix::fs::FileExt;
     use std::time::{Duration, Instant};
     use tokio_util::sync::CancellationToken;
+
+    fn fixture_connection(listener: &TcpListener) -> TcpStream {
+        listener.set_nonblocking(true).unwrap();
+        let deadline = Instant::now() + Duration::from_secs(3);
+        let stream = loop {
+            match listener.accept() {
+                Ok((stream, _)) => break stream,
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    assert!(
+                        Instant::now() < deadline,
+                        "fixture never received a connection"
+                    );
+                    std::thread::sleep(Duration::from_millis(1));
+                }
+                Err(error) => panic!("fixture accept failed: {error}"),
+            }
+        };
+        stream.set_nonblocking(false).unwrap();
+        stream
+            .set_read_timeout(Some(Duration::from_secs(2)))
+            .unwrap();
+        stream
+            .set_write_timeout(Some(Duration::from_secs(2)))
+            .unwrap();
+        stream
+    }
+
+    #[test]
+    fn final_eof_after_deadline_is_not_success() {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let mut client = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        client.set_nonblocking(true).unwrap();
+        let (mut peer, _) = listener.accept().unwrap();
+        peer.write_all(b"{\"schema_version\":1,\"status\":\"installed\"}\n")
+            .unwrap();
+        let deadline = Instant::now() + Duration::from_millis(75);
+        let server = std::thread::spawn(move || {
+            std::thread::sleep(
+                (deadline + Duration::from_millis(10)).saturating_duration_since(Instant::now()),
+            );
+            drop(peer);
+        });
+        let result = read_final_frame(
+            &mut client,
+            deadline,
+            deadline,
+            &deadline,
+            &CancellationToken::new(),
+        );
+        server.join().unwrap();
+        assert!(
+            result.is_err(),
+            "EOF arriving after the absolute deadline was accepted"
+        );
+    }
 
     #[tokio::test]
     async fn installs_only_after_ack_and_requires_matching_reply_and_eof() {
@@ -19,7 +80,7 @@ mod tests {
         std::fs::write(apk.path(), b"fixture apk").unwrap();
         let path = apk.path().to_path_buf();
         let server = std::thread::spawn(move || {
-            let (mut stream, _) = listener.accept().unwrap();
+            let mut stream = fixture_connection(&listener);
             let mut header = Vec::new();
             loop {
                 let mut byte = [0];
@@ -42,7 +103,9 @@ mod tests {
             assert!(
                 matches!(stream.read(&mut before_ack), Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock || e.kind() == std::io::ErrorKind::TimedOut)
             );
-            stream.set_read_timeout(None).unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(2)))
+                .unwrap();
             for byte in b"{\"schema_version\":1,\"status\":\"ready_for_payload\"}\n" {
                 stream.write_all(&[*byte]).unwrap();
             }
@@ -163,7 +226,7 @@ mod tests {
         let token = "c".repeat(64);
         let token_for_server = token.clone();
         let server = std::thread::spawn(move || {
-            let (mut s, _) = listener.accept().unwrap();
+            let mut s = fixture_connection(&listener);
             let mut line = Vec::new();
             while !line.ends_with(b"\n") {
                 let mut b = [0];
@@ -209,7 +272,7 @@ mod tests {
         let (acked_tx, acked_rx) = std::sync::mpsc::sync_channel(1);
         let (continue_tx, continue_rx) = std::sync::mpsc::sync_channel(1);
         let server = std::thread::spawn(move || {
-            let (mut s, _) = listener.accept().unwrap();
+            let mut s = fixture_connection(&listener);
             let mut line = Vec::new();
             while !line.ends_with(b"\n") {
                 let mut b = [0];
@@ -269,7 +332,7 @@ mod tests {
         let (continue_tx, continue_rx) = std::sync::mpsc::sync_channel(1);
         let (body_tx, body_rx) = std::sync::mpsc::sync_channel(1);
         let server = std::thread::spawn(move || {
-            let (mut s, _) = listener.accept().unwrap();
+            let mut s = fixture_connection(&listener);
             let mut line = Vec::new();
             while !line.ends_with(b"\n") {
                 let mut b = [0];
@@ -329,7 +392,7 @@ mod tests {
         let (header_tx, header_rx) = std::sync::mpsc::sync_channel(1);
         let (closed_tx, closed_rx) = std::sync::mpsc::sync_channel(1);
         let server = std::thread::spawn(move || {
-            let (mut s, _) = listener.accept().unwrap();
+            let mut s = fixture_connection(&listener);
             let mut line = Vec::new();
             while !line.ends_with(b"\n") {
                 let mut b = [0];
@@ -383,7 +446,7 @@ mod tests {
         let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
         let endpoint = listener.local_addr().unwrap();
         let server = std::thread::spawn(move || {
-            let (mut s, _) = listener.accept().unwrap();
+            let mut s = fixture_connection(&listener);
             let mut line = Vec::new();
             while !line.ends_with(b"\n") {
                 let mut b = [0];
@@ -432,8 +495,9 @@ mod tests {
                 0
             );
         }
+        let (drain_tx, drain_rx) = std::sync::mpsc::sync_channel(1);
         let server = std::thread::spawn(move || {
-            let (mut s, _) = listener.accept().unwrap();
+            let mut s = fixture_connection(&listener);
             listener.set_nonblocking(true).unwrap();
             s.set_nonblocking(false).unwrap();
             let mut header = Vec::new();
@@ -444,6 +508,9 @@ mod tests {
             }
             s.write_all(b"{\"schema_version\":1,\"status\":\"ready_for_payload\"}\n")
                 .unwrap();
+            // Keep the receiver stalled until the client has expired. Reading
+            // immediately would test throughput rather than backpressure.
+            drain_rx.recv_timeout(Duration::from_secs(3)).unwrap();
             let mut partial = Vec::new();
             s.read_to_end(&mut partial).unwrap();
             let second_connection = listener.accept();
@@ -456,19 +523,20 @@ mod tests {
         )
         .unwrap();
         let apk = tempfile::NamedTempFile::new().unwrap();
-        let upload_size = MAX_APK_SIZE;
+        let upload_size = 8 * 1024 * 1024;
         apk.as_file().set_len(upload_size).unwrap();
         let started = Instant::now();
         let result = client
             .install(
                 apk.path().to_path_buf(),
                 None,
-                started + Duration::from_millis(500),
+                started + Duration::from_secs(1),
                 CancellationToken::new(),
             )
             .await;
         assert!(result.is_err());
         assert!(started.elapsed() < Duration::from_secs(2));
+        drain_tx.send(()).unwrap();
         let (partial, second) = server.join().unwrap();
         assert!(partial < upload_size as usize);
         assert!(matches!(second, Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock));
@@ -506,6 +574,7 @@ use std::collections::BTreeMap;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::net::{Shutdown, SocketAddr, TcpStream};
+use std::os::fd::AsRawFd;
 use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
@@ -690,6 +759,56 @@ fn checkpoint(
     }
     Ok(())
 }
+
+fn io_budget(
+    deadline: Instant,
+    upload: Instant,
+    cancel: &CancellationToken,
+    uploading: bool,
+    phase: Instant,
+) -> Result<Duration> {
+    checkpoint(deadline, upload, cancel, uploading)?;
+    let limit = phase.min(deadline);
+    let limit = if uploading { limit.min(upload) } else { limit };
+    let remaining = limit.saturating_duration_since(Instant::now());
+    if remaining.is_zero() {
+        bail!("native install deadline expired");
+    }
+    Ok(IO_WAIT.min(remaining))
+}
+
+fn wait_io(
+    stream: &TcpStream,
+    reading: bool,
+    deadline: Instant,
+    upload: Instant,
+    cancel: &CancellationToken,
+    uploading: bool,
+    phase: Instant,
+) -> Result<()> {
+    loop {
+        let budget = io_budget(deadline, upload, cancel, uploading, phase)?;
+        let mut descriptor = libc::pollfd {
+            fd: stream.as_raw_fd(),
+            events: if reading { libc::POLLIN } else { libc::POLLOUT },
+            revents: 0,
+        };
+        let milliseconds = budget.as_millis() + u128::from(budget.subsec_nanos() % 1_000_000 != 0);
+        let result = unsafe { libc::poll(&mut descriptor, 1, milliseconds as libc::c_int) };
+        let error = (result < 0).then(std::io::Error::last_os_error);
+        io_budget(deadline, upload, cancel, uploading, phase)?;
+        if result >= 0 {
+            if descriptor.revents & libc::POLLNVAL != 0 {
+                bail!("native install connection failed");
+            }
+            return Ok(());
+        }
+        if error.is_none_or(|error| error.kind() != std::io::ErrorKind::Interrupted) {
+            bail!("native install connection failed");
+        }
+    }
+}
+
 fn open_apk(path: &PathBuf) -> Result<File> {
     OpenOptions::new()
         .read(true)
@@ -766,10 +885,7 @@ fn install_worker(request: WorkerRequest) -> Result<NativeInstallResult> {
         .map_err(|_| anyhow!("native install connection failed"))?;
     stream.set_nodelay(true).ok();
     stream
-        .set_read_timeout(Some(IO_WAIT))
-        .map_err(|_| anyhow!("native install connection failed"))?;
-    stream
-        .set_write_timeout(Some(IO_WAIT))
+        .set_nonblocking(true)
         .map_err(|_| anyhow!("native install connection failed"))?;
 
     let mut header = Zeroizing::new(Vec::with_capacity(512));
@@ -863,6 +979,7 @@ fn install_worker(request: WorkerRequest) -> Result<NativeInstallResult> {
     )?;
     let result = parse_success(&response, &session, package.clone())?;
     before.unchanged(&file)?;
+    io_budget(deadline, upload_deadline, &cancel, false, response_limit)?;
     Ok(result)
 }
 
@@ -875,8 +992,10 @@ fn write_all_bounded(
     uploading: bool,
 ) -> Result<()> {
     while !bytes.is_empty() {
-        checkpoint(deadline, upload, cancel, uploading)?;
-        match stream.write(bytes) {
+        io_budget(deadline, upload, cancel, uploading, deadline)?;
+        let result = stream.write(bytes);
+        io_budget(deadline, upload, cancel, uploading, deadline)?;
+        match result {
             Ok(0) => bail!("native install connection closed"),
             Ok(n) => bytes = &bytes[n..],
             Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
@@ -884,6 +1003,7 @@ fn write_all_bounded(
                 if e.kind() == std::io::ErrorKind::WouldBlock
                     || e.kind() == std::io::ErrorKind::TimedOut =>
             {
+                wait_io(stream, false, deadline, upload, cancel, uploading, deadline)?;
                 continue;
             }
             Err(_) => bail!("native install connection failed"),
@@ -903,12 +1023,11 @@ fn read_frame(
     let limit = phase_limit.min(*deadline);
     let mut frame = Vec::new();
     loop {
-        checkpoint(*deadline, *upload, cancel, uploading)?;
-        if Instant::now() >= limit {
-            bail!("native install deadline expired");
-        }
+        io_budget(*deadline, *upload, cancel, uploading, limit)?;
         let mut byte = [0u8; 1];
-        match stream.read(&mut byte) {
+        let result = stream.read(&mut byte);
+        io_budget(*deadline, *upload, cancel, uploading, limit)?;
+        match result {
             Ok(0) => {
                 if frame.is_empty() {
                     bail!("native install response missing");
@@ -929,6 +1048,7 @@ fn read_frame(
                 if e.kind() == std::io::ErrorKind::WouldBlock
                     || e.kind() == std::io::ErrorKind::TimedOut =>
             {
+                wait_io(stream, true, *deadline, *upload, cancel, uploading, limit)?;
                 continue;
             }
             Err(_) => bail!("native install connection failed"),
@@ -946,11 +1066,10 @@ fn read_final_frame(
     let mut frame = Vec::new();
     let mut buffer = [0u8; 256];
     loop {
-        checkpoint(deadline, *upload, cancel, false)?;
-        if Instant::now() >= phase_limit {
-            bail!("native install deadline expired");
-        }
-        match stream.read(&mut buffer) {
+        io_budget(deadline, *upload, cancel, false, phase_limit)?;
+        let result = stream.read(&mut buffer);
+        io_budget(deadline, *upload, cancel, false, phase_limit)?;
+        match result {
             Ok(0) => break,
             Ok(n) => {
                 if frame.len() + n > MAX_FRAME {
@@ -963,6 +1082,7 @@ fn read_final_frame(
                 if e.kind() == std::io::ErrorKind::WouldBlock
                     || e.kind() == std::io::ErrorKind::TimedOut =>
             {
+                wait_io(stream, true, deadline, *upload, cancel, false, phase_limit)?;
                 continue;
             }
             Err(_) => bail!("native install connection failed"),
