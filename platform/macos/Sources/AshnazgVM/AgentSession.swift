@@ -77,11 +77,13 @@ final class OwnedAgentCredential {
         var directoryInfo = stat()
         let real = realpath(path, nil)
         defer { if let real { free(real) } }
-        // Foundation normalizes existing /private/tmp paths to /tmp on macOS.
-        // Compare both identities using the same normalization before retaining
-        // and checking the directory descriptor; custom symlink aliases still fail.
+        // Foundation may use macOS's /tmp and /var aliases for their /private
+        // targets. Permit only those exact system-prefix identities. Reject
+        // traversal before normalization so a custom symlink cannot be erased.
         guard let real,
-              URL(fileURLWithPath: String(cString: real)).standardizedFileURL.path == stateDirectory.standardizedFileURL.path,
+              !path.split(separator: "/").contains(".."),
+              (String(cString: real) == path ||
+               ((path.hasPrefix("/tmp/") || path.hasPrefix("/var/")) && String(cString: real) == "/private" + path)),
               lstat(path, &directoryInfo) == 0, directoryInfo.st_mode & S_IFMT == S_IFDIR,
               directoryInfo.st_uid == getuid(), directoryInfo.st_mode & 0o7777 == 0o700 else {
             throw AssetError.invalid("state directory is not canonical, private, current-user-owned and non-symlink")
