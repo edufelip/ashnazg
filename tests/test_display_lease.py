@@ -2,7 +2,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
-import pytest
+import tempfile
+import unittest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -83,7 +84,8 @@ public final class LeasePolicyHarness {
         check(!policy.renew(id(2), 3), "skipped sequence refused");
         check(policy.renew(id(2), 2), "next consecutive sequence accepted");
         check(policy.remainingNanos(id(2)) == 30 * SECOND, "renewal extends from now");
-        expectIllegalArgument(() -> policy.renew(id(2), 0), "nonpositive sequence rejected");
+        expectIllegalArgument(() -> policy.renew(id(2), 0), "zero sequence rejected");
+        expectIllegalArgument(() -> policy.renew(id(2), -1), "negative sequence rejected");
     }
 
     private static void expiryAndRenewCannotRevive() {
@@ -161,6 +163,7 @@ public final class LeasePolicyHarness {
         check(policy.activeCount() == 16, "capacity rejection leaves map unchanged");
         check(policy.remainingNanos(id(101)) == firstBefore, "capacity rejection leaves deadlines unchanged");
         check(policy.remainingNanos(id(999)) == 0, "absent lease has zero remaining");
+        expectIllegalArgument(() -> policy.acquire(null), "null id rejected");
         expectIllegalArgument(() -> policy.acquire(""), "empty id rejected");
         expectIllegalArgument(() -> policy.acquire("not-a-uuid"), "malformed id rejected");
         expectIllegalArgument(() -> policy.acquire("00000000-0000-0000-0000-00000000000A"), "uppercase id rejected");
@@ -169,7 +172,7 @@ public final class LeasePolicyHarness {
         expectIllegalArgument(() -> policy.renew("bad", 1), "renew validates id");
     }
 
-    private static void sequenceExhaustion() {
+    private static void largeSequenceRejected() {
         AtomicLong clock = new AtomicLong(0);
         LeasePolicy policy = new LeasePolicy(clock::get);
         check(policy.acquire(id(9)), "lease acquired");
@@ -189,6 +192,18 @@ public final class LeasePolicyHarness {
         clock.set(Long.MIN_VALUE + 31 * SECOND);
         check(policy.remainingNanos(id(10)) == 0, "lease expires across wrap");
         check(policy.desiredHz() == 60, "quiet grace starts at wrapped expiry");
+
+        long origin = Long.MAX_VALUE - SECOND;
+        AtomicLong crossingClock = new AtomicLong(origin);
+        LeasePolicy crossing = new LeasePolicy(crossingClock::get);
+        check(crossing.acquire(id(12)), "lease acquired before signed wrap");
+        crossingClock.set(origin + 29 * SECOND);
+        check(crossing.remainingNanos(id(12)) == SECOND, "lease deadline crosses signed wrap");
+        crossingClock.set(origin + 30 * SECOND);
+        check(crossing.activeCount() == 0, "crossing lease expires at original deadline");
+        check(crossing.nanosUntilNextChange() == 2 * SECOND, "crossing expiry retains quiet grace");
+        crossingClock.set(origin + 32 * SECOND);
+        check(crossing.desiredHz() == 1, "crossing grace ends at original deadline");
     }
 
     private static void concurrentAcquireRelease() throws Exception {
@@ -250,7 +265,7 @@ public final class LeasePolicyHarness {
         expiryGraceDoesNotSlideWhenObservedLate();
         overlapAndGraceCancellation();
         capacityAndValidation();
-        sequenceExhaustion();
+        largeSequenceRejected();
         nanoTimeWraparound();
         concurrentAcquireRelease();
         System.out.println("LeasePolicy contract passed");
@@ -259,29 +274,29 @@ public final class LeasePolicyHarness {
 """
 
 
-def test_display_lease_policy_contract(tmp_path):
-    javac = shutil.which("javac")
-    java = shutil.which("java")
-    if not javac or not java:
-        pytest.skip("Java 17 JDK is not installed")
+class DisplayLeaseTests(unittest.TestCase):
+    def test_display_lease_policy_contract(self):
+        javac = shutil.which("javac")
+        java = shutil.which("java")
+        if not javac or not java:
+            self.skipTest("Java 17 JDK is not installed")
 
-    harness = tmp_path / "LeasePolicyHarness.java"
-    harness.write_text(HARNESS)
-    classes = tmp_path / "classes"
-    classes.mkdir()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            harness = root / "LeasePolicyHarness.java"
+            harness.write_text(HARNESS)
+            classes = root / "classes"
+            classes.mkdir()
+            subprocess.run(
+                [javac, "--release", "17", "-d", str(classes), str(JAVA_SOURCE), str(harness)],
+                cwd=REPO_ROOT, check=True, capture_output=True, text=True, timeout=30,
+            )
+            result = subprocess.run(
+                [java, "-ea", "-cp", str(classes), "LeasePolicyHarness"],
+                cwd=REPO_ROOT, check=True, capture_output=True, text=True, timeout=30,
+            )
+            self.assertEqual(result.stdout.strip(), "LeasePolicy contract passed")
 
-    subprocess.run(
-        [javac, "--release", "17", "-d", str(classes), str(JAVA_SOURCE), str(harness)],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    result = subprocess.run(
-        [java, "-ea", "-cp", str(classes), "LeasePolicyHarness"],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    assert result.stdout.strip() == "LeasePolicy contract passed"
+
+if __name__ == "__main__":
+    unittest.main()
