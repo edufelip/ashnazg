@@ -329,6 +329,16 @@ def build_inventory(*, installed_db: bytes, base_archive: bytes, package_lock: b
             if identity == locked_identity:
                 package["provenance"] = {"kind": "locked_apk", "filename": lock_item["filename"],
                                          "size": lock_item["size"], "sha256": lock_item["sha256"], "url": lock_item["url"]}
+            elif (identity[1] == lock_item["version"] and
+                  (base_package := base_by_identity.get(identity)) is not None and
+                  package["raw_header_fields"] == base_package["raw_header_fields"]):
+                # apk may retain a same-version base package when the downloaded
+                # candidate uses a different architecture. Preserve both facts;
+                # this does not attribute the installed bytes to that candidate.
+                package["provenance"] = {
+                    "kind": "base", "base_archive_sha256": archive_hash,
+                    "locked_candidate": {**lock_item, "disposition": "not_installed_base_retained"},
+                }
             else:
                 package["provenance"] = {"kind": "unmapped"}
                 all_mapped = False

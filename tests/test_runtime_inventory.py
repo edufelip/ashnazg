@@ -95,6 +95,21 @@ class RuntimeInventoryTests(unittest.TestCase):
         self.assertEqual(by_name["upgrade"]["provenance"]["kind"], "locked_apk")
         self.assertEqual(result, self.build(final, base_db, [output, locked("upgrade", "2-r0")]))
 
+    def test_records_exact_retained_base_when_same_version_lock_architecture_differs(self):
+        retained = record("retained", "2-r0", "aarch64")
+        result = self.build(db(retained), db(retained), [locked("retained", "2-r0", "noarch")])
+        self.assertEqual(result["metadata_status"], "complete")
+        provenance = result["packages"][0]["provenance"]
+        self.assertEqual(provenance["kind"], "base")
+        self.assertEqual(provenance["locked_candidate"]["disposition"], "not_installed_base_retained")
+        self.assertEqual(provenance["locked_candidate"]["architecture"], "noarch")
+        self.assertEqual(provenance["locked_candidate"]["sha256"], "2" * 64)
+        # A version downgrade or changed raw base record cannot claim this exception.
+        for changed in (record("retained", "1-r0"), retained + "\nD:unexpected"):
+            with self.subTest(changed=changed):
+                self.assertEqual(self.build(db(changed), db(retained),
+                                            [locked("retained", "2-r0", "noarch")])["metadata_status"], "incomplete")
+
     def test_rejects_base_hash_member_type_duplicates_and_database_size(self):
         database = db(record("base"))
         archive = base_archive(database)
