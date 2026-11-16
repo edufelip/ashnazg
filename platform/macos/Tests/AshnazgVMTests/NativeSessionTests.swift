@@ -243,6 +243,27 @@ final class NativeSessionTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent(".ashnazg-session-v1.json").path))
     }
 
+    func testCredentialAcceptsExistingStateThroughHelperOptionsUnderTemporaryDirectory() throws {
+        let root = URL(fileURLWithPath: "/private/tmp/ashnazg-session-state-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+        defer { try? FileManager.default.removeItem(at: root) }
+        let options = try HelperOptions(arguments: ["--assets", root.path, "--state-dir", root.path])
+        let state = try XCTUnwrap(options.stateDir)
+        let credential = try OwnedAgentCredential(stateDirectory: state, credentials: credentials())
+        try credential.removeOwned()
+    }
+
+    func testCredentialRejectsCustomSymlinkInParentPath() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let parent = root.appendingPathComponent("real")
+        let state = parent.appendingPathComponent("state")
+        try FileManager.default.createDirectory(at: state, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        defer { try? FileManager.default.removeItem(at: root) }
+        let alias = root.appendingPathComponent("alias")
+        try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: parent)
+        XCTAssertThrowsError(try OwnedAgentCredential(stateDirectory: alias.appendingPathComponent("state"), credentials: credentials()))
+    }
+
     func testCredentialRejectsSymlinkAndUnsafeDirectoryMode() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let target = root.appendingPathComponent("target")
