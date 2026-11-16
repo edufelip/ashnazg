@@ -174,7 +174,17 @@ jobs:
         run: |
           rustup toolchain install stable --profile minimal
           rustup default stable
+          if [[ "$(uname -s)" == Darwin ]]; then export MACOSX_DEPLOYMENT_TARGET=13.0; fi
           cargo build --release --locked
+      - name: Require system-only macOS host library dependencies
+        if: runner.os == 'macOS'
+        run: |
+          otool -L target/release/ashnazg > host-libraries.txt
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          libraries = [line.split()[0] for line in Path('host-libraries.txt').read_text().splitlines()[1:]]
+          assert libraries and all(path.startswith(('/usr/lib/', '/System/Library/')) for path in libraries), libraries
+          PYTHON
       - name: Test, build and sign ARM64 Virtualization helper
         if: runner.os == 'macOS'
         run: |
@@ -184,7 +194,7 @@ jobs:
           swift build -c release --package-path platform/macos
           codesign --force --sign - --entitlements platform/macos/entitlements.plist platform/macos/.build/release/ashnazg-vm
           codesign --verify --strict platform/macos/.build/release/ashnazg-vm
-          codesign -d --entitlements :- platform/macos/.build/release/ashnazg-vm > helper-entitlements.plist
+          codesign --display --entitlements - platform/macos/.build/release/ashnazg-vm > helper-entitlements.plist
           /usr/libexec/PlistBuddy -c 'Print :com.apple.security.virtualization' helper-entitlements.plist | grep -qx true
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:

@@ -25,7 +25,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
             counts.append(len(blocks))
             for block in blocks:
                 compile(block, str(path), 'exec')
-        self.assertEqual(counts, [2, 1])
+        self.assertEqual(counts, [3, 1])
 
     def run_guest_scope(self, force, paths, base='b' * 40, head='a' * 40):
         block, = python_blocks(ROOT / '.github/workflows/microvm.yml')
