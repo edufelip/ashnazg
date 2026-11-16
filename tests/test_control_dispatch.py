@@ -41,7 +41,7 @@ class FakeBackend:
     def prepare_agent(self, staged_apk, rpc_token, *, deadline):
         self.prepared.append((os.read(staged_apk.fileno(), staged_apk.size), rpc_token, deadline))
         self.ready.set()
-        return 17777
+        return None
 
     def install(self, staged_apk, *, package, deadline):
         raise AssertionError("install is not part of routed preparation")
@@ -170,7 +170,7 @@ class ControlDispatchTests(unittest.TestCase):
         self.assertFalse(worker.is_alive())
         self.assertNotIn("error", result)
         self.assertEqual(backend.prepared[0][:2], (APK, RPC_TOKEN))
-        self.assertEqual(session.agent_endpoint(), ("127.0.0.1", 17777))
+        self.assertTrue(session.agent_available())
         client.close()
 
     def test_slow_routed_header_preserves_entry_upload_and_whole_deadlines(self):

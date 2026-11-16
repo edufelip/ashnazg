@@ -71,7 +71,6 @@ class GuestSession:
         self._state = "new"
         self._session_id = None
         self._install_token = None
-        self._agent_port = None
         self._upload_active = False
         self._inflight = 0
         self._connections = set()
@@ -171,7 +170,6 @@ class GuestSession:
                 self._state = "terminal"
                 self._session_id = None
                 self._install_token = None
-                self._agent_port = None
 
     def _terminate_prepare(self):
         with self._condition:
@@ -179,7 +177,6 @@ class GuestSession:
                 self._state = "terminal"
             self._session_id = None
             self._install_token = None
-            self._agent_port = None
         self._close_backend_once()
 
     def _finish(self, connection):
@@ -269,10 +266,8 @@ class GuestSession:
             self._remaining(effective)
 
             if operation == "prepare_agent":
-                port = self._backend.prepare_agent(staged, header.rpc_token, deadline=effective)
+                self._backend.prepare_agent(staged, header.rpc_token, deadline=effective)
                 self._remaining(effective)
-                if type(port) is not int or not 1 <= port <= 65535:
-                    raise _RequestFailure("backend_failed")
                 with self._condition:
                     if self._closed:
                         raise _RequestFailure("closed")
@@ -283,7 +278,6 @@ class GuestSession:
                         raise _RequestFailure("closed")
                     self._session_id = header.session_id
                     self._install_token = header.install_token
-                    self._agent_port = port
                     self._state = "ready"
                     self._send(protocol_connection, {"schema_version": 1, "status": "agent_ready",
                                                     "session_id": header.session_id}, effective)
@@ -331,18 +325,42 @@ class GuestSession:
         """Serve one authenticated APK installation and close the borrowed connection."""
         self._serve(connection, peer_cid=peer_cid, deadline=deadline, operation="install")
 
-    def agent_endpoint(self):
+    def agent_available(self):
         with self._condition:
             if self._closed or self._state != "ready":
-                return None
-            port = self._agent_port
+                return False
         if not self._alive():
             self._invalidate_dead_backend()
-            return None
+            return False
         with self._condition:
-            if self._closed or self._state != "ready" or self._agent_port != port:
-                return None
-        return ("127.0.0.1", port)
+            return not self._closed and self._state == "ready"
+
+    def open_agent_stream(self, *, deadline):
+        effective = self._deadline(deadline)
+        with self._condition:
+            if self._closed or self._state != "ready":
+                raise SessionError("agent stream unavailable")
+            self._inflight += 1
+        connection = None
+        try:
+            if not self.agent_available():
+                raise SessionError("agent stream unavailable")
+            connection = self._backend.open_agent_stream(deadline=effective)
+            self._remaining(effective)
+            with self._condition:
+                if self._closed or self._state != "ready":
+                    raise SessionError("agent stream unavailable")
+            owned = connection
+            connection = None
+            return owned
+        except Exception:
+            raise SessionError("agent stream unavailable") from None
+        finally:
+            if connection is not None:
+                connection.close()
+            with self._condition:
+                self._inflight -= 1
+                self._condition.notify_all()
 
     def close(self):
         """Reject new work, interrupt active sockets and concurrently cancel backend work."""
@@ -356,7 +374,6 @@ class GuestSession:
                 self._state = "closed"
                 self._session_id = None
                 self._install_token = None
-                self._agent_port = None
                 connections = tuple(self._connections)
                 protocols = tuple(self._interruptible.values())
                 backend_close = True

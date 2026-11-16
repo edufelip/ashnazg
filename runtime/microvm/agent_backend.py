@@ -12,12 +12,11 @@ import subprocess
 import threading
 import time
 
+from .adb_agent_stream import AgentStreamPool, AgentStreamError
+
 
 ADB = "/usr/bin/adb"
 SERIAL = "127.0.0.1:5555"
-AGENT_ENDPOINT = ("127.0.0.1", 17777)
-LOCAL_FORWARD = "tcp:17777"
-REMOTE_FORWARD = "tcp:7777"
 AGENT_PACKAGE = "dev.ashnazg.agent"
 INSTRUMENTATION = "dev.ashnazg.agent/dev.ashnazg.agent.AgentInstrumentation"
 MAX_COMMAND_OUTPUT = 64 * 1024
@@ -43,24 +42,31 @@ def _deadline_value(deadline, clock):
     return value
 
 
+def _adb_environment():
+    environment = os.environ.copy()
+    for name in ("ADB_SERVER_SOCKET", "ANDROID_ADB_SERVER_ADDRESS", "ANDROID_ADB_SERVER_PORT", "ADB_TRACE"):
+        environment.pop(name, None)
+    environment["ADB_SERVER_SOCKET"] = "tcp:127.0.0.1:5037"
+    return environment
+
+
 class GuestAdbBackend:
-    """Own one fixed guest ADB forward and its authenticated instrumentation."""
+    """Own authenticated instrumentation and direct agent service streams."""
 
     def __init__(self, *, clock=time.monotonic):
         self._clock = clock
         self._operation_lock = threading.Lock()
         self._state_lock = threading.RLock()
         self._cancel = threading.Event()
+        self._streams = AgentStreamPool(clock=clock, cancel=self._cancel)
         self._closed = False
         self._closing = False
         self._close_done = threading.Event()
         self._close_failed = False
         self._processes = set()
-        self._ping_sockets = set()
         self._instrumentation = None
         self._prepared = False
         self._ready = False
-        self._forward_owned = False
         self._started_agent = False
 
     def __repr__(self):
@@ -122,7 +128,7 @@ class GuestAdbBackend:
             process = subprocess.Popen(
                 argv, stdin=(stdin if stdin is not None else subprocess.DEVNULL),
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True,
-                shell=False,
+                shell=False, env=_adb_environment(),
             )
         except BaseException as exc:
             if not isinstance(exc, Exception):
@@ -211,25 +217,9 @@ class GuestAdbBackend:
     def _release_operation(self):
         self._operation_lock.release()
 
-    def _forward_rows(self, deadline, *, cleanup=False):
-        raw = self._adb("forward", "--list", deadline=deadline, cleanup=cleanup)
-        rows = []
-        try:
-            for line in raw.decode("ascii", "strict").splitlines():
-                fields = line.split()
-                if len(fields) != 3:
-                    raise ValueError()
-                rows.append(tuple(fields))
-        except (UnicodeError, ValueError):
-            raise BackendError("ADB operation failed") from None
-        return rows
-
     def _check_unmutated_guest(self, deadline):
         state = self._adb("get-state", deadline=deadline).decode("ascii", "strict").strip()
         if state != "device":
-            raise BackendError("ADB operation failed")
-        rows = self._forward_rows(deadline)
-        if any(local == LOCAL_FORWARD for _, local, _ in rows):
             raise BackendError("ADB operation failed")
         raw = self._adb("shell", "-T", "ps", "-A", deadline=deadline).decode("utf-8", "strict")
         if any(any(field == AGENT_PACKAGE or field.startswith(AGENT_PACKAGE + ":")
@@ -266,14 +256,12 @@ class GuestAdbBackend:
                 raise BackendError("ADB operation failed")
             self._check_unmutated_guest(deadline)
             self._install(staged_apk, package=AGENT_PACKAGE, deadline=deadline)
-            self._adb("forward", "--no-rebind", LOCAL_FORWARD, REMOTE_FORWARD, deadline=deadline)
-            self._forward_owned = True
             try:
                 process = subprocess.Popen(
                     [ADB, "-s", SERIAL, "shell", "-T", "am", "instrument", "-w", "-r",
                      "-e", "token", rpc_token, INSTRUMENTATION],
                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL, close_fds=True, shell=False,
+                    stderr=subprocess.DEVNULL, close_fds=True, shell=False, env=_adb_environment(),
                 )
             except BaseException as exc:
                 if not isinstance(exc, Exception):
@@ -289,7 +277,7 @@ class GuestAdbBackend:
                 if self._closed or self._cancel.is_set():
                     raise BackendError("ADB operation failed")
                 self._ready = True
-            return 17777
+            return None
         except BaseException as exc:
             if not isinstance(exc, Exception):
                 interrupted = exc
@@ -318,14 +306,9 @@ class GuestAdbBackend:
             if process is None or process.poll() is not None:
                 raise BackendError("ADB operation failed")
             remaining = self._remaining(deadline)
-            connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            connection = None
             try:
-                with self._state_lock:
-                    if self._closed or self._cancel.is_set():
-                        raise BackendError("ADB operation failed")
-                    self._ping_sockets.add(connection)
-                connection.settimeout(remaining)
-                connection.connect(AGENT_ENDPOINT)
+                connection = self._streams.open(deadline=deadline)
                 connection.settimeout(self._remaining(deadline))
                 connection.sendall(frame)
                 response = bytearray()
@@ -350,16 +333,27 @@ class GuestAdbBackend:
                         type(result.get("apiLevel")) is not int or result["apiLevel"] < 34):
                     raise ValueError()
                 return
-            except (OSError, TimeoutError, UnicodeError, ValueError, json.JSONDecodeError):
+            except (AgentStreamError, OSError, TimeoutError, UnicodeError, ValueError, json.JSONDecodeError):
                 pass
             finally:
-                with self._state_lock:
-                    self._ping_sockets.discard(connection)
-                connection.close()
+                if connection is not None:
+                    connection.close()
             if self._remaining(deadline) <= 0:
                 raise BackendError("ADB operation failed") from None
             if self._cancel.wait(min(0.05, self._remaining(deadline))):
                 raise BackendError("ADB operation failed")
+
+    def open_agent_stream(self, *, deadline):
+        if not self.is_alive():
+            raise BackendError("agent stream unavailable")
+        try:
+            connection = self._streams.open(deadline=deadline)
+        except AgentStreamError:
+            raise BackendError("agent stream unavailable") from None
+        if not self.is_alive():
+            connection.close()
+            raise BackendError("agent stream unavailable")
+        return connection
 
     def _resolve_launcher(self, package, deadline):
         if not isinstance(package, str) or len(package) > 255 or not package.isascii() or not _PACKAGE.fullmatch(package):
@@ -447,22 +441,16 @@ class GuestAdbBackend:
                 self._closed = True
                 self._ready = False
                 self._cancel.set()
-                ping_connections = tuple(self._ping_sockets)
                 waiter = False
         if waiter:
             if not self._close_done.wait(CLOSE_SECONDS) or self._close_failed:
                 raise BackendError("ADB cleanup failed") from None
             return
 
-        for connection in ping_connections:
-            try:
-                connection.shutdown(socket.SHUT_RDWR)
-            except OSError:
-                pass
-            connection.close()
         failed = False
         end = time.monotonic() + CLOSE_SECONDS
         try:
+            self._streams.close()
             with self._state_lock:
                 processes = list(self._processes)
             for process in processes:
@@ -495,18 +483,6 @@ class GuestAdbBackend:
                         failed = True
             if time.monotonic() >= end:
                 failed = True
-            if self._forward_owned and time.monotonic() < end:
-                cleanup_deadline = min(end, time.monotonic() + 2.0)
-                try:
-                    rows = self._forward_rows(cleanup_deadline, cleanup=True)
-                    exact = [row for row in rows if row == (SERIAL, LOCAL_FORWARD, REMOTE_FORWARD)]
-                    if exact:
-                        self._adb("forward", "--remove", LOCAL_FORWARD,
-                                  deadline=cleanup_deadline, cleanup=True)
-                    elif any(row[1] == LOCAL_FORWARD for row in rows):
-                        failed = True
-                except BackendError:
-                    failed = True
             if time.monotonic() >= end:
                 failed = True
         except BaseException:

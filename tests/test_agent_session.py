@@ -55,7 +55,7 @@ class FakeBackend:
         self.ignore_cancel = False
         self.prepare_error = None
         self.install_error = None
-        self.port = 19001
+        self.streams = []
 
     def prepare_agent(self, staged_apk, rpc_token, *, deadline):
         self.entered.set()
@@ -64,7 +64,7 @@ class FakeBackend:
             self.release.wait(3)
         if self.prepare_error:
             raise self.prepare_error
-        return self.port
+        return None
 
     def install(self, staged_apk, *, package, deadline):
         self.installed.append((staged_apk.fileno(), package, deadline))
@@ -72,12 +72,19 @@ class FakeBackend:
             raise self.install_error
         return None
 
+    def open_agent_stream(self, *, deadline):
+        stream, peer = socket.socketpair()
+        self.streams.extend([stream, peer])
+        return stream
+
     def is_alive(self):
         return self.alive and not self.closed
 
     def close(self):
         self.closed = True
         self.alive = False
+        for stream in self.streams:
+            stream.close()
         if not self.ignore_cancel:
             self.release.set()
 
@@ -144,7 +151,10 @@ class GuestSessionTests(unittest.TestCase):
         self.assertEqual(self.backend.prepared[0][1], RPC)
         with self.assertRaises(OSError):
             os.fstat(self.backend.prepared[0][0])
-        self.assertEqual(self.session.agent_endpoint(), ("127.0.0.1", self.backend.port))
+        self.assertTrue(self.session.agent_available())
+        stream = self.session.open_agent_stream(deadline=time.monotonic() + 1)
+        self.assertGreaterEqual(stream.fileno(), 0)
+        stream.close()
 
     def test_wrong_cid_is_rejected_before_header_and_connection_is_closed(self):
         response, _ = self.run_request("serve_prepare", None, peer_cid=7)
@@ -179,6 +189,10 @@ class GuestSessionTests(unittest.TestCase):
         self.assertEqual(messages[-1], {"schema_version": 1, "status": "installed",
                                       "session_id": SESSION, "launched": True})
         self.assertEqual(self.backend.installed[1][1], "com.example.app")
+
+    def test_agent_stream_is_unavailable_before_preparation(self):
+        with self.assertRaises(SessionError):
+            self.session.open_agent_stream(deadline=time.monotonic() + 1)
 
     def test_install_is_rejected_while_session_is_not_ready(self):
         response, _ = self.run_request("serve_install", install_header())
@@ -267,12 +281,12 @@ class GuestSessionTests(unittest.TestCase):
         response, _ = self.run_request("serve_prepare", prepare_header(session_id=str(uuid.uuid4())))
         self.assertNotIn(b"secret backend text", response)
         self.assertTrue(self.backend.closed)
-        self.assertIsNone(self.session.agent_endpoint())
+        self.assertFalse(self.session.agent_available())
 
     def test_backend_loss_invalidates_endpoint_and_requires_restart(self):
         self.run_request("serve_prepare", prepare_header())
         self.backend.alive = False
-        self.assertIsNone(self.session.agent_endpoint())
+        self.assertFalse(self.session.agent_available())
         response, _ = self.run_request("serve_install", install_header())
         self.assertNotIn(b"ready_for_payload", response)
         self.assertFalse(self.backend.installed)
@@ -377,7 +391,7 @@ class GuestSessionTests(unittest.TestCase):
             worker.join(1)
             self.assertFalse(worker.is_alive())
             self.assertFalse(backend.prepared)
-            self.assertIsNone(session.agent_endpoint())
+            self.assertFalse(session.agent_available())
         finally:
             client.close()
             session.close()

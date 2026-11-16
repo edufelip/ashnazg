@@ -260,11 +260,11 @@ class BridgeServer:
             elif index == 1:
                 proxy_connection(connection, lambda: socket.create_connection(ADB_TARGET, timeout=5))
             elif index == 2:
-                endpoint = self.session.agent_endpoint()
-                if (not isinstance(endpoint, tuple) or len(endpoint) != 2 or endpoint[0] != "127.0.0.1"
-                        or type(endpoint[1]) is not int or not 1 <= endpoint[1] <= 65535):
+                try:
+                    stream = self.session.open_agent_stream(deadline=time.monotonic() + 5)
+                except (OSError, RuntimeError):
                     return
-                proxy_connection(connection, lambda: socket.create_connection(endpoint, timeout=5))
+                proxy_streams(connection, stream)
             else:
                 self.session.serve_install(connection, peer_cid=peer_cid, deadline=time.monotonic() + 180)
         finally:

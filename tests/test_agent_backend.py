@@ -76,6 +76,8 @@ class BackendTests(unittest.TestCase):
         self.fail_forward = False
         self.ping_server_token = None
         self.ping_request_seen = threading.Event()
+        self.ping_target = None
+        self.stream_open_error = False
 
         def popen(argv, **kwargs):
             if kwargs.get('stdout') is subprocess.PIPE:
@@ -128,6 +130,25 @@ class BackendTests(unittest.TestCase):
 
         self.popen = popen
         self.backend = backend.GuestAdbBackend()
+        fixture = self
+        class FakeStreams:
+            def __init__(self):
+                self.sockets = []
+                self.closed = False
+            def open(self, *, deadline):
+                if self.closed or fixture.stream_open_error or fixture.ping_target is None:
+                    raise backend.AgentStreamError()
+                connection = socket.create_connection(fixture.ping_target, timeout=max(0.001, deadline-time.monotonic()))
+                self.sockets.append(connection)
+                return connection
+            def close(self):
+                self.closed = True
+                for connection in self.sockets:
+                    try: connection.shutdown(socket.SHUT_RDWR)
+                    except OSError: pass
+                    connection.close()
+        self.backend._streams.close()
+        self.backend._streams = FakeStreams()
         self.addCleanup(self._safe_close)
         self.patch = mock.patch.object(backend.subprocess, 'Popen', side_effect=popen)
         self.patch.start()
@@ -143,9 +164,7 @@ class BackendTests(unittest.TestCase):
         listener = socket.socket()
         listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         listener.bind(('127.0.0.1', 0))
-        target = mock.patch.object(backend, 'AGENT_ENDPOINT', listener.getsockname())
-        target.start()
-        self.addCleanup(target.stop)
+        self.ping_target = listener.getsockname()
         listener.listen()
         self.addCleanup(listener.close)
         if reply is None:
@@ -173,11 +192,11 @@ class BackendTests(unittest.TestCase):
         threading.Thread(target=serve, daemon=True).start()
         return listener
 
-    def test_prepare_uses_fixed_serial_descriptor_forward_and_authenticated_ping(self):
+    def test_prepare_uses_fixed_serial_descriptor_and_authenticated_direct_stream(self):
         self.ping_server()
         staged = Staged()
         port = self.backend.prepare_agent(staged, 'a' * 64, deadline=time.monotonic() + 2)
-        self.assertEqual(port, 17777)
+        self.assertIsNone(port)
         install = next(c for c in self.commands if 'install' in c)
         self.assertEqual(install, ['/usr/bin/adb', '-s', '127.0.0.1:5555', 'shell', '-T',
                                    'cmd', 'package', 'install', '-r', '--pkg',
@@ -185,18 +204,26 @@ class BackendTests(unittest.TestCase):
         proc = next(p for p in self.processes if 'install' in p.args)
         self.assertEqual(proc.kwargs['stdin'], staged.fileno())
         self.assertFalse(staged.closed)
-        self.assertIn('forward', self.commands[-1])
+        self.assertFalse(any('forward' in c for c in self.commands))
         self.assertEqual(self.instrument_args[-4:-1], ['-e', 'token', 'a' * 64])
         self.assertEqual(self.ping_server_token, 'a' * 64)
         self.assertTrue(self.backend.is_alive())
 
-    def test_rejects_occupied_forward_and_foreign_agent_before_mutation(self):
-        self.forwards = 'someone_else tcp:17777 tcp:7777\n'
-        with self.assertRaises(backend.BackendError):
+    def test_adb_server_selection_and_trace_do_not_follow_ambient_environment(self):
+        self.ping_server()
+        with mock.patch.dict(os.environ, {'ADB_SERVER_SOCKET': 'tcp:foreign:1234', 'ADB_TRACE': 'all'}):
             self.backend.prepare_agent(Staged(), 'a' * 64, deadline=time.monotonic() + 2)
-        self.assertFalse(any('install' in c for c in self.commands))
-        self.assertFalse(any('--no-rebind' in c for c in self.commands))
+        for process in self.processes:
+            self.assertEqual(process.kwargs.get('env', {}).get('ADB_SERVER_SOCKET'), 'tcp:127.0.0.1:5037')
+            self.assertNotIn('ADB_TRACE', process.kwargs['env'])
+
+    def test_existing_foreign_forward_is_never_changed(self):
+        self.forwards = 'someone_else tcp:17777 tcp:7777\n'
+        self.ping_server()
+        self.backend.prepare_agent(Staged(), 'a' * 64, deadline=time.monotonic() + 2)
         self.backend.close()
+        self.assertEqual(self.forwards, 'someone_else tcp:17777 tcp:7777\n')
+        self.assertFalse(any('forward' in c for c in self.commands))
 
     def test_running_foreign_agent_is_refused_before_install(self):
         self.agent_pid = '42'
@@ -258,14 +285,11 @@ class BackendTests(unittest.TestCase):
         with self.assertRaises(backend.BackendError):
             self.backend.prepare_agent(Staged(), 'f' * 64, deadline=time.monotonic() + .3)
 
-    def test_forward_creation_failure_does_not_claim_or_remove_a_forward(self):
-        self.fail_forward = True
-        with self.assertRaises(backend.BackendError) as caught:
-            self.backend.prepare_agent(Staged(), 'b' * 64, deadline=time.monotonic() + 2)
-        self.assertEqual(str(caught.exception), 'ADB operation failed')
-        self.assertFalse(self.backend._forward_owned)
-        self.assertFalse(any('--remove' in command for command in self.commands))
-        self.assertFalse(any('force-stop' in command for command in self.commands))
+    def test_stream_failure_never_claims_or_removes_a_forward(self):
+        self.stream_open_error = True
+        with self.assertRaises(backend.BackendError):
+            self.backend.prepare_agent(Staged(), 'b' * 64, deadline=time.monotonic() + 0.05)
+        self.assertFalse(any('forward' in c for c in self.commands))
 
     def test_query_and_resolve_must_agree_on_one_validated_activity(self):
         self.backend._ready = True
@@ -287,16 +311,12 @@ class BackendTests(unittest.TestCase):
             self.backend.prepare_agent(Staged(), 'c' * 64, deadline=time.monotonic() - 1)
         self.assertEqual(self.processes, [])
 
-    def test_close_preserves_replaced_forward_and_is_idempotent(self):
-        self.backend._forward_owned = True
-        self.backend._started_agent = True
-        self.backend._serial = '127.0.0.1:5555'
+    def test_close_preserves_all_shared_forwards_and_is_idempotent(self):
         self.forwards = '127.0.0.1:5555 tcp:17777 tcp:9999\n'
-        with self.assertRaises(backend.BackendError):
-            self.backend.close()
-        self.assertFalse(any('remove' in c for c in self.commands))
-        with self.assertRaises(backend.BackendError):
-            self.backend.close()
+        self.backend.close()
+        self.backend.close()
+        self.assertEqual(self.forwards, '127.0.0.1:5555 tcp:17777 tcp:9999\n')
+        self.assertFalse(any('forward' in c for c in self.commands))
 
     def test_rejects_concurrent_operation(self):
         self.backend._operation_lock.acquire()
@@ -334,7 +354,6 @@ class BackendTests(unittest.TestCase):
         process = FakeProcess([])
         self.backend._instrumentation = process
         self.backend._started_agent = True
-        self.backend._forward_owned = True
         self.backend._processes.add(process)
         now = [0.0]
         advances = iter((1.0, 10.0))

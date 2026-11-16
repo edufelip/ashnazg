@@ -35,8 +35,10 @@ class Session:
         connection.sendall(b'{"status":"installed"}\n')
         connection.close()
 
-    def agent_endpoint(self):
-        return ('127.0.0.1', 17777) if self.ready else None
+    def open_agent_stream(self, *, deadline):
+        if not self.ready:
+            raise RuntimeError('agent stream unavailable')
+        raise AssertionError('ready stream fixture not configured')
 
     def close(self):
         self.closed = True
