@@ -120,6 +120,8 @@ jobs:
         with:
           ref: ${{ needs.validate-source.outputs.source_sha }}
       - name: Build native release binary
+        env:
+          ASHNAZG_BUILD_SOURCE_SHA: ${{ needs.validate-source.outputs.source_sha }}
         run: |
           rustup toolchain install stable --profile minimal
           rustup default stable
