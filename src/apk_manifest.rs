@@ -1,8 +1,8 @@
-//! Bounded access to the manifest member of an already-open APK.
+//! Bounded access to the manifest member of an already-open APK on Unix hosts.
 use anyhow::{Result, anyhow, bail};
 use flate2::read::DeflateDecoder;
 use rawzip::{CompressionMethod, MAX_CENTRAL_DIRECTORY_RECORD_SIZE, ReaderAt, ZipLocator};
-use std::{fs::File, io::Read, time::Instant};
+use std::{fs::File, io::Read, os::unix::fs::FileExt, time::Instant};
 use tokio_util::sync::CancellationToken;
 
 const MAX_FILE: u64 = 128 * 1024 * 1024;
@@ -31,7 +31,6 @@ struct Identity {
     ct: i64,
     cn: i64,
 }
-#[cfg(unix)]
 fn identity(f: &File) -> Result<Identity> {
     use std::os::unix::fs::MetadataExt;
     let m = f.metadata()?;
@@ -43,23 +42,6 @@ fn identity(f: &File) -> Result<Identity> {
         mn: m.mtime_nsec(),
         ct: m.ctime(),
         cn: m.ctime_nsec(),
-    })
-}
-#[cfg(not(unix))]
-fn identity(f: &File) -> Result<Identity> {
-    let m = f.metadata()?;
-    let t = m
-        .modified()?
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(|_| anyhow!("APK manifest read failed"))?;
-    Ok(Identity {
-        dev: 0,
-        ino: 0,
-        size: m.len(),
-        mt: t.as_secs() as i64,
-        mn: t.subsec_nanos() as i64,
-        ct: 0,
-        cn: 0,
     })
 }
 
@@ -85,20 +67,7 @@ impl ReaderAt for Bounded<'_> {
         }
         self.calls.set(calls);
         self.bytes.set(bytes);
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::FileExt;
-            self.file.read_at(&mut out[..n], offset)
-        }
-        #[cfg(windows)]
-        {
-            use std::os::windows::fs::FileExt;
-            self.file.seek_read(&mut out[..n], offset)
-        }
-        #[cfg(not(any(unix, windows)))]
-        {
-            Err(fail())
-        }
+        self.file.read_at(&mut out[..n], offset)
     }
 }
 
@@ -182,6 +151,8 @@ fn read_android_manifest_inner(
     let (way, method, flags, compressed, uncompressed, crc, local_offset) =
         found.ok_or_else(|| anyhow!("APK manifest read failed"))?;
     if flags.is_encrypted()
+        || flags.has_strong_encryption()
+        || flags.is_masked()
         || uncompressed == 0
         || uncompressed > MAX_OUTPUT
         || local_offset >= cd
@@ -202,6 +173,17 @@ fn read_android_manifest_inner(
     if local.file_path().as_ref() != TARGET
         || local.flags() != flags
         || local.compression_method() != method
+    {
+        bail!("APK manifest read failed")
+    }
+    // Streaming writers may leave these fields zero and put their claims in
+    // a trailing descriptor. Any populated local claim must still agree.
+    let streaming = flags.has_data_descriptor();
+    if (local.crc32() != crc && !(streaming && local.crc32() == 0))
+        || (local.compressed_size_hint() != compressed
+            && !(streaming && local.compressed_size_hint() == 0))
+        || (local.uncompressed_size_hint() != uncompressed
+            && !(streaming && local.uncompressed_size_hint() == 0))
     {
         bail!("APK manifest read failed")
     }
@@ -253,7 +235,6 @@ fn read_android_manifest_inner(
     if out.len() as u64 != uncompressed {
         bail!("APK manifest read failed")
     }
-    let _ = crc;
     check(deadline, cancel)?;
     if identity(file).map_err(|_| anyhow!("APK manifest read failed"))? != before {
         bail!("APK manifest read failed")
@@ -349,6 +330,22 @@ mod tests {
         both.extend_from_slice(&0u16.to_le_bytes());
         both
     }
+
+    fn streaming_zip(payload: &[u8], deflate: bool) -> Vec<u8> {
+        let mut bytes = zip(payload, deflate, &[]);
+        let old_eocd = bytes.len() - 22;
+        let cd =
+            u32::from_le_bytes(bytes[old_eocd + 16..old_eocd + 20].try_into().unwrap()) as usize;
+        let mut descriptor = 0x08074b50u32.to_le_bytes().to_vec();
+        descriptor.extend_from_slice(&bytes[14..26]);
+        bytes[6..8].copy_from_slice(&8u16.to_le_bytes());
+        bytes[14..26].fill(0);
+        bytes[cd + 8..cd + 10].copy_from_slice(&8u16.to_le_bytes());
+        bytes.splice(cd..cd, descriptor);
+        let eocd = bytes.len() - 22;
+        bytes[eocd + 16..eocd + 20].copy_from_slice(&((cd + 16) as u32).to_le_bytes());
+        bytes
+    }
     fn read(bytes: &[u8]) -> Result<Vec<u8>> {
         let mut f = NamedTempFile::new()?;
         f.write_all(bytes)?;
@@ -386,6 +383,43 @@ mod tests {
             read_android_manifest(f.as_file(), Instant::now() + Duration::from_secs(1), &token)
                 .is_err()
         );
+    }
+
+    #[test]
+    fn rejects_conflicting_local_crc_and_sizes_without_rejecting_streaming_headers() {
+        for deflate in [false, true] {
+            let original = zip(b"payload", deflate, &[]);
+            for field in [14, 18, 22] {
+                let mut bytes = original.clone();
+                bytes[field] ^= 1;
+                assert!(
+                    read(&bytes).is_err(),
+                    "conflicting local field {field} accepted"
+                );
+            }
+            let original = streaming_zip(b"payload", deflate);
+            assert_eq!(read(&original).unwrap(), b"payload");
+            for field in [14, 18, 22] {
+                let mut bytes = original.clone();
+                bytes[field] = 1;
+                assert!(
+                    read(&bytes).is_err(),
+                    "conflicting streaming field {field} accepted"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn rejects_strong_encryption_and_masked_headers() {
+        for flag in [1u16 << 6, 1u16 << 13] {
+            let mut bytes = zip(b"payload", false, &[]);
+            let cd = u32::from_le_bytes(bytes[bytes.len() - 6..bytes.len() - 2].try_into().unwrap())
+                as usize;
+            bytes[6..8].copy_from_slice(&flag.to_le_bytes());
+            bytes[cd + 8..cd + 10].copy_from_slice(&flag.to_le_bytes());
+            assert!(read(&bytes).is_err());
+        }
     }
 
     #[test]
