@@ -34,7 +34,7 @@ MAX_STDERR_BYTES = 64 * 1024
 REQUEST_TIMEOUT = 35.0
 STARTUP_TIMEOUT = 1250.0
 STARTUP_RETRY_INTERVAL = 2.0
-SHUTDOWN_GRACE = 220.0
+SHUTDOWN_GRACE = 250.0
 KILL_GRACE = 5.0
 SOURCE_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SECRET_TEXT_RE = re.compile(
@@ -570,8 +570,8 @@ def _verified_candidate(directory: Path, binary: Path, fixture: Path, source_sha
 
 def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, output: Path,
                    mode: str, source_sha: str, candidate_dir: Path) -> dict[str, Any]:
-    if mode not in ("eof", "sigterm"):
-        raise AcceptanceError("--mode must be eof or sigterm")
+    if mode not in ("eof", "sigterm", "sigterm-inflight"):
+        raise AcceptanceError("--mode must be eof, sigterm, or sigterm-inflight")
     if not SOURCE_SHA_RE.fullmatch(source_sha):
         raise AcceptanceError("--source-sha must be a 40-character lowercase hexadecimal SHA")
     binary = binary.resolve(strict=True)
@@ -781,7 +781,32 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
         if not isinstance(logs, (dict, list, str)):
             raise AcceptanceError("app_logs returned an unsupported result")
         next_id += 1
-        shutdown["stdin_open_at_signal"] = mode == "sigterm"
+        if mode == "sigterm-inflight":
+            pending = {"jsonrpc": "2.0", "id": next_id, "method": "tools/call",
+                       "params": {"name": "ui_act", "arguments": {
+                           "action": "long_press", "target": {"text": "Long press target"}}}}
+            # The pinned agent holds a long press for 800 ms. Require the
+            # submitted request still to be unanswered over a measured 200 ms
+            # observation interval before interrupting the real CLI.
+            client.notification(pending)
+            records.append(_write_json(output / "inflight.request.json", pending))
+            observation_start = time.monotonic()
+            observation_end = observation_start + 0.2
+            while time.monotonic() < observation_end:
+                try:
+                    frame = client.frames.get(timeout=max(0.001, observation_end - time.monotonic()))
+                except queue.Empty:
+                    break
+                if frame is None or isinstance(frame, BaseException):
+                    raise AcceptanceError("CLI ended during in-flight observation")
+                observed = json.loads(frame)
+                if observed.get("id") == next_id:
+                    raise AcceptanceError("in-flight request replied before interruption")
+            receipt["inflight"] = {"request_id": next_id, "request_written": True,
+                                   "unanswered_at_signal": True,
+                                   "observed_pending_seconds": round(time.monotonic() - observation_start, 3),
+                                   "claim": "client-observed submitted request without a response; no server-entry timestamp"}
+        shutdown["stdin_open_at_signal"] = mode != "eof"
         if mode == "eof":
             assert process.stdin is not None
             process.stdin.close()
@@ -802,6 +827,19 @@ def run_acceptance(binary: Path, fixture_apk: Path, home_arg: Path | None, outpu
             raise AcceptanceError("CLI did not exit within the bounded owned-child shutdown grace")
         if shutdown["exit_code"] != 0:
             raise AcceptanceError(f"CLI exited with status {shutdown['exit_code']}")
+        if mode == "sigterm-inflight":
+            client._stdout_thread.join(timeout=1)
+            replies = []
+            while not client.frames.empty():
+                frame = client.frames.get_nowait()
+                if isinstance(frame, bytes):
+                    response = json.loads(frame)
+                    if response.get("id") == next_id:
+                        replies.append(response)
+                        if "error" not in response and response.get("result", {}).get("isError") is not True:
+                            raise AcceptanceError("in-flight request returned success after interruption")
+            receipt["inflight"]["replies_after_signal"] = sanitize(replies)
+
     except BaseException as exc:
         failure = bounded_text(str(exc)) if isinstance(exc, Exception) else "acceptance interrupted"
     finally:
@@ -889,7 +927,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--fixture-apk", required=True, type=Path)
     parser.add_argument("--home", type=Path, help="owned private HOME (defaults to output-dir/home)")
     parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--mode", choices=("eof", "sigterm"), required=True)
+    parser.add_argument("--mode", choices=("eof", "sigterm", "sigterm-inflight"), required=True)
     parser.add_argument("--source-sha", required=True)
     args = parser.parse_args(argv)
     try:

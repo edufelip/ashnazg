@@ -73,6 +73,7 @@ for line in sys.stdin:
         if name == "app_install": result = {"installed":True,"package":cfg.get("package", "dev.ashnazg.fixture"),"serial":"127.0.0.1:15555"}
         elif name == "ui_snapshot": result = {"snapshotId":1,"nodes":[{"text":"Count: 0","testId":"dev.ashnazg.fixture:id/increment","clickable":True,"enabled":True}]}
         elif name == "ui_act":
+            if request["params"]["arguments"].get("action") == "long_press": time.sleep(cfg.get("long_press_delay", 1))
             acted = True
             result = {"settled":True,"snapshot":{"snapshotId":2,"nodes":[{"text":"Count: " + str(cfg.get('count_after', 1)),"testId":"dev.ashnazg.fixture:id/increment","clickable":True,"enabled":True}]}}
         elif name == "app_logs": result = {"lines":["rpc_token=private-log-secret"],"truncated":False}
@@ -177,6 +178,23 @@ class NativeCliAcceptanceTests(unittest.TestCase):
         self.assertEqual(receipt["shutdown"]["mode"], "sigterm")
         self.assertEqual(receipt["shutdown"]["stdin_open_at_signal"], True)
         self.assertTrue(receipt["shutdown"]["joined"])
+
+    def test_sigterm_interrupts_a_measured_pending_tool_and_joins_cleanup(self):
+        code, output = self.run_driver("sigterm-inflight")
+        self.assertEqual(code, 0)
+        receipt = json.loads((output / 'receipt.json').read_text())
+        self.assertTrue(receipt['inflight']['request_written'])
+        self.assertTrue(receipt['inflight']['unanswered_at_signal'])
+        self.assertGreaterEqual(receipt['inflight']['observed_pending_seconds'], 0.19)
+        self.assertTrue(receipt['shutdown']['joined'])
+        self.assertEqual(receipt['shutdown']['exit_code'], 0)
+
+    def test_inflight_mode_refuses_an_already_completed_request(self):
+        code, output = self.run_driver("sigterm-inflight", long_press_delay=0)
+        self.assertNotEqual(code, 0)
+        receipt = json.loads((output / 'receipt.json').read_text())
+        self.assertEqual(receipt['status'], 'failed')
+        self.assertIn('replied before interruption', receipt['error'])
 
     def test_startup_unavailable_is_retried_only_with_harmless_snapshot(self):
         acceptance.STARTUP_RETRY_INTERVAL = 0

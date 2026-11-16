@@ -359,7 +359,7 @@ jobs:
           assert receipt['source_sha'] == os.environ['SOURCE_SHA']
           assert receipt['prepared_run_id'] == int(os.environ['PREPARED_RUN'])
           assert receipt['candidate_sha256'] == hashlib.sha256(Path('release-assets/candidate.json').read_bytes()).hexdigest()
-          assert set(receipt['passed_modes']) >= {'eof', 'sigterm'}
+          assert set(receipt['passed_modes']) >= {'eof', 'sigterm', 'sigterm-inflight'}
           PYTHON
           gh release create v0.3.0 release-assets/* --repo "$GITHUB_REPOSITORY" \
             --title 'Ashnazg v0.3.0 experimental native runtime' --notes-file docs/releases.md --verify-tag --prerelease

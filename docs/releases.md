@@ -16,7 +16,7 @@ The source sidecar retains upstream package sources, pinned packaging recipes/su
 
 1. Merge the reviewed packaging change and require the exact main commit's `Quality` workflow to pass.
 2. Dispatch `Release` on main with `operation=prepare`. This builds a single matching set, verifies it, and retains `release-prepared-v0.3.0-<source-sha>` for 30 days. Preparation cannot publish.
-3. Download that candidate, verify `SHA256SUMS` and run `scripts/runtime_release.py verify`. Run the real CLI/VM acceptance against its unchanged bytes. Retain `docs/evidence/runtime-release-0.3.0/receipt.json` and supporting evidence on main, including source SHA, prepare run ID, candidate hash and passed EOF/SIGTERM modes.
+3. Download that candidate, verify `SHA256SUMS` and run `scripts/runtime_release.py verify`. Run the real CLI/VM acceptance against its unchanged bytes. Retain `docs/evidence/runtime-release-0.3.0/receipt.json` and supporting evidence on main, including source SHA, prepare run ID, candidate hash and passed EOF, idle SIGTERM and in-flight SIGTERM modes.
 4. Create `v0.3.0` at the candidate's exact source commit. Tag pushes do not rebuild or publish.
 5. Dispatch `Release` on main with `operation=publish`, the successful `prepared_run_id`, and `acceptance_commit`. The workflow checks the source/main/Quality/tag binding, verifies the retained acceptance-to-candidate hash and republishes those exact prepared bytes as an experimental prerelease. It refuses an existing release rather than replacing accepted assets.
 6. Verify the public catalog/assets, then run production cold acquisition in a fresh owned home and warm offline reuse separately. Publication, CLI/VM acceptance and clean-machine behavior require their own receipts.

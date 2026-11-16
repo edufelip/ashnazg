@@ -28,3 +28,19 @@ EOF, transport failure, SIGINT or SIGTERM cancels the server lifecycle. The owne
 ## Evidence boundary
 
 This implementation slice has separate host fixtures for descriptor isolation and cancellation, source stamping, catalog-to-launch identity, shared readiness and actual CLI protocol behavior. A passing host fixture does not establish a real VM launch, live GitHub acquisition, a clean-machine distribution, or performance savings. Existing explicit native HTTP acceptance used an already-prepared owned runtime and does not qualify automatic CLI acquisition. Source-matching release assets and separate owned CLI/VM acceptance remain necessary for those claims.
+
+## Release qualification
+
+`scripts/native_cli_acceptance.py` verifies the immutable candidate directory before testing its packaged executable and fixture. It checks that their hashes belong to that source-bound candidate, freezes all five tool input contracts, installs/launches the fixture by inferred package, verifies an exact counter increment and decoded screenshot pixel change, and requires owned helper/bridge, credential and listener cleanup.
+
+Run separate empty evidence directories for `--mode eof`, `--mode sigterm`, and `--mode sigterm-inflight`, reusing an explicitly owned private `--home` when testing a restart. In-flight qualification submits the pinned agent's 800 ms long press, observes the submitted call without a response for 200 ms, then signals the CLI and rejects a successful late response. This is a client-observed pending call; no server-entry timestamp is claimed.
+
+```sh
+python3 scripts/native_cli_acceptance.py --candidate-dir "$CANDIDATE" \
+  --binary "$EXTRACTED_MAC_PACKAGE/bin/ashnazg" \
+  --fixture-apk "$CANDIDATE/ashnazg-fixture-v0.3.0.apk" \
+  --source-sha "$SOURCE_SHA" --home "$ACCEPTANCE_HOME" \
+  --output-dir "$EVIDENCE_DIRECTORY" --mode eof
+```
+
+Prepublication qualification uses an explicitly staged verified cache as described in [runtime acquisition](runtime-acquisition.md). Public cold acquisition later requires a fresh home without staging. Fake-process tests qualify the driver only; actual VM and public acquisition receipts are separate evidence.
