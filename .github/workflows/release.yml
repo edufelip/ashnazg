@@ -7,6 +7,9 @@ on:
       - scripts/package_release.py
       - tests/test_package_release.py
       - docs/releases.md
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
       - build.rs
       - build_support/**
       - src/build_identity.rs
