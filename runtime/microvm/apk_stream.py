@@ -12,7 +12,7 @@ import socket
 import stat
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Optional
 
@@ -40,6 +40,7 @@ class UploadHeader:
     install_token: Optional[str] = field(default=None, repr=False)
     launch: Optional[bool] = None
     package: Optional[str] = None
+    _deadline: Optional[float] = field(default=None, repr=False, compare=False)
 
 
 def _effective_deadline(deadline, clock):
@@ -160,7 +161,7 @@ def read_upload_header(sock, *, deadline, clock=time.monotonic):
         value = json.loads(decoded, object_pairs_hook=_unique_object, parse_constant=_reject_constant)
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError, TypeError, RecursionError):
         raise UploadError("invalid upload header") from None
-    return _validate_header_object(value)
+    return replace(_validate_header_object(value), _deadline=effective_deadline)
 
 
 def _revalidate_header(header):
@@ -186,7 +187,7 @@ def _revalidate_header(header):
     validated = _validate_header_object(value)
     if validated != header:
         raise UploadError("invalid upload header")
-    return validated
+    return header
 
 
 def _open_staging_directory(staging_dir):
@@ -226,16 +227,10 @@ def _create_staged_file(dir_fd):
             st = os.fstat(fd)
             return name, fd, st.st_dev, st.st_ino
         except BaseException:
-            try:
-                os.close(fd)
-            finally:
-                # The name was generated here and created exclusively. If
-                # its metadata cannot be read, remove this still-private entry.
-                try:
-                    os.unlink(name, dir_fd=dir_fd)
-                except OSError:
-                    pass
-            raise UploadError("unable to inspect staged upload") from None
+            os.close(fd)
+            # Without an inode identity, unlinking by name could remove a
+            # replacement. Preserve the entry and report unverified cleanup.
+            raise UploadError("unable to inspect staged upload; cleanup ownership unverified") from None
     raise UploadError("unable to create staged upload")
 
 
@@ -294,6 +289,9 @@ def receive_apk(sock, header, *, staging_dir, deadline, clock=time.monotonic):
     """Receive exact APK bytes, verify digest and sender half-close, then stage."""
     validated = _revalidate_header(header)
     effective_deadline = _effective_deadline(deadline, clock)
+    if validated._deadline is not None:
+        effective_deadline = min(effective_deadline,
+                                 _effective_deadline(validated._deadline, clock))
     dir_fd, directory_path = _open_staging_directory(staging_dir)
     name = None
     file_fd = None
@@ -329,6 +327,7 @@ def receive_apk(sock, header, *, staging_dir, deadline, clock=time.monotonic):
             os.fsync(file_fd)
         except OSError:
             raise UploadError("staged upload finalization failed") from None
+        _set_timeout(sock, effective_deadline, clock)
         os.close(file_fd)
         file_fd = None
         return StagedApk(os.path.join(directory_path, name), received, digest.hexdigest(),

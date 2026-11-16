@@ -2,10 +2,12 @@ import hashlib
 import json
 import os
 import socket
+import stat
 import tempfile
 import threading
 import time
 import unittest
+from unittest import mock
 import uuid
 from pathlib import Path
 
@@ -239,6 +241,42 @@ class ApkStreamTests(unittest.TestCase):
         with self.assertRaises(UploadError):
             read_upload_header(SlowSocket(), deadline=10.1, clock=fake_clock)
 
+    def test_header_and_payload_share_the_original_thirty_second_cap(self):
+        raw = frame(header_object())
+
+        class Clock:
+            value = 0.0
+            def __call__(self):
+                return self.value
+
+        clock = Clock()
+
+        class ProgressSocket:
+            offset = 0
+            def settimeout(self, _timeout):
+                pass
+            def recv(self, count):
+                if self.offset < len(raw):
+                    chunk = raw[self.offset:self.offset + count]
+                    self.offset += len(chunk)
+                    if self.offset == len(raw):
+                        clock.value = 20.0
+                    return chunk
+                if self.offset == len(raw):
+                    self.offset += len(APK)
+                    clock.value = 35.0
+                    return APK
+                return b""
+
+        connection = ProgressSocket()
+        parsed = read_upload_header(connection, deadline=100.0, clock=clock)
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaises(UploadError):
+                staged = receive_apk(connection, parsed, staging_dir=directory,
+                                     deadline=100.0, clock=clock)
+                staged.close()
+            self.assertEqual(list(Path(directory).iterdir()), [])
+
     def test_receive_revalidates_publicly_constructed_header(self):
         invalid = UploadHeader(True, "prepare_agent", SESSION, len(APK),
                                hashlib.sha256(APK).hexdigest(), RPC, INSTALL)
@@ -297,6 +335,29 @@ class ApkStreamTests(unittest.TestCase):
             with self.assertRaises(OSError):
                 result.close()
             self.assertTrue(path.is_symlink())
+
+    def test_initial_metadata_failure_does_not_remove_an_unproven_replacement(self):
+        with tempfile.TemporaryDirectory() as directory:
+            original_fstat = os.fstat
+            replacement = []
+
+            def fail_file_metadata(fd):
+                info = original_fstat(fd)
+                if stat.S_ISREG(info.st_mode):
+                    path = next(Path(directory).glob("upload-*.apk"))
+                    path.unlink()
+                    path.write_bytes(b"foreign replacement")
+                    replacement.append(path)
+                    raise OSError("metadata unavailable")
+                return info
+
+            with mock.patch("runtime.microvm.apk_stream.os.fstat", side_effect=fail_file_metadata):
+                result, error, _ = self.upload(APK, staging_dir=directory)
+            self.assertIsNone(result)
+            self.assertIsInstance(error, UploadError)
+            self.assertEqual(len(replacement), 1)
+            self.assertTrue(replacement[0].exists(), "unproven replacement must be preserved")
+            self.assertEqual(replacement[0].read_bytes(), b"foreign replacement")
 
     def test_context_exception_removes_completed_file(self):
         with tempfile.TemporaryDirectory() as temp:
