@@ -4,6 +4,7 @@ import json
 import subprocess
 import tarfile
 import tempfile
+import time
 import unittest
 import urllib.error
 import zipfile
@@ -11,7 +12,7 @@ from unittest import mock
 from pathlib import Path
 
 from scripts.runtime_sources import (
-    _collect_notice_data, _source_member_name, build_source_sidecar,
+    _collect_notice_data, _download, _source_member_name, build_source_sidecar,
     validate_inventory_binding, validate_rust_vendor,
 )
 
@@ -125,6 +126,43 @@ class RuntimeSourcesTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name)
 
+    def test_download_length_failure_identifies_input_without_url(self):
+        record = {"filename": "sqlite-3490200-LICENSE.md", "size": 3864,
+                  "url": "https://example.invalid/raw?secret=never-log-this"}
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.geturl.return_value = "https://example.invalid/html"
+        response.headers = {"Content-Length": "49133"}
+        with mock.patch("scripts.runtime_sources.urllib.request.build_opener") as opener:
+            opener.return_value.open.return_value = response
+            with self.assertRaisesRegex(ValueError,
+                    r"sqlite-3490200-LICENSE.md.*expected 3864.*received 49133") as caught:
+                _download(record, remaining=5000, deadline=time.monotonic() + 10)
+        self.assertNotIn("secret", str(caught.exception))
+        response.read.assert_not_called()
+
+    def test_download_still_requires_both_locked_digests(self):
+        payload = b"pinned upstream bytes"
+        record = {"filename": "source.txt", "size": len(payload),
+                  "url": "https://example.invalid/source.txt", "sha256": _sha(payload),
+                  "declared_sha512": hashlib.sha512(payload).hexdigest()}
+        for corrupt in (False, True):
+            with self.subTest(corrupt=corrupt):
+                response = mock.MagicMock()
+                response.__enter__.return_value = response
+                response.geturl.return_value = record["url"]
+                response.headers = {"Content-Length": str(len(payload))}
+                response.read.side_effect = [payload, b""]
+                current = dict(record, declared_sha512="0" * 128) if corrupt else record
+                with mock.patch("scripts.runtime_sources.urllib.request.build_opener") as opener:
+                    opener.return_value.open.return_value = response
+                    if corrupt:
+                        with self.assertRaisesRegex(ValueError, "SHA-512 mismatch"):
+                            _download(current, remaining=5000, deadline=time.monotonic() + 10)
+                    else:
+                        self.assertEqual(_download(current, remaining=5000,
+                                         deadline=time.monotonic() + 10), payload)
+
     def test_checked_lock_retains_expected_actual_guest_evidence(self):
         lock = json.loads(Path("runtime/microvm/sources.lock.json").read_text())
         self.assertEqual(lock["expected"], {"packages": 142, "groups": 47,
@@ -134,6 +172,17 @@ class RuntimeSourcesTests(unittest.TestCase):
         ncurses = next(record for record in lock["source_inputs"] if record["origin"] == "ncurses")
         self.assertEqual(ncurses["initial_url_status"], 404)
         self.assertEqual(ncurses["url"], "https://distfiles.alpinelinux.org/distfiles/v3.22/ncurses-6.5-20250503.tgz")
+        sqlite_license = next(record for record in lock["source_inputs"]
+                              if record["filename"] == "sqlite-3490200-LICENSE.md")
+        self.assertEqual(sqlite_license["url"],
+                         "https://distfiles.alpinelinux.org/distfiles/v3.22/sqlite-3490200-LICENSE.md")
+        self.assertEqual(sqlite_license["initial_url"], "https://www.sqlite.org/src/raw")
+        self.assertEqual(sqlite_license["size"], 3864)
+        self.assertEqual(sqlite_license["sha256"],
+                         "a7a58d6022c090c528e3167026167b3141d682efc6a3c188b473ba59f1788fc7")
+        self.assertEqual(sqlite_license["declared_sha512"],
+                         "38844727b09d11ded660c069d19a5289100405b0b243e75338060d237e3190fd99"
+                         "f0270611d214862beeb54a67993c2a337f917fdc452084f812d1371ce9869b")
 
         def assert_portable(value):
             if isinstance(value, dict):

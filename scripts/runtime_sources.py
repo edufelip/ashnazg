@@ -261,7 +261,10 @@ def _download(record, *, remaining, deadline):
             raise ValueError("download redirected away from HTTPS")
         content_length = response.headers.get("Content-Length")
         if content_length and int(content_length) != record["size"]:
-            raise ValueError("download Content-Length differs from lock")
+            name = _safe_relpath(record.get("filename", record.get("path", "input")))
+            raise ValueError("download Content-Length differs from lock for " + name
+                             + ": expected " + str(record["size"])
+                             + " bytes, received " + str(int(content_length)))
         while True:
             now = time.monotonic()
             if now - started > MAX_FILE_DOWNLOAD_SECONDS or now > deadline:
