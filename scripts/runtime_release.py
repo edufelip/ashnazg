@@ -21,13 +21,13 @@ DEFAULT_VERSION = "0.3.0"
 SOURCE_SHA_RE = re.compile(r"[0-9a-f]{40}\Z")
 SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 CATALOG_NAME = "ashnazg-runtime-v{version}.json"
-MAX_CATALOG_SIZE = 2 * 1024 * 1024
+MAX_CATALOG_SIZE = 64 * 1024
 MAX_CANDIDATE_SIZE = 2 * 1024 * 1024
 MAX_SUMS_SIZE = 1024 * 1024
 MAX_HOST_ZIP_SIZE = 64 * 1024 * 1024
 MAX_GUEST_SIZE = 1024**3
 MAX_TAR_KERNEL_SIZE = 128 * 1024**2
-MAX_TAR_ROOTFS_SIZE = 8 * 1024**3
+MAX_TAR_ROOTFS_SIZE = 4 * 1024**3
 CHUNK_SIZE = 1024 * 1024
 
 GUEST_MEMBERS = {
@@ -195,7 +195,9 @@ def _validate_guest(path, *, source_sha, version):
                 if not member.isfile() or member.issparse():
                     raise ValueError(f"guest archive member must be a regular file: {name}")
                 seen.add(name)
-                maximum = MAX_TAR_KERNEL_SIZE if name == "kernel" else MAX_TAR_ROOTFS_SIZE if name == "rootfs.ext4" else MAX_CATALOG_SIZE
+                maximum = {"kernel": MAX_TAR_KERNEL_SIZE, "rootfs.ext4": MAX_TAR_ROOTFS_SIZE,
+                           "manifest.json": MAX_CATALOG_SIZE, "kernel.config": 64 * 1024,
+                           "NOTICES.md": 1024 * 1024, "linux-6.12.117.tar.xz": 256 * 1024**2}.get(name, 2 * 1024**2)
                 if member.size <= 0 or member.size > maximum:
                     raise ValueError(f"guest archive member has invalid size: {name}")
                 source = archive.extractfile(member)
@@ -252,9 +254,10 @@ def lzma_error():
 def _validate_zip(path, *, source_sha, version, platform, raw_helper, raw_agent, raw_fixture):
     try:
         with zipfile.ZipFile(path) as archive:
+            payload_names = ZIP_BASE_MEMBERS | ({"bin/ashnazg-vm"} if platform == "macos-aarch64" else set())
             infos = archive.infolist()
             names = [item.filename for item in infos]
-            if len(names) != len(set(names)) or set(names) != ZIP_BASE_MEMBERS | {"manifest.json", "SHA256SUMS"}:
+            if len(names) != len(set(names)) or set(names) != payload_names | {"manifest.json", "SHA256SUMS"}:
                 raise ValueError("host ZIP members differ from exact package contract")
             for info in infos:
                 mode = info.external_attr >> 16
@@ -270,10 +273,10 @@ def _validate_zip(path, *, source_sha, version, platform, raw_helper, raw_agent,
                 raise ValueError("host ZIP manifest has invalid fields")
             if manifest["name"] != "ashnazg" or manifest["version"] != version or manifest["source_sha"] != source_sha or manifest["platform"] != platform:
                 raise ValueError("host ZIP manifest source, version, or platform mismatch")
-            if not isinstance(manifest["files"], dict) or set(manifest["files"]) != ZIP_BASE_MEMBERS:
+            if not isinstance(manifest["files"], dict) or set(manifest["files"]) != payload_names:
                 raise ValueError("host ZIP manifest files differ from exact package contract")
             payloads = {}
-            for name in sorted(ZIP_BASE_MEMBERS):
+            for name in sorted(payload_names):
                 data = archive.read(name)
                 if not data:
                     raise ValueError(f"host ZIP payload is empty: {name}")
@@ -290,7 +293,7 @@ def _validate_zip(path, *, source_sha, version, platform, raw_helper, raw_agent,
                 raise ValueError("packaged agent APK does not match the cataloged agent artifact")
             if payloads["android/fixture-instrumentation.apk"] != raw_fixture:
                 raise ValueError("packaged fixture APK does not match the cataloged fixture artifact")
-            if platform == "macos-aarch64" and payloads["bin/ashnazg"] != raw_helper:
+            if platform == "macos-aarch64" and payloads["bin/ashnazg-vm"] != raw_helper:
                 raise ValueError("macOS ZIP helper does not match the raw signed helper")
             expected_sums = "".join(
                 f"{hashlib.sha256(data).hexdigest()}  {name}\n"
@@ -360,7 +363,8 @@ def prepare_release(directory, *, source_sha, version=DEFAULT_VERSION):
     sums_path = root / "SHA256SUMS"
     if sums_path.exists() or sums_path.is_symlink():
         raise ValueError("refusing to replace existing SHA256SUMS")
-    sums = "".join(f"{item['sha256']}  {item['name']}\n" for item in artifacts).encode("ascii")
+    checksum_items = artifacts + [{"name": "candidate.json", "sha256": hashlib.sha256(_canonical(candidate)).hexdigest()}]
+    sums = "".join(f"{item['sha256']}  {item['name']}\n" for item in sorted(checksum_items, key=lambda item: item["name"])).encode("ascii")
     sums_path.write_bytes(sums)
     return True
 
@@ -432,7 +436,8 @@ def verify_release(directory, *, source_sha, version=DEFAULT_VERSION):
     if not valid_candidate or candidate_raw != _canonical(candidate) or candidate != expected_candidate:
         raise ValueError("candidate bytes or artifact inventory do not match verified files")
     sums = _read_bounded(root / "SHA256SUMS", limit=MAX_SUMS_SIZE, description="SHA256SUMS")
-    expected_sums = "".join(f"{item['sha256']}  {item['name']}\n" for item in expected_artifacts).encode("ascii")
+    checksum_items = expected_artifacts + [{"name": "candidate.json", "sha256": hashlib.sha256(candidate_raw).hexdigest()}]
+    expected_sums = "".join(f"{item['sha256']}  {item['name']}\n" for item in sorted(checksum_items, key=lambda item: item["name"])).encode("ascii")
     if sums != expected_sums:
         raise ValueError("SHA256SUMS bytes do not match candidate artifacts")
     return True

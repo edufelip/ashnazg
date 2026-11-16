@@ -246,7 +246,7 @@ jobs:
           python3 - <<'PYTHON'
           import shutil, tarfile
           from pathlib import Path
-                    expected = {'NOTICES.md', 'kernel', 'kernel.config', 'kernel.generated.config',
+          expected = {'NOTICES.md', 'kernel', 'kernel.config', 'kernel.generated.config',
                       'linux-6.12.117.tar.xz', 'manifest.json', 'provenance.json',
                       'packages.lock.json', 'runtime-components.json', 'runtime-installed.db', 'rootfs.ext4'}
           seen = set()

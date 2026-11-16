@@ -71,7 +71,7 @@ class RuntimeReleaseTests(unittest.TestCase):
             "packages.lock.json": b"{}\n",
             "runtime-components.json": b"{}\n",
             "runtime-installed.db": b"P:fixture\nV:1\nA:aarch64\n\n",
-            "linux-6.12.117.tar.xz": b"source fixture",
+            "linux-6.12.117.tar.xz": b"x" * (3 * 1024 * 1024),
         }
         guest_path = self.root / f"ashnazg-microvm-v{VERSION}-linux-aarch64.tar.xz"
         with tarfile.open(guest_path, "w:xz") as archive:
@@ -83,12 +83,14 @@ class RuntimeReleaseTests(unittest.TestCase):
         for platform, name in (("linux-x86_64", f"ashnazg-v{VERSION}-linux-x86_64.zip"),
                                ("macos-aarch64", f"ashnazg-v{VERSION}-macos-aarch64.zip")):
             contents = {
-                "bin/ashnazg": (zip_helper or helper) if platform == "macos-aarch64" else b"host binary",
+                "bin/ashnazg": b"host binary distinct from helper",
                 "android/agent-instrumentation.apk": b"agent apk",
                 "android/fixture-instrumentation.apk": b"fixture apk",
                 "LICENSE": b"MIT",
                 "README-SETUP.md": b"setup",
             }
+            if platform == "macos-aarch64":
+                contents["bin/ashnazg-vm"] = zip_helper or helper
             manifest = {"name": "ashnazg", "version": VERSION, "source_sha": source_sha,
                         "platform": platform,
                         "files": {path: {"sha256": digest(data), "size": len(data)}
@@ -125,6 +127,27 @@ class RuntimeReleaseTests(unittest.TestCase):
         self.prepare()
         self.assertEqual((self.root / "candidate.json").read_bytes(), first_candidate)
         self.assertEqual((self.root / "SHA256SUMS").read_bytes(), first_sums)
+
+    def test_accepts_actual_host_packager_outputs(self):
+        from scripts.package_release import package_release
+        import tempfile
+        with tempfile.TemporaryDirectory() as inputs:
+            folder = Path(inputs)
+            for name, data in {"host": b"actual host", "license": b"MIT", "setup": b"setup"}.items():
+                (folder / name).write_bytes(data)
+            helper = self.root / f"ashnazg-vm-v{VERSION}-macos-aarch64"
+            helper.chmod(0o755)
+            for platform in ("linux-x86_64", "macos-aarch64"):
+                package_release(version=VERSION, source_sha=SOURCE_SHA, platform=platform,
+                    output=self.root / f"ashnazg-v{VERSION}-{platform}.zip", host_binary=folder / "host",
+                    agent_apk=self.root / f"ashnazg-agent-v{VERSION}.apk",
+                    fixture_apk=self.root / f"ashnazg-fixture-v{VERSION}.apk",
+                    license_file=folder / "license", setup_file=folder / "setup",
+                    vm_helper=helper if platform == "macos-aarch64" else None)
+            self.prepare()
+            self.assertTrue(verify_release(self.root, source_sha=SOURCE_SHA))
+            checksums = (self.root / "SHA256SUMS").read_text()
+            self.assertIn(f"{digest((self.root / 'candidate.json').read_bytes())}  candidate.json\n", checksums)
 
     def test_cli_prepare_and_verify(self):
         command = [sys.executable, "scripts/runtime_release.py", "prepare", "--directory", str(self.root),
