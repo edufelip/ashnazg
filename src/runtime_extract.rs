@@ -103,6 +103,10 @@ mod tests {
     }
 
     fn catalog_with(_bytes: &[u8], declared_size: u64, digest: &str) -> RuntimeCatalog {
+        catalog_with_version(declared_size, digest, "0.3.0")
+    }
+
+    fn catalog_with_version(declared_size: u64, digest: &str, version: &str) -> RuntimeCatalog {
         let json = format!(
             r#"{{"schema_version":1,"version":"0.3.0","release_tag":"v0.3.0","source_sha":"{SOURCE}","artifacts":{{"guest":{{"name":"ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz","platform":"linux-aarch64","source_sha":"{SOURCE}","size":{},"sha256":"{digest}"}},"helper":{{"name":"ashnazg-vm-v0.3.0-macos-aarch64","platform":"macos-aarch64","source_sha":"{SOURCE}","size":1,"sha256":"{}"}},"agent":{{"name":"ashnazg-agent-v0.3.0.apk","platform":"android","source_sha":"{SOURCE}","size":1,"sha256":"{}"}},"fixture":{{"name":"ashnazg-fixture-v0.3.0.apk","platform":"android","source_sha":"{SOURCE}","size":1,"sha256":"{}"}}}},"source_archives":[]}}"#,
             declared_size,
@@ -110,7 +114,8 @@ mod tests {
             "0".repeat(64),
             "0".repeat(64)
         );
-        RuntimeCatalog::parse(json.as_bytes(), "0.3.0", SOURCE).unwrap()
+        let json = json.replace("0.3.0", version);
+        RuntimeCatalog::parse(json.as_bytes(), version, SOURCE).unwrap()
     }
 
     struct Fixture {
@@ -310,6 +315,30 @@ mod tests {
             })
             .collect();
         archive(&items)
+    }
+
+    #[test]
+    fn rejects_a_matching_catalog_and_manifest_outside_the_helper_version_contract() {
+        let json = String::from_utf8(manifest(b"kernel bytes", b"filesystem bytes"))
+            .unwrap()
+            .replace("0.3.0", "0.4.0");
+        let bytes = replace_manifest(&json);
+        let f = fixture(&bytes);
+        let catalog = catalog_with_version(
+            bytes.len() as u64,
+            &digest_hex(&Sha256::digest(&bytes)),
+            "0.4.0",
+        );
+        assert!(
+            extract_runtime(
+                &f.archive,
+                &f.output,
+                &catalog,
+                Instant::now() + Duration::from_secs(10),
+                &CancellationToken::new(),
+            )
+            .is_err()
+        );
     }
 
     #[test]
@@ -821,8 +850,8 @@ fn validate_manifest(
         "runtime manifest schema_version must be 1"
     );
     ensure!(
-        manifest.version == catalog.version(),
-        "runtime manifest version does not match catalog"
+        manifest.version == "0.3.0" && manifest.version == catalog.version(),
+        "runtime manifest version does not match the catalog and pinned helper contract"
     );
     ensure!(
         manifest.source_sha == catalog.source_sha(),
