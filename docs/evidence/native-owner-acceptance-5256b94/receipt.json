@@ -1,0 +1,150 @@
+{
+  "files": [
+    {
+      "path": "acceptance.json",
+      "sha256": "95c22076ba572cde061358ca45091e8801469f608583e9ed6f9dc8b42283251f",
+      "size": 8184
+    },
+    {
+      "path": "acceptance.py",
+      "sha256": "320d9bdc7ddc9141e5c0a5ab00b3af2bc3a71a00767bdecd24bff49f30840766",
+      "size": 9800
+    },
+    {
+      "path": "build-receipt.json",
+      "sha256": "bc5a82e6618b27d87b9dd01e373dcb63ac7f02eb6b74005b96ca5d08449cf909",
+      "size": 792
+    },
+    {
+      "path": "launch.json",
+      "sha256": "f50af84201395aecf7b2c5ea8397a8bc328750ce83399ddc28f107de0a566383",
+      "size": 669
+    },
+    {
+      "path": "owner.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "path": "probe/Cargo.lock",
+      "sha256": "66619f1969c95f24394ab20400843a719ff208c0846928f5e2f2ff176e6ed19c",
+      "size": 61762
+    },
+    {
+      "path": "probe/Cargo.toml",
+      "sha256": "a480f4bfe359da7224261da3949e4be601befb5fd5723282e9587d59e3c26b0f",
+      "size": 345
+    },
+    {
+      "path": "probe/src/main.rs",
+      "sha256": "b06e9fcb47a86aeee2277d893399bc4d1c19e46777d7e66b3429ea427519f68f",
+      "size": 3437
+    },
+    {
+      "path": "ready-runtime.json",
+      "sha256": "38159b332df7414e0439b69c9425c867c39666a24133fdd8eaa1d00b11f01ca8",
+      "size": 837
+    },
+    {
+      "path": "reused-harness-source.py",
+      "sha256": "3ea7a1d3af7588d009b66c05ada4e5cff8f75a38593ca87e407024c45c5e8a1a",
+      "size": 14303
+    },
+    {
+      "path": "rpc/fixture-overlay.png",
+      "sha256": "17731d1700e5b369e3b19ba114a3467d4eab2d5718c4eacfdf528b785bd4b2fa",
+      "size": 68521
+    },
+    {
+      "path": "rpc/fixture.webp",
+      "sha256": "706274b38b3d41bd7266cbcd7bd040430ca2b4f54b25ecb85c1ca702885b466c",
+      "size": 18612
+    },
+    {
+      "path": "runtime.json",
+      "sha256": "86876310d8aded0c58da536ae6fb6f41e7b2a2303fa0b7dc8bb42ee709c73239",
+      "size": 740
+    },
+    {
+      "path": "serial.log.gz",
+      "sha256": "7ba6b6969121a27b16dd39639ebf12bc6de33a03927c0323879f812c763b898d",
+      "size": 19447
+    },
+    {
+      "path": "warm-compose.png",
+      "sha256": "490e5131bcc7ae48f3c1a19f5839c6e2f459cd16d23bccc9ffb8805190765052",
+      "size": 20319
+    },
+    {
+      "path": "warm-mcp.png",
+      "sha256": "3068dc818131de4b32bce7a99a2e61ab16437d12abe655e42b47d5e0d562534a",
+      "size": 59368
+    },
+    {
+      "path": "warm-mcp.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "path": "warm-reactnative.png",
+      "sha256": "6fdebddc1e004061d99540ac215f2906abaa0221d81be9c15ae42c22ce57114c",
+      "size": 25209
+    }
+  ],
+  "guest_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+  "host_adb_used": false,
+  "host_source_sha": "5256b944db25d617d889df10f718e5b497e6cafa",
+  "limits": [
+    "No fresh-state cold run of the new supervisor",
+    "No automatic CLI or MCP session wiring",
+    "MCP app_install not exercised; native installs used the Rust session factory",
+    "No live acquisition, release publication, benchmark or CPU claim",
+    "Invalid-token and corrupt-upload checks used Python protocol scaffolding",
+    "Filesystem identity preserved; persistent disk bytes are expected to change during Android operation",
+    "The retained helper is locally ad-hoc signed, not Developer ID signed or notarized"
+  ],
+  "local_catalog_published": false,
+  "mode": "one restart of previously owned persistent state",
+  "offline_guest_patches": false,
+  "reused_harness_executed_prefix_sha256": "420a03b0966c9f694ea2a553386a8c239a16d2ea7dc334bce8fd9dd785bacfbf",
+  "schema_version": 1,
+  "scope": [
+    "NativeSession public startup on Apple Silicon macOS",
+    "authenticated GuestClient factory and retained-child credential binding",
+    "three NativeInstallClient factory installations and launches",
+    "28 RPC checks and 7 legacy MCP compatibility checks",
+    "requested graceful shutdown with child reap, credentials removed and owned listeners closed"
+  ],
+  "serial_capture": {
+    "credential_redaction": "Acceptance driver replaced any exact current credential values before retention; it also scanned retained output before reporting success.",
+    "path": "serial.log.gz",
+    "uncompressed_sha256": "c93cda0051160bb45572cc810221d8a5d332f3d35e492d0358bed8d29aa5a74b",
+    "uncompressed_size": 129002
+  },
+  "source_parity": {
+    "new_host_library": [
+      "src/native_session.rs",
+      "src/native_session/launch.rs",
+      "src/session_credentials.rs",
+      "src/native_install.rs"
+    ],
+    "scope": "Parity applies to listed exercised helper and legacy host/harness paths, not all host sources.",
+    "unchanged_from_guest_source": [
+      "platform/macos/Sources",
+      "platform/macos/Package.swift",
+      "platform/macos/entitlements.plist",
+      "scripts/integration.py",
+      "scripts/harness.py",
+      "src/host.rs",
+      "src/main.rs",
+      "src/mcp.rs",
+      "src/protocol.rs"
+    ]
+  },
+  "status": "passed",
+  "timings": {
+    "driver_observed_ready_seconds_including_preflight": 37.411,
+    "driver_total_seconds_including_checks_and_shutdown": 59.005,
+    "helper_ready_receipt_seconds": 26.156
+  }
+}
