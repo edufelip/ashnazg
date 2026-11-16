@@ -1,8 +1,10 @@
 pub mod apk_manifest;
 mod axml_package;
+pub mod build_identity;
 mod guest;
 mod host;
 pub mod mcp;
+pub mod native_bootstrap;
 pub mod native_install;
 pub mod native_session;
 pub mod runtime_acquire;

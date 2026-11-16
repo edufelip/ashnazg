@@ -51,3 +51,7 @@ tempfile = "3"
 [[test]]
 name = "stdio_bridge"
 path = "rust-tests/stdio_bridge.rs"
+
+[[test]]
+name = "build_identity"
+path = "rust-tests/build_identity.rs"
