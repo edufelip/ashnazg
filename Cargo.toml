@@ -36,7 +36,7 @@ sha2 = "0.11"
 tar = "=0.4.46"
 xz2 = "=0.1.7"
 subtle = "2"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal", "time", "io-util"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal", "time", "io-util", "process"] }
 tokio-util = { version = "0.7", features = ["rt"] }
 thiserror = "2"
 zeroize = "1"
@@ -47,3 +47,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
 tempfile = "3"
+
+[[test]]
+name = "stdio_bridge"
+path = "rust-tests/stdio_bridge.rs"

@@ -11,6 +11,8 @@ pub mod runtime_catalog;
 pub mod runtime_download;
 pub mod runtime_extract;
 pub mod session_credentials;
+#[cfg(unix)]
+pub mod stdio_bridge;
 
 pub use runtime_acquire::{RuntimeArtifacts, acquire_runtime};
 

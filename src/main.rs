@@ -40,8 +40,25 @@ enum CommandLine {
     Up(microvm::UpArgs),
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
+    #[cfg(unix)]
+    match ashnazg::stdio_bridge::hidden_child_fd(std::env::args_os()) {
+        Ok(Some(fd)) => {
+            if ashnazg::stdio_bridge::run_hidden_child(fd).is_err() {
+                std::process::exit(1);
+            }
+            return Ok(());
+        }
+        Err(_) => std::process::exit(1),
+        Ok(None) => {}
+    }
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()?
+        .block_on(run())
+}
+
+async fn run() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
