@@ -12,6 +12,8 @@ The parent and child communicate over a private Unix stream socketpair with boun
 
 One Tokio lifecycle task owns the child handle. Cancellation or owner drop shuts down private IPC, kills the bridge child, and waits up to two seconds for reap. Dropping the owner detaches this cleanup task, which continues while its Tokio runtime remains alive. `shutdown().await` cancels and joins that task; it returns only after reap succeeds. Unexpected nonzero child exit is reported as a generic error. Child cleanup never cancels the caller's `CancellationToken` and never signals a caller-supplied PID.
 
+IPC EOF can arrive before the lifecycle task observes the child's exit. `is_finished()` observes lifecycle completion without requesting a stop; `shutdown()` still joins and checks its result. The natural-exit fixture waits for that completion before checking `NormalEof`, so its own cleanup cannot race the exit it is measuring.
+
 ## Descriptor and terminal behavior
 
 The bridge does not call `F_SETFL` on inherited descriptors and preserves their `O_NONBLOCK` setting. Darwin can expose additional kernel-maintained flags after a write even without the bridge, so raw `F_GETFL` equality is not promised. The child retries nonblocking inherited stdio with `poll`; if readiness becomes stale on a blocking descriptor, any resulting blocked operation is confined to the disposable child and remains cancellable by killing that process. Parent IPC alone is configured nonblocking for Tokio.
