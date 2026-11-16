@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "source_sha": "b8806d85953561ca1c7ccdf88cb5093fec7a1c9a",
+  "workflow_run": 43802590487,
+  "archive_sha256": "179124dbe27e112c1e42d4da7ff3804b4a8d8e38c2cac96a45e265f583958d05",
+  "guest_download": {
+    "artifact_id": 14197437590,
+    "artifact_name": "microvm-linux-arm64-b8806d85953561ca1c7ccdf88cb5093fec7a1c9a",
+    "zip_sha256": "75fa19a4bcc2a252521ee121bd2b68fca3b1bb636b6f2cbf8a7d2ddcaf438164",
+    "zip_size": 230296744
+  },
+  "apk_download": {
+    "artifact_id": 14196878382,
+    "artifact_name": "android-apks",
+    "zip_sha256": "4b189c6126d2dd57484c9aca635361f981f072be3cf40a91b44367a898b3c629",
+    "zip_size": 28254707
+  },
+  "kernel_config_sha256": "1d3f71c5cd4f4f5402136658877a4baa9c6973a55e236da26f03383b7d7967ae",
+  "kernel_generated_config_sha256": "70960e57afb670d381ffde6284c48faf7934be7e0acdfd6ccdadfcb789718694",
+  "all_fragment_settings_verified": true,
+  "asset_manifest_validated": true,
+  "production_extractor": {
+    "checkout_sha": "59aa1e2",
+    "receipt_sha256": "84a13d83a4607dc29e1faefb5f95c6988334560ab032d3250322d17fdc92ae2b",
+    "member_count": 11,
+    "rootfs_size": 4294967296,
+    "local_unpublished_catalog_sha256": "e64468f1d671603c4c8b7cd99324769064f504819673e1d40fc029c93351595c",
+    "qualification": "Local catalog records measured artifact bytes for extraction testing; it is not a published release or intrinsic binary-to-source proof."
+  },
+  "assets": "/private/tmp/ashnazg-native-session-b8806d8-guest/assets"
+}

@@ -1,0 +1,55 @@
+{
+  "compressed_sha256": "9edea220fd7109a954cc2615c01fc9b389dafc5c3b09f37a7e0024dc9dc7b5bb",
+  "compressed_size": 230799880,
+  "elapsed_seconds": 41.986655042,
+  "members": {
+    "NOTICES.md": {
+      "sha256": "8f1d68e7c4715b4cb36b44f88cdabd4db72d4eb0635b792f057c2f7846a86987",
+      "size": 1032
+    },
+    "kernel": {
+      "sha256": "170c38ecc0b5830290b1a5de9686a4becbbbe3aa8c4ec745c2aa360d40b6ae7e",
+      "size": 47684096
+    },
+    "kernel.config": {
+      "sha256": "1d3f71c5cd4f4f5402136658877a4baa9c6973a55e236da26f03383b7d7967ae",
+      "size": 1945
+    },
+    "kernel.generated.config": {
+      "sha256": "70960e57afb670d381ffde6284c48faf7934be7e0acdfd6ccdadfcb789718694",
+      "size": 302491
+    },
+    "linux-6.12.117.tar.xz": {
+      "sha256": "74e99aa5e60e242e0a165fed8cb2ea0d054bf7a401f01861d403d75733456613",
+      "size": 148959092
+    },
+    "manifest.json": {
+      "sha256": "cf234e24e36f5ba0c6b3c1fd771b279c2b876ed79daae1a3fcd837d4f635a768",
+      "size": 605
+    },
+    "packages.lock.json": {
+      "sha256": "3d7ffc8aee731e11df9edcbdee5efb8fbdf90bcb953177305133d0ac2b9b30d3",
+      "size": 49822
+    },
+    "provenance.json": {
+      "sha256": "597bd0df8d46bdf914a50b0122a5c7ba9e9db1a54555e86eda68b435f6c1c239",
+      "size": 321566
+    },
+    "rootfs.ext4": {
+      "sha256": "f1ac1fbf6b498a03841154448e394cba15effb1e300de08e5a3d71f6439890ee",
+      "size": 4294967296
+    },
+    "runtime-components.json": {
+      "sha256": "07bda6e9667ef29a422d02b6e6cbd2b2ddb8f86ddfb3255ed2d03df6af7733da",
+      "size": 226355
+    },
+    "runtime-installed.db": {
+      "sha256": "734751622e021d3d60024c270085ebb1b1d399b67305456a24412c8e7c3aa575",
+      "size": 199873
+    }
+  },
+  "qualification": "Production extractor on actual CI artifact; no download/cache/VM acceptance claimed",
+  "schema_version": 1,
+  "source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+  "status": "passed"
+}

@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "guest_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+  "workflow_run": 43807503988,
+  "host_checkout_sha": "6b0e5d8a6709d10fe76109a0757f7ebcb4b92b93",
+  "host_checkout_dirty": false,
+  "implementation_parity": {
+    "platform/macos/Sources": {
+      "artifact_tree_or_blob": "186f27ca20fa85a91951d7847264071880ef0d5d",
+      "local_tree_or_blob": "186f27ca20fa85a91951d7847264071880ef0d5d"
+    },
+    "platform/macos/Package.swift": {
+      "artifact_tree_or_blob": "445181be7f201f198a8890563ecfafae72126140",
+      "local_tree_or_blob": "445181be7f201f198a8890563ecfafae72126140"
+    },
+    "platform/macos/entitlements.plist": {
+      "artifact_tree_or_blob": "00ffd62aa8ede7eb5554449c8676e5c0b08f7dcb",
+      "local_tree_or_blob": "00ffd62aa8ede7eb5554449c8676e5c0b08f7dcb"
+    },
+    "scripts/integration.py": {
+      "artifact_tree_or_blob": "47125381330b57aa8d41d7bd88e55076a4d603ea",
+      "local_tree_or_blob": "47125381330b57aa8d41d7bd88e55076a4d603ea"
+    },
+    "scripts/harness.py": {
+      "artifact_tree_or_blob": "644c884dc074f36f2b87bb345d1da0dca1e01e42",
+      "local_tree_or_blob": "644c884dc074f36f2b87bb345d1da0dca1e01e42"
+    },
+    "src/host.rs": {
+      "artifact_tree_or_blob": "8feed8134f9e8f5b187c89921438971381363665",
+      "local_tree_or_blob": "8feed8134f9e8f5b187c89921438971381363665"
+    },
+    "src/guest.rs": {
+      "artifact_tree_or_blob": "ea15b6e76a23104935c89e3e7372cfef24c49e7a",
+      "local_tree_or_blob": "ea15b6e76a23104935c89e3e7372cfef24c49e7a"
+    },
+    "src/main.rs": {
+      "artifact_tree_or_blob": "546a49279c37d0c63302001f9c02e7b04ebf645d",
+      "local_tree_or_blob": "546a49279c37d0c63302001f9c02e7b04ebf645d"
+    },
+    "src/mcp.rs": {
+      "artifact_tree_or_blob": "398b2a121d81bfcd7f54f148488e45b0c896117c",
+      "local_tree_or_blob": "398b2a121d81bfcd7f54f148488e45b0c896117c"
+    }
+  },
+  "host_checkout_scope": "Helper and exercised host/integration implementation paths match the guest source. Additional acquisition library modules in the host checkout are not exercised. Binary hashes identify tested outputs; this is not intrinsic binary-to-source proof.",
+  "cold": {
+    "rpc_checks": 28,
+    "mcp_checks": 7,
+    "driver_launch_to_ready_seconds": 117.816,
+    "ready_runtime_timings": {
+      "agent_startup_ms": 646,
+      "readiness_ms": 106411,
+      "total_startup_ms": 107211,
+      "vm_start_ms": 136
+    },
+    "stopped_runtime_timings": {
+      "agent_startup_ms": 646,
+      "readiness_ms": 106411,
+      "total_startup_ms": 129354,
+      "vm_start_ms": 136
+    },
+    "helper_exit_code": 0
+  },
+  "warm": {
+    "rpc_checks": 28,
+    "mcp_checks": 7,
+    "driver_launch_to_ready_seconds": 36.472,
+    "ready_runtime_timings": {
+      "agent_startup_ms": 635,
+      "readiness_ms": 25574,
+      "total_startup_ms": 26332,
+      "vm_start_ms": 106
+    },
+    "stopped_runtime_timings": {
+      "agent_startup_ms": 635,
+      "readiness_ms": 25574,
+      "total_startup_ms": 46000,
+      "vm_start_ms": 106
+    },
+    "helper_exit_code": 0
+  },
+  "host_adb_used": false,
+  "guest_disk_modified_offline": false,
+  "credentials_removed": true,
+  "owned_listeners_closed": true,
+  "mcp_scope": "Compatibility smoke through the existing MCP host. Native MCP app_install and automatic CLI/session bootstrap are not implemented. APK installs use the helper native channel.",
+  "catalog_scope": "The retained catalog is local test metadata built from measured files, not a published release or intrinsic binary-to-source proof.",
+  "performance_scope": "One cold/restart pair, not a distribution. Ready-receipt timings and driver launch intervals have distinct boundaries. The stopped receipt recomputes total_startup_ms as elapsed time at shutdown, including tests; it is not a boot-time measurement. No comparative benchmark or idle-CPU claim.",
+  "files": {
+    "acceptance-driver.py": {
+      "size": 12577,
+      "sha256": "e7f054773562211c1724734c83264e1a01c520fbab800a486f80002af7acece9"
+    },
+    "cold-acceptance.json": {
+      "size": 6784,
+      "sha256": "df4658ffa8e4929288869a60a218f8b70d104a8c37efca1b56f42ae715b09986"
+    },
+    "cold-compose.png": {
+      "size": 20347,
+      "sha256": "5e47a1ee497392370f5a1decde29386e09ff885b1d1795f8705cb667455c44c5"
+    },
+    "cold-fixture-overlay.png": {
+      "size": 66887,
+      "sha256": "2818d9def4c7f075df14758587682ff24085a2c20b6f1ed922ad58219db04b8d"
+    },
+    "cold-fixture.webp": {
+      "size": 18602,
+      "sha256": "05e1e7faec36154126f402e189dfdac94d20191736afcffc8c1ede4ce9a4cbb2"
+    },
+    "cold-mcp.png": {
+      "size": 59430,
+      "sha256": "f5b3556e8137c3fd6a558f6f07b249eecc59a2c498ade2c0829e55020eed9b90"
+    },
+    "cold-mcp.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cold-reactnative.png": {
+      "size": 25587,
+      "sha256": "0b2a0540aed789fb71a89debfc0e4290f51bb087a1c1062aa4bd636e8c1e0a48"
+    },
+    "cold-runtime.json": {
+      "size": 742,
+      "sha256": "a9b7019a13473ce4553ba9f1c675ac2f2ac0fe7d9460ac9a47d6654e5c07edc1"
+    },
+    "cold-vm.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cold-vm.stdout": {
+      "size": 747,
+      "sha256": "e3ca00f0e6cac8c8550c17b8ee4f1968c4ae3688cbd44394d82e82c737c2ec17"
+    },
+    "extractor-receipt.json": {
+      "size": 1906,
+      "sha256": "1e06f716e3d3b2c4b5b5b1272ad6d5a984ab50bd4ac721c78cc18f7eba0a4319"
+    },
+    "guest-manifest.json": {
+      "size": 605,
+      "sha256": "cf234e24e36f5ba0c6b3c1fd771b279c2b876ed79daae1a3fcd837d4f635a768"
+    },
+    "kernel.config": {
+      "size": 1945,
+      "sha256": "1d3f71c5cd4f4f5402136658877a4baa9c6973a55e236da26f03383b7d7967ae"
+    },
+    "kernel.generated.config.gz": {
+      "size": 65139,
+      "sha256": "3701da2727a1360258348f68731771a5f7a34441d279ad0b223a83d722806227",
+      "uncompressed_size": 302491,
+      "uncompressed_sha256": "70960e57afb670d381ffde6284c48faf7934be7e0acdfd6ccdadfcb789718694"
+    },
+    "local-unpublished-catalog.json": {
+      "size": 1273,
+      "sha256": "15acff811c556d164a18558804d6b3861661278e7d6848a45c5ffc2e7500b349"
+    },
+    "preflight-verification.json": {
+      "size": 1577,
+      "sha256": "1cce181fb6a857c1ca1d9d3d37ac5e5258ec5195def361a33ce1bf12b5ddfd2b"
+    },
+    "warm-acceptance.json": {
+      "size": 6779,
+      "sha256": "ac214cacef09427e1c0710676fe5483feebbe549c2a7e1e3889f6ed87cc6239d"
+    },
+    "warm-compose.png": {
+      "size": 20356,
+      "sha256": "0b1fb7f7651803ee62749d3e36494d5d8389e61b532e1ff32f93f4ee63eb46db"
+    },
+    "warm-fixture-overlay.png": {
+      "size": 66924,
+      "sha256": "c87b3bf6578ca395b2938f32f2760d210b6a19944e69dc8588e903d961cbd5c7"
+    },
+    "warm-fixture.webp": {
+      "size": 18620,
+      "sha256": "542923f9420b75759444aa91fb9055aaad9c0067de404b90526d88d7f9dbdfa4"
+    },
+    "warm-mcp.png": {
+      "size": 59382,
+      "sha256": "f286c1b0986343129c6338b45ecdf8a9741258910450645b91a790986c2aa3d4"
+    },
+    "warm-mcp.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "warm-reactnative.png": {
+      "size": 25409,
+      "sha256": "8e99cc3b0499f0da130687cad31e116dd5e6db39ae770f2a34aeed4967d5364f"
+    },
+    "warm-runtime.json": {
+      "size": 740,
+      "sha256": "9385edcfa6b1b3590ec5fb5f6b02af7c4f6af59b88e2a7f0366e8ee57eb559a0"
+    },
+    "warm-vm.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "warm-vm.stdout": {
+      "size": 745,
+      "sha256": "8d36e01b3b610b7c8c77d3f16c0dcad983477b667386b3789b1d92908fe990a6"
+    }
+  },
+  "kernel_generated_config_storage": "gzip; preflight records the uncompressed config digest"
+}

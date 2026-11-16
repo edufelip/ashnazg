@@ -1,0 +1,37 @@
+{
+  "artifacts": {
+    "agent": {
+      "name": "ashnazg-agent-v0.3.0.apk",
+      "platform": "android",
+      "sha256": "1764292ab9b0157bca7e95b237b5473b362bb8a24181009fcc1e972074a43451",
+      "size": 72129,
+      "source_sha": "b8806d85953561ca1c7ccdf88cb5093fec7a1c9a"
+    },
+    "fixture": {
+      "name": "ashnazg-fixture-v0.3.0.apk",
+      "platform": "android",
+      "sha256": "41291e93fbc5b6cc0f8f3ae163efda022a7536a958935f6863895388244d78ae",
+      "size": 13421,
+      "source_sha": "b8806d85953561ca1c7ccdf88cb5093fec7a1c9a"
+    },
+    "guest": {
+      "name": "ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz",
+      "platform": "linux-aarch64",
+      "sha256": "179124dbe27e112c1e42d4da7ff3804b4a8d8e38c2cac96a45e265f583958d05",
+      "size": 230801104,
+      "source_sha": "b8806d85953561ca1c7ccdf88cb5093fec7a1c9a"
+    },
+    "helper": {
+      "name": "ashnazg-vm-v0.3.0-macos-aarch64",
+      "platform": "macos-aarch64",
+      "sha256": "4d722dff2987c1cca2bf6740c3a5cb6227d5c95e58175e35d91f8d140c9f08a5",
+      "size": 636944,
+      "source_sha": "b8806d85953561ca1c7ccdf88cb5093fec7a1c9a"
+    }
+  },
+  "release_tag": "v0.3.0",
+  "schema_version": 1,
+  "source_archives": [],
+  "source_sha": "b8806d85953561ca1c7ccdf88cb5093fec7a1c9a",
+  "version": "0.3.0"
+}

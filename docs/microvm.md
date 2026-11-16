@@ -83,8 +83,8 @@ metadata. Existing credential files are refused. Shutdown closes the relays,
 agent resources and owned credential before releasing state.
 
 Host tests cover framing, ownership, cancellation, FIFO refusal, nonblocking
-upload deadlines and relay half-close behavior. Fresh guest/vsock installation
-and full native session acceptance remain pending. The Rust `up` command and MCP
+upload deadlines and relay half-close behavior. Live explicit-helper acceptance
+is recorded below. The Rust `up` command and MCP
 server do not yet expose this opt-in helper setup; automatic artifact acquisition
 and native MCP installation are subsequent delivery steps.
 
@@ -117,6 +117,28 @@ exclude native `app_install` wiring, which remains subsequent work; APK installs
 were exercised through the helper's native installation channel. This modified
 disk result does not qualify the immutable guest or a release. A rebuilt guest
 and fresh cold/restart acceptance remain required.
+
+The [subsequent immutable acceptance](evidence/native-session-acceptance-b8806d8/receipt.json)
+uses the matching `b8806d8` hosted guest and APK artifacts without offline disk
+patches. Both a fresh cold state and restart passed 28 RPC checks and 7 MCP
+compatibility checks, including native, Compose and React Native actions and
+screenshots. The runner invoked no host ADB. Invalid installation authentication
+and a corrupt upload were rejected before a valid install/launch succeeded.
+Both helpers exited zero, removed their credentials and closed all three owned
+listeners. The receipt binds download digests, boot-asset/config verification,
+driver and binary hashes, and relevant source-tree parity. Native MCP
+`app_install`, default acquisition and automatic CLI session supervision remain
+subsequent delivery steps; this is acceptance of the explicit helper session.
+
+The [merge-head retest](evidence/native-session-acceptance-0155f64/receipt.json)
+repeats cold and restart acceptance with the rebuilt `0155f64` guest after the
+bounded ping-cancellation repair. Both runs again passed 28 RPC and 7 MCP
+compatibility checks without host ADB or offline guest patches, including
+upload rejection, installation and clean session teardown. The receipt retains
+all 27 payload hashes and the matching artifact/config verification. Startup
+timings come from the `agent_ready` receipt; the stopped receipt's
+`total_startup_ms` includes elapsed test time and is recorded separately. These
+remain individual observations rather than a comparative performance result.
 
 ## Recorded native cold boot
 
