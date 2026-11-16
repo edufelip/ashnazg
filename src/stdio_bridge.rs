@@ -5,7 +5,7 @@ use std::ffi::OsString;
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::os::fd::{AsRawFd, BorrowedFd, FromRawFd, OwnedFd, RawFd};
-use std::os::unix::process::CommandExt;
+use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::Path;
 use std::process::Stdio;
 use std::time::Duration;
@@ -194,11 +194,26 @@ async fn own_child(
 
 async fn stop_child(child: &mut tokio::process::Child, monitor: UnixStream) -> Result<ExitReceipt> {
     shutdown_ipc(&monitor);
+    if let Some(status) = child
+        .try_wait()
+        .context("cannot observe stdio bridge exit")?
+    {
+        return if status.success() {
+            Ok(ExitReceipt::NormalEof)
+        } else {
+            Err(anyhow::anyhow!("stdio bridge exited unexpectedly"))
+        };
+    }
     let kill_error = child.start_kill().err();
-    let _status = timeout(CLEANUP_BOUND, child.wait())
+    let status = timeout(CLEANUP_BOUND, child.wait())
         .await
         .context("timed out reaping stdio bridge")?
         .context("cannot reap stdio bridge")?;
+    // Pipe EOF may precede the process-exit notification. Even when cleanup
+    // wins that race, preserve a failed exit rather than discarding its status.
+    if !status.success() && status.signal() != Some(libc::SIGKILL) {
+        bail!("stdio bridge exited unexpectedly");
+    }
     if kill_error.is_some() {
         bail!("cannot stop stdio bridge");
     }
@@ -528,5 +543,31 @@ fn wait_inherited(fd: RawFd, events: libc::c_short) -> io::Result<()> {
         if error.kind() != io::ErrorKind::Interrupted {
             return Err(error);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn requested_cleanup_preserves_an_observed_child_failure() {
+        let mut child = TokioCommand::new("/bin/sh")
+            .args(["-c", "exit 23"])
+            .env_clear()
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .kill_on_drop(true)
+            .spawn()
+            .unwrap();
+        let status = timeout(CLEANUP_BOUND, child.wait()).await.unwrap().unwrap();
+        assert_eq!(status.code(), Some(23));
+        let (monitor, _peer) = UnixStream::pair().unwrap();
+        let result = stop_child(&mut child, monitor).await;
+        assert!(
+            result.is_err(),
+            "requested cleanup must not erase a failed child exit"
+        );
     }
 }
