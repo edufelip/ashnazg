@@ -724,7 +724,7 @@ fn open_root() -> Result<File> {
     open_dir_at(libc::AT_FDCWD, &root)
 }
 
-fn canonical_components(path: &Path) -> Result<Vec<CString>> {
+pub(crate) fn canonical_components(path: &Path) -> Result<Vec<CString>> {
     let bytes = path.as_os_str().as_bytes();
     if bytes.is_empty() || bytes.len() > MAX_PATH_BYTES || bytes[0] != b'/' || bytes.contains(&0) {
         bail!("session credentials unavailable");
