@@ -17532,7 +17532,7 @@
       "origin": "abseil-cpp",
       "sha256": "40cee67604060a7c8794d931538cb55f4d444073e556980c88b6c49bb9b19bb7",
       "size": 2242894,
-      "url": "https://github.com/abseil/abseil-cpp/archive/20240722.1/abseil-cpp-20240722.1.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/abseil-cpp-20240722.1.tar.gz"
     },
     {
       "cache_path": "sources/alpine-baselayout/protocols-6.4",
@@ -17544,7 +17544,7 @@
       "origin": "alpine-baselayout",
       "sha256": "4959498abbadaa1e50894a266f8d0d94500101cfe5b5f09dcad82e9d5bdfab46",
       "size": 3144,
-      "url": "https://salsa.debian.org/md/netbase/-/raw/v6.4/etc/protocols"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/protocols-6.4"
     },
     {
       "cache_path": "sources/alpine-baselayout/services-6.4",
@@ -17556,7 +17556,7 @@
       "origin": "alpine-baselayout",
       "sha256": "f6183055fd949f9c53d49ee620f85d0150123ea691d25ed1bba0c641b4ee2f48",
       "size": 12813,
-      "url": "https://salsa.debian.org/md/netbase/-/raw/v6.4/etc/services"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/services-6.4"
     },
     {
       "cache_path": "sources/android-tools/android-tools-35.0.2.tar.xz",
@@ -17568,7 +17568,7 @@
       "origin": "android-tools",
       "sha256": "d2c3222280315f36d8bfa5c02d7632b47e365bfe2e77e99a3564fb6576f04097",
       "size": 18847376,
-      "url": "https://github.com/nmeum/android-tools/releases/download/35.0.2/android-tools-35.0.2.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/android-tools-35.0.2.tar.xz"
     },
     {
       "cache_path": "sources/apk-tools/apk-tools-v2.14.13.tar.gz",
@@ -17580,7 +17580,7 @@
       "origin": "apk-tools",
       "sha256": "d7ff25a692a0c13df4a1421d0582634ccd64c8480da5eddbfb95dad617e67b3c",
       "size": 200996,
-      "url": "https://gitlab.alpinelinux.org/alpine/apk-tools/-/archive/v2.14.13/apk-tools-v2.14.13.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/apk-tools-v2.14.13.tar.gz"
     },
     {
       "cache_path": "sources/brotli/brotli-1.1.1.tar.gz",
@@ -17592,7 +17592,7 @@
       "origin": "brotli",
       "sha256": "1a84dfaa740994d19254bf78aa7d74a4a8040d1638f3d5f2cdecb188fd520da8",
       "size": 512421,
-      "url": "https://github.com/google/brotli/archive/refs/tags/v1.1.1.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/brotli-1.1.1.tar.gz"
     },
     {
       "cache_path": "sources/busybox/busybox-1.37.0.tar.bz2",
@@ -17604,7 +17604,7 @@
       "origin": "busybox",
       "sha256": "3311dff32e746499f4df0d5df04d7eb396382d7e108bb9250e7b519b837043a4",
       "size": 2565764,
-      "url": "https://busybox.net/downloads/busybox-1.37.0.tar.bz2"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/busybox-1.37.0.tar.bz2"
     },
     {
       "cache_path": "sources/bzip2/bzip2-1.0.8.tar.gz",
@@ -17616,7 +17616,7 @@
       "origin": "bzip2",
       "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269",
       "size": 810029,
-      "url": "https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/bzip2-1.0.8.tar.gz"
     },
     {
       "cache_path": "sources/ca-certificates/ca-certificates-20261020.tar.bz2",
@@ -17628,7 +17628,7 @@
       "origin": "ca-certificates",
       "sha256": "1048bc7f50fa42a6621bc2f8816173f89a0c0098f26dff072bc8fe40af714400",
       "size": 230531,
-      "url": "https://gitlab.alpinelinux.org/alpine/ca-certificates/-/archive/20261020/ca-certificates-20261020.tar.bz2"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/ca-certificates-20261020.tar.bz2"
     },
     {
       "cache_path": "sources/containerd/containerd-2.1.5.tar.gz",
@@ -17640,7 +17640,7 @@
       "origin": "containerd",
       "sha256": "f8def69e02ecff84c07e24350be0b834a3a8e1f6accf042cae4d504e52eb03d1",
       "size": 10622156,
-      "url": "https://github.com/containerd/containerd/archive/v2.1.5.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/containerd-2.1.5.tar.gz"
     },
     {
       "cache_path": "sources/docker/cli-28.3.3.tar.gz",
@@ -17652,7 +17652,7 @@
       "origin": "docker",
       "sha256": "172dca437abb36485275a8d43550db90b6878bcc676fc0b73a67a57a15026cff",
       "size": 7613293,
-      "url": "https://github.com/docker/cli/archive/v28.3.3.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/cli-28.3.3.tar.gz"
     },
     {
       "cache_path": "sources/docker/moby-28.3.3.tar.gz",
@@ -17664,7 +17664,7 @@
       "origin": "docker",
       "sha256": "3727c8963ab4bcff12291e99e4d4a6b9a29ace5236fd245717bbff648f15f8cd",
       "size": 18051277,
-      "url": "https://github.com/moby/moby/archive/v28.3.3.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/moby-28.3.3.tar.gz"
     },
     {
       "cache_path": "sources/docker-cli-buildx/buildx-0.24.0.tar.gz",
@@ -17676,7 +17676,7 @@
       "origin": "docker-cli-buildx",
       "sha256": "c20f30462818a4e9224ac8dbd639ff9da323ecf40f296095e5a693296ad4b765",
       "size": 13028835,
-      "url": "https://github.com/docker/buildx/archive/v0.24.0.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/buildx-0.24.0.tar.gz"
     },
     {
       "cache_path": "sources/elfutils/elfutils-0.193.tar.bz2",
@@ -17688,7 +17688,7 @@
       "origin": "elfutils",
       "sha256": "7857f44b624f4d8d421df851aaae7b1402cfe6bcdd2d8049f15fc07d3dde7635",
       "size": 11974916,
-      "url": "https://sourceware.org/elfutils/ftp/0.193/elfutils-0.193.tar.bz2"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/elfutils-0.193.tar.bz2"
     },
     {
       "cache_path": "sources/expat/expat-2.10.0.tar.xz",
@@ -17700,7 +17700,7 @@
       "origin": "expat",
       "sha256": "c624ba2998fc65df1163a49641ff3f9ab73138b11641d92c86bee0fb01b1bc7f",
       "size": 543404,
-      "url": "https://github.com/libexpat/libexpat/releases/download/R_2_10_0/expat-2.10.0.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/expat-2.10.0.tar.xz"
     },
     {
       "cache_path": "sources/fmt/fmt-11.2.0.zip",
@@ -17712,7 +17712,7 @@
       "origin": "fmt",
       "sha256": "203eb4e8aa0d746c62d8f903df58e0419e3751591bb53ff971096eaa0ebd4ec3",
       "size": 1427803,
-      "url": "https://github.com/fmtlib/fmt/releases/download/11.2.0/fmt-11.2.0.zip"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/fmt-11.2.0.zip"
     },
     {
       "cache_path": "sources/gcc/gcc-14.2.0.tar.xz",
@@ -17724,7 +17724,7 @@
       "origin": "gcc",
       "sha256": "a7b39bc69cbf9e25826c5a60ab26477001f7c08d85cec04bc0e29cabed6f3cc9",
       "size": 92306460,
-      "url": "https://gcc.gnu.org/pub/gcc/releases/gcc-14.2.0/gcc-14.2.0.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/gcc-14.2.0.tar.xz"
     },
     {
       "cache_path": "sources/gdbm/gdbm-1.24.tar.gz",
@@ -17736,7 +17736,7 @@
       "origin": "gdbm",
       "sha256": "695e9827fdf763513f133910bc7e6cfdb9187943a4fec943e57449723d2b8dbf",
       "size": 1195931,
-      "url": "https://ftp.gnu.org/gnu/gdbm/gdbm-1.24.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/gdbm-1.24.tar.gz"
     },
     {
       "cache_path": "sources/iproute2/iproute2-6.15.0.tar.xz",
@@ -17748,7 +17748,7 @@
       "origin": "iproute2",
       "sha256": "8041854a882583ad5263466736c9c8c68c74b1a35754ab770d23343f947528fb",
       "size": 930908,
-      "url": "https://kernel.org/pub/linux/utils/net/iproute2/iproute2-6.15.0.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/iproute2-6.15.0.tar.xz"
     },
     {
       "cache_path": "sources/iptables/iptables-1.8.11.tar.xz",
@@ -17760,7 +17760,7 @@
       "origin": "iptables",
       "sha256": "d87303d55ef8c92bcad4dd3f978b26d272013642b029425775f5bad1009fe7b2",
       "size": 649284,
-      "url": "https://www.netfilter.org/projects/iptables/files/iptables-1.8.11.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/iptables-1.8.11.tar.xz"
     },
     {
       "cache_path": "sources/libcap/libcap-2.78.tar.xz",
@@ -17772,7 +17772,7 @@
       "origin": "libcap",
       "sha256": "0d621e562fd932ccf67b9660fb018e468a683d7b827541df27813228c996bb11",
       "size": 201040,
-      "url": "https://kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.78.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/libcap-2.78.tar.xz"
     },
     {
       "cache_path": "sources/libcap-ng/libcap-ng-0.8.5.tar.gz",
@@ -17784,7 +17784,7 @@
       "origin": "libcap-ng",
       "sha256": "3ba5294d1cbdfa98afaacfbc00b6af9ed2b83e8a21817185dfd844cc8c7ac6ff",
       "size": 460149,
-      "url": "https://people.redhat.com/sgrubb/libcap-ng/libcap-ng-0.8.5.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/libcap-ng-0.8.5.tar.gz"
     },
     {
       "cache_path": "sources/libeconf/libeconf-0.6.3.tar.gz",
@@ -17796,7 +17796,7 @@
       "origin": "libeconf",
       "sha256": "98200166785a4d178d30e8b70cfc6296150a6afc900523d6faa242c16039bcd4",
       "size": 240381,
-      "url": "https://github.com/openSUSE/libeconf/archive/refs/tags/v0.6.3.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/libeconf-0.6.3.tar.gz"
     },
     {
       "cache_path": "sources/libffi/libffi-3.4.8.tar.gz",
@@ -17808,7 +17808,7 @@
       "origin": "libffi",
       "sha256": "bc9842a18898bfacb0ed1252c4febcc7e78fa139fd27fdc7a3e30d9d9356119b",
       "size": 1397992,
-      "url": "https://github.com/libffi/libffi/releases/download/v3.4.8/libffi-3.4.8.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/libffi-3.4.8.tar.gz"
     },
     {
       "cache_path": "sources/libmnl/libmnl-1.0.5.tar.bz2",
@@ -17820,7 +17820,7 @@
       "origin": "libmnl",
       "sha256": "274b9b919ef3152bfb3da3a13c950dd60d6e2bcd54230ffeca298d03b40d0525",
       "size": 314791,
-      "url": "https://www.netfilter.org/projects/libmnl/files/libmnl-1.0.5.tar.bz2"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/libmnl-1.0.5.tar.bz2"
     },
     {
       "cache_path": "sources/libnftnl/libnftnl-1.2.9.tar.xz",
@@ -17832,7 +17832,7 @@
       "origin": "libnftnl",
       "sha256": "e8c216255e129f26270639fee7775265665a31b11aa920253c3e5d5d62dfc4b8",
       "size": 345708,
-      "url": "https://netfilter.org/projects/libnftnl/files/libnftnl-1.2.9.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/libnftnl-1.2.9.tar.xz"
     },
     {
       "cache_path": "sources/libseccomp/libseccomp-2.6.1.tar.gz",
@@ -17844,7 +17844,7 @@
       "origin": "libseccomp",
       "sha256": "501f66c667225d53791b97e1d7cf85ab764c297d04881f60f38f451c4b0ee1be",
       "size": 656231,
-      "url": "https://github.com/seccomp/libseccomp/releases/download/v2.6.1/libseccomp-2.6.1.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/libseccomp-2.6.1.tar.gz"
     },
     {
       "cache_path": "sources/linux-pam/Linux-PAM-1.7.0.tar.xz",
@@ -17856,7 +17856,7 @@
       "origin": "linux-pam",
       "sha256": "57dcd7a6b966ecd5bbd95e1d11173734691e16b68692fa59661cdae9b13b1697",
       "size": 507824,
-      "url": "https://github.com/linux-pam/linux-pam/releases/download/v1.7.0/Linux-PAM-1.7.0.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/Linux-PAM-1.7.0.tar.xz"
     },
     {
       "cache_path": "sources/lz4/lz4-1.10.0.tar.gz",
@@ -17868,7 +17868,7 @@
       "origin": "lz4",
       "sha256": "537512904744b35e232912055ccf8ec66d768639ff3abe5788d90d792ec5f48b",
       "size": 387114,
-      "url": "https://github.com/lz4/lz4/archive/v1.10.0.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/lz4-1.10.0.tar.gz"
     },
     {
       "cache_path": "sources/mpdecimal/mpdecimal-4.0.1.tar.gz",
@@ -17880,7 +17880,7 @@
       "origin": "mpdecimal",
       "sha256": "96d33abb4bb0070c7be0fed4246cd38416188325f820468214471938545b1ac8",
       "size": 316268,
-      "url": "https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-4.0.1.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/mpdecimal-4.0.1.tar.gz"
     },
     {
       "cache_path": "sources/musl/musl-1.2.5.tar.gz",
@@ -17892,7 +17892,7 @@
       "origin": "musl",
       "sha256": "a9a118bbe84d8764da0ea0d28b3ab3fae8477fc7e4085d90102b8596fc7c75e4",
       "size": 1080786,
-      "url": "https://musl.libc.org/releases/musl-1.2.5.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/musl-1.2.5.tar.gz"
     },
     {
       "cache_path": "sources/ncurses/ncurses-6.5-20250503.tgz",
@@ -17916,7 +17916,7 @@
       "origin": "openssl",
       "sha256": "603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a",
       "size": 53279637,
-      "url": "https://github.com/openssl/openssl/releases/download/openssl-3.5.9/openssl-3.5.9.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/openssl-3.5.9.tar.gz"
     },
     {
       "cache_path": "sources/pax-utils/pax-utils-1.3.8.tar.xz",
@@ -17928,7 +17928,7 @@
       "origin": "pax-utils",
       "sha256": "12a168d1aeae2626efdbde3979da88a60ca80bb38e1db565e95ee441ff1d5a0c",
       "size": 123556,
-      "url": "https://dev.gentoo.org/~sam/distfiles/app-misc/pax-utils/pax-utils-1.3.8.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/pax-utils-1.3.8.tar.xz"
     },
     {
       "cache_path": "sources/pcre2/pcre2-10.46.tar.bz2",
@@ -17940,7 +17940,7 @@
       "origin": "pcre2",
       "sha256": "15fbc5aba6beee0b17aecb04602ae39432393aba1ebd8e39b7cabf7db883299f",
       "size": 2035354,
-      "url": "https://github.com/PhilipHazel/pcre2/releases/download/pcre2-10.46/pcre2-10.46.tar.bz2"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/pcre2-10.46.tar.bz2"
     },
     {
       "cache_path": "sources/protobuf/protobuf-29.4.tar.gz",
@@ -17952,7 +17952,7 @@
       "origin": "protobuf",
       "sha256": "6bd9dcc91b17ef25c26adf86db71c67ec02431dc92e9589eaf82e22889230496",
       "size": 9350942,
-      "url": "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v29.4.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/protobuf-29.4.tar.gz"
     },
     {
       "cache_path": "sources/python3/Python-3.12.16.tar.xz",
@@ -17964,7 +17964,7 @@
       "origin": "python3",
       "sha256": "b5796915dc45ff745cfb4e990a7e7c93d6f546328a102ce31448d69ebc37575c",
       "size": 20839652,
-      "url": "https://www.python.org/ftp/python/3.12.16/Python-3.12.16.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/Python-3.12.16.tar.xz"
     },
     {
       "cache_path": "sources/readline/readline-8.2.tar.gz",
@@ -17976,7 +17976,7 @@
       "origin": "readline",
       "sha256": "3feb7171f16a84ee82ca18a36d7b9be109a52c04f492a053331d7d1095007c35",
       "size": 3043952,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline-8.2.tar.gz"
     },
     {
       "cache_path": "sources/readline/readline82-001.patch",
@@ -17988,7 +17988,7 @@
       "origin": "readline",
       "sha256": "bbf97f1ec40a929edab5aa81998c1e2ef435436c597754916e6a5868f273aff7",
       "size": 1198,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-001"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-001.patch"
     },
     {
       "cache_path": "sources/readline/readline82-002.patch",
@@ -18000,7 +18000,7 @@
       "origin": "readline",
       "sha256": "e06503822c62f7bc0d9f387d4c78c09e0ce56e53872011363c74786c7cd4c053",
       "size": 1134,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-002"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-002.patch"
     },
     {
       "cache_path": "sources/readline/readline82-003.patch",
@@ -18012,7 +18012,7 @@
       "origin": "readline",
       "sha256": "24f587ba46b46ed2b1868ccaf9947504feba154bb8faabd4adaea63ef7e6acb0",
       "size": 1201,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-003"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-003.patch"
     },
     {
       "cache_path": "sources/readline/readline82-004.patch",
@@ -18024,7 +18024,7 @@
       "origin": "readline",
       "sha256": "79572eeaeb82afdc6869d7ad4cba9d4f519b1218070e17fa90bbecd49bd525ac",
       "size": 1708,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-004"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-004.patch"
     },
     {
       "cache_path": "sources/readline/readline82-005.patch",
@@ -18036,7 +18036,7 @@
       "origin": "readline",
       "sha256": "622ba387dae5c185afb4b9b20634804e5f6c1c6e5e87ebee7c35a8f065114c99",
       "size": 1501,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-005"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-005.patch"
     },
     {
       "cache_path": "sources/readline/readline82-006.patch",
@@ -18048,7 +18048,7 @@
       "origin": "readline",
       "sha256": "c7b45ff8c0d24d81482e6e0677e81563d13c74241f7b86c4de00d239bc81f5a1",
       "size": 3031,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-006"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-006.patch"
     },
     {
       "cache_path": "sources/readline/readline82-007.patch",
@@ -18060,7 +18060,7 @@
       "origin": "readline",
       "sha256": "5911a5b980d7900aabdbee483f86dab7056851e6400efb002776a0a4a1bab6f6",
       "size": 1422,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-007"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-007.patch"
     },
     {
       "cache_path": "sources/readline/readline82-008.patch",
@@ -18072,7 +18072,7 @@
       "origin": "readline",
       "sha256": "a177edc9d8c9f82e8c19d0630ab351f3fd1b201d655a1ddb5d51c4cee197b26a",
       "size": 1697,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-008"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-008.patch"
     },
     {
       "cache_path": "sources/readline/readline82-009.patch",
@@ -18084,7 +18084,7 @@
       "origin": "readline",
       "sha256": "3d9885e692e1998523fd5c61f558cecd2aafd67a07bd3bfe1d7ad5a31777a116",
       "size": 2270,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-009"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-009.patch"
     },
     {
       "cache_path": "sources/readline/readline82-010.patch",
@@ -18096,7 +18096,7 @@
       "origin": "readline",
       "sha256": "758e2ec65a0c214cfe6161f5cde3c5af4377c67d820ea01d13de3ca165f67b4c",
       "size": 2653,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-010"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-010.patch"
     },
     {
       "cache_path": "sources/readline/readline82-011.patch",
@@ -18108,7 +18108,7 @@
       "origin": "readline",
       "sha256": "e0013d907f3a9e6482cc0934de1bd82ee3c3c4fd07a9646aa9899af237544dd7",
       "size": 1865,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-011"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-011.patch"
     },
     {
       "cache_path": "sources/readline/readline82-012.patch",
@@ -18120,7 +18120,7 @@
       "origin": "readline",
       "sha256": "6c8adf8ed4a2ca629f7fd11301ed6293a6248c9da0c674f86217df715efccbd3",
       "size": 2824,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-012"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-012.patch"
     },
     {
       "cache_path": "sources/readline/readline82-013.patch",
@@ -18132,7 +18132,7 @@
       "origin": "readline",
       "sha256": "1ea434957d6ec3a7b61763f1f3552dad0ebdd6754d65888b5cd6d80db3a788a8",
       "size": 5757,
-      "url": "https://ftp.gnu.org/gnu/readline/readline-8.2-patches/readline82-013"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/readline82-013.patch"
     },
     {
       "cache_path": "sources/runc/runc-1.3.7.tar.gz",
@@ -18144,7 +18144,7 @@
       "origin": "runc",
       "sha256": "1779f0973cd2e5233fecff98537981a8cdca021dd99a4f21b9cb27303d417fe3",
       "size": 2899452,
-      "url": "https://github.com/opencontainers/runc/archive/v1.3.7/runc-1.3.7.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/runc-1.3.7.tar.gz"
     },
     {
       "cache_path": "sources/skalibs/skalibs-2.14.4.0.tar.gz",
@@ -18156,7 +18156,7 @@
       "origin": "skalibs",
       "sha256": "0e626261848cc920738f92fd50a24c14b21e30306dfed97b8435369f4bae00a5",
       "size": 248403,
-      "url": "https://skarnet.org/software/skalibs/skalibs-2.14.4.0.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/skalibs-2.14.4.0.tar.gz"
     },
     {
       "cache_path": "sources/sqlite/sqlite-3490200-LICENSE.md",
@@ -18180,7 +18180,7 @@
       "origin": "sqlite",
       "sha256": "5c6d8697e8a32a1512a9be5ad2b2e7a891241c334f56f8b0fb4fc6051e1652e8",
       "size": 3230309,
-      "url": "https://www.sqlite.org/2025/sqlite-autoconf-3490200.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/sqlite-autoconf-3490200.tar.gz"
     },
     {
       "cache_path": "sources/tini/tini-0.19.0.tar.gz",
@@ -18192,7 +18192,7 @@
       "origin": "tini",
       "sha256": "0fd35a7030052acd9f58948d1d900fe1e432ee37103c5561554408bdac6bbf0d",
       "size": 32369,
-      "url": "https://github.com/krallin/tini/archive/v0.19.0.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/tini-0.19.0.tar.gz"
     },
     {
       "cache_path": "sources/util-linux/util-linux-2.41.6.tar.xz",
@@ -18204,7 +18204,7 @@
       "origin": "util-linux",
       "sha256": "e596083744e746be7d2823b62b43f4418dd7bf56303b4dc09e6fe8112fe3d7ed",
       "size": 9470680,
-      "url": "https://www.kernel.org/pub/linux/utils/util-linux/v2.41/util-linux-2.41.6.tar.xz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/util-linux-2.41.6.tar.xz"
     },
     {
       "cache_path": "sources/utmps/utmps-0.1.3.1.tar.gz",
@@ -18216,7 +18216,7 @@
       "origin": "utmps",
       "sha256": "1c4c137ab366f6dc6b81d3a572c997514b64d784bd52e7f9514e6f6f3f1c85b9",
       "size": 34665,
-      "url": "https://skarnet.org/software/utmps/utmps-0.1.3.1.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/utmps-0.1.3.1.tar.gz"
     },
     {
       "cache_path": "sources/xz/xz-5.8.4.tar.gz",
@@ -18228,7 +18228,7 @@
       "origin": "xz",
       "sha256": "b6b34c52e672e810d339db14e0c10b5b6f5f67a30d8d05cdac5d8cb4d82f78d5",
       "size": 1670561,
-      "url": "https://github.com/tukaani-project/xz/archive/refs/tags/v5.8.4/xz-5.8.4.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/xz-5.8.4.tar.gz"
     },
     {
       "cache_path": "sources/zlib/zlib-1.4.tar.gz",
@@ -18240,7 +18240,7 @@
       "origin": "zlib",
       "sha256": "02dd159783677a749c04adbdd02b55b8a2bcc7e054f51b76b549199a916ad584",
       "size": 1507140,
-      "url": "https://zlib.net/fossils/zlib-1.4.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/zlib-1.4.tar.gz"
     },
     {
       "cache_path": "sources/zstd/zstd-1.5.7.tar.gz",
@@ -18252,7 +18252,7 @@
       "origin": "zstd",
       "sha256": "37d7284556b20954e56e1ca85b80226768902e2edabd3b649e9e72c0c9012ee3",
       "size": 2451884,
-      "url": "https://github.com/facebook/zstd/archive/v1.5.7.tar.gz"
+      "url": "https://distfiles.alpinelinux.org/distfiles/v3.22/zstd-1.5.7.tar.gz"
     }
   ],
   "supplements": [
