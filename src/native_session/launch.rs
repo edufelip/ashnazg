@@ -49,7 +49,7 @@ impl Identity {
         }
     }
     fn kind(self) -> u32 {
-        self.mode & libc::S_IFMT as u32
+        self.mode & mode_u32(libc::S_IFMT)
     }
 }
 
@@ -92,6 +92,17 @@ fn check_time(deadline: Instant, cancel: &CancellationToken) -> Result<()> {
 fn uid() -> u32 {
     unsafe { libc::geteuid() }
 }
+// Darwin mode_t is u16; Linux mode_t already is u32.
+fn mode_u32(mode: libc::mode_t) -> u32 {
+    #[cfg(target_os = "macos")]
+    {
+        u32::from(mode)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        mode
+    }
+}
 fn cstr(value: &std::ffi::CStr) -> CString {
     value.to_owned()
 }
@@ -128,9 +139,12 @@ fn named(parent: &File, name: &CString) -> Result<Option<Identity>> {
     }
     let s = unsafe { raw.assume_init() };
     Ok(Some(Identity {
+        #[cfg(target_os = "macos")]
         dev: s.st_dev as u64,
+        #[cfg(not(target_os = "macos"))]
+        dev: s.st_dev,
         ino: s.st_ino,
-        mode: s.st_mode as u32,
+        mode: mode_u32(s.st_mode),
         uid: s.st_uid,
         size: s.st_size.max(0) as u64,
         mtime: s.st_mtime,
@@ -140,20 +154,20 @@ fn named(parent: &File, name: &CString) -> Result<Option<Identity>> {
     }))
 }
 fn directory_policy(id: Identity) -> Result<()> {
-    if id.kind() != libc::S_IFDIR as u32 {
+    if id.kind() != mode_u32(libc::S_IFDIR) {
         return Err(fail());
     }
     let writable = id.mode & 0o022 != 0;
     if id.uid != uid() && id.uid != 0 {
         return Err(fail());
     }
-    if writable && !(id.uid == 0 && id.mode & libc::S_ISVTX as u32 != 0) {
+    if writable && !(id.uid == 0 && id.mode & mode_u32(libc::S_ISVTX) != 0) {
         return Err(fail());
     }
     Ok(())
 }
 fn private_directory(id: Identity) -> Result<()> {
-    if id.kind() != libc::S_IFDIR as u32 || id.uid != uid() || id.mode & 0o7777 != 0o700 {
+    if id.kind() != mode_u32(libc::S_IFDIR) || id.uid != uid() || id.mode & 0o7777 != 0o700 {
         return Err(fail());
     }
     Ok(())
@@ -171,8 +185,8 @@ fn same_directory(a: Identity, b: Identity) -> bool {
     // metadata equality; the credential name is independently required absent.
     a.dev == b.dev
         && a.ino == b.ino
-        && a.kind() == libc::S_IFDIR as u32
-        && b.kind() == libc::S_IFDIR as u32
+        && a.kind() == mode_u32(libc::S_IFDIR)
+        && b.kind() == mode_u32(libc::S_IFDIR)
         && a.uid == b.uid
         && a.mode == b.mode
 }
@@ -259,7 +273,7 @@ fn file_path(
     check_time(deadline, cancel)?;
     let file = openat(parent.as_raw_fd(), leaf, libc::O_RDONLY)?;
     let id = Identity::from_meta(&file.metadata().map_err(|_| fail())?);
-    if id.kind() != libc::S_IFREG as u32
+    if id.kind() != mode_u32(libc::S_IFREG)
         || id.uid != uid()
         || id.size == 0
         || id.size > max
@@ -896,7 +910,7 @@ mod tests {
         let mut sticky = Identity {
             dev: 0,
             ino: 1,
-            mode: (libc::S_IFDIR as u32) | 0o1777,
+            mode: (mode_u32(libc::S_IFDIR)) | 0o1777,
             uid: 0,
             size: 0,
             mtime: 0,
@@ -905,7 +919,7 @@ mod tests {
             ctime_nsec: 0,
         };
         assert!(directory_policy(sticky).is_ok());
-        sticky.mode &= !libc::S_ISVTX as u32;
+        sticky.mode &= !mode_u32(libc::S_ISVTX);
         assert!(directory_policy(sticky).is_err());
     }
 }

@@ -795,9 +795,15 @@ fn stat_identity(stat: &libc::stat) -> Identity {
         (stat.st_ctime, stat.st_ctime_nsec),
     );
     Identity {
+        #[cfg(target_os = "macos")]
         dev: stat.st_dev as u64,
+        #[cfg(not(target_os = "macos"))]
+        dev: stat.st_dev,
         ino: stat.st_ino,
-        mode: stat.st_mode as u32,
+        #[cfg(target_os = "macos")]
+        mode: u32::from(stat.st_mode),
+        #[cfg(not(target_os = "macos"))]
+        mode: stat.st_mode,
         uid: stat.st_uid,
         size: stat.st_size.max(0) as u64,
         mtime,
