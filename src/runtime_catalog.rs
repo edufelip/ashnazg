@@ -9,6 +9,16 @@ const MAX_SOURCE_ARCHIVES: usize = 64;
 const MAX_SOURCE_ARCHIVE_SIZE: u64 = 1024 * 1024 * 1024;
 const RELEASE_BASE: &str = "https://github.com/edufelip/ashnazg/releases/download/";
 
+/// Returns the only valid catalog URL for a release version.
+pub fn catalog_url(version: &str) -> anyhow::Result<String> {
+    ensure!(valid_version(version), "invalid runtime catalog version");
+    Ok(format!(
+        "{RELEASE_BASE}{}/{}",
+        encode_component(&format!("v{version}")),
+        encode_component(&format!("ashnazg-runtime-v{version}.json"))
+    ))
+}
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum ArtifactRole {
     Guest,
@@ -418,6 +428,15 @@ mod tests {
             catalog.download_url(&catalog.source_archives()[0]).unwrap(),
             "https://github.com/edufelip/ashnazg/releases/download/v1.2.3%2Bbuild.7/ashnazg-runtime-sources-v1.2.3%2Bbuild.7-001.tar.xz"
         );
+    }
+
+    #[test]
+    fn fixed_catalog_url_encodes_build_metadata_under_the_release_tag() {
+        assert_eq!(
+            catalog_url(VERSION).unwrap(),
+            "https://github.com/edufelip/ashnazg/releases/download/v1.2.3%2Bbuild.7/ashnazg-runtime-v1.2.3%2Bbuild.7.json"
+        );
+        assert!(catalog_url("../1.2.3").is_err());
     }
 
     #[test]
