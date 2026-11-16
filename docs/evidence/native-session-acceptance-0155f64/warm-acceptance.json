@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "mode": "warm",
+  "status": "passed",
+  "source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+  "host_source_sha": "6b0e5d8a6709d10fe76109a0757f7ebcb4b92b93",
+  "workflow_run": 43807503988,
+  "host_adb_used": false,
+  "rpc_checks": [
+    "ping",
+    "semantic_snapshot",
+    "password_redaction_and_clear_type",
+    "persistent_correlation",
+    "tap_and_updated_count",
+    "screenshot_mark_freshness",
+    "long_press",
+    "type_unicode",
+    "clear",
+    "scroll_to",
+    "stale_id_rejected",
+    "ambiguous_selector_rejected",
+    "back",
+    "deep_link",
+    "logs_shape_literal_since",
+    "authentication",
+    "unknown_method_and_invalid_params",
+    "malformed_envelope",
+    "oversized_request_bounded",
+    "png_webp_screenshots_and_overlay_freshness",
+    "compose_semantic_id",
+    "compose_tap_count",
+    "compose_unicode_type_clear",
+    "compose_screenshot",
+    "reactnative_semantic_id",
+    "reactnative_tap_count",
+    "reactnative_unicode_type_clear",
+    "reactnative_screenshot"
+  ],
+  "mcp_checks": [
+    "initialize_and_list",
+    "snapshot",
+    "deep_link_and_back",
+    "logs",
+    "screenshot",
+    "mcp_http_rejects_unauthenticated_request",
+    "mcp_http_authenticated_initialize_list_snapshot"
+  ],
+  "session_checks": [
+    "private_matching_credentials",
+    "invalid_install_auth_rejected_before_payload",
+    "corrupt_upload_rejected",
+    "valid_install_and_launch_after_rejections"
+  ],
+  "host_checkout_dirty": false,
+  "agent_apk_sha256": "683f167443eb83c197e55d9302aca9a30117537d56dda3ebd28dcb1fc7f9bdd3",
+  "helper_sha256": "4d722dff2987c1cca2bf6740c3a5cb6227d5c95e58175e35d91f8d140c9f08a5",
+  "host_binary_sha256": "793d291f814e21cf2517b35417dd2c89f792dccfee179d25d4685de9af50f32b",
+  "driver_sha256": "e7f054773562211c1724734c83264e1a01c520fbab800a486f80002af7acece9",
+  "helper_and_integration_source_match_guest": true,
+  "preflight": {
+    "schema_version": 1,
+    "source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+    "workflow_run": 43807503988,
+    "archive_sha256": "9edea220fd7109a954cc2615c01fc9b389dafc5c3b09f37a7e0024dc9dc7b5bb",
+    "guest_download": {
+      "artifact_id": 14199293412,
+      "artifact_name": "microvm-linux-arm64-0155f64e2467dde02d3442391d922ef98c4e59d7",
+      "zip_sha256": "8934f4db070bf03f7502a5c06a705136fa99c609b9d1da7e20032711a3b0623c",
+      "zip_size": 230296262
+    },
+    "apk_download": {
+      "artifact_id": 14199660456,
+      "artifact_name": "android-apks",
+      "zip_sha256": "5a3ffffa956157a09ef68941f6e85e9e8f1a052a4112cb3444bb4518b3a0a9fb",
+      "zip_size": 28254716
+    },
+    "kernel_config_sha256": "1d3f71c5cd4f4f5402136658877a4baa9c6973a55e236da26f03383b7d7967ae",
+    "kernel_generated_config_sha256": "70960e57afb670d381ffde6284c48faf7934be7e0acdfd6ccdadfcb789718694",
+    "all_fragment_settings_verified": true,
+    "asset_manifest_validated": true,
+    "production_extractor": {
+      "checkout_sha": "59aa1e2d9d69af57e989b3a8f3c470412bb562fd",
+      "implementation_matches_current_checkout": true,
+      "receipt_sha256": "1e06f716e3d3b2c4b5b5b1272ad6d5a984ab50bd4ac721c78cc18f7eba0a4319",
+      "member_count": 11,
+      "rootfs_size": 4294967296,
+      "local_unpublished_catalog_sha256": "15acff811c556d164a18558804d6b3861661278e7d6848a45c5ffc2e7500b349",
+      "qualification": "Local catalog records measured artifact bytes for extraction testing; it is not a published release or intrinsic binary-to-source proof."
+    },
+    "assets": "/private/tmp/ashnazg-native-session-0155f64-guest/assets"
+  },
+  "helper_pid": 29623,
+  "ready_receipt": {
+    "adb_listen": "127.0.0.1:15555",
+    "agent_apk_sha256": "683f167443eb83c197e55d9302aca9a30117537d56dda3ebd28dcb1fc7f9bdd3",
+    "agent_listen": "127.0.0.1:7777",
+    "android_serial": "127.0.0.1:5555",
+    "architecture": "aarch64",
+    "cpu_count": 2,
+    "install_listen": "127.0.0.1:17778",
+    "kernel_sha256": "170c38ecc0b5830290b1a5de9686a4becbbbe3aa8c4ec745c2aa360d40b6ae7e",
+    "manifest_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+    "manifest_version": "0.3.0",
+    "memory_bytes": 2147483648,
+    "rootfs_template_sha256": "f1ac1fbf6b498a03841154448e394cba15effb1e300de08e5a3d71f6439890ee",
+    "schema_version": 1,
+    "session_id": "0555d812-5096-49b1-91d3-aabbf8666886",
+    "status": "agent_ready",
+    "timings": {
+      "agent_startup_ms": 635,
+      "readiness_ms": 25574,
+      "total_startup_ms": 26332,
+      "vm_start_ms": 106
+    }
+  },
+  "observed_ready_seconds": 36.472,
+  "install_replies": [
+    {
+      "schema_version": 1,
+      "status": "error",
+      "error": "invalid_upload"
+    },
+    {
+      "schema_version": 1,
+      "status": "installed",
+      "session_id": "0555d812-5096-49b1-91d3-aabbf8666886",
+      "launched": true
+    },
+    {
+      "schema_version": 1,
+      "status": "installed",
+      "session_id": "0555d812-5096-49b1-91d3-aabbf8666886",
+      "launched": true
+    },
+    {
+      "schema_version": 1,
+      "status": "installed",
+      "session_id": "0555d812-5096-49b1-91d3-aabbf8666886",
+      "launched": true
+    }
+  ],
+  "installs": [
+    {
+      "apk_sha256": "162713fae95542b0c09efab4f494969ab992d73d9357fd6583665af942a30746",
+      "apk_size": 13421,
+      "package": "dev.ashnazg.fixture",
+      "launched": true
+    },
+    {
+      "apk_sha256": "876fc77a551cc49e8285bbd1f63f5c8be26d079994e5894b59546dd0d1913c78",
+      "apk_size": 8723520,
+      "package": "com.ashnazg.fixture.compose",
+      "launched": true
+    },
+    {
+      "apk_sha256": "74f6ed7ee72b8f75356a53c13220f58fdcc199100228b9fa09bc5a6fb18d9f37",
+      "apk_size": 57588073,
+      "package": "com.ashnazg.fixture.reactnative",
+      "launched": true
+    }
+  ],
+  "mcp_exit_code": 0,
+  "helper_exit_code": 0,
+  "final_runtime_receipt": {
+    "adb_listen": "127.0.0.1:15555",
+    "agent_apk_sha256": "683f167443eb83c197e55d9302aca9a30117537d56dda3ebd28dcb1fc7f9bdd3",
+    "agent_listen": "127.0.0.1:7777",
+    "android_serial": "127.0.0.1:5555",
+    "architecture": "aarch64",
+    "cpu_count": 2,
+    "install_listen": "127.0.0.1:17778",
+    "kernel_sha256": "170c38ecc0b5830290b1a5de9686a4becbbbe3aa8c4ec745c2aa360d40b6ae7e",
+    "manifest_source_sha": "0155f64e2467dde02d3442391d922ef98c4e59d7",
+    "manifest_version": "0.3.0",
+    "memory_bytes": 2147483648,
+    "rootfs_template_sha256": "f1ac1fbf6b498a03841154448e394cba15effb1e300de08e5a3d71f6439890ee",
+    "schema_version": 1,
+    "session_id": "0555d812-5096-49b1-91d3-aabbf8666886",
+    "status": "stopped",
+    "timings": {
+      "agent_startup_ms": 635,
+      "readiness_ms": 25574,
+      "total_startup_ms": 46000,
+      "vm_start_ms": 106
+    }
+  },
+  "credential_removed": true,
+  "owned_listeners_closed": {
+    "15555": true,
+    "7777": true,
+    "17778": true
+  }
+}

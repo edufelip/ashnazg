@@ -130,6 +130,16 @@ driver and binary hashes, and relevant source-tree parity. Native MCP
 `app_install`, default acquisition and automatic CLI session supervision remain
 subsequent delivery steps; this is acceptance of the explicit helper session.
 
+The [merge-head retest](evidence/native-session-acceptance-0155f64/receipt.json)
+repeats cold and restart acceptance with the rebuilt `0155f64` guest after the
+bounded ping-cancellation repair. Both runs again passed 28 RPC and 7 MCP
+compatibility checks without host ADB or offline guest patches, including
+upload rejection, installation and clean session teardown. The receipt retains
+all 27 payload hashes and the matching artifact/config verification. Startup
+timings come from the `agent_ready` receipt; the stopped receipt's
+`total_startup_ms` includes elapsed test time and is recorded separately. These
+remain individual observations rather than a comparative performance result.
+
 ## Recorded native cold boot
 
 The clean `7a760294d3a485cc9f40308c791a58e160d620f1` source and its [hosted artifact build](https://github.com/edufelip/ashnazg/actions/runs/43771299927) were tested with an ad-hoc-signed helper on Apple Silicon macOS. Both artifact ZIP digests, the inner archive checksum, manifest asset hashes and every requested kernel setting were verified before creating a fresh state directory. The retained [verification record](evidence/microvm-cold-boot-7a76029/verification.json) includes the two download receipts, API digest comparisons and all 79 kernel assignments; these checks were repeated when recording the evidence. The generated kernel has PSI and FUSE built in, with PSI enabled by default.
