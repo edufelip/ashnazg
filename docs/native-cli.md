@@ -8,7 +8,7 @@ Without `ASHNAZG_TOKEN`, MCP selects the native backend on macOS with Apple Sili
 
 MCP transport initialization and `tools/list` do not wait for artifact acquisition or VM startup. One shared initializer acquires a catalog-bound runtime, launches the helper and authenticates readiness. All five tools use that shared state. A tool can wait up to thirty seconds for readiness; a timeout reports that startup is still in progress and can be retried. Cancelling that request does not cancel initialization. Failed initialization remains a failed state for that server lifetime, with details on stderr and a fixed error at the MCP boundary.
 
-Native acquisition uses the fixed runtime `0.3.0` contract and the host binary's validated build-source stamp. An ordinary unstamped development build can still serve the external backend; native tool startup reports its unavailable source identity. A missing matching catalog or asset is an initialization failure. No matching public runtime catalog is established by this change. Cargo package `0.1.0` and runtime contract `0.3.0` remain separate until the release packaging work is completed.
+Native acquisition uses the fixed runtime `0.3.0` contract and the host binary's validated build-source stamp. An ordinary unstamped development build can still serve the external backend; native tool startup reports its unavailable source identity. A missing matching catalog or asset is an initialization failure. No matching public runtime catalog is established by this change. Cargo package and runtime contract now both use `0.3.0`; candidate preparation and publication are described in [releases](releases.md).
 
 Default cache and state paths derive from the current user's existing home directory:
 
@@ -28,3 +28,19 @@ EOF, transport failure, SIGINT or SIGTERM cancels the server lifecycle. The owne
 ## Evidence boundary
 
 This implementation slice has separate host fixtures for descriptor isolation and cancellation, source stamping, catalog-to-launch identity, shared readiness and actual CLI protocol behavior. A passing host fixture does not establish a real VM launch, live GitHub acquisition, a clean-machine distribution, or performance savings. Existing explicit native HTTP acceptance used an already-prepared owned runtime and does not qualify automatic CLI acquisition. Source-matching release assets and separate owned CLI/VM acceptance remain necessary for those claims.
+
+## Release qualification
+
+`scripts/native_cli_acceptance.py` verifies the immutable candidate directory before testing its packaged executable and fixture. It checks that their hashes belong to that source-bound candidate, freezes all five tool input contracts, installs/launches the fixture by inferred package, verifies an exact counter increment and decoded screenshot pixel change, and requires owned helper/bridge, credential and listener cleanup.
+
+Run separate empty evidence directories for `--mode eof`, `--mode sigterm`, and `--mode sigterm-inflight`, reusing an explicitly owned private `--home` when testing a restart. In-flight qualification submits the pinned agent's 800 ms long press, observes the submitted call without a response for 200 ms, then signals the CLI and rejects a successful late response. This is a client-observed pending call; no server-entry timestamp is claimed.
+
+```sh
+python3 scripts/native_cli_acceptance.py --candidate-dir "$CANDIDATE" \
+  --binary "$EXTRACTED_MAC_PACKAGE/bin/ashnazg" \
+  --fixture-apk "$CANDIDATE/ashnazg-fixture-v0.3.0.apk" \
+  --source-sha "$SOURCE_SHA" --home "$ACCEPTANCE_HOME" \
+  --output-dir "$EVIDENCE_DIRECTORY" --mode eof
+```
+
+Prepublication qualification uses an explicitly staged verified cache as described in [runtime acquisition](runtime-acquisition.md). Public cold acquisition later requires a fresh home without staging. Fake-process tests qualify the driver only; actual VM and public acquisition receipts are separate evidence.

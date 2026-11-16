@@ -4,8 +4,22 @@ on:
   pull_request:
     paths:
       - .github/workflows/release.yml
+      - .github/workflows/microvm.yml
       - scripts/package_release.py
+      - scripts/runtime_catalog.py
+      - scripts/runtime_release.py
+      - scripts/runtime_sources.py
+      - scripts/rust_notices.py
+      - tests/test_rust_notices.py
+      - scripts/native_cli_acceptance.py
+      - tests/test_native_cli_acceptance.py
+      - examples/stage_runtime_candidate.rs
       - tests/test_package_release.py
+      - tests/test_runtime_release.py
+      - tests/test_runtime_sources.py
+      - tests/test_release_workflow.py
+      - runtime/microvm/sources.lock.json
+      - runtime/mcp-tools.schema.json
       - docs/releases.md
       - Cargo.toml
       - Cargo.lock
@@ -14,13 +28,20 @@ on:
       - build_support/**
       - src/build_identity.rs
       - rust-tests/build_identity.rs
-  push:
-    tags: [v*]
+      - platform/macos/**
   workflow_dispatch:
     inputs:
-      tag:
-        description: Existing v0.1.0 tag pointing at a validated main commit
+      operation:
+        description: Prepare once, or publish the already accepted candidate bytes
         required: true
+        type: choice
+        options: [prepare, publish]
+        default: prepare
+      prepared_run_id:
+        description: Successful Release prepare run ID (publish only)
+        type: string
+      acceptance_commit:
+        description: Main commit retaining docs/evidence/runtime-release-0.3.0/receipt.json (publish only)
         type: string
 
 permissions:
@@ -32,63 +53,84 @@ concurrency:
 
 jobs:
   validate-source:
-    name: Validate package source and publication eligibility
+    name: Validate candidate source and publication eligibility
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
     outputs:
-      tag: ${{ steps.source.outputs.tag }}
       source_sha: ${{ steps.source.outputs.source_sha }}
+      prepare: ${{ steps.source.outputs.prepare }}
+      publish: ${{ steps.source.outputs.publish }}
+      guest_run_id: ${{ steps.source.outputs.guest_run_id }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Validate tag, version, main ancestry, and successful Quality run
+      - name: Validate exact source, main ancestry, Quality, and candidate run
         id: source
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG_INPUT: ${{ inputs.tag }}
           SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref }}
+          OPERATION: ${{ inputs.operation }}
+          PREPARED_RUN: ${{ inputs.prepared_run_id }}
+          ACCEPTANCE_COMMIT: ${{ inputs.acceptance_commit }}
           REPOSITORY: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
           [[ "$(git rev-parse HEAD)" == "$SOURCE_SHA" ]]
           version="$(sed -n 's/^version = "\([^"]*\)"$/\1/p' Cargo.toml | head -n1)"
-          [[ "$version" == "0.1.0" ]]
-          if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            # Build packages for review; the publish job explicitly excludes PR events.
-            tag="v$version"
-          else
-            if [[ "$EVENT_NAME" == "push" ]]; then
-              [[ "$REF_NAME" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]
-              tag="${REF_NAME#refs/tags/}"
+          [[ "$version" == 0.3.0 ]]
+          prepare=false
+          publish=false
+          guest_run_id=
+          if [[ "$EVENT_NAME" != pull_request ]]; then
+            [[ "$EVENT_NAME" == workflow_dispatch && "$REF_NAME" == refs/heads/main ]]
+            git fetch origin main --tags
+            if [[ "$OPERATION" == publish ]]; then
+              [[ "$PREPARED_RUN" =~ ^[1-9][0-9]*$ ]]
+              [[ "$ACCEPTANCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+              git merge-base --is-ancestor "$ACCEPTANCE_COMMIT" origin/main
+              run="$(gh api "repos/$REPOSITORY/actions/runs/$PREPARED_RUN")"
+              jq -e '.path == ".github/workflows/release.yml" and .event == "workflow_dispatch" and
+                .head_branch == "main" and .status == "completed" and .conclusion == "success"' <<< "$run" >/dev/null
+              SOURCE_SHA="$(jq -r .head_sha <<< "$run")"
+              [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+              [[ "$(git rev-parse 'v0.3.0^{commit}')" == "$SOURCE_SHA" ]]
+              publish=true
             else
-              [[ "$EVENT_NAME" == "workflow_dispatch" && "$REF_NAME" == "refs/heads/main" ]]
-              tag="$RELEASE_TAG_INPUT"
-              [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+              [[ "$OPERATION" == prepare && -z "$PREPARED_RUN" && -z "$ACCEPTANCE_COMMIT" ]]
+              prepare=true
             fi
-            [[ "$tag" == "v$version" ]]
-            git fetch --force origin main --tags
             git merge-base --is-ancestor "$SOURCE_SHA" origin/main
-            [[ "$(git rev-parse "$tag^{commit}")" == "$SOURCE_SHA" ]]
             workflow_id="$(gh api "repos/$REPOSITORY/actions/workflows/quality.yml" --jq .id)"
             runs="$(gh api "repos/$REPOSITORY/actions/workflows/$workflow_id/runs?head_sha=$SOURCE_SHA&per_page=100")"
             jq -e --arg sha "$SOURCE_SHA" '
-              [.workflow_runs[] | select(.head_sha == $sha and .event == "push" and
-                .head_branch == "main")] | sort_by(.run_number) | last |
-                .status == "completed" and .conclusion == "success"
+              [.workflow_runs[] | select(.head_sha == $sha and .event == "push" and .head_branch == "main")]
+                | sort_by(.run_number) | last | .status == "completed" and .conclusion == "success"
             ' <<< "$runs" >/dev/null
+            if [[ "$prepare" == true ]]; then
+              quality_run="$(jq -r --arg sha "$SOURCE_SHA" '[.workflow_runs[] | select(.head_sha == $sha and .event == "push" and .head_branch == "main")] | sort_by(.run_number) | last | .id' <<< "$runs")"
+              artifacts="$(gh api "repos/$REPOSITORY/actions/runs/$quality_run/artifacts?per_page=100")"
+              count="$(jq --arg name "microvm-linux-arm64-$SOURCE_SHA" '[.artifacts[] | select(.name == $name and .expired == false)] | length' <<< "$artifacts")"
+              [[ "$count" == 0 || "$count" == 1 ]]
+              if [[ "$count" == 1 ]]; then guest_run_id="$quality_run"; fi
+            fi
           fi
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          {
+            echo "source_sha=$SOURCE_SHA"
+            echo "prepare=$prepare"
+            echo "publish=$publish"
+            echo "guest_run_id=$guest_run_id"
+          } >> "$GITHUB_OUTPUT"
 
   android-build:
-    name: Build required Android instrumentation APKs
+    if: needs.validate-source.outputs.publish != 'true'
+    name: Build shared Android release APKs
     needs: validate-source
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -103,8 +145,10 @@ jobs:
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
-      - name: Build agent and fixture instrumentation APKs
-        run: cd agent-android && ./gradlew :agent:assembleDebug :fixture:assembleDebug
+      - name: Test release producers and build agent and fixture once
+        run: |
+          python3 -m unittest tests.test_package_release tests.test_runtime_catalog tests.test_runtime_release tests.test_runtime_sources tests.test_rust_notices tests.test_native_cli_acceptance tests.test_release_workflow -v
+          cd agent-android && ./gradlew :agent:assembleDebug :fixture:assembleDebug
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: android-release-apks
@@ -114,7 +158,8 @@ jobs:
             agent-android/fixture/build/outputs/apk/debug/fixture-debug.apk
 
   package-host:
-    name: Package ${{ matrix.os }} host binary
+    if: needs.validate-source.outputs.publish != 'true'
+    name: Package ${{ matrix.os }} host and helper
     needs: [validate-source, android-build]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -126,47 +171,159 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ needs.validate-source.outputs.source_sha }}
-      - name: Build native release binary
+      - name: Build source-stamped host
         env:
           ASHNAZG_BUILD_SOURCE_SHA: ${{ needs.validate-source.outputs.source_sha }}
         run: |
           rustup toolchain install stable --profile minimal
           rustup default stable
+          if [[ "$(uname -s)" == Darwin ]]; then export MACOSX_DEPLOYMENT_TARGET=13.0; fi
           cargo build --release --locked
+      - name: Require system-only macOS host library dependencies
+        if: runner.os == 'macOS'
+        run: |
+          otool -L target/release/ashnazg > host-libraries.txt
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          libraries = [line.split()[0] for line in Path('host-libraries.txt').read_text().splitlines()[1:]]
+          assert libraries and all(path.startswith(('/usr/lib/', '/System/Library/')) for path in libraries), libraries
+          PYTHON
+      - name: Test, build and sign ARM64 Virtualization helper
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          swift test --package-path platform/macos
+          swift build -c release --package-path platform/macos
+          codesign --force --sign - --entitlements platform/macos/entitlements.plist platform/macos/.build/release/ashnazg-vm
+          codesign --verify --strict platform/macos/.build/release/ashnazg-vm
+          codesign --display --entitlements - --xml platform/macos/.build/release/ashnazg-vm > helper-entitlements.plist
+          /usr/libexec/PlistBuddy -c 'Print :com.apple.security.virtualization' helper-entitlements.plist | grep -qx true
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: android-release-apks
           path: android-apks
-      - name: Assemble documented reproducible package
+      - name: Assemble host package from shared candidate bytes
         env:
           SOURCE_SHA: ${{ needs.validate-source.outputs.source_sha }}
         run: |
           set -euo pipefail
+          mkdir release-files
+          cargo vendor --locked "$RUNNER_TEMP/notice-vendor" > "$RUNNER_TEMP/notice-vendor-config.toml"
+          python3 scripts/rust_notices.py --vendor "$RUNNER_TEMP/notice-vendor" --cargo-lock Cargo.lock \
+            --output "$RUNNER_TEMP/THIRD-PARTY-NOTICES.tar.xz"
+          helper_args=()
           case "$(uname -s):$(uname -m)" in
             Linux:x86_64) platform=linux-x86_64 ;;
-            Linux:aarch64|Linux:arm64) platform=linux-aarch64 ;;
-            Darwin:x86_64) platform=macos-x86_64 ;;
-            Darwin:arm64|Darwin:aarch64) platform=macos-aarch64 ;;
-            *) echo "Unsupported actual runner platform: $(uname -s) $(uname -m)" >&2; exit 1 ;;
+            Darwin:arm64)
+              platform=macos-aarch64
+              cp platform/macos/.build/release/ashnazg-vm release-files/ashnazg-vm-v0.3.0-macos-aarch64
+              helper_args=(--vm-helper release-files/ashnazg-vm-v0.3.0-macos-aarch64)
+              ;;
+            *) echo 'Unsupported release runner architecture' >&2; exit 1 ;;
           esac
-          python3 scripts/package_release.py \
-            --version 0.1.0 --source-sha "$SOURCE_SHA" --platform "$platform" \
-            --output "ashnazg-v0.1.0-$platform.zip" \
-            --host-binary target/release/ashnazg \
+          python3 scripts/package_release.py --version 0.3.0 --source-sha "$SOURCE_SHA" --platform "$platform" \
+            --output "release-files/ashnazg-v0.3.0-$platform.zip" --host-binary target/release/ashnazg \
             --agent-apk android-apks/agent/build/outputs/apk/debug/agent-debug.apk \
             --fixture-apk android-apks/fixture/build/outputs/apk/debug/fixture-debug.apk \
-            --license-file LICENSE --setup-file docs/releases.md
+            --license-file LICENSE --setup-file docs/releases.md \
+            --third-party-notices "$RUNNER_TEMP/THIRD-PARTY-NOTICES.tar.xz" "${helper_args[@]}"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-${{ matrix.os }}
           if-no-files-found: error
-          path: ashnazg-v0.1.0-*.zip
+          path: release-files/*
+
+  guest:
+    if: needs.validate-source.outputs.prepare == 'true' && needs.validate-source.outputs.guest_run_id == ''
+    needs: validate-source
+    uses: ./.github/workflows/microvm.yml
+    with:
+      force_guest: true
+    permissions:
+      contents: read
+
+  candidate:
+    if: >-
+      always() && needs.validate-source.result == 'success' &&
+      needs.validate-source.outputs.prepare == 'true' &&
+      needs.android-build.result == 'success' && needs.package-host.result == 'success' &&
+      (needs.guest.result == 'success' || needs.guest.result == 'skipped')
+    name: Bind guest, sources, helper and host into immutable candidate
+    needs: [validate-source, android-build, package-host, guest]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.validate-source.outputs.source_sha }}
+          fetch-depth: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: release-*
+          path: release-assets
+          merge-multiple: true
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: android-release-apks
+          path: android-apks
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: microvm-linux-arm64-${{ needs.validate-source.outputs.source_sha }}
+          path: guest-build
+          run-id: ${{ needs.validate-source.outputs.guest_run_id || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify guest and assemble corresponding source and notice sidecar
+        env:
+          SOURCE_SHA: ${{ needs.validate-source.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          (cd guest-build && sha256sum --check microvm-assets.tar.xz.sha256)
+          mkdir guest-assets
+          python3 - <<'PYTHON'
+          import shutil, tarfile
+          from pathlib import Path
+          expected = {'NOTICES.md', 'kernel', 'kernel.config', 'kernel.generated.config',
+                      'linux-6.12.117.tar.xz', 'manifest.json', 'provenance.json',
+                      'packages.lock.json', 'runtime-components.json', 'runtime-installed.db', 'rootfs.ext4'}
+          seen = set()
+          total = 0
+          with tarfile.open('guest-build/microvm-assets.tar.xz', 'r|xz') as archive:
+              for member in archive:
+                  assert member.name in expected and member.name not in seen and member.isfile()
+                  assert 0 < member.size <= (8 * 1024**3 if member.name == 'rootfs.ext4' else 512 * 1024**2)
+                  total += member.size
+                  assert total <= 9 * 1024**3
+                  seen.add(member.name)
+                  with archive.extractfile(member) as source, (Path('guest-assets') / member.name).open('xb') as target:
+                      shutil.copyfileobj(source, target, 1024 * 1024)
+          assert seen == expected
+          PYTHON
+          rustup toolchain install stable --profile minimal
+          cargo +stable vendor --locked "$RUNNER_TEMP/runtime-vendor" > "$RUNNER_TEMP/vendor-config.toml"
+          cp guest-build/microvm-assets.tar.xz release-assets/ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz
+          cp android-apks/agent/build/outputs/apk/debug/agent-debug.apk release-assets/ashnazg-agent-v0.3.0.apk
+          cp android-apks/fixture/build/outputs/apk/debug/fixture-debug.apk release-assets/ashnazg-fixture-v0.3.0.apk
+          python3 scripts/runtime_sources.py --assets guest-assets --repo-root . --rust-vendor "$RUNNER_TEMP/runtime-vendor" --version 0.3.0 --source-sha "$SOURCE_SHA" \
+            --output release-assets/ashnazg-runtime-sources-v0.3.0-001.tar.xz
+          python3 scripts/runtime_release.py prepare --directory release-assets --source-sha "$SOURCE_SHA" --version 0.3.0
+          python3 scripts/runtime_release.py verify --directory release-assets --source-sha "$SOURCE_SHA" --version 0.3.0
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-prepared-v0.3.0-${{ needs.validate-source.outputs.source_sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: release-assets/*
 
   publish:
-    if: github.event_name != 'pull_request'
-    name: Publish validated v0.1.0 release
-    needs: [validate-source, android-build, package-host]
+    if: needs.validate-source.outputs.publish == 'true'
+    name: Publish accepted immutable experimental runtime
+    needs: validate-source
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write
       actions: read
@@ -174,32 +331,35 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ needs.validate-source.outputs.source_sha }}
+          fetch-depth: 0
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          pattern: release-*
+          name: release-prepared-v0.3.0-${{ needs.validate-source.outputs.source_sha }}
           path: release-assets
-          merge-multiple: true
-      - name: Create GitHub release from validated tag
+          run-id: ${{ inputs.prepared_run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify candidate, retained acceptance, source tag, and publish unchanged bytes
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ needs.validate-source.outputs.tag }}
           SOURCE_SHA: ${{ needs.validate-source.outputs.source_sha }}
+          ACCEPTANCE_COMMIT: ${{ inputs.acceptance_commit }}
+          PREPARED_RUN: ${{ inputs.prepared_run_id }}
         run: |
           set -euo pipefail
-          [[ "$(git rev-parse HEAD)" == "$SOURCE_SHA" ]]
-          git fetch origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
-          [[ "$(git rev-parse "$RELEASE_TAG^{commit}")" == "$SOURCE_SHA" ]]
-          remote_tag_sha="$(git ls-remote origin "refs/tags/$RELEASE_TAG" "refs/tags/$RELEASE_TAG^{}" | awk '$2 ~ /\^\{\}$/ { peeled=$1 } $2 !~ /\^\{\}$/ { direct=$1 } END { print peeled != "" ? peeled : direct }')"
-          [[ "$remote_tag_sha" == "$SOURCE_SHA" ]]
-          test "$(find release-assets -maxdepth 1 -type f -name '*.zip' | wc -l | tr -d ' ')" = 2
+          python3 scripts/runtime_release.py verify --directory release-assets --source-sha "$SOURCE_SHA" --version 0.3.0
+          git fetch origin main --tags
+          [[ "$(git rev-parse 'v0.3.0^{commit}')" == "$SOURCE_SHA" ]]
+          git merge-base --is-ancestor "$ACCEPTANCE_COMMIT" origin/main
+          git show "$ACCEPTANCE_COMMIT:docs/evidence/runtime-release-0.3.0/receipt.json" > accepted.json
           python3 - <<'PYTHON'
-          import hashlib
+          import hashlib, json, os
           from pathlib import Path
-          root = Path("release-assets")
-          text = "".join(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}\n"
-                         for p in sorted(root.glob("*.zip")))
-          (root / "SHA256SUMS").write_text(text)
+          receipt = json.loads(Path('accepted.json').read_text())
+          assert receipt['schema_version'] == 1 and receipt['accepted'] is True
+          assert receipt['source_sha'] == os.environ['SOURCE_SHA']
+          assert receipt['prepared_run_id'] == int(os.environ['PREPARED_RUN'])
+          assert receipt['candidate_sha256'] == hashlib.sha256(Path('release-assets/candidate.json').read_bytes()).hexdigest()
+          assert set(receipt['passed_modes']) >= {'eof', 'sigterm', 'sigterm-inflight'}
           PYTHON
-          gh release create "$RELEASE_TAG" release-assets/*.zip release-assets/SHA256SUMS \
-            --repo "$GITHUB_REPOSITORY" --title "Ashnazg $RELEASE_TAG" \
-            --notes-file docs/releases.md --verify-tag
+          gh release create v0.3.0 release-assets/* --repo "$GITHUB_REPOSITORY" \
+            --title 'Ashnazg v0.3.0 experimental native runtime' --notes-file docs/releases.md --verify-tag --prerelease

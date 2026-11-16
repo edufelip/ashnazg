@@ -1,5 +1,27 @@
 # Releases
 
+## v0.3.0 experimental native runtime
+
+The release candidate workflow now builds the host package and native runtime from one exact main commit. A candidate is not a published release: runtime availability is established only after the accepted files appear in the public `v0.3.0` release and production acquisition succeeds.
+
+The candidate contains Linux x86_64 and macOS ARM64 host ZIPs, a Linux ARM64 guest archive, the ad-hoc signed macOS ARM64 `ashnazg-vm` helper, agent/fixture APKs, a source-and-notice sidecar, the schema-1 runtime catalog, `candidate.json`, and download `SHA256SUMS`. The macOS ZIP also includes `bin/ashnazg-vm`. Both ZIPs include original host-dependency notice texts in `THIRD-PARTY-NOTICES.tar.xz` alongside the project MIT license. Catalog artifacts and the host build stamp identify the same full source SHA; generated catalogs are release outputs rather than committed source inputs.
+
+On Apple Silicon macOS, the released `bin/ashnazg mcp` selects its owned VM when `ASHNAZG_TOKEN` is absent. It downloads missing catalog-bound artifacts to a private cache, starts the helper, installs the agent through guest ADB, and serves MCP. Host Android SDK tools are not required for this path. An explicitly supplied `ASHNAZG_TOKEN` retains the external Android setup below. Linux packages continue to use an explicitly configured external Android device.
+
+The helper carries the `com.apple.security.virtualization` entitlement and an ad-hoc signature. Host/helper binaries are not Developer ID signed or notarized; ordinary macOS security approval may be required. Debug-signed Android instrumentation and the experimental guest are development tools. SHA-256 verification supplies download integrity, not an independent publisher signature or intrinsic binary-to-source proof.
+
+The source sidecar retains upstream package sources, pinned packaging recipes/support files, license/notice material, project sources and kernel configuration/source, with a manifest binding the installed-package inventory to the prepared guest. ReDroid is downloaded at first boot and its OCI image is excluded from the distributed guest/source assets. Declared package license values and retained source evidence do not constitute a legal-clearance claim.
+
+### Prepare, qualify, publish
+
+1. Merge the reviewed packaging change and require the exact main commit's `Quality` workflow to pass.
+2. Dispatch `Release` on main with `operation=prepare`. This builds a single matching set, verifies it, and retains `release-prepared-v0.3.0-<source-sha>` for 30 days. Preparation cannot publish.
+3. Download that candidate, verify `SHA256SUMS` and run `scripts/runtime_release.py verify`. Run the real CLI/VM acceptance against its unchanged bytes. Retain `docs/evidence/runtime-release-0.3.0/receipt.json` and supporting evidence on main, including source SHA, prepare run ID, candidate hash and passed EOF, idle SIGTERM and in-flight SIGTERM modes.
+4. Create `v0.3.0` at the candidate's exact source commit. Tag pushes do not rebuild or publish.
+5. Dispatch `Release` on main with `operation=publish`, the successful `prepared_run_id`, and `acceptance_commit`. The workflow checks the source/main/Quality/tag binding, verifies the retained acceptance-to-candidate hash and republishes those exact prepared bytes as an experimental prerelease. It refuses an existing release rather than replacing accepted assets.
+6. Verify the public catalog/assets, then run production cold acquisition in a fresh owned home and warm offline reuse separately. Publication, CLI/VM acceptance and clean-machine behavior require their own receipts.
+
+
 ## v0.1.0 package contents
 
 The v0.1.0 release workflow produces two deterministic ZIP archives, one built on the current Linux runner and one on the current macOS runner. Each archive's filename and `manifest.json` state the runner's actual OS and CPU architecture; the build does not cross-compile or claim support for other host architectures.
@@ -14,7 +36,7 @@ Each ZIP contains:
 
 The APKs use a generated Android debug signing key; they are not production releases. The host executables are not Developer ID signed or notarized. No publisher signing identity or cross-architecture compatibility is claimed. They require Android 14 (API 34) or later and are intended for the Ashnazg agent/test setup.
 
-The host build embeds the validated source SHA explicitly supplied by the release workflow. This build stamp identifies the requested source revision only; it does not prove binary provenance or legal clearance. Cargo package version 0.1.0 and the native runtime contract version 0.3.0 are separate. A matching runtime 0.3.0 release is unavailable for this package, and this document makes no claim that matching runtime assets or a catalog are published or available.
+The historical 0.1.0 package does not carry a matching native runtime distribution. Use the 0.3.0 candidate/release process above for the native path.
 
 ## Installing
 
@@ -42,10 +64,6 @@ The instrumentation command stays running. Configure your MCP client to launch t
 
 For HTTP transport, tool schemas and limitations, see the [source API guide](https://github.com/edufelip/ashnazg/blob/main/docs/api.md). Package provenance is recorded in `manifest.json`; use its `source_sha` to inspect the exact source revision. On macOS, locally built unsigned binaries may require the normal system security approval before launch.
 
-## Creating a release
+## Historical v0.1.0 release
 
-Pull requests affecting packaging build both host archives as downloadable CI artifacts, with publication disabled. The `Release` workflow publishes on a `v*` tag push or manual dispatch on `main` with an existing tag name. It accepts only `v0.1.0`, verifies the tag points to the exact workflow commit, confirms that commit is an ancestor of `main`, and requires the latest matching `Quality` workflow run to have completed successfully from a push to `main` for the same full commit SHA. It builds both native packages and the required Android APKs, then publishes only after every package job succeeds. Manual dispatch does not move or create tags.
-
-The package assembly script takes explicit paths for every input, rejects missing/non-regular inputs and invalid provenance, uses normalized archive paths and fixed ZIP timestamps, and emits checksums. The release workflow must not be used to present the debug APKs or unsigned host executables as signed artifacts.
-
-The release also includes an external `SHA256SUMS` for the ZIP downloads; the checksum file inside each ZIP covers its payload and manifest. Reproducible assembly means identical input files produce identical archive bytes; it does not claim independent Gradle/Cargo builds are bit-for-bit reproducible.
+The earlier v0.1.0 release shipped only host ZIPs and APKs with external-device setup. It did not provide the matching native runtime catalog, helper or guest. The version 0.3.0 workflow replaces that publication path; existing v0.1.0 release assets remain unchanged.
