@@ -409,7 +409,7 @@ class GuestAdbBackend:
                                    deadline=deadline).decode("utf-8", "strict")
                 statuses = re.findall(r"^Status:\s*(.*?)\s*$", output, re.MULTILINE)
                 if len(statuses) != 1 or statuses[0] != "ok" or re.search(
-                        r"(?im)^\s*(?:error|exception)\b|^Status:\s*(?!ok\s*$)", output):
+                        r"(?im)^\s*(?:error|exception)\b", output):
                     raise BackendError("ADB operation failed")
             if not self.is_alive():
                 raise BackendError("ADB operation failed")

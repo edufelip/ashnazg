@@ -329,6 +329,16 @@ class BackendTests(unittest.TestCase):
         with self.assertRaises(backend.BackendError):
             self.backend.install(Staged(), package='example.app;id', deadline=time.monotonic() + 2)
 
+    def test_successful_install_and_launcher_status_are_accepted(self):
+        self.ping_server()
+        self.backend.prepare_agent(Staged(), 'a' * 64, deadline=time.monotonic() + 2)
+        self.launch_output = ('Starting: Intent { cmp=example.app/.Main }\n'
+                              'Status: ok\nLaunchState: COLD\n'
+                              'Activity: example.app/.Main\nComplete\n')
+        self.backend.install(Staged(), package='example.app', deadline=time.monotonic() + 2)
+        self.assertTrue(any(command[-5:] == ['am', 'start', '-W', '-n', 'example.app/example.app.Main']
+                            for command in self.commands))
+
     def test_bad_or_oversized_ping_never_exposes_port(self):
         self.ping_server({'jsonrpc': '2.0', 'id': 999, 'result': {'apiLevel': 34}})
         with self.assertRaises(backend.BackendError):
