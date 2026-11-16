@@ -853,7 +853,7 @@ fn extract_with_limits(
     })
 }
 
-fn validate_manifest(
+pub(crate) fn validate_manifest(
     bytes: &[u8],
     catalog: &RuntimeCatalog,
     kernel: Option<&ExtractedMember>,

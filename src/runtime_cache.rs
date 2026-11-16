@@ -201,6 +201,22 @@ impl CacheGuard {
         }
     }
 
+    /// Enumerate validated cache keys without adopting, pruning, or mutating entries.
+    pub(crate) fn entry_keys(&self) -> anyhow::Result<Vec<String>> {
+        let names = directory_names_at_most(self.entries.as_raw_fd(), 128)?;
+        let mut keys = Vec::with_capacity(names.len());
+        for name in names {
+            let key = std::str::from_utf8(&name).context("cache entry name is not UTF-8")?;
+            validate_key(key)?;
+            let entry = openat_dir(self.entries.as_raw_fd(), &name)?;
+            validate_directory(&entry, "cache entry")?;
+            validate_entry_marker(&entry, key)?;
+            keys.push(key.to_owned());
+        }
+        keys.sort();
+        Ok(keys)
+    }
+
     /// Create a private temporary stage owned by this guard.
     pub fn create_stage(&self) -> anyhow::Result<CacheStage<'_>> {
         let mut random = [0u8; 16];
@@ -250,7 +266,7 @@ impl CacheGuard {
             inode: metadata.ino(),
             armed: true,
         };
-        write_new_json(
+        if let Err(error) = write_new_json(
             stage.directory.as_raw_fd(),
             STAGE_MARKER,
             &StageMarker {
@@ -258,7 +274,12 @@ impl CacheGuard {
                 identity: IDENTITY.to_owned(),
                 owner_uid: current_uid(),
             },
-        )?;
+        ) {
+            stage
+                .abort()
+                .context("stage marker creation failed and owned stage cleanup failed")?;
+            return Err(error);
+        }
         Ok(stage)
     }
 }
@@ -288,7 +309,33 @@ impl CacheStage<'_> {
     }
 
     /// Atomically publish this stage under its exact catalog hash, without replacing an entry.
-    pub fn promote(mut self, catalog_hash: &str) -> anyhow::Result<PathBuf> {
+    pub fn promote(self, catalog_hash: &str) -> anyhow::Result<PathBuf> {
+        match self.try_promote(catalog_hash) {
+            Ok(path) => Ok(path),
+            Err((stage, error)) => {
+                drop(stage);
+                Err(error)
+            }
+        }
+    }
+
+    /// Like [`Self::promote`], but returns ownership of the stage on failure so callers can
+    /// explicitly abort and surface cleanup errors.
+    pub(crate) fn try_promote(
+        mut self,
+        catalog_hash: &str,
+    ) -> Result<PathBuf, (Self, anyhow::Error)> {
+        let result = self.promote_inner(catalog_hash);
+        match result {
+            Ok(path) => {
+                self.armed = false;
+                Ok(path)
+            }
+            Err(error) => Err((self, error)),
+        }
+    }
+
+    fn promote_inner(&mut self, catalog_hash: &str) -> anyhow::Result<PathBuf> {
         validate_key(catalog_hash)?;
         validate_directory(&self.directory, "cache stage")?;
         self.ensure_name_is_ours()?;
@@ -312,7 +359,6 @@ impl CacheStage<'_> {
             &to,
         )
         .context("could not publish cache entry")?;
-        self.armed = false;
         Ok(self.guard.root_path.join(ENTRIES_DIR).join(catalog_hash))
     }
 
@@ -751,6 +797,10 @@ fn statat(parent: RawFd, name: &[u8]) -> anyhow::Result<fs::Metadata> {
 }
 
 fn directory_names(fd: RawFd) -> anyhow::Result<Vec<Vec<u8>>> {
+    directory_names_at_most(fd, usize::MAX)
+}
+
+fn directory_names_at_most(fd: RawFd, maximum: usize) -> anyhow::Result<Vec<Vec<u8>>> {
     // dup would share the directory offset and make a later validation see EOF.
     let duplicate = openat_dir(fd, b".")?.into_raw_fd();
     let stream = unsafe { libc::fdopendir(duplicate) };
@@ -776,6 +826,9 @@ fn directory_names(fd: RawFd) -> anyhow::Result<Vec<Vec<u8>>> {
             }
             let name = unsafe { CStr::from_ptr((*entry).d_name.as_ptr()) }.to_bytes();
             if name != b"." && name != b".." {
+                if names.len() == maximum {
+                    return Err(io::Error::other("directory contains too many entries"));
+                }
                 names.push(name.to_vec());
             }
         }
@@ -1064,6 +1117,35 @@ mod tests {
     }
 
     #[test]
+    fn recoverable_promotion_error_returns_owned_stage_for_explicit_cleanup() {
+        let parent = tempfile::tempdir().unwrap();
+        let root = private_root(&parent);
+        let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
+        let first = guard.create_stage().unwrap();
+        fs::write(first.path().join("opaque-payload"), "first").unwrap();
+        let entry = first.promote(KEY).unwrap();
+        let second = guard.create_stage().unwrap();
+        let stage_path = second.path().to_path_buf();
+        fs::write(stage_path.join("opaque-payload"), "second").unwrap();
+        let (second, error) = second.try_promote(KEY).unwrap_err();
+        assert!(error.to_string().contains("publish cache entry"));
+        second.abort().unwrap();
+        assert!(!stage_path.exists());
+        assert_eq!(fs::read(entry.join("opaque-payload")).unwrap(), b"first");
+    }
+
+    #[test]
+    fn entry_keys_enumerates_valid_owned_entries() {
+        let parent = tempfile::tempdir().unwrap();
+        let root = private_root(&parent);
+        let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
+        let entry = guard.create_stage().unwrap().promote(KEY).unwrap();
+        assert_eq!(guard.entry_keys().unwrap(), vec![KEY.to_owned()]);
+        assert!(entry.join(ENTRY_MARKER).is_file());
+        assert!(entry.join(STAGE_MARKER).is_file());
+    }
+
+    #[test]
     fn lookup_rejects_entry_marker_bound_to_another_key() {
         let parent = tempfile::tempdir().unwrap();
         let root = private_root(&parent);
@@ -1133,5 +1215,22 @@ mod tests {
         );
         drop(guard);
         assert!(CacheGuard::try_acquire(&root).unwrap().is_some());
+    }
+
+    #[test]
+    fn failed_stage_marker_write_explicitly_cleans_owned_stage() {
+        let parent = tempfile::tempdir().unwrap();
+        let root = private_root(&parent);
+        let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
+        FAIL_AT.with(|failure| failure.set(Some(STAGE_MARKER)));
+        let result = guard.create_stage();
+        FAIL_AT.with(|failure| failure.set(None));
+        assert!(result.is_err());
+        assert!(
+            fs::read_dir(root.join(STAGING_DIR))
+                .unwrap()
+                .next()
+                .is_none()
+        );
     }
 }
