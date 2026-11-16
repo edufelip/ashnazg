@@ -17,6 +17,8 @@ from typing import Callable
 
 CONTROL_PORT = 10777
 ADB_PORT = 15555
+AGENT_PORT = 17777
+INSTALL_PORT = 17778
 ADB_TARGET = ("127.0.0.1", 5555)
 MAX_CONTROL_BYTES = 1024
 MAX_CONTROL_CONNECTIONS = 8
@@ -191,21 +193,32 @@ def proxy_connection(client: socket.socket, connect_upstream: Callable[[], socke
 
 class BridgeServer:
     def __init__(self, control_listener: socket.socket, adb_listener: socket.socket,
-                 on_shutdown: Callable[[], None] | None = None, allowed_cid: int | None = None):
+                 on_shutdown: Callable[[], None] | None = None, allowed_cid: int | None = None,
+                 *, agent_listener=None, install_listener=None, session=None, session_control=None):
+        extras = (agent_listener, install_listener, session, session_control)
+        enabled = any(value is not None for value in extras)
+        if enabled and (any(value is None for value in extras) or allowed_cid != 2):
+            raise ValueError("session mode requires all channels and host CID admission")
         self.listeners = (control_listener, adb_listener)
-        self.limiters = (
-            ConnectionLimiter(MAX_CONTROL_CONNECTIONS),
-            ConnectionLimiter(MAX_PROXY_CONNECTIONS),
-        )
-        self.executors = (
-            ThreadPoolExecutor(max_workers=MAX_CONTROL_CONNECTIONS, thread_name_prefix="vsock-status"),
-            ThreadPoolExecutor(max_workers=MAX_PROXY_CONNECTIONS, thread_name_prefix="vsock-adb"),
-        )
+        if enabled:
+            self.listeners += (agent_listener, install_listener)
+        self.limiters = tuple(ConnectionLimiter(MAX_CONTROL_CONNECTIONS if i == 0 else MAX_PROXY_CONNECTIONS)
+                              for i in range(len(self.listeners)))
+        self.executors = tuple(
+            ThreadPoolExecutor(max_workers=MAX_CONTROL_CONNECTIONS if i == 0 else MAX_PROXY_CONNECTIONS,
+                               thread_name_prefix=f"vsock-{i}")
+            for i in range(len(self.listeners)))
         self._active: set[socket.socket] = set()
         self._lock = threading.Lock()
         self._stopping = threading.Event()
         self.on_shutdown = on_shutdown
         self.allowed_cid = allowed_cid
+        self.session = session
+        self.session_control = session_control
+        self._session_cleanup_started = False
+        self._session_cleanup_done = threading.Event()
+        self._session_cleanup_failed = False
+        self._session_cleanup_deadline = None
 
     def _serve(self, index: int) -> None:
         listener = self.listeners[index]
@@ -221,27 +234,47 @@ class BridgeServer:
             if self.allowed_cid is not None and (not address or address[0] != self.allowed_cid):
                 connection.close()
                 continue
-            if not limiter.acquire():
-                connection.close()
-                continue
             with self._lock:
+                if self._stopping.is_set() or not limiter.acquire():
+                    connection.close()
+                    continue
                 self._active.add(connection)
-            executor.submit(self._handle, index, connection, limiter)
+                try:
+                    executor.submit(self._handle, index, connection, limiter, address[0] if address else None)
+                except RuntimeError:
+                    self._active.discard(connection)
+                    limiter.release()
+                    connection.close()
 
-    def _handle(self, index: int, connection: socket.socket, limiter: ConnectionLimiter) -> None:
+    def _handle(self, index: int, connection: socket.socket, limiter: ConnectionLimiter,
+                peer_cid=None) -> None:
         try:
             if index == 0:
-                serve_control_request(connection, is_ready=lambda: not self._stopping.is_set(),
-                                      on_shutdown=self.on_shutdown)
-            else:
+                if self.session is not None:
+                    self.session_control(connection, self.session, peer_cid=peer_cid,
+                                         is_ready=lambda: not self._stopping.is_set(),
+                                         on_shutdown=self.on_shutdown)
+                else:
+                    serve_control_request(connection, is_ready=lambda: not self._stopping.is_set(),
+                                          on_shutdown=self.on_shutdown)
+            elif index == 1:
                 proxy_connection(connection, lambda: socket.create_connection(ADB_TARGET, timeout=5))
+            elif index == 2:
+                try:
+                    stream = self.session.open_agent_stream(deadline=time.monotonic() + 5)
+                except (OSError, RuntimeError):
+                    return
+                proxy_streams(connection, stream)
+            else:
+                self.session.serve_install(connection, peer_cid=peer_cid, deadline=time.monotonic() + 180)
         finally:
+            connection.close()
             with self._lock:
                 self._active.discard(connection)
             limiter.release()
 
     def serve_forever(self) -> None:
-        threads = [threading.Thread(target=self._serve, args=(i,), daemon=True) for i in range(2)]
+        threads = [threading.Thread(target=self._serve, args=(i,), daemon=True) for i in range(len(self.listeners))]
         for thread in threads:
             thread.start()
         try:
@@ -249,25 +282,48 @@ class BridgeServer:
                 for thread in threads:
                     thread.join(timeout=0.25)
         finally:
-            self.close()
-            for executor in self.executors:
-                executor.shutdown(wait=True, cancel_futures=True)
+            try:
+                self.close()
+            finally:
+                for executor in self.executors:
+                    executor.shutdown(wait=False, cancel_futures=True)
+
+    def _cleanup_session(self):
+        try:
+            self.session.close()
+            remaining = self._session_cleanup_deadline - time.monotonic()
+            if remaining <= 0 or not self.session.drain(timeout=remaining):
+                raise RuntimeError("session cleanup failed")
+        except BaseException:
+            self._session_cleanup_failed = True
+        finally:
+            self._session_cleanup_done.set()
 
     def close(self) -> None:
-        self._stopping.set()
+        with self._lock:
+            self._stopping.set()
+            active = tuple(self._active)
+            start_cleanup = self.session is not None and not self._session_cleanup_started
+            if start_cleanup:
+                self._session_cleanup_started = True
+                self._session_cleanup_deadline = time.monotonic() + 10
         for sock in self.listeners:
             try:
                 sock.close()
             except OSError:
                 pass
-        with self._lock:
-            active = tuple(self._active)
         for connection in active:
             try:
                 connection.shutdown(socket.SHUT_RDWR)
             except OSError:
                 pass
             connection.close()
+        if start_cleanup:
+            threading.Thread(target=self._cleanup_session, name="vsock-session-cleanup", daemon=True).start()
+        if self.session is not None:
+            remaining = max(0, self._session_cleanup_deadline - time.monotonic())
+            if not self._session_cleanup_done.wait(remaining) or self._session_cleanup_failed:
+                raise RuntimeError("session cleanup failed") from None
 
 
 def _vsock_listener(port: int) -> socket.socket:
@@ -280,17 +336,44 @@ def _vsock_listener(port: int) -> socket.socket:
     return sock
 
 
+def make_session_bridge(on_shutdown, *, listener_factory=None, session=None, session_control=None):
+    """Create exactly the fixed guest channels and clean up partial startup."""
+    if listener_factory is None:
+        listener_factory = _vsock_listener
+    if session is None:
+        from runtime.microvm.agent_backend import GuestAdbBackend
+        from runtime.microvm.agent_session import GuestSession
+        session = GuestSession(GuestAdbBackend())
+    if session_control is None:
+        from runtime.microvm.control_dispatch import serve_session_control
+        session_control = serve_session_control
+    listeners = []
+    try:
+        for port in (CONTROL_PORT, ADB_PORT, AGENT_PORT, INSTALL_PORT):
+            listeners.append(listener_factory(port))
+        return BridgeServer(listeners[0], listeners[1], on_shutdown=on_shutdown, allowed_cid=2,
+                            agent_listener=listeners[2], install_listener=listeners[3],
+                            session=session, session_control=session_control)
+    except BaseException as error:
+        for listener in listeners:
+            listener.close()
+        session.close()
+        session.drain(timeout=10)
+        if not isinstance(error, Exception):
+            raise
+        raise RuntimeError("guest bridge startup failed") from None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("/var/lib/ashnazg/redroid"))
     args = parser.parse_args()
     # The existing redroid.py supervisor starts this process only after ADB readiness.
-    # It owns Docker cleanup; this child only owns the two vsock listeners.
+    # It owns Docker cleanup; this child owns its vsock listeners and agent session.
     args.output_dir.mkdir(parents=True, exist_ok=True)
     if b"/sbin/ashnazg-init" not in Path('/proc/1/cmdline').read_bytes():
         raise RuntimeError("the VM bridge may run only under the Ashnazg guest init")
-    server = BridgeServer(_vsock_listener(CONTROL_PORT), _vsock_listener(ADB_PORT),
-                          on_shutdown=lambda: os.kill(1, signal.SIGTERM), allowed_cid=socket.VMADDR_CID_HOST)
+    server = make_session_bridge(on_shutdown=lambda: os.kill(1, signal.SIGTERM))
     for signum in (signal.SIGINT, signal.SIGTERM):
         signal.signal(signum, lambda _signum, _frame: server.close())
     server.serve_forever()

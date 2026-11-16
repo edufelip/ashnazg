@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "status": "diagnostic_pass_only",
+  "qualification": "Writable guest backend was patched offline with recorded readback. This is not acceptance of an immutable rebuilt guest.",
+  "guest_template_source_sha": "2245f29c0ce7a4d9df84ff6c77ed048951eaef2b",
+  "host_and_override_source_sha": "c18e97c17044cfb606af83d3990375881b5b6aa3",
+  "host_checkout_dirty": false,
+  "workflow_run": 43798616468,
+  "repairs": {
+    "state_path": "Allow exact macOS /tmp and /var aliases while refusing custom symlinks and parent traversal before normalization",
+    "launcher_status": "Require one exact ok status and reject error/exception lines; remove backtracking negative lookahead that rejected successful Status: ok"
+  },
+  "observed_ready_seconds": 37.033,
+  "rpc_checks": 28,
+  "mcp_checks": 7,
+  "native_mcp_install_wiring": "Not implemented; installer tested through helper native installation channel. MCP install calls were not included.",
+  "helper_exit_code": 0,
+  "credential_removed": true,
+  "owned_listeners_closed": {
+    "15555": true,
+    "7777": true,
+    "17778": true
+  },
+  "images_visually_inspected": [
+    "diagnostic-compose.png",
+    "diagnostic-reactnative.png",
+    "fixture-overlay.png"
+  ],
+  "files": {
+    "acceptance-driver.py": {
+      "size": 12645,
+      "sha256": "1a4a9bb7b5874e4a06ed26d8e4ebf30bb92325a90cb4ed3eef72ba166f04a2c9"
+    },
+    "before-path-fix-warm-acceptance.json": {
+      "size": 3369,
+      "sha256": "2a1b57860aa5446e94330f6eb9ce336416b85efebcb3e03ea72d9566d810a6ab"
+    },
+    "before-path-fix-warm-vm.stderr": {
+      "size": 90,
+      "sha256": "8afed6ae66355ae0ae4a8656615f6784e81d44b4d49c449501781992bbc87f6b"
+    },
+    "cold-acceptance.json": {
+      "size": 4523,
+      "sha256": "91e36963a72f15487ddaf070618dcdaec793f6a7c6420acff1d6dc250d7c4ebb"
+    },
+    "diagnostic-acceptance.json": {
+      "size": 7401,
+      "sha256": "e1e4066b02d557dede645b5c302abdcd2e1442c26780a4667aa6e46e52554006"
+    },
+    "diagnostic-compose.png": {
+      "size": 20551,
+      "sha256": "23a57ca14182e7f4e9bf3381963e4d814bf239e7442e54d23e6cf73c1b944b0a"
+    },
+    "diagnostic-mcp.png": {
+      "size": 59448,
+      "sha256": "fc772e54b747525458663878dc4d392bf38427a2789a86c34416c4e53a6bf53f"
+    },
+    "diagnostic-mcp.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "diagnostic-reactnative.png": {
+      "size": 25588,
+      "sha256": "0fe5aeecc53a9367591cb6aa1a04a778673daa7c764245efc64f47413b05fb98"
+    },
+    "diagnostic-vm.stderr": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "diagnostic-vm.stdout": {
+      "size": 745,
+      "sha256": "29a2a823748da4a56ca49b60731d0918142ade0ef3e27b8f08f867eee836a521"
+    },
+    "fixture-overlay.png": {
+      "size": 69510,
+      "sha256": "63b97b7df8bb2947787914d697747b4a06096669f357b11c6c58198e6deffb1f"
+    },
+    "fixture.webp": {
+      "size": 18592,
+      "sha256": "db4abc4fecabfe534b003f3d5d9667fa94da5b5c4ac3dea9a5c87ce1800bd651"
+    },
+    "guest-override.json": {
+      "size": 546,
+      "sha256": "6f12c4550c10fe9e75c8c03167d6a56faf8e7001cde207c255116a4bc2d53af5"
+    },
+    "launch-diagnostic-am-start.json": {
+      "size": 431,
+      "sha256": "823506cf9662413bbbb151d5731854e9215b76c86f8212c78dc26d3ff50f2ced"
+    },
+    "launch-diagnostic-commands.json": {
+      "size": 1439,
+      "sha256": "628d104bf73028242f063cee66863f79799c9d986555fb8f77bb9296407dbcfc"
+    },
+    "launch-diagnostic-disconnect.json": {
+      "size": 61,
+      "sha256": "0bd3bd8d0a01591f97246f1da4fffd60ef3f3d64586bc9266883726dfedc348f"
+    },
+    "warm-acceptance.json": {
+      "size": 4773,
+      "sha256": "3b65ac5d8f8186c8beca58d7a9653f784c3bf7f485fe2e4630ae6f32c591757e"
+    }
+  },
+  "next_gate": "Matching rebuilt immutable guest, fresh cold/restart native acceptance and exact-head CI before merging"
+}

@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "-s",
+    "127.0.0.1:15555",
+    "shell",
+    "-T",
+    "am",
+    "start",
+    "-W",
+    "-n",
+    "dev.ashnazg.fixture/dev.ashnazg.fixture.MainActivity"
+  ],
+  "exit_code": 0,
+  "output": "Starting: Intent { cmp=dev.ashnazg.fixture/.MainActivity }\nStatus: ok\nLaunchState: COLD\nActivity: dev.ashnazg.fixture/.MainActivity\nTotalTime: 306\nWaitTime: 308\nComplete\n",
+  "current_backend_rejects_output": true
+}

@@ -1,0 +1,81 @@
+[
+  {
+    "argv": [
+      "connect",
+      "127.0.0.1:15555"
+    ],
+    "exit_code": 0,
+    "output": "connected to 127.0.0.1:15555\n"
+  },
+  {
+    "argv": [
+      "-s",
+      "127.0.0.1:15555",
+      "shell",
+      "-T",
+      "pm",
+      "path",
+      "dev.ashnazg.fixture"
+    ],
+    "exit_code": 1,
+    "output": ""
+  },
+  {
+    "argv": [
+      "-s",
+      "127.0.0.1:15555",
+      "shell",
+      "-T",
+      "cmd",
+      "package",
+      "install",
+      "-r",
+      "--pkg",
+      "dev.ashnazg.fixture",
+      "-S",
+      "13421"
+    ],
+    "exit_code": 0,
+    "output": "Success\n"
+  },
+  {
+    "argv": [
+      "-s",
+      "127.0.0.1:15555",
+      "shell",
+      "-T",
+      "cmd",
+      "package",
+      "query-activities",
+      "--components",
+      "-a",
+      "android.intent.action.MAIN",
+      "-c",
+      "android.intent.category.LAUNCHER",
+      "-p",
+      "dev.ashnazg.fixture"
+    ],
+    "exit_code": 0,
+    "output": "dev.ashnazg.fixture/.MainActivity\n"
+  },
+  {
+    "argv": [
+      "-s",
+      "127.0.0.1:15555",
+      "shell",
+      "-T",
+      "cmd",
+      "package",
+      "resolve-activity",
+      "--brief",
+      "-a",
+      "android.intent.action.MAIN",
+      "-c",
+      "android.intent.category.LAUNCHER",
+      "-p",
+      "dev.ashnazg.fixture"
+    ],
+    "exit_code": 0,
+    "output": "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false\ndev.ashnazg.fixture/.MainActivity\n"
+  }
+]

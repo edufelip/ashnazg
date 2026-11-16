@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "-s",
+    "127.0.0.1:15555",
+    "shell",
+    "-T",
+    "cmd",
+    "package",
+    "install",
+    "-r",
+    "--pkg",
+    "dev.ashnazg.agent",
+    "-S",
+    "72129",
+    "-"
+  ],
+  "exit_code": 255,
+  "output": "\nException occurred while executing 'install':\njava.lang.IllegalArgumentException: Unknown option -\n\tat com.android.server.pm.PackageManagerShellCommand.makeInstallParams(PackageManagerShellCommand.java:3610)\n\tat com.android.server.pm.PackageManagerShellCommand.runInstall(PackageManagerShellCommand.java:1561)\n\tat com.android.server.pm.PackageManagerShellCommand.onCommand(PackageManagerShellCommand.java:245)\n\tat com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)\n\tat android.os.ShellCommand.exec(ShellCommand.java:38)\n\tat com.android.server.pm.PackageManagerService$IPackageManagerImpl.onShellCommand(PackageManagerService.java:6684)\n\tat android.os.Binder.shellCommand(Binder.java:1143)\n\tat android.os.Binder.onTransact(Binder.java:945)\n\tat android.content.pm.IPackageManager$Stub.onTransact(IPackageManager.java:4693)\n\tat com.android.server.pm.PackageManagerService$IPackageManagerImpl.onTransact(PackageManagerService.java:6668)\n\tat android.os.Binder.execTransactInternal(Binder.java:1411)\n\tat android.os.Binder.execTransact(Binder.java:1350)\n"
+}

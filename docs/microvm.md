@@ -56,6 +56,68 @@ State is private and exclusively locked. The helper refuses non-empty unowned di
 
 SIGINT/SIGTERM closes and drains owned relays, requests guest shutdown, and waits for guest cleanup and poweroff. Guest shutdown is bounded; an error or timeout forces a bounded VM stop and records a failed receipt. PID 1 terminates its owned Android supervisor and Docker service before syncing and powering off. It never exits into a kernel panic on an ordinary shutdown or startup failure.
 
+## Opt-in authenticated agent session
+
+The candidate helper can prepare the Android agent without invoking host ADB.
+This path requires a guest built from the same candidate source containing the
+new session service; the historical `7a76029` and PR #8 guest artifacts do not
+contain that service. VM-only development remains available.
+
+```sh
+ashnazg-vm --assets /absolute/path/to/candidate/assets \
+  --state-dir /absolute/path/to/new/private/state \
+  --agent-apk /absolute/path/to/agent.apk --agent-sha256 EXPECTED_SHA256
+```
+
+The helper verifies the opened APK, sends its bounded upload over the owned
+host-to-guest channel, and waits for an authenticated agent ping in the guest.
+The guest uses its locked ADB to install the expected agent package. Agent RPC
+opens the fixed device service through ADB Smart Sockets; it creates no shared
+ADB forward and removes no other client's mappings.
+
+After preparation, the helper owns loopback agent/install relays (defaults
+`17777` and `17778`) and publishes `.ashnazg-session-v1.json` under its private,
+exclusively locked state directory. That file contains the fresh credentials;
+public `agent_ready` receipts contain only session, endpoint, artifact and timing
+metadata. Existing credential files are refused. Shutdown closes the relays,
+agent resources and owned credential before releasing state.
+
+Host tests cover framing, ownership, cancellation, FIFO refusal, nonblocking
+upload deadlines and relay half-close behavior. Fresh guest/vsock installation
+and full native session acceptance remain pending. The Rust `up` command and MCP
+server do not yet expose this opt-in helper setup; automatic artifact acquisition
+and native MCP installation are subsequent delivery steps.
+
+The first matching hosted guest from source `4f130cc` passed its Linux build and
+all Quality/ReDroid checks, but [native session acceptance failed](evidence/native-session-failure-4f130cc/receipt.json).
+Android became ready after 110.043 seconds; the guest accepted the APK upload
+header, then returned `backend_failed`. A separate diagnostic run reproduced
+Android 15 rejecting the install command's trailing `-` as an unknown option.
+With the same APK and `-S SIZE`, omitting the pathname returned `Success`.
+The [pinned package-manager implementation](https://android.googlesource.com/platform/frameworks/base/+/cc8bb19595c661f5cf42f330457000e643c67d1b/services/core/java/com/android/server/pm/PackageManagerShellCommand.java)
+selects stdin when no positional arguments remain. The diagnostic used host ADB;
+it is not successful acceptance of the host-ADB-free session. The corrected
+guest must be rebuilt and tested through that full path before qualification.
+
+The rebuilt `2245f29` guest [prepared the agent successfully](evidence/native-session-diagnostic-2245f29/receipt.json),
+then exposed two further issues. A restart rejected the private state directory
+because Foundation's `/tmp` spelling differed from C `realpath`'s `/private/tmp`
+spelling. The repaired check permits only exact macOS system aliases and rejects
+custom symlinks and parent traversal before normalization. Separately, Android's
+successful `Status: ok` launch output was rejected by a backtracking negative
+lookahead. The launcher now relies on its existing exact-one-`ok` status check
+and still rejects explicit error or exception lines.
+
+An offline, readback-verified patch to the **writable diagnostic disk** passed
+28 RPC checks and 7 MCP checks, including native, Compose and React Native
+actions/screenshots. The runner used no host ADB; separate diagnostic commands
+used it to reproduce the launch-output failure. The diagnostic helper exited
+zero, removed its credential and closed all three listeners. The MCP checks
+exclude native `app_install` wiring, which remains subsequent work; APK installs
+were exercised through the helper's native installation channel. This modified
+disk result does not qualify the immutable guest or a release. A rebuilt guest
+and fresh cold/restart acceptance remain required.
+
 ## Recorded native cold boot
 
 The clean `7a760294d3a485cc9f40308c791a58e160d620f1` source and its [hosted artifact build](https://github.com/edufelip/ashnazg/actions/runs/43771299927) were tested with an ad-hoc-signed helper on Apple Silicon macOS. Both artifact ZIP digests, the inner archive checksum, manifest asset hashes and every requested kernel setting were verified before creating a fresh state directory. The retained [verification record](evidence/microvm-cold-boot-7a76029/verification.json) includes the two download receipts, API digest comparisons and all 79 kernel assignments; these checks were repeated when recording the evidence. The generated kernel has PSI and FUSE built in, with PSI enabled by default.

@@ -1,0 +1,3 @@
+diagnostic stage=ack status=ready_for_payload code=other
+diagnostic stage=ready status=error code=backend_failed
+ashnazg-vm: guest returned a malformed session response

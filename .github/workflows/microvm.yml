@@ -88,7 +88,10 @@ jobs:
             /tmp/ashnazg-microvm-kernel/alpine-minirootfs-3.22.8-aarch64.tar.gz
           key: microvm-verified-archives-v1-linux-6.12.117-arm64-${{ steps.toolchain.outputs.gcc }}-${{ hashFiles('runtime/microvm/kernel.config') }}
       - name: Run guest bridge and artifact manifest tests
-        run: python3 -m unittest tests.test_microvm_guest tests.test_apk_stream tests.test_runtime_inventory -v
+        run: >-
+          python3 -m unittest tests.test_microvm_guest tests.test_apk_stream tests.test_runtime_inventory
+          tests.test_agent_session tests.test_agent_backend tests.test_control_dispatch tests.test_session_bridge
+          tests.test_adb_agent_stream -v
       - name: Check Python and shell syntax
         run: |
           python3 -m py_compile runtime/microvm/guest_bridge.py runtime/microvm/manifest.py runtime/microvm/guest-init.py
