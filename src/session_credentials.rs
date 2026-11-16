@@ -1,3 +1,9 @@
+//! Read private helper credentials against caller-owned launch expectations.
+//!
+//! This module validates schema and filesystem evidence. The supervisor must
+//! retain its child handle and obtain the expected UUID from that child's ready
+//! receipt; reading this file does not prove helper identity or liveness.
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -268,7 +274,9 @@ mod tests {
         let canonical = fs::canonicalize(dir.path()).unwrap();
         let parent = canonical.parent().unwrap();
         let link_root = tempfile::tempdir().unwrap();
-        let component_link = link_root.path().join("component-link");
+        let component_link = fs::canonicalize(link_root.path())
+            .unwrap()
+            .join("component-link");
         symlink(parent, &component_link).unwrap();
         let through_link = component_link.join(canonical.file_name().unwrap());
         assert!(
@@ -323,6 +331,59 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn lexical_limits_are_checked_at_the_declared_boundaries() {
+        let maximum_components = format!("/{}", vec!["x"; 256].join("/"));
+        assert_eq!(
+            canonical_components(Path::new(&maximum_components))
+                .unwrap()
+                .len(),
+            256
+        );
+        let excessive_components = format!("{maximum_components}/x");
+        assert!(canonical_components(Path::new(&excessive_components)).is_err());
+        let maximum_bytes = format!("/{}", vec!["a".repeat(127); 32].join("/"));
+        assert_eq!(maximum_bytes.len(), 4096);
+        assert!(canonical_components(Path::new(&maximum_bytes)).is_ok());
+        assert!(canonical_components(Path::new(&(maximum_bytes + "a"))).is_err());
+    }
+
+    #[test]
+    fn custom_symlink_and_dotdot_cannot_be_erased_by_normalization() {
+        use std::os::unix::fs::{PermissionsExt, symlink};
+        let expected = expectations();
+        let root = tempfile::tempdir().unwrap();
+        let root = fs::canonicalize(root.path()).unwrap();
+        fs::create_dir(root.join("real")).unwrap();
+        let state = root.join("real/state");
+        fs::create_dir(&state).unwrap();
+        fs::set_permissions(&state, fs::Permissions::from_mode(0o700)).unwrap();
+        let credentials = state.join(CREDENTIAL_FILE);
+        fs::write(&credentials, credential_json(&expected)).unwrap();
+        fs::set_permissions(&credentials, fs::Permissions::from_mode(0o600)).unwrap();
+        symlink(root.join("real"), root.join("alias")).unwrap();
+        let raw = root.join("alias/../real/state");
+        assert_eq!(fs::canonicalize(&raw).unwrap(), state);
+        assert!(
+            read_private_credentials(
+                &raw,
+                &expected,
+                Instant::now() + Duration::from_secs(2),
+                &CancellationToken::new()
+            )
+            .is_err()
+        );
+        assert!(
+            read_private_credentials(
+                &state,
+                &expected,
+                Instant::now() + Duration::from_secs(2),
+                &CancellationToken::new()
+            )
+            .is_ok()
+        );
     }
 
     #[test]
@@ -807,7 +868,7 @@ fn read_private_credentials_impl(
     checkpoint(Checkpoint::FileOpened);
 
     let mut bytes = Zeroizing::new(Vec::with_capacity(file_identity.size as usize + 1));
-    let mut buf = [0u8; 512];
+    let mut buf = Zeroizing::new([0u8; 512]);
     loop {
         check_active(deadline, cancel)?;
         let remaining = MAX_CREDENTIAL_BYTES + 1 - bytes.len();
