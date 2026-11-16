@@ -8,6 +8,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use base64::{Engine as _, engine::general_purpose::STANDARD};
+use futures_util::FutureExt;
 use rmcp::{
     ErrorData, ServerHandler,
     handler::server::{
@@ -103,6 +104,7 @@ impl InstallLifecycle {
             ));
         }
 
+        let deadline = std::time::Instant::now() + Duration::from_secs(180);
         let operation_cancel = self.cancellation.child_token();
         let (tx, rx) = oneshot::channel();
         {
@@ -120,7 +122,6 @@ impl InstallLifecycle {
             let lifecycle = Arc::clone(self);
             let cancel = operation_cancel.clone();
             self.tasks.spawn(async move {
-                let deadline = std::time::Instant::now() + Duration::from_secs(30);
                 let result = if launch && package.is_none() {
                     client
                         .install_with_inferred_launch(
@@ -504,7 +505,7 @@ type NativeServeFuture = Pin<Box<dyn Future<Output = anyhow::Result<()>> + Send>
 type NativeWaitFuture<'a> = Pin<Box<dyn Future<Output = anyhow::Result<()>> + Send + 'a>>;
 type NativeShutdownFuture = Pin<Box<dyn Future<Output = anyhow::Result<()>> + Send>>;
 
-trait NativeSessionOwner: Send + 'static {
+trait NativeSessionOwner: Send + Sync + 'static {
     fn guest_client(&self) -> anyhow::Result<crate::GuestClient>;
     fn install_client(&self) -> anyhow::Result<Arc<crate::native_install::NativeInstallClient>>;
     fn adb_addr(&self) -> std::net::SocketAddr;
@@ -609,6 +610,9 @@ where
     F: FnOnce(NativeInstallBackend, CancellationToken) -> NativeServeFuture,
 {
     let lifecycle = Arc::new(InstallLifecycle::new(lifecycle_token.clone()));
+    // The session stays outside the unwind boundary so a panic in transport
+    // construction or polling cannot drop its unique cleanup join handle.
+    let server_result = std::panic::AssertUnwindSafe(async {
     let backend = match (session.guest_client(), session.install_client()) {
         (Ok(guest), Ok(client)) => Ok(NativeInstallBackend {
             guest,
@@ -619,7 +623,7 @@ where
         _ => Err(anyhow::anyhow!("native MCP serving failed")),
     };
 
-    let server_result = match backend {
+    match backend {
         Ok(backend) => {
             let serving = serve(backend, lifecycle_token.clone());
             tokio::pin!(serving);
@@ -644,8 +648,10 @@ where
             }
         }
         Err(error) => Err(error),
-    };
+    }
+    }).catch_unwind().await.unwrap_or_else(|_| Err(anyhow::anyhow!("native MCP serving failed")));
 
+    lifecycle_token.cancel();
     lifecycle.close_and_drain().await;
     let shutdown_result = Box::new(session)
         .shutdown()
@@ -757,7 +763,7 @@ fn native_http_app(
         ),
         rmcp::transport::streamable_http_server::StreamableHttpServerConfig::default()
             .with_sse_keep_alive(Some(Duration::from_secs(15)))
-            .with_cancellation_token(lifecycle),
+            .with_cancellation_token(lifecycle.clone()),
     );
     axum::Router::new()
         .route_service("/mcp", service)
@@ -765,6 +771,22 @@ fn native_http_app(
             8 * 1024 * 1024,
         ))
         .layer(middleware::from_fn_with_state(token, authorize))
+        .layer(middleware::from_fn_with_state(
+            lifecycle,
+            cancel_native_http_request,
+        ))
+}
+
+async fn cancel_native_http_request(
+    State(cancel): State<CancellationToken>,
+    request: Request<Body>,
+    next: Next,
+) -> Response {
+    tokio::select! {
+        biased;
+        _ = cancel.cancelled() => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+        response = next.run(request) => response,
+    }
 }
 
 async fn authorize(State(token): State<String>, request: Request<Body>, next: Next) -> Response {
@@ -951,6 +973,32 @@ mod tests {
         assert!(!parent.is_cancelled());
     }
 
+    fn accept_native_fixture(listener: &std::net::TcpListener) -> std::net::TcpStream {
+        listener.set_nonblocking(true).unwrap();
+        let deadline = std::time::Instant::now() + Duration::from_secs(3);
+        let stream = loop {
+            match listener.accept() {
+                Ok((stream, _)) => break stream,
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    assert!(
+                        std::time::Instant::now() < deadline,
+                        "fixture accept expired"
+                    );
+                    std::thread::sleep(Duration::from_millis(5));
+                }
+                Err(error) => panic!("fixture accept failed: {error}"),
+            }
+        };
+        stream.set_nonblocking(false).unwrap();
+        stream
+            .set_read_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        stream
+            .set_write_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        stream
+    }
+
     fn native_upload_peer(
         listener: std::net::TcpListener,
         expected: usize,
@@ -959,15 +1007,13 @@ mod tests {
             use std::io::{BufRead, Read, Write};
             let mut received = Vec::new();
             for _ in 0..expected {
-                let (mut stream, _) = listener.accept().unwrap();
-                stream
-                    .set_read_timeout(Some(Duration::from_secs(3)))
-                    .unwrap();
+                let mut stream = accept_native_fixture(&listener);
                 let mut reader = std::io::BufReader::new(stream.try_clone().unwrap());
                 let mut header_line = String::new();
                 reader.read_line(&mut header_line).unwrap();
                 let header: serde_json::Value = serde_json::from_str(&header_line).unwrap();
                 let size = header["apk_size"].as_u64().unwrap() as usize;
+                assert!(size <= 64 * 1024, "fixture body exceeded its cap");
                 stream
                     .write_all(b"{\"schema_version\":1,\"status\":\"ready_for_payload\"}\n")
                     .unwrap();
@@ -1288,6 +1334,60 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn native_http_shutdown_does_not_wait_for_an_incomplete_request_body() {
+        let events = Arc::new(StdMutex::new(Vec::new()));
+        let install_listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let owner = fixture_owner(Arc::clone(&events), install_listener.local_addr().unwrap());
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let cancel = CancellationToken::new();
+        let task_cancel = cancel.clone();
+        let mut task = tokio::spawn(run_native_owner(
+            owner,
+            task_cancel.child_token(),
+            move |backend, ct| {
+                Box::pin(serve_native_http_listener(
+                    backend,
+                    listener,
+                    "body-secret".into(),
+                    ct,
+                ))
+            },
+        ));
+        let stream = tokio::net::TcpStream::connect(address).await.unwrap();
+        let mut stream = BufReader::new(stream);
+        stream.get_mut().write_all(format!(
+            "POST /mcp HTTP/1.1\r\nHost: {address}\r\nAuthorization: Bearer body-secret\r\nContent-Type: application/json\r\nAccept: application/json, text/event-stream\r\nContent-Length: 1024\r\nExpect: 100-continue\r\n\r\n"
+        ).as_bytes()).await.unwrap();
+        let mut interim = String::new();
+        tokio::time::timeout(Duration::from_secs(2), stream.read_line(&mut interim))
+            .await
+            .unwrap()
+            .unwrap();
+        assert!(interim.starts_with("HTTP/1.1 100"));
+        cancel.cancel();
+        let result = tokio::time::timeout(Duration::from_secs(2), &mut task).await;
+        // Release the peer and join even when the old implementation times out.
+        drop(stream);
+        let timed_out = result.is_err();
+        if timed_out {
+            tokio::time::timeout(Duration::from_secs(3), task)
+                .await
+                .unwrap()
+                .unwrap()
+                .unwrap();
+        } else {
+            result.unwrap().unwrap().unwrap();
+        }
+        assert!(
+            !timed_out,
+            "HTTP shutdown waited for the client's unfinished body"
+        );
+        assert_eq!(*events.lock().unwrap(), ["shutdown"]);
+        drop(tokio::net::TcpListener::bind(address).await.unwrap());
+    }
+
+    #[tokio::test]
     async fn cancelled_install_keeps_admission_until_stalled_worker_is_joined() {
         use std::io::{BufRead, Read};
 
@@ -1355,6 +1455,76 @@ mod tests {
         lifecycle.close_and_drain().await;
         assert!(!lifecycle.admission.lock().await.active);
         peer.join().unwrap();
+    }
+
+    #[tokio::test]
+    async fn native_install_allows_package_manager_completion_after_the_upload_budget() {
+        // A real-clock regression is intentional: the native worker uses std
+        // Instant, so Tokio's paused clock cannot exercise this phase boundary.
+        use std::io::{BufRead, Read, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let endpoint = listener.local_addr().unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let peer = std::thread::spawn(move || {
+            let until = std::time::Instant::now() + Duration::from_secs(3);
+            let (mut stream, _) = loop {
+                match listener.accept() {
+                    Ok(value) => break value,
+                    Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                        assert!(std::time::Instant::now() < until);
+                        std::thread::sleep(Duration::from_millis(5));
+                    }
+                    Err(error) => panic!("fixture accept failed: {error}"),
+                }
+            };
+            stream.set_nonblocking(false).unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
+            stream
+                .set_write_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
+            let mut reader = std::io::BufReader::new(stream.try_clone().unwrap());
+            let mut header = String::new();
+            reader.read_line(&mut header).unwrap();
+            stream
+                .write_all(b"{\"schema_version\":1,\"status\":\"ready_for_payload\"}\n")
+                .unwrap();
+            let mut body = Vec::new();
+            reader.take(1024).read_to_end(&mut body).unwrap();
+            assert_eq!(body, b"fixture with deferred installation result");
+            std::thread::sleep(Duration::from_secs(31));
+            let _ = stream.write_all(b"{\"schema_version\":1,\"status\":\"installed\",\"session_id\":\"00000000-0000-4000-8000-000000000000\",\"launched\":false}\n");
+        });
+        let client = Arc::new(
+            crate::native_install::NativeInstallClient::new(
+                endpoint,
+                "00000000-0000-4000-8000-000000000000".into(),
+                "a".repeat(64),
+            )
+            .unwrap(),
+        );
+        let file = tempfile::NamedTempFile::new().unwrap();
+        std::fs::write(file.path(), b"fixture with deferred installation result").unwrap();
+        let lifecycle = Arc::new(super::InstallLifecycle::new(CancellationToken::new()));
+        let result = tokio::time::timeout(
+            Duration::from_secs(40),
+            lifecycle.install(
+                client,
+                file.path().to_string_lossy().into_owned(),
+                false,
+                None,
+                CancellationToken::new(),
+            ),
+        )
+        .await
+        .unwrap();
+        lifecycle.close_and_drain().await;
+        peer.join().unwrap();
+        assert!(
+            result.is_ok(),
+            "native adapter shortened the installer's result deadline"
+        );
     }
 
     #[tokio::test]
@@ -1435,6 +1605,25 @@ mod tests {
         .await
         .unwrap();
         assert!(!parent.is_cancelled());
+    }
+
+    #[tokio::test]
+    async fn native_serving_panics_still_join_session_shutdown_before_returning() {
+        for during_poll in [false, true] {
+            let events = Arc::new(StdMutex::new(Vec::new()));
+            let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+            let owner = fixture_owner(Arc::clone(&events), listener.local_addr().unwrap());
+            let parent = CancellationToken::new();
+            let result = run_native_public(owner, parent.clone(), move |_, _| {
+                assert!(during_poll, "fixture constructor panic");
+                Box::pin(async { panic!("fixture polling panic") })
+            })
+            .await;
+            assert!(result.is_err());
+            assert_eq!(*events.lock().unwrap(), ["shutdown"]);
+            assert_eq!(result.unwrap_err().to_string(), "native MCP serving failed");
+            assert!(!parent.is_cancelled());
+        }
     }
 
     #[test]

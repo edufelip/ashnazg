@@ -168,6 +168,12 @@ awaiting the install worker. A small `tokio-util` `rt` feature addition for
 `TaskTracker` is allowed; no new crate versions are needed. Wait for tracked
 operations before stopping the helper. All blocking filesystem bounds remain
 cooperative as documented by the installer.
+Use the existing locked `futures-util 0.3.34` with only its `std` feature as a
+direct dependency for the serving-phase unwind boundary. Keep the session outside
+that boundary and run normal tracked-worker draining and helper shutdown after a
+panic. Cancellation must also interrupt HTTP body collection before waiting for
+graceful server shutdown. Preserve the installer's 180-second result budget
+separately from its 30-second upload budget.
 
 Run serving and teardown inside one owned async task. A caller dropping the public
 future must cancel that task's lifecycle without aborting its teardown owner.
