@@ -9,9 +9,13 @@ on:
       - scripts/runtime_catalog.py
       - scripts/runtime_release.py
       - scripts/runtime_sources.py
+      - scripts/native_cli_acceptance.py
+      - tests/test_native_cli_acceptance.py
+      - examples/stage_runtime_candidate.rs
       - tests/test_package_release.py
       - tests/test_runtime_release.py
       - tests/test_runtime_sources.py
+      - tests/test_release_workflow.py
       - runtime/microvm/sources.lock.json
       - docs/releases.md
       - Cargo.toml
@@ -55,6 +59,7 @@ jobs:
       source_sha: ${{ steps.source.outputs.source_sha }}
       prepare: ${{ steps.source.outputs.prepare }}
       publish: ${{ steps.source.outputs.publish }}
+      guest_run_id: ${{ steps.source.outputs.guest_run_id }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -79,6 +84,7 @@ jobs:
           [[ "$version" == 0.3.0 ]]
           prepare=false
           publish=false
+          guest_run_id=
           if [[ "$EVENT_NAME" != pull_request ]]; then
             [[ "$EVENT_NAME" == workflow_dispatch && "$REF_NAME" == refs/heads/main ]]
             git fetch origin main --tags
@@ -104,11 +110,19 @@ jobs:
               [.workflow_runs[] | select(.head_sha == $sha and .event == "push" and .head_branch == "main")]
                 | sort_by(.run_number) | last | .status == "completed" and .conclusion == "success"
             ' <<< "$runs" >/dev/null
+            if [[ "$prepare" == true ]]; then
+              quality_run="$(jq -r --arg sha "$SOURCE_SHA" '[.workflow_runs[] | select(.head_sha == $sha and .event == "push" and .head_branch == "main")] | sort_by(.run_number) | last | .id' <<< "$runs")"
+              artifacts="$(gh api "repos/$REPOSITORY/actions/runs/$quality_run/artifacts?per_page=100")"
+              count="$(jq --arg name "microvm-linux-arm64-$SOURCE_SHA" '[.artifacts[] | select(.name == $name and .expired == false)] | length' <<< "$artifacts")"
+              [[ "$count" == 0 || "$count" == 1 ]]
+              if [[ "$count" == 1 ]]; then guest_run_id="$quality_run"; fi
+            fi
           fi
           {
             echo "source_sha=$SOURCE_SHA"
             echo "prepare=$prepare"
             echo "publish=$publish"
+            echo "guest_run_id=$guest_run_id"
           } >> "$GITHUB_OUTPUT"
 
   android-build:
@@ -130,7 +144,7 @@ jobs:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
       - name: Test release producers and build agent and fixture once
         run: |
-          python3 -m unittest tests.test_package_release tests.test_runtime_catalog tests.test_runtime_release tests.test_runtime_sources -v
+          python3 -m unittest tests.test_package_release tests.test_runtime_catalog tests.test_runtime_release tests.test_runtime_sources tests.test_release_workflow -v
           cd agent-android && ./gradlew :agent:assembleDebug :fixture:assembleDebug
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -204,7 +218,7 @@ jobs:
           path: release-files/*
 
   guest:
-    if: needs.validate-source.outputs.prepare == 'true'
+    if: needs.validate-source.outputs.prepare == 'true' && needs.validate-source.outputs.guest_run_id == ''
     needs: validate-source
     uses: ./.github/workflows/microvm.yml
     with:
@@ -213,11 +227,18 @@ jobs:
       contents: read
 
   candidate:
-    if: needs.validate-source.outputs.prepare == 'true'
+    if: >-
+      always() && needs.validate-source.result == 'success' &&
+      needs.validate-source.outputs.prepare == 'true' &&
+      needs.android-build.result == 'success' && needs.package-host.result == 'success' &&
+      (needs.guest.result == 'success' || needs.guest.result == 'skipped')
     name: Bind guest, sources, helper and host into immutable candidate
     needs: [validate-source, android-build, package-host, guest]
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -236,6 +257,8 @@ jobs:
         with:
           name: microvm-linux-arm64-${{ needs.validate-source.outputs.source_sha }}
           path: guest-build
+          run-id: ${{ needs.validate-source.outputs.guest_run_id || github.run_id }}
+          github-token: ${{ github.token }}
       - name: Verify guest and assemble corresponding source and notice sidecar
         env:
           SOURCE_SHA: ${{ needs.validate-source.outputs.source_sha }}

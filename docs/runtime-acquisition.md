@@ -96,3 +96,18 @@ The next layer must expose the coordinator through the CLI, bootstrap the native
 MCP session and route APK installation through the guest. Release packaging must
 publish matching helper, guest, APK, source and notice assets before default
 acquisition can be qualified on a clean machine.
+
+## Prepublication offline qualification
+
+A prepared candidate can be staged in a new, private acceptance cache using the explicit `stage_runtime_candidate` example. It uses the production catalog parser, guest extractor and cache transaction APIs; it does not contact the network or change production URL policy. This supports real CLI/VM qualification of exact prepared bytes before publication, and is not cold-download evidence.
+
+```sh
+python3 scripts/runtime_release.py verify --directory "$CANDIDATE" --source-sha "$SOURCE_SHA"
+mkdir -m 700 "$ACCEPTANCE_HOME"
+mkdir -p "$ACCEPTANCE_HOME/Library/Caches/ashnazg/runtime"
+chmod 700 "$ACCEPTANCE_HOME/Library/Caches/ashnazg" "$ACCEPTANCE_HOME/Library/Caches/ashnazg/runtime"
+cargo run --release --locked --example stage_runtime_candidate -- \
+  "$CANDIDATE" "$ACCEPTANCE_HOME/Library/Caches/ashnazg/runtime" "$SOURCE_SHA"
+```
+
+Use the source-matching packaged host for acceptance after staging. The helper still validates the kernel/rootfs before boot. The utility refuses an existing entry rather than replacing it; cache and persistent state remain owned by the acceptance home. Public cold acquisition must later use a different empty home without this staging step.
