@@ -336,17 +336,44 @@ def _vsock_listener(port: int) -> socket.socket:
     return sock
 
 
+def make_session_bridge(on_shutdown, *, listener_factory=None, session=None, session_control=None):
+    """Create exactly the fixed guest channels and clean up partial startup."""
+    if listener_factory is None:
+        listener_factory = _vsock_listener
+    if session is None:
+        from runtime.microvm.agent_backend import GuestAdbBackend
+        from runtime.microvm.agent_session import GuestSession
+        session = GuestSession(GuestAdbBackend())
+    if session_control is None:
+        from runtime.microvm.control_dispatch import serve_session_control
+        session_control = serve_session_control
+    listeners = []
+    try:
+        for port in (CONTROL_PORT, ADB_PORT, AGENT_PORT, INSTALL_PORT):
+            listeners.append(listener_factory(port))
+        return BridgeServer(listeners[0], listeners[1], on_shutdown=on_shutdown, allowed_cid=2,
+                            agent_listener=listeners[2], install_listener=listeners[3],
+                            session=session, session_control=session_control)
+    except BaseException as error:
+        for listener in listeners:
+            listener.close()
+        session.close()
+        session.drain(timeout=10)
+        if not isinstance(error, Exception):
+            raise
+        raise RuntimeError("guest bridge startup failed") from None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("/var/lib/ashnazg/redroid"))
     args = parser.parse_args()
     # The existing redroid.py supervisor starts this process only after ADB readiness.
-    # It owns Docker cleanup; this child only owns the two vsock listeners.
+    # It owns Docker cleanup; this child owns its vsock listeners and agent session.
     args.output_dir.mkdir(parents=True, exist_ok=True)
     if b"/sbin/ashnazg-init" not in Path('/proc/1/cmdline').read_bytes():
         raise RuntimeError("the VM bridge may run only under the Ashnazg guest init")
-    server = BridgeServer(_vsock_listener(CONTROL_PORT), _vsock_listener(ADB_PORT),
-                          on_shutdown=lambda: os.kill(1, signal.SIGTERM), allowed_cid=socket.VMADDR_CID_HOST)
+    server = make_session_bridge(on_shutdown=lambda: os.kill(1, signal.SIGTERM))
     for signum in (signal.SIGINT, signal.SIGTERM):
         signal.signal(signum, lambda _signum, _frame: server.close())
     server.serve_forever()

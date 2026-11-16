@@ -6,6 +6,7 @@ import unittest
 from unittest import mock
 
 from runtime.microvm.guest_bridge import BridgeServer
+from runtime.microvm import guest_bridge
 
 
 class Listener:
@@ -145,6 +146,36 @@ class SessionBridgeTests(unittest.TestCase):
         self.assertEqual(len(server.listeners), 2)
         server.close()
         self.assertTrue(all(listener.closed for listener in listeners))
+
+    def test_factory_binds_all_fixed_guest_channels(self):
+        ports = []
+        session = Session()
+        def listener(port):
+            ports.append(port)
+            return Listener()
+        server = guest_bridge.make_session_bridge(
+            on_shutdown=lambda: None, listener_factory=listener,
+            session=session, session_control=mock.Mock())
+        self.addCleanup(lambda: self.shutdown(server))
+        self.assertEqual(ports, [10777, 15555, 17777, 17778])
+        self.assertEqual(server.allowed_cid, 2)
+
+    def test_partial_listener_startup_closes_owned_listeners_and_session(self):
+        listeners = []
+        session = Session()
+        def listener(port):
+            if port == 17777:
+                raise OSError('startup failed')
+            value = Listener()
+            listeners.append(value)
+            return value
+        with self.assertRaises(RuntimeError):
+            guest_bridge.make_session_bridge(
+                on_shutdown=lambda: None, listener_factory=listener,
+                session=session, session_control=mock.Mock())
+        self.assertTrue(listeners)
+        self.assertTrue(all(value.closed for value in listeners))
+        self.assertTrue(session.closed)
 
     def test_cleanup_failure_is_reported_without_exception_text(self):
         session = Session()
