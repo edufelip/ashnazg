@@ -56,8 +56,9 @@ pub fn read_android_manifest(file: &File, deadline: Instant,
     cancel: &CancellationToken) -> anyhow::Result<Vec<u8>>;
 ```
 
-Pin `rawzip = =0.5.2` and `flate2 = =1.1.11` with defaults disabled and only
-`rust_backend`. Rawzip is chosen over materializing the whole central directory;
+Pin `rawzip = =0.5.2` with defaults disabled and only `std`, and
+`flate2 = =1.1.11` with defaults disabled and only `rust_backend`.
+Rawzip is chosen over materializing the whole central directory;
 reuse its ZIP parsing/integrity APIs, not a project ZIP decoder. Root inspected
 the exact registry sources and checksums before selecting these versions. Consult
 the pinned [reader](https://docs.rs/rawzip/0.5.2/rawzip/) and validation APIs.
