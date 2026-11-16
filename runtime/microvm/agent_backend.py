@@ -15,6 +15,7 @@ import time
 
 ADB = "/usr/bin/adb"
 SERIAL = "127.0.0.1:5555"
+AGENT_ENDPOINT = ("127.0.0.1", 17777)
 LOCAL_FORWARD = "tcp:17777"
 REMOTE_FORWARD = "tcp:7777"
 AGENT_PACKAGE = "dev.ashnazg.agent"
@@ -22,7 +23,7 @@ INSTRUMENTATION = "dev.ashnazg.agent/dev.ashnazg.agent.AgentInstrumentation"
 MAX_COMMAND_OUTPUT = 64 * 1024
 MAX_PING_FRAME = 4096
 COMMAND_TERMINATE_SECONDS = 0.5
-CLOSE_SECONDS = 10.0
+CLOSE_SECONDS = 8.0  # Leave room inside the bridge's ten-second cleanup budget.
 _PACKAGE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+\Z", re.ASCII)
 _JAVA_CLASS = re.compile(r"[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*\Z", re.ASCII)
 
@@ -55,6 +56,7 @@ class GuestAdbBackend:
         self._close_done = threading.Event()
         self._close_failed = False
         self._processes = set()
+        self._ping_sockets = set()
         self._instrumentation = None
         self._prepared = False
         self._ready = False
@@ -78,25 +80,30 @@ class GuestAdbBackend:
 
     def _track(self, process, *, cleanup=False):
         with self._state_lock:
-            if (self._closed or self._cancel.is_set()) and not cleanup:
-                self._stop_process(process)
-                raise BackendError("ADB operation failed")
             self._processes.add(process)
+            cancelled = (self._closed or self._cancel.is_set()) and not cleanup
+        if cancelled:
+            if self._stop_process(process):
+                self._untrack(process)
+            raise BackendError("ADB operation failed")
 
     def _untrack(self, process):
         with self._state_lock:
             self._processes.discard(process)
 
-    def _stop_process(self, process):
+    def _stop_process(self, process, *, deadline=None):
+        def wait_budget():
+            return COMMAND_TERMINATE_SECONDS if deadline is None else max(
+                0, min(COMMAND_TERMINATE_SECONDS, deadline - time.monotonic()))
         try:
             if process.poll() is None:
                 process.terminate()
                 try:
-                    process.wait(timeout=COMMAND_TERMINATE_SECONDS)
+                    process.wait(timeout=wait_budget())
                 except (subprocess.TimeoutExpired, TimeoutError, OSError):
                     process.kill()
                     try:
-                        process.wait(timeout=COMMAND_TERMINATE_SECONDS)
+                        process.wait(timeout=wait_budget())
                     except (subprocess.TimeoutExpired, TimeoutError, OSError):
                         return process.poll() is not None
         except (OSError, ProcessLookupError):
@@ -175,13 +182,18 @@ class GuestAdbBackend:
         except (OSError, TimeoutError, subprocess.TimeoutExpired, ValueError):
             self._stop_process(process)
             raise BackendError("ADB operation failed") from None
+        except BaseException:
+            self._stop_process(process)
+            raise
         finally:
             selector.close()
             try:
                 process.stdout.close()
             except (AttributeError, OSError):
                 pass
-            self._untrack(process)
+            # Keep an unreaped child recorded so owner cleanup can retry it.
+            if process.poll() is not None:
+                self._untrack(process)
 
     def _adb(self, *args, deadline, stdin=None, cleanup=False):
         return self._run([ADB, "-s", SERIAL, *args], deadline=deadline,
@@ -247,6 +259,7 @@ class GuestAdbBackend:
     def prepare_agent(self, staged_apk, rpc_token, *, deadline):
         self._acquire_operation(deadline)
         failed = False
+        interrupted = None
         try:
             if (not isinstance(rpc_token, str) or not re.fullmatch(r"[0-9a-f]{64}", rpc_token)
                     or self._prepared):
@@ -271,11 +284,15 @@ class GuestAdbBackend:
             self._track(process)
             self._prepared = True
             self._ping(rpc_token, deadline)
-            self._ready = True
+            self._remaining(deadline)
+            with self._state_lock:
+                if self._closed or self._cancel.is_set():
+                    raise BackendError("ADB operation failed")
+                self._ready = True
             return 17777
         except BaseException as exc:
             if not isinstance(exc, Exception):
-                raise
+                interrupted = exc
             self._ready = False
             failed = True
         finally:
@@ -285,6 +302,8 @@ class GuestAdbBackend:
                 self.close()
             except BackendError:
                 pass
+            if interrupted is not None:
+                raise interrupted
             raise BackendError("ADB operation failed") from None
 
     def _ping(self, token, deadline):
@@ -301,8 +320,12 @@ class GuestAdbBackend:
             remaining = self._remaining(deadline)
             connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
+                with self._state_lock:
+                    if self._closed or self._cancel.is_set():
+                        raise BackendError("ADB operation failed")
+                    self._ping_sockets.add(connection)
                 connection.settimeout(remaining)
-                connection.connect(("127.0.0.1", 17777))
+                connection.connect(AGENT_ENDPOINT)
                 connection.settimeout(self._remaining(deadline))
                 connection.sendall(frame)
                 response = bytearray()
@@ -321,7 +344,8 @@ class GuestAdbBackend:
                     raise ValueError()
                 value = json.loads(raw.decode("utf-8", "strict"))
                 result = value.get("result") if isinstance(value, dict) else None
-                if (value.get("jsonrpc") != "2.0" or value.get("id") != 1 or
+                if (not isinstance(value, dict) or value.get("jsonrpc") != "2.0" or
+                        type(value.get("id")) is not int or value.get("id") != 1 or
                         "error" in value or not isinstance(result, dict) or
                         type(result.get("apiLevel")) is not int or result["apiLevel"] < 34):
                     raise ValueError()
@@ -329,6 +353,8 @@ class GuestAdbBackend:
             except (OSError, TimeoutError, UnicodeError, ValueError, json.JSONDecodeError):
                 pass
             finally:
+                with self._state_lock:
+                    self._ping_sockets.discard(connection)
                 connection.close()
             if self._remaining(deadline) <= 0:
                 raise BackendError("ADB operation failed") from None
@@ -413,25 +439,34 @@ class GuestAdbBackend:
             if self._closing:
                 waiter = True
             elif self._closed:
+                if self._close_failed:
+                    raise BackendError("ADB cleanup failed") from None
                 return
             else:
                 self._closing = True
                 self._closed = True
                 self._ready = False
                 self._cancel.set()
+                ping_connections = tuple(self._ping_sockets)
                 waiter = False
         if waiter:
-            if not self._close_done.wait(CLOSE_SECONDS):
+            if not self._close_done.wait(CLOSE_SECONDS) or self._close_failed:
                 raise BackendError("ADB cleanup failed") from None
             return
 
+        for connection in ping_connections:
+            try:
+                connection.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+            connection.close()
         failed = False
         end = time.monotonic() + CLOSE_SECONDS
         try:
             with self._state_lock:
                 processes = list(self._processes)
             for process in processes:
-                if not self._stop_process(process):
+                if time.monotonic() >= end or not self._stop_process(process, deadline=end):
                     failed = True
             # Let the cancelled owner finish recording any mutation that raced with
             # shutdown before deciding which exact resources this close may remove.
@@ -446,7 +481,7 @@ class GuestAdbBackend:
                 processes = list(self._processes)
                 instrumentation = self._instrumentation
             for process in processes:
-                if not self._stop_process(process):
+                if time.monotonic() >= end or not self._stop_process(process, deadline=end):
                     failed = True
             if instrumentation is not None:
                 with self._state_lock:
@@ -458,6 +493,8 @@ class GuestAdbBackend:
                                   deadline=cleanup_deadline, cleanup=True)
                     except BackendError:
                         failed = True
+            if time.monotonic() >= end:
+                failed = True
             if self._forward_owned and time.monotonic() < end:
                 cleanup_deadline = min(end, time.monotonic() + 2.0)
                 try:
@@ -470,6 +507,11 @@ class GuestAdbBackend:
                         failed = True
                 except BackendError:
                     failed = True
+            if time.monotonic() >= end:
+                failed = True
+        except BaseException:
+            failed = True
+            raise
         finally:
             with self._state_lock:
                 self._closing = False

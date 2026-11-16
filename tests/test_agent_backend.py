@@ -75,6 +75,7 @@ class BackendTests(unittest.TestCase):
         self.resolve_output = b'example.app/.Main\n'
         self.fail_forward = False
         self.ping_server_token = None
+        self.ping_request_seen = threading.Event()
 
         def popen(argv, **kwargs):
             if kwargs.get('stdout') is subprocess.PIPE:
@@ -141,7 +142,10 @@ class BackendTests(unittest.TestCase):
     def ping_server(self, reply=None, *, delay=0):
         listener = socket.socket()
         listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        listener.bind(('127.0.0.1', 17777))
+        listener.bind(('127.0.0.1', 0))
+        target = mock.patch.object(backend, 'AGENT_ENDPOINT', listener.getsockname())
+        target.start()
+        self.addCleanup(target.stop)
         listener.listen()
         self.addCleanup(listener.close)
         if reply is None:
@@ -158,6 +162,7 @@ class BackendTests(unittest.TestCase):
                         raw += part
                     request = json.loads(raw.split(b'\n', 1)[0])
                     self.ping_server_token = request.get('token')
+                    self.ping_request_seen.set()
                     if delay:
                         time.sleep(delay)
                     value = dict(reply)
@@ -290,7 +295,8 @@ class BackendTests(unittest.TestCase):
         with self.assertRaises(backend.BackendError):
             self.backend.close()
         self.assertFalse(any('remove' in c for c in self.commands))
-        self.backend.close()
+        with self.assertRaises(backend.BackendError):
+            self.backend.close()
 
     def test_rejects_concurrent_operation(self):
         self.backend._operation_lock.acquire()
@@ -299,6 +305,72 @@ class BackendTests(unittest.TestCase):
                 self.backend.install(Staged(), package=None, deadline=time.monotonic() + 2)
         finally:
             self.backend._operation_lock.release()
+
+    def test_close_interrupts_stalled_ping_without_waiting_for_its_deadline(self):
+        self.ping_server(delay=5)
+        errors = []
+        def prepare():
+            try:
+                self.backend.prepare_agent(Staged(), 'e' * 64, deadline=time.monotonic() + 30)
+            except backend.BackendError as error:
+                errors.append(str(error))
+        worker = threading.Thread(target=prepare)
+        worker.start()
+        try:
+            self.assertTrue(self.ping_request_seen.wait(1))
+            start = time.monotonic()
+            try:
+                self.backend.close()
+            except backend.BackendError:
+                pass
+            worker.join(0.5)
+            self.assertFalse(worker.is_alive())
+            self.assertLess(time.monotonic() - start, 1)
+            self.assertTrue(errors)
+        finally:
+            worker.join(6)
+
+    def test_close_cannot_skip_owned_cleanup_after_budget_expires(self):
+        process = FakeProcess([])
+        self.backend._instrumentation = process
+        self.backend._started_agent = True
+        self.backend._forward_owned = True
+        self.backend._processes.add(process)
+        now = [0.0]
+        advances = iter((1.0, 10.0))
+        def stop(_process, **_options):
+            now[0] += next(advances, 0)
+            return True
+        with mock.patch.object(self.backend, '_stop_process', side_effect=stop), \
+                mock.patch.object(backend.time, 'monotonic', side_effect=lambda: now[0]):
+            with self.assertRaises(backend.BackendError):
+                self.backend.close()
+
+    def test_real_runner_reaps_child_on_keyboard_interrupt(self):
+        self.patch.stop()
+        runner = backend.GuestAdbBackend()
+        spawned = []
+        original_popen = subprocess.Popen
+        def capture(*args, **kwargs):
+            process = original_popen(*args, **kwargs)
+            spawned.append(process)
+            return process
+        selector = backend.selectors.DefaultSelector()
+        selector.select = mock.Mock(side_effect=KeyboardInterrupt())
+        try:
+            with mock.patch.object(backend.subprocess, 'Popen', side_effect=capture), \
+                    mock.patch.object(backend.selectors, 'DefaultSelector', return_value=selector):
+                with self.assertRaises(KeyboardInterrupt):
+                    runner._run([sys.executable, '-c', 'import time;time.sleep(20)'],
+                                deadline=time.monotonic() + 10)
+            self.assertEqual(len(spawned), 1)
+            self.assertIsNotNone(spawned[0].poll())
+        finally:
+            for process in spawned:
+                if process.poll() is None:
+                    process.kill()
+                process.wait(timeout=1)
+            runner.close()
 
     def test_real_runner_bounds_output_and_cancels_hung_child(self):
         self.patch.stop()
