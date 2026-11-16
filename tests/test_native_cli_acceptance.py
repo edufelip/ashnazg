@@ -329,7 +329,11 @@ class NativeCliAcceptanceTests(unittest.TestCase):
             if message.get('method') == 'tools/list':
                 raise KeyboardInterrupt()
             return original(client, message, **kwargs)
-        with patch.object(acceptance.StdioClient, 'request', interrupt):
+        # This fixture owns a tiny fake process, not a VM needing its full
+        # graceful shutdown interval. Keep forced-cleanup coverage bounded.
+        with patch.object(acceptance.StdioClient, 'request', interrupt), \
+                patch.object(acceptance, 'SHUTDOWN_GRACE', 1.0), \
+                patch.object(acceptance, 'KILL_GRACE', 0.25):
             code, output = self.run_driver()
         self.assertNotEqual(code, 0)
         receipt = json.loads((output / 'receipt.json').read_text())
