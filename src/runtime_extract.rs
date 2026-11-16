@@ -509,6 +509,21 @@ mod tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn directory_iteration_distinguishes_io_error_from_end_of_directory() {
+        let error = checked_directory_entry(|| {
+            unsafe { *errno_pointer() = libc::EIO };
+            std::ptr::null_mut()
+        });
+        assert_eq!(error.unwrap_err().raw_os_error(), Some(libc::EIO));
+        unsafe { *errno_pointer() = libc::EIO };
+        assert!(
+            checked_directory_entry(std::ptr::null_mut)
+                .unwrap()
+                .is_none()
+        );
+    }
 }
 use crate::runtime_catalog::{ArtifactRole, RuntimeCatalog};
 use anyhow::{Context, bail, ensure};
@@ -1097,22 +1112,51 @@ fn directory_is_empty(directory: &File) -> anyhow::Result<bool> {
         }
         return Err(io::Error::last_os_error().into());
     }
-    let mut empty = true;
-    loop {
-        let entry = unsafe { libc::readdir(stream) };
-        if entry.is_null() {
-            break;
+    let result = (|| -> io::Result<bool> {
+        while let Some(name) = checked_directory_entry(|| unsafe { libc::readdir(stream) })? {
+            if name != b"." && name != b".." {
+                return Ok(false);
+            }
         }
-        let name = unsafe { std::ffi::CStr::from_ptr((*entry).d_name.as_ptr()) }.to_bytes();
-        if name != b"." && name != b".." {
-            empty = false;
-            break;
-        }
-    }
-    unsafe {
-        libc::closedir(stream);
-    }
+        Ok(true)
+    })();
+    let close_result = unsafe { libc::closedir(stream) };
+    let empty = result.context("could not verify runtime destination emptiness")?;
+    ensure!(
+        close_result == 0,
+        "could not close runtime destination directory stream"
+    );
     Ok(empty)
+}
+
+fn checked_directory_entry(
+    read: impl FnOnce() -> *mut libc::dirent,
+) -> io::Result<Option<Vec<u8>>> {
+    unsafe { *errno_pointer() = 0 };
+    let entry = read();
+    if entry.is_null() {
+        let error = io::Error::last_os_error();
+        return if error.raw_os_error() == Some(0) {
+            Ok(None)
+        } else {
+            Err(error)
+        };
+    }
+    Ok(Some(
+        unsafe { std::ffi::CStr::from_ptr((*entry).d_name.as_ptr()) }
+            .to_bytes()
+            .to_vec(),
+    ))
+}
+
+#[cfg(target_os = "macos")]
+fn errno_pointer() -> *mut libc::c_int {
+    unsafe { libc::__error() }
+}
+
+#[cfg(target_os = "linux")]
+fn errno_pointer() -> *mut libc::c_int {
+    unsafe { libc::__errno_location() }
 }
 
 fn create_member(directory: &File, name: &str) -> anyhow::Result<File> {
