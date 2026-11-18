@@ -1,0 +1,43 @@
+{
+  "action": {
+    "source_sha": "d1f69c7a501456f58f091bd79ab7b471de082683",
+    "source_dirty": false,
+    "image": "redroid/redroid@sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
+    "image_profile": "android15-64only",
+    "platform_digest": "sha256:58e548d78c4854f032912757dc0782d7a86b9d602ffc10b2f09fb9e86731adf3",
+    "binder_mode": "private guest Binderfs",
+    "requested_display": {
+      "ashmem": "memfd",
+      "dpi": 320,
+      "fps": 30,
+      "height": 1280,
+      "renderer": "software",
+      "width": 720
+    },
+    "status": "success",
+    "command_exit_code": 0
+  },
+  "journey": {
+    "runtime": "redroid",
+    "serial": "127.0.0.1:15576",
+    "status": "passed",
+    "apk_sha256": {
+      "app": "513bea68fc46587f425dd6ee88e0fe69921623e0d47b5b2d48cf27d1a646e575",
+      "test": "a7ac1a29c04d6f3b592c8f5223864274a7de538b4170fc8386e66667eb021971"
+    },
+    "source": "a4c2f58f2cceb016136254b58f04d5b322cfa30a",
+    "api": "35",
+    "location_enabled": "false",
+    "animation_scales": {
+      "window_animation_scale": "0",
+      "transition_animation_scale": "0",
+      "animator_duration_scale": "0"
+    },
+    "detox_seconds": 41.577681285794824,
+    "detox_exit": 0,
+    "services_and_reverses_cleaned": true,
+    "command_seconds": 43.09988804906607
+  },
+  "owned_container_absent": true,
+  "owned_ports_closed": true
+}

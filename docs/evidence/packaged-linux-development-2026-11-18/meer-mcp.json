@@ -1,0 +1,28 @@
+{
+  "serial": "127.0.0.1:15641",
+  "steps": [
+    "ui_snapshot",
+    "ui_act",
+    "ui_snapshot",
+    "ui_screenshot",
+    "app_logs"
+  ],
+  "status": "passed",
+  "input_visible": true,
+  "png_bytes": 57225,
+  "apk_sha256": "513bea68fc46587f425dd6ee88e0fe69921623e0d47b5b2d48cf27d1a646e575",
+  "png_sha256": "bc33d4aa3944e9649f0bc21661353d172912e4941495bf81f2d5ddc31f68c534",
+  "supervisor_base_source": "73bf28b2c8c576919cb2d2cf78cc6edc545bb3eb",
+  "supervisor_worktree_modified": true,
+  "viewer_observations": {
+    "viewer-1": [
+      "720x1280"
+    ],
+    "viewer-2": [
+      "720x1280"
+    ],
+    "viewer-mcp-acceptance": [
+      "720x1280"
+    ]
+  }
+}

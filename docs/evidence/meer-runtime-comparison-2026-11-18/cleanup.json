@@ -1,0 +1,38 @@
+{
+  "redroid": {
+    "pair1": {
+      "container_absent": true,
+      "volume_absent": true
+    },
+    "pair2": {
+      "container_absent": true,
+      "volume_absent": true
+    },
+    "pair3": {
+      "container_absent": true,
+      "volume_absent": true
+    },
+    "pair4": {
+      "container_absent": true,
+      "volume_absent": true
+    }
+  },
+  "avd": {
+    "stopped": true,
+    "config_restored": true,
+    "original_location_mode": "3",
+    "restored_location_mode": "3",
+    "original_animation_scales": [
+      "1.0",
+      "1.0",
+      "null"
+    ],
+    "restored_animation_scales": [
+      "1",
+      "1",
+      "1"
+    ],
+    "animation_note": "The device tool restored the effective defaults. The animator scale is now explicitly set to 1."
+  },
+  "metro_and_mock": "stopped"
+}

@@ -1,0 +1,10 @@
+{
+  "release_source": "50434b8a056514fafd9fcb63cc534ce369880184",
+  "release_version": "0.3.0",
+  "files_sha256": {
+    "bin/ashnazg": "4b133604f11d96967a4f12bcb72bf82872a096ef6751794bcd87d14f4326d00b",
+    "android/agent-instrumentation.apk": "87549b2df90506c6b8c38f10d0d90c8966f4030806e2da40cdd1f2da77dca32e",
+    "android/fixture-instrumentation.apk": "cafc888b119926235872c4bc23023c1dbbd7a986f33e11609e33244cccd49e1d"
+  },
+  "binder_bootstrap_sha256": "50d57ec848353d302a86f11fea0729bcc0fc749e997ff5cc0c5e928d295c2df6"
+}

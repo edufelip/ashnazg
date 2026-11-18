@@ -21,6 +21,10 @@ Download the [macOS ARM64 package](https://github.com/edufelip/ashnazg/releases/
 
 [Real CLI/VM acceptance](docs/evidence/public-runtime-0.3.0/README.md) covers public cold acquisition and a network-denied warm restart. Linux packages use the external Android setup below. Building from source remains supported.
 
+On Ubuntu x86_64, the [development session guide](docs/ubuntu-development.md)
+shows how to run the published Linux CLI with an owned Android guest, keep app
+data across sessions, and use [scrcpy alongside MCP](docs/development-viewer.md).
+
 ## Build and test
 
 Requirements: the pinned Rust toolchain (rustup), Java 17, Android SDK/platform-tools, SDK platform 35, Python 3.10+, and Node 24.15.0/npm for the framework fixtures (`.nvmrc`).

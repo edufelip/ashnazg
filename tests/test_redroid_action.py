@@ -83,6 +83,21 @@ class RedroidActionTests(unittest.TestCase):
         self.assertEqual(args[6:9], ["--timeout", "180", "--"])
         self.assertNotIn("--image-provenance", args)
 
+    def test_private_binder_selects_the_pinned_compatible_image(self):
+        bootstrap = str(self.root / "private binder-bootstrap")
+        result = self.run_wrapper(ASHNAZG_REDROID_BINDER_BOOTSTRAP=bootstrap)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = json.loads(self.capture.read_text())["args"]
+        self.assertEqual(args[8:13], ["--image-profile", "android15-64only", "--binder-bootstrap", bootstrap, "--"])
+
+    def test_private_binder_and_derived_image_are_mutually_exclusive(self):
+        result = self.run_wrapper(ASHNAZG_REDROID_BINDER_BOOTSTRAP="bootstrap",
+                                  ASHNAZG_REDROID_IMAGE_PROVENANCE="derived.json")
+
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse(self.capture.exists())
+
     def test_signal_forwarding_still_removes_command_file(self):
         env = os.environ.copy()
         env.update({

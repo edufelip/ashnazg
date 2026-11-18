@@ -1,0 +1,21 @@
+{
+  "runtime": "avd",
+  "serial": "emulator-5556",
+  "status": "passed",
+  "apk_sha256": {
+    "app": "513bea68fc46587f425dd6ee88e0fe69921623e0d47b5b2d48cf27d1a646e575",
+    "test": "a7ac1a29c04d6f3b592c8f5223864274a7de538b4170fc8386e66667eb021971"
+  },
+  "source": "a4c2f58f2cceb016136254b58f04d5b322cfa30a",
+  "api": "35",
+  "location_enabled": "false",
+  "animation_scales": {
+    "window_animation_scale": "0",
+    "transition_animation_scale": "0",
+    "animator_duration_scale": "0"
+  },
+  "detox_seconds": 85.0730942892842,
+  "detox_exit": 0,
+  "services_and_reverses_cleaned": true,
+  "command_seconds": 93.01356287812814
+}

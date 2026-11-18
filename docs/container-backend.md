@@ -11,6 +11,13 @@ The container backend is an additional Linux acceptance lane. The existing Andro
 
 The action inputs are `command` (required multiline shell), `output-directory` (`artifacts/redroid`), `adb-port` (`5555`), and `boot-timeout` (`180` seconds). Port and timeout are range checked; the output directory cannot be empty, the filesystem root, or contain parent-directory path components. Input values are passed to the supervisor as distinct arguments. The command is intentionally interpreted by Bash and stored in a mode-0600 owned temporary file, removed on ordinary exit, failure, or handled signal.
 
+On Linux x86_64 with kernel Binderfs support, `binder-bootstrap` accepts the
+path to a trusted static launcher built from this checkout. The Action selects
+the pinned Android 15 64-bit-only image and creates the Binder devices inside
+its owned guest. The caller supplies local Docker access and the executable
+described in the [development session guide](ubuntu-development.md#use-the-published-linux-package).
+The `binder-bootstrap` and `image-provenance` inputs are mutually exclusive.
+
 ## Security and ownership
 
 Only the explicit command input is executed as shell code. The action does not interpolate paths or numeric inputs into shell source. The supervisor is responsible for uniquely identifying and cleaning up only its own container and forwarding resources; it must not clean up foreign containers, devices, or host resources. ADB is expected to bind to host loopback. The workflow grants `contents: read`, pins every referenced GitHub Action to a commit, and uses only disposable hosted runners for its Binder probe. It may load the available `binder_linux` module and mounts a uniquely named Binderfs fixture on the disposable runner. Missing Binder character devices are allocated through the kernel Binderfs ioctl, with owned aliases and an always-run cleanup step. It never replaces foreign nodes, unloads a shared module, installs kernels, restarts Docker, or changes the runner image. The reusable Action itself still requires the caller to supply a Binder-capable host; CI provisioning is explicitly restricted to disposable GitHub runners.

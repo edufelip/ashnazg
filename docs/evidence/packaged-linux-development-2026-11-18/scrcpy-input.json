@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-18",
+  "result": "passed",
+  "launcher_source": "ce7f0cd3cd37dd338131a0296566b8fceebb95bb",
+  "release_version": "0.3.0",
+  "release_source": "50434b8a056514fafd9fcb63cc534ce369880184",
+  "fixture_apk_sha256": "cafc888b119926235872c4bc23023c1dbbd7a986f33e11609e33244cccd49e1d",
+  "host": "Linux x86_64",
+  "guest": "ReDroid Android 15",
+  "guest_image": "redroid/redroid@sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
+  "run_id": "343d4306-964c-427e-9d68-ad67a9484f23",
+  "scrcpy_version": "3.3.4",
+  "initial_texture": "720x1280",
+  "reconnected_texture": "720x1280",
+  "action": "One operator-confirmed click in the reconnected scrcpy window",
+  "fixture_target": "dev.ashnazg.fixture:id/increment",
+  "device_panel_counter_before": 0,
+  "device_panel_counter_after": 1,
+  "count_events_before": [],
+  "count_events_after": [
+    "11-18 18:01:58.006  2548  2548 I AshnazgFixture: count=1"
+  ],
+  "cleanup": {
+    "viewer_stopped": true,
+    "owned_container_removed": true,
+    "adb_registration_removed": true,
+    "agent_forward_removed": true,
+    "owned_listeners_closed": true
+  }
+}

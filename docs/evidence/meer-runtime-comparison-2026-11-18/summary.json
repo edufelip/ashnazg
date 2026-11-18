@@ -1,0 +1,1429 @@
+{
+  "scope": "same host and two pinned logical CPUs; deployed Android runtimes with different guest resource visibility and system images",
+  "arms": {
+    "pair1-avd": {
+      "samples": [
+        {
+          "trial": "trial-1",
+          "login_with_email_ms": 4439.977,
+          "open_search_ms": 5306.516,
+          "journey_total_ms": 10995.692,
+          "pss_plus_swap_kib": 3882609,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-2",
+          "login_with_email_ms": 4142.482,
+          "open_search_ms": 4626.361,
+          "journey_total_ms": 9816.75,
+          "pss_plus_swap_kib": 3889387,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-3",
+          "login_with_email_ms": 4249.492,
+          "open_search_ms": 4675.594,
+          "journey_total_ms": 10014.785,
+          "pss_plus_swap_kib": 3898993,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-4",
+          "login_with_email_ms": 4058.085,
+          "open_search_ms": 4150.26,
+          "journey_total_ms": 9294.331,
+          "pss_plus_swap_kib": 3899249,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-5",
+          "login_with_email_ms": 4266.631,
+          "open_search_ms": 4753.107,
+          "journey_total_ms": 10111.695,
+          "pss_plus_swap_kib": 3900421,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        }
+      ],
+      "controls": {
+        "boot": {
+          "main_pid": 1940058,
+          "pid_start": "299361609"
+        },
+        "scope": "2 host logical CPUs, deployment comparison",
+        "props": {
+          "ro.build.fingerprint": "google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys",
+          "ro.build.version.sdk": "35",
+          "ro.product.cpu.abi": "x86_64"
+        },
+        "size": "Physical size: 720x1280",
+        "density": "Physical density: 320",
+        "visible_cpus": "0-1",
+        "meminfo": "MemTotal:        2532416 kB",
+        "location_mode": "0",
+        "animations": {
+          "window_animation_scale": "0",
+          "transition_animation_scale": "0",
+          "animator_duration_scale": "0"
+        },
+        "renderer": "GLES: Google (Google Inc.), Android Emulator OpenGL ES Translator (Google SwiftShader), OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)",
+        "load_average": [
+          2.27685546875,
+          1.625,
+          1.45361328125
+        ],
+        "source": "399ce4b5a673a2d19607ca4fafb299c310a2df98"
+      },
+      "metrics": {
+        "login_with_email_ms": {
+          "p50": 4249.492,
+          "p95": 4439.977,
+          "min": 4058.085,
+          "max": 4439.977
+        },
+        "open_search_ms": {
+          "p50": 4675.594,
+          "p95": 5306.516,
+          "min": 4150.26,
+          "max": 5306.516
+        },
+        "journey_total_ms": {
+          "p50": 10014.785,
+          "p95": 10995.692,
+          "min": 9294.331,
+          "max": 10995.692
+        },
+        "pss_plus_swap_kib": {
+          "p50": 3898993,
+          "p95": 3900421,
+          "min": 3882609,
+          "max": 3900421
+        }
+      }
+    },
+    "pair1-redroid": {
+      "samples": [
+        {
+          "trial": "trial-1",
+          "login_with_email_ms": 2399.187,
+          "open_search_ms": 2931.611,
+          "journey_total_ms": 6101.104,
+          "pss_plus_swap_kib": 1880395,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-2",
+          "login_with_email_ms": 2445.122,
+          "open_search_ms": 2946.966,
+          "journey_total_ms": 6153.684,
+          "pss_plus_swap_kib": 1893981,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-3",
+          "login_with_email_ms": 2454.162,
+          "open_search_ms": 2829.815,
+          "journey_total_ms": 6049.456,
+          "pss_plus_swap_kib": 1897803,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-4",
+          "login_with_email_ms": 2388.003,
+          "open_search_ms": 2711.221,
+          "journey_total_ms": 5848.194,
+          "pss_plus_swap_kib": 1908755,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-5",
+          "login_with_email_ms": 2378.245,
+          "open_search_ms": 2722.348,
+          "journey_total_ms": 5851.714,
+          "pss_plus_swap_kib": 1899632,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        }
+      ],
+      "controls": {
+        "boot": {
+          "container_id": "9f027459d6dac1de19690dba4b2e324b8ff8a37d1927be1dbebce2374470c921",
+          "image": "sha256:2476a9b4df84c3984c87d46479531b321f94219ea0625b9cd6ba0038c7857cf1",
+          "started_at": "2026-11-18T09:53:02.221654602Z"
+        },
+        "scope": "2 host logical CPUs, deployment comparison",
+        "props": {
+          "ro.build.fingerprint": "redroid/redroid_x86_64_only/redroid_x86_64_only:15/BP1A.250505.005.D1/eng.root:userdebug/test-keys",
+          "ro.build.version.sdk": "35",
+          "ro.product.cpu.abi": "x86_64"
+        },
+        "size": "Physical size: 720x1280",
+        "density": "Physical density: 320",
+        "visible_cpus": "0-15",
+        "meminfo": "MemTotal:       31842000 kB",
+        "location_mode": "0",
+        "animations": {
+          "window_animation_scale": "0",
+          "transition_animation_scale": "0",
+          "animator_duration_scale": "0"
+        },
+        "renderer": "GLES: Google Inc. (Google), ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver-5.0.0), OpenGL ES 3.2.0 (ANGLE 2.1 git hash: c174aa7079d9feaafefc43583f981fc1aef10e7c)",
+        "load_average": [
+          4.27392578125,
+          3.068359375,
+          2.09326171875
+        ],
+        "source": "399ce4b5a673a2d19607ca4fafb299c310a2df98"
+      },
+      "metrics": {
+        "login_with_email_ms": {
+          "p50": 2399.187,
+          "p95": 2454.162,
+          "min": 2378.245,
+          "max": 2454.162
+        },
+        "open_search_ms": {
+          "p50": 2829.815,
+          "p95": 2946.966,
+          "min": 2711.221,
+          "max": 2946.966
+        },
+        "journey_total_ms": {
+          "p50": 6049.456,
+          "p95": 6153.684,
+          "min": 5848.194,
+          "max": 6153.684
+        },
+        "pss_plus_swap_kib": {
+          "p50": 1897803,
+          "p95": 1908755,
+          "min": 1880395,
+          "max": 1908755
+        }
+      }
+    },
+    "pair2-avd": {
+      "samples": [
+        {
+          "trial": "trial-1",
+          "login_with_email_ms": 3971.908,
+          "open_search_ms": 5664.253,
+          "journey_total_ms": 10954.965,
+          "pss_plus_swap_kib": 3817963,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-2",
+          "login_with_email_ms": 4471.445,
+          "open_search_ms": 5459.436,
+          "journey_total_ms": 11179.508,
+          "pss_plus_swap_kib": 3864871,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-3",
+          "login_with_email_ms": 4011.288,
+          "open_search_ms": 4805.256,
+          "journey_total_ms": 9812.714,
+          "pss_plus_swap_kib": 3876367,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-4",
+          "login_with_email_ms": 3747.421,
+          "open_search_ms": 4158.625,
+          "journey_total_ms": 9188.587,
+          "pss_plus_swap_kib": 3885023,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-5",
+          "login_with_email_ms": 3878.269,
+          "open_search_ms": 5211.449,
+          "journey_total_ms": 10082.377,
+          "pss_plus_swap_kib": 3885379,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        }
+      ],
+      "controls": {
+        "boot": {
+          "main_pid": 1983182,
+          "pid_start": "299448328"
+        },
+        "scope": "2 host logical CPUs, deployment comparison",
+        "props": {
+          "ro.build.fingerprint": "google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys",
+          "ro.build.version.sdk": "35",
+          "ro.product.cpu.abi": "x86_64"
+        },
+        "size": "Physical size: 720x1280",
+        "density": "Physical density: 320",
+        "visible_cpus": "0-1",
+        "meminfo": "MemTotal:        2532416 kB",
+        "location_mode": "0",
+        "animations": {
+          "window_animation_scale": "0",
+          "transition_animation_scale": "0",
+          "animator_duration_scale": "0"
+        },
+        "renderer": "GLES: Google (Google Inc.), Android Emulator OpenGL ES Translator (Google SwiftShader), OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)",
+        "load_average": [
+          3.11181640625,
+          3.361328125,
+          2.69970703125
+        ],
+        "source": "399ce4b5a673a2d19607ca4fafb299c310a2df98"
+      },
+      "metrics": {
+        "login_with_email_ms": {
+          "p50": 3971.908,
+          "p95": 4471.445,
+          "min": 3747.421,
+          "max": 4471.445
+        },
+        "open_search_ms": {
+          "p50": 5211.449,
+          "p95": 5664.253,
+          "min": 4158.625,
+          "max": 5664.253
+        },
+        "journey_total_ms": {
+          "p50": 10082.377,
+          "p95": 11179.508,
+          "min": 9188.587,
+          "max": 11179.508
+        },
+        "pss_plus_swap_kib": {
+          "p50": 3876367,
+          "p95": 3885379,
+          "min": 3817963,
+          "max": 3885379
+        }
+      }
+    },
+    "pair2-redroid": {
+      "samples": [
+        {
+          "trial": "trial-1",
+          "login_with_email_ms": 2430.622,
+          "open_search_ms": 2669.014,
+          "journey_total_ms": 5881.041,
+          "pss_plus_swap_kib": 1899065,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-2",
+          "login_with_email_ms": 2489.445,
+          "open_search_ms": 2463.609,
+          "journey_total_ms": 5691.854,
+          "pss_plus_swap_kib": 1901744,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-3",
+          "login_with_email_ms": 2352.889,
+          "open_search_ms": 2765.44,
+          "journey_total_ms": 5870.699,
+          "pss_plus_swap_kib": 1906491,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-4",
+          "login_with_email_ms": 2379.082,
+          "open_search_ms": 2222.984,
+          "journey_total_ms": 5384.91,
+          "pss_plus_swap_kib": 1916201,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-5",
+          "login_with_email_ms": 2468.183,
+          "open_search_ms": 2756.182,
+          "journey_total_ms": 5971.548,
+          "pss_plus_swap_kib": 1909753,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        }
+      ],
+      "controls": {
+        "boot": {
+          "container_id": "1f12d0e0d863966ffdae87a763500d847fc0d04b8a5f1050c67a19d9eb964447",
+          "image": "sha256:2476a9b4df84c3984c87d46479531b321f94219ea0625b9cd6ba0038c7857cf1",
+          "started_at": "2026-11-18T09:57:21.493963399Z"
+        },
+        "scope": "2 host logical CPUs, deployment comparison",
+        "props": {
+          "ro.build.fingerprint": "redroid/redroid_x86_64_only/redroid_x86_64_only:15/BP1A.250505.005.D1/eng.root:userdebug/test-keys",
+          "ro.build.version.sdk": "35",
+          "ro.product.cpu.abi": "x86_64"
+        },
+        "size": "Physical size: 720x1280",
+        "density": "Physical density: 320",
+        "visible_cpus": "0-15",
+        "meminfo": "MemTotal:       31842000 kB",
+        "location_mode": "0",
+        "animations": {
+          "window_animation_scale": "0",
+          "transition_animation_scale": "0",
+          "animator_duration_scale": "0"
+        },
+        "renderer": "GLES: Google Inc. (Google), ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver-5.0.0), OpenGL ES 3.2.0 (ANGLE 2.1 git hash: c174aa7079d9feaafefc43583f981fc1aef10e7c)",
+        "load_average": [
+          6.7255859375,
+          4.3095703125,
+          2.7626953125
+        ],
+        "source": "399ce4b5a673a2d19607ca4fafb299c310a2df98"
+      },
+      "metrics": {
+        "login_with_email_ms": {
+          "p50": 2430.622,
+          "p95": 2489.445,
+          "min": 2352.889,
+          "max": 2489.445
+        },
+        "open_search_ms": {
+          "p50": 2669.014,
+          "p95": 2765.44,
+          "min": 2222.984,
+          "max": 2765.44
+        },
+        "journey_total_ms": {
+          "p50": 5870.699,
+          "p95": 5971.548,
+          "min": 5384.91,
+          "max": 5971.548
+        },
+        "pss_plus_swap_kib": {
+          "p50": 1906491,
+          "p95": 1916201,
+          "min": 1899065,
+          "max": 1916201
+        }
+      }
+    },
+    "pair3-avd": {
+      "samples": [
+        {
+          "trial": "trial-1",
+          "login_with_email_ms": 4541.689,
+          "open_search_ms": 4718.664,
+          "journey_total_ms": 10712.604,
+          "pss_plus_swap_kib": 3828309,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-2",
+          "login_with_email_ms": 3824.169,
+          "open_search_ms": 5287.156,
+          "journey_total_ms": 10357.997,
+          "pss_plus_swap_kib": 3859857,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-3",
+          "login_with_email_ms": 3983.83,
+          "open_search_ms": 4297.81,
+          "journey_total_ms": 9390.925,
+          "pss_plus_swap_kib": 3864881,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-4",
+          "login_with_email_ms": 4272.342,
+          "open_search_ms": 4960.286,
+          "journey_total_ms": 10247.592,
+          "pss_plus_swap_kib": 3876237,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-5",
+          "login_with_email_ms": 3691.383,
+          "open_search_ms": 4945.455,
+          "journey_total_ms": 9923.733,
+          "pss_plus_swap_kib": 3877829,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        }
+      ],
+      "controls": {
+        "boot": {
+          "main_pid": 1993340,
+          "pid_start": "299479787"
+        },
+        "scope": "2 host logical CPUs, deployment comparison",
+        "props": {
+          "ro.build.fingerprint": "google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys",
+          "ro.build.version.sdk": "35",
+          "ro.product.cpu.abi": "x86_64"
+        },
+        "size": "Physical size: 720x1280",
+        "density": "Physical density: 320",
+        "visible_cpus": "0-1",
+        "meminfo": "MemTotal:        2532416 kB",
+        "location_mode": "0",
+        "animations": {
+          "window_animation_scale": "0",
+          "transition_animation_scale": "0",
+          "animator_duration_scale": "0"
+        },
+        "renderer": "GLES: Google (Google Inc.), Android Emulator OpenGL ES Translator (Google SwiftShader), OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)",
+        "load_average": [
+          5.83349609375,
+          4.70458984375,
+          3.4091796875
+        ],
+        "source": "399ce4b5a673a2d19607ca4fafb299c310a2df98"
+      },
+      "metrics": {
+        "login_with_email_ms": {
+          "p50": 3983.83,
+          "p95": 4541.689,
+          "min": 3691.383,
+          "max": 4541.689
+        },
+        "open_search_ms": {
+          "p50": 4945.455,
+          "p95": 5287.156,
+          "min": 4297.81,
+          "max": 5287.156
+        },
+        "journey_total_ms": {
+          "p50": 10247.592,
+          "p95": 10712.604,
+          "min": 9390.925,
+          "max": 10712.604
+        },
+        "pss_plus_swap_kib": {
+          "p50": 3864881,
+          "p95": 3877829,
+          "min": 3828309,
+          "max": 3877829
+        }
+      }
+    },
+    "pair3-redroid": {
+      "samples": [
+        {
+          "trial": "trial-1",
+          "login_with_email_ms": 2400.987,
+          "open_search_ms": 2452.19,
+          "journey_total_ms": 5609.421,
+          "pss_plus_swap_kib": 1883191,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-2",
+          "login_with_email_ms": 2442.2,
+          "open_search_ms": 2801.807,
+          "journey_total_ms": 6008.54,
+          "pss_plus_swap_kib": 1890777,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-3",
+          "login_with_email_ms": 2472.778,
+          "open_search_ms": 2609.07,
+          "journey_total_ms": 5883.408,
+          "pss_plus_swap_kib": 1886069,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-4",
+          "login_with_email_ms": 2437.145,
+          "open_search_ms": 2519.9,
+          "journey_total_ms": 5711.871,
+          "pss_plus_swap_kib": 1875145,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-5",
+          "login_with_email_ms": 2416.756,
+          "open_search_ms": 2707.878,
+          "journey_total_ms": 5906.501,
+          "pss_plus_swap_kib": 1888271,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        }
+      ],
+      "controls": {
+        "boot": {
+          "container_id": "2821a065a15b0b7cd8a4ab929d013a9f15130d280c7d8b750e10441a95de6e7b",
+          "image": "sha256:2476a9b4df84c3984c87d46479531b321f94219ea0625b9cd6ba0038c7857cf1",
+          "started_at": "2026-11-18T10:11:46.924361257Z"
+        },
+        "scope": "2 host logical CPUs, deployment comparison",
+        "props": {
+          "ro.build.fingerprint": "redroid/redroid_x86_64_only/redroid_x86_64_only:15/BP1A.250505.005.D1/eng.root:userdebug/test-keys",
+          "ro.build.version.sdk": "35",
+          "ro.product.cpu.abi": "x86_64"
+        },
+        "size": "Physical size: 720x1280",
+        "density": "Physical density: 320",
+        "visible_cpus": "0-15",
+        "meminfo": "MemTotal:       31842000 kB",
+        "location_mode": "0",
+        "animations": {
+          "window_animation_scale": "0",
+          "transition_animation_scale": "0",
+          "animator_duration_scale": "0"
+        },
+        "renderer": "GLES: Google Inc. (Google), ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver-5.0.0), OpenGL ES 3.2.0 (ANGLE 2.1 git hash: c174aa7079d9feaafefc43583f981fc1aef10e7c)",
+        "load_average": [
+          8.05322265625,
+          5.14990234375,
+          3.84912109375
+        ],
+        "source": "399ce4b5a673a2d19607ca4fafb299c310a2df98"
+      },
+      "metrics": {
+        "login_with_email_ms": {
+          "p50": 2437.145,
+          "p95": 2472.778,
+          "min": 2400.987,
+          "max": 2472.778
+        },
+        "open_search_ms": {
+          "p50": 2609.07,
+          "p95": 2801.807,
+          "min": 2452.19,
+          "max": 2801.807
+        },
+        "journey_total_ms": {
+          "p50": 5883.408,
+          "p95": 6008.54,
+          "min": 5609.421,
+          "max": 6008.54
+        },
+        "pss_plus_swap_kib": {
+          "p50": 1886069,
+          "p95": 1890777,
+          "min": 1875145,
+          "max": 1890777
+        }
+      }
+    },
+    "pair4-avd": {
+      "samples": [
+        {
+          "trial": "trial-1",
+          "login_with_email_ms": 4616.79,
+          "open_search_ms": 5308.535,
+          "journey_total_ms": 11073.703,
+          "pss_plus_swap_kib": 3848428,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-2",
+          "login_with_email_ms": 4008.3,
+          "open_search_ms": 5219.378,
+          "journey_total_ms": 10408.253,
+          "pss_plus_swap_kib": 3876460,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-3",
+          "login_with_email_ms": 4221.702,
+          "open_search_ms": 5414.921,
+          "journey_total_ms": 10627.708,
+          "pss_plus_swap_kib": 3876696,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-4",
+          "login_with_email_ms": 3778.025,
+          "open_search_ms": 5319.414,
+          "journey_total_ms": 10375.842,
+          "pss_plus_swap_kib": 3881397,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-5",
+          "login_with_email_ms": 4240.775,
+          "open_search_ms": 4354.611,
+          "journey_total_ms": 9760.349,
+          "pss_plus_swap_kib": 3897012,
+          "process_count": 1,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        }
+      ],
+      "controls": {
+        "boot": {
+          "main_pid": 2044237,
+          "pid_start": "299558832"
+        },
+        "scope": "2 host logical CPUs, deployment comparison",
+        "props": {
+          "ro.build.fingerprint": "google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys",
+          "ro.build.version.sdk": "35",
+          "ro.product.cpu.abi": "x86_64"
+        },
+        "size": "Physical size: 720x1280",
+        "density": "Physical density: 320",
+        "visible_cpus": "0-1",
+        "meminfo": "MemTotal:        2532420 kB",
+        "location_mode": "0",
+        "animations": {
+          "window_animation_scale": "0",
+          "transition_animation_scale": "0",
+          "animator_duration_scale": "0"
+        },
+        "renderer": "GLES: Google (Google Inc.), Android Emulator OpenGL ES Translator (Google SwiftShader), OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)",
+        "load_average": [
+          3.43603515625,
+          3.77783203125,
+          3.703125
+        ],
+        "source": "399ce4b5a673a2d19607ca4fafb299c310a2df98"
+      },
+      "metrics": {
+        "login_with_email_ms": {
+          "p50": 4221.702,
+          "p95": 4616.79,
+          "min": 3778.025,
+          "max": 4616.79
+        },
+        "open_search_ms": {
+          "p50": 5308.535,
+          "p95": 5414.921,
+          "min": 4354.611,
+          "max": 5414.921
+        },
+        "journey_total_ms": {
+          "p50": 10408.253,
+          "p95": 11073.703,
+          "min": 9760.349,
+          "max": 11073.703
+        },
+        "pss_plus_swap_kib": {
+          "p50": 3876696,
+          "p95": 3897012,
+          "min": 3848428,
+          "max": 3897012
+        }
+      }
+    },
+    "pair4-redroid": {
+      "samples": [
+        {
+          "trial": "trial-1",
+          "login_with_email_ms": 2456.816,
+          "open_search_ms": 2704.445,
+          "journey_total_ms": 5925.193,
+          "pss_plus_swap_kib": 1893207,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-2",
+          "login_with_email_ms": 2376.427,
+          "open_search_ms": 2724.932,
+          "journey_total_ms": 5870.805,
+          "pss_plus_swap_kib": 1904523,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-3",
+          "login_with_email_ms": 2425.039,
+          "open_search_ms": 2526.376,
+          "journey_total_ms": 5719.129,
+          "pss_plus_swap_kib": 1903419,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-4",
+          "login_with_email_ms": 2431.91,
+          "open_search_ms": 2359.037,
+          "journey_total_ms": 5567.074,
+          "pss_plus_swap_kib": 1900771,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        },
+        {
+          "trial": "trial-5",
+          "login_with_email_ms": 2379.254,
+          "open_search_ms": 2602.88,
+          "journey_total_ms": 5744.12,
+          "pss_plus_swap_kib": 1903920,
+          "process_count": 84,
+          "swap_kib": 0,
+          "nearby_coordinates": [
+            [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          ],
+          "artifact_identity": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011"
+        }
+      ],
+      "controls": {
+        "boot": {
+          "container_id": "c6c15af0bd7577bdd73d2bc32a08460aa58864c091e28209257e54aa66640e5e",
+          "image": "sha256:2476a9b4df84c3984c87d46479531b321f94219ea0625b9cd6ba0038c7857cf1",
+          "started_at": "2026-11-18T10:15:47.634626483Z"
+        },
+        "scope": "2 host logical CPUs, deployment comparison",
+        "props": {
+          "ro.build.fingerprint": "redroid/redroid_x86_64_only/redroid_x86_64_only:15/BP1A.250505.005.D1/eng.root:userdebug/test-keys",
+          "ro.build.version.sdk": "35",
+          "ro.product.cpu.abi": "x86_64"
+        },
+        "size": "Physical size: 720x1280",
+        "density": "Physical density: 320",
+        "visible_cpus": "0-15",
+        "meminfo": "MemTotal:       31842000 kB",
+        "location_mode": "0",
+        "animations": {
+          "window_animation_scale": "0",
+          "transition_animation_scale": "0",
+          "animator_duration_scale": "0"
+        },
+        "renderer": "GLES: Google Inc. (Google), ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver-5.0.0), OpenGL ES 3.2.0 (ANGLE 2.1 git hash: c174aa7079d9feaafefc43583f981fc1aef10e7c)",
+        "load_average": [
+          5.6845703125,
+          4.9033203125,
+          3.99658203125
+        ],
+        "source": "399ce4b5a673a2d19607ca4fafb299c310a2df98"
+      },
+      "metrics": {
+        "login_with_email_ms": {
+          "p50": 2425.039,
+          "p95": 2456.816,
+          "min": 2376.427,
+          "max": 2456.816
+        },
+        "open_search_ms": {
+          "p50": 2602.88,
+          "p95": 2724.932,
+          "min": 2359.037,
+          "max": 2724.932
+        },
+        "journey_total_ms": {
+          "p50": 5744.12,
+          "p95": 5925.193,
+          "min": 5567.074,
+          "max": 5925.193
+        },
+        "pss_plus_swap_kib": {
+          "p50": 1903419,
+          "p95": 1904523,
+          "min": 1893207,
+          "max": 1904523
+        }
+      }
+    }
+  },
+  "pairs": [
+    {
+      "pair": 1,
+      "avd_first": true,
+      "agrees_workload_coordinates": true,
+      "avd": {
+        "login_with_email_ms": {
+          "p50": 4249.492,
+          "p95": 4439.977,
+          "min": 4058.085,
+          "max": 4439.977
+        },
+        "open_search_ms": {
+          "p50": 4675.594,
+          "p95": 5306.516,
+          "min": 4150.26,
+          "max": 5306.516
+        },
+        "journey_total_ms": {
+          "p50": 10014.785,
+          "p95": 10995.692,
+          "min": 9294.331,
+          "max": 10995.692
+        },
+        "pss_plus_swap_kib": {
+          "p50": 3898993,
+          "p95": 3900421,
+          "min": 3882609,
+          "max": 3900421
+        }
+      },
+      "redroid": {
+        "login_with_email_ms": {
+          "p50": 2399.187,
+          "p95": 2454.162,
+          "min": 2378.245,
+          "max": 2454.162
+        },
+        "open_search_ms": {
+          "p50": 2829.815,
+          "p95": 2946.966,
+          "min": 2711.221,
+          "max": 2946.966
+        },
+        "journey_total_ms": {
+          "p50": 6049.456,
+          "p95": 6153.684,
+          "min": 5848.194,
+          "max": 6153.684
+        },
+        "pss_plus_swap_kib": {
+          "p50": 1897803,
+          "p95": 1908755,
+          "min": 1880395,
+          "max": 1908755
+        }
+      },
+      "percent_lower": {
+        "login_with_email_ms": 43.541792760169926,
+        "open_search_ms": 39.476887856387876,
+        "journey_total_ms": 39.59474916336197,
+        "pss_plus_swap_kib": 51.3258166916432
+      }
+    },
+    {
+      "pair": 2,
+      "avd_first": false,
+      "agrees_workload_coordinates": true,
+      "avd": {
+        "login_with_email_ms": {
+          "p50": 3971.908,
+          "p95": 4471.445,
+          "min": 3747.421,
+          "max": 4471.445
+        },
+        "open_search_ms": {
+          "p50": 5211.449,
+          "p95": 5664.253,
+          "min": 4158.625,
+          "max": 5664.253
+        },
+        "journey_total_ms": {
+          "p50": 10082.377,
+          "p95": 11179.508,
+          "min": 9188.587,
+          "max": 11179.508
+        },
+        "pss_plus_swap_kib": {
+          "p50": 3876367,
+          "p95": 3885379,
+          "min": 3817963,
+          "max": 3885379
+        }
+      },
+      "redroid": {
+        "login_with_email_ms": {
+          "p50": 2430.622,
+          "p95": 2489.445,
+          "min": 2352.889,
+          "max": 2489.445
+        },
+        "open_search_ms": {
+          "p50": 2669.014,
+          "p95": 2765.44,
+          "min": 2222.984,
+          "max": 2765.44
+        },
+        "journey_total_ms": {
+          "p50": 5870.699,
+          "p95": 5971.548,
+          "min": 5384.91,
+          "max": 5971.548
+        },
+        "pss_plus_swap_kib": {
+          "p50": 1906491,
+          "p95": 1916201,
+          "min": 1899065,
+          "max": 1916201
+        }
+      },
+      "percent_lower": {
+        "login_with_email_ms": 38.80467523416957,
+        "open_search_ms": 48.78556808288826,
+        "journey_total_ms": 41.77266928225358,
+        "pss_plus_swap_kib": 50.81758254571871
+      }
+    },
+    {
+      "pair": 3,
+      "avd_first": true,
+      "agrees_workload_coordinates": true,
+      "avd": {
+        "login_with_email_ms": {
+          "p50": 3983.83,
+          "p95": 4541.689,
+          "min": 3691.383,
+          "max": 4541.689
+        },
+        "open_search_ms": {
+          "p50": 4945.455,
+          "p95": 5287.156,
+          "min": 4297.81,
+          "max": 5287.156
+        },
+        "journey_total_ms": {
+          "p50": 10247.592,
+          "p95": 10712.604,
+          "min": 9390.925,
+          "max": 10712.604
+        },
+        "pss_plus_swap_kib": {
+          "p50": 3864881,
+          "p95": 3877829,
+          "min": 3828309,
+          "max": 3877829
+        }
+      },
+      "redroid": {
+        "login_with_email_ms": {
+          "p50": 2437.145,
+          "p95": 2472.778,
+          "min": 2400.987,
+          "max": 2472.778
+        },
+        "open_search_ms": {
+          "p50": 2609.07,
+          "p95": 2801.807,
+          "min": 2452.19,
+          "max": 2801.807
+        },
+        "journey_total_ms": {
+          "p50": 5883.408,
+          "p95": 6008.54,
+          "min": 5609.421,
+          "max": 6008.54
+        },
+        "pss_plus_swap_kib": {
+          "p50": 1886069,
+          "p95": 1890777,
+          "min": 1875145,
+          "max": 1890777
+        }
+      },
+      "percent_lower": {
+        "login_with_email_ms": 38.824071308263655,
+        "open_search_ms": 47.243074701923284,
+        "journey_total_ms": 42.58740980320059,
+        "pss_plus_swap_kib": 51.19981701894574
+      }
+    },
+    {
+      "pair": 4,
+      "avd_first": false,
+      "agrees_workload_coordinates": true,
+      "avd": {
+        "login_with_email_ms": {
+          "p50": 4221.702,
+          "p95": 4616.79,
+          "min": 3778.025,
+          "max": 4616.79
+        },
+        "open_search_ms": {
+          "p50": 5308.535,
+          "p95": 5414.921,
+          "min": 4354.611,
+          "max": 5414.921
+        },
+        "journey_total_ms": {
+          "p50": 10408.253,
+          "p95": 11073.703,
+          "min": 9760.349,
+          "max": 11073.703
+        },
+        "pss_plus_swap_kib": {
+          "p50": 3876696,
+          "p95": 3897012,
+          "min": 3848428,
+          "max": 3897012
+        }
+      },
+      "redroid": {
+        "login_with_email_ms": {
+          "p50": 2425.039,
+          "p95": 2456.816,
+          "min": 2376.427,
+          "max": 2456.816
+        },
+        "open_search_ms": {
+          "p50": 2602.88,
+          "p95": 2724.932,
+          "min": 2359.037,
+          "max": 2724.932
+        },
+        "journey_total_ms": {
+          "p50": 5744.12,
+          "p95": 5925.193,
+          "min": 5567.074,
+          "max": 5925.193
+        },
+        "pss_plus_swap_kib": {
+          "p50": 1903419,
+          "p95": 1904523,
+          "min": 1893207,
+          "max": 1904523
+        }
+      },
+      "percent_lower": {
+        "login_with_email_ms": 42.55778830433792,
+        "open_search_ms": 50.96801659968333,
+        "journey_total_ms": 44.81187188666532,
+        "pss_plus_swap_kib": 50.9009992013818
+      }
+    }
+  ],
+  "pooled": {
+    "avd": {
+      "login_with_email_ms": {
+        "p50": 4100.2835,
+        "p95": 4541.689,
+        "min": 3691.383,
+        "max": 4616.79
+      },
+      "open_search_ms": {
+        "p50": 4952.8705,
+        "p95": 5459.436,
+        "min": 4150.26,
+        "max": 5664.253
+      },
+      "journey_total_ms": {
+        "p50": 10179.6435,
+        "p95": 11073.703,
+        "min": 9188.587,
+        "max": 11179.508
+      },
+      "pss_plus_swap_kib": {
+        "p50": 3877262.5,
+        "p95": 3899249,
+        "min": 3817963,
+        "max": 3900421
+      }
+    },
+    "redroid": {
+      "login_with_email_ms": {
+        "p50": 2427.8305,
+        "p95": 2472.778,
+        "min": 2352.889,
+        "max": 2489.445
+      },
+      "open_search_ms": {
+        "p50": 2706.1615,
+        "p95": 2931.611,
+        "min": 2222.984,
+        "max": 2946.966
+      },
+      "journey_total_ms": {
+        "p50": 5870.752,
+        "p95": 6101.104,
+        "min": 5384.91,
+        "max": 6153.684
+      },
+      "pss_plus_swap_kib": {
+        "p50": 1899348.5,
+        "p95": 1909753,
+        "min": 1875145,
+        "max": 1916201
+      }
+    }
+  }
+}

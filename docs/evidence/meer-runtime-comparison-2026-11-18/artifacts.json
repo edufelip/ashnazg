@@ -1,0 +1,15 @@
+{
+  "app_apk": {
+    "sha256": "513bea68fc46587f425dd6ee88e0fe69921623e0d47b5b2d48cf27d1a646e575"
+  },
+  "metro_bundle": {
+    "sha256": "8d61071029f4a3aa3f83db82fd052185c6f757beba7ec2f95618332681f002aa",
+    "lazy": false
+  },
+  "mock_dataset": {
+    "sha256": "e9f254501b2505a48dbc25af569468d7870db12ee6dc1b5bf66b306d6115a39f"
+  },
+  "test_apk": {
+    "sha256": "a7ac1a29c04d6f3b592c8f5223864274a7de538b4170fc8386e66667eb021971"
+  }
+}

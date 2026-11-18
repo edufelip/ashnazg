@@ -1,5 +1,4 @@
 import os
-import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -12,13 +11,10 @@ class WindowDiagnosticsTests(unittest.TestCase):
             with self.subTest(setting=setting), patch.dict(os.environ, {}, clear=True):
                 if setting is not None:
                     os.environ["ASHNAZG_CI_DIAGNOSTICS"] = setting
-                harness = DeviceHarness.__new__(DeviceHarness)
-                harness.adb = "adb"
-                harness.serial = "explicit-owned-device"
-                harness.token = "test-token"
-                harness.readiness_timeout = 1
-                with tempfile.TemporaryFile(mode="w+b") as log:
-                    harness.instrument_log = log
+                with patch("scripts.harness.adb_path", return_value="adb"), \
+                        patch("scripts.harness.select_device", return_value="explicit-owned-device"):
+                    harness = DeviceHarness(readiness_timeout=1)
+                with harness.instrument_log:
                     with patch.object(harness, "assert_available"), patch.object(harness, "adb_cmd"), \
                             patch("scripts.harness.subprocess.Popen") as spawn:
                         spawn.return_value.poll.return_value = 1
