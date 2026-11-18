@@ -27,10 +27,10 @@ Start and verify the app's developer server separately using the selected app's 
 
 ## Acceptance status
 
-- [Packaged Linux](evidence/packaged-linux-development-2026-11-18/README.md) verified an explicit install, Metro and mock API connectivity, login-field input with semantic readback, PNG, logs, and scrcpy reconnect.
+- [Packaged Linux](evidence/packaged-linux-development-2026-11-18/README.md) recorded MCP login-field input with semantic readback, PNG capture, app logs, and scrcpy reconnect.
 - [Paired Android benchmark](evidence/meer-runtime-comparison-2026-11-18/README.md) verified the mock login, Search and Home journey on both Android runtimes.
-- Native Ashnazg v0.3.0 on Apple Silicon passed the mock login, Search and return-to-Home Detox journey with the ARM64 Meer DEV and AndroidTest APKs. Detox attached to the owned guest's loopback relay through a private ADB server. The run used the login-button and Home feed readiness checks from the [Linux CI pilot](evidence/meer-ci-pilot-2026-11-18/README.md).
-- [Packaged persistence](evidence/packaged-linux-development-2026-11-18/meer-persistence.json) verified authenticated Home after a fresh guest boot and reinstall of the same APK. A [forward upgrade](evidence/packaged-linux-development-2026-11-18/meer-upgrade.json) from Android version code 1 to 2 preserved the mock-authenticated session across guest restart and APK replacement.
+- [Native Ashnazg v0.3.0 on Apple Silicon](evidence/meer-apple-silicon-2026-11-18/meer-detox.json) passed the mock login, Search and return-to-Home Detox journey with the ARM64 Meer DEV and AndroidTest APKs. Detox attached to the owned guest's loopback relay through a private ADB server. The run used the login-button and Home feed readiness checks from the [Linux CI pilot](evidence/meer-ci-pilot-2026-11-18/README.md).
+- [Packaged persistence](evidence/packaged-linux-development-2026-11-18/meer-persistence.json) verified that Home opened without a login action after a fresh guest boot and reinstall of the same APK. A [forward upgrade](evidence/packaged-linux-development-2026-11-18/meer-upgrade.json) from Android version code 1 to 2 preserved Android’s first-install timestamp and reached Home without a login action. Account identity after restart remains unverified.
 - [scrcpy input](evidence/packaged-linux-development-2026-11-18/scrcpy-input.json) verified one operator click in the Linux viewer after reconnect on the native fixture.
 
 ## Meer qualification target

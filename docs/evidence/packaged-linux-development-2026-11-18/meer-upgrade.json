@@ -57,5 +57,7 @@
   "guest_containers_removed": true,
   "owned_adb_registration_forwards_and_service_listeners_closed": true,
   "same_signing_certificate": true,
-  "authenticated_home_without_signing_in_after_update": true
+  "home_visible_without_login_action_after_update": true,
+  "account_identity_asserted": false,
+  "resume_spec_sha256": "1b0a69397453ba0fd03e576da01f1a642559ca11ec1edb0ac1e5847058f037b0"
 }

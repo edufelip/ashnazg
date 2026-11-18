@@ -1,0 +1,40 @@
+{
+  "evidence_type": "Sanitized summary of the on-host native run report",
+  "date": "2026-11-18",
+  "host": "Apple Silicon macOS",
+  "ashnazg_release": "v0.3.0",
+  "runtime": "Native Ashnazg VM with ReDroid Android 15 ARM64",
+  "attachment": "Owned guest loopback relay through a private ADB server",
+  "apk_sha256": {
+    "meer_dev": "dde9c02e3c71d3c88171d520c826f3220984d3f7a2bd374fb3641fdb489c6a15",
+    "meer_android_test": "550fb5e58e58bea88fc850eb8b7f6e5a2262ae3cb5a368e4da5a6400bf8a52ff"
+  },
+  "device_urls": {
+    "mock_api": "http://localhost:14010",
+    "metro": "http://localhost:18081"
+  },
+  "metro_advertised_host": "localhost",
+  "reverse_probe_http_status": {
+    "mock_health": 200,
+    "metro_status": 200
+  },
+  "detox": {
+    "spec": "e2e/authFlows.e2e.js",
+    "test": "Auth flows logs in with email and reaches home",
+    "profile": "Meer Linux pilot readiness overlay applied in scratch",
+    "exit_code": 0,
+    "passed_test_duration_seconds": 25.478,
+    "observed": [
+      "Mock login HTTP 200",
+      "Search asserted",
+      "Return to Home asserted"
+    ]
+  },
+  "cleanup": {
+    "helper_status": "stopped",
+    "session_marker_absent": true,
+    "owned_http_token_removed": true,
+    "owned_listeners_released": true,
+    "owned_processes_absent": true
+  }
+}
