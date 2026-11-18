@@ -21,8 +21,10 @@ from pathlib import Path
 from typing import Callable, Sequence
 
 if __package__:
+    from .session_data import SessionData
     from .ci_emulator import focused_application_window, last_anr_status, readiness_status, terminate_process_group
 else:
+    from session_data import SessionData
     from ci_emulator import focused_application_window, last_anr_status, readiness_status, terminate_process_group
 
 
@@ -170,6 +172,10 @@ def verify_image_index(raw: str, index_digest: str, architecture: str, *, profil
 def check_port_available(port: int) -> None:
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            # Docker's published listener uses address reuse too. A reclaimed
+            # endpoint may still have TIME_WAIT connections after guest removal.
+            # This does not permit sharing an active listener (no SO_REUSEPORT).
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind(("127.0.0.1", port))
     except OSError as exc:
         raise RedroidError(f"ADB loopback port {port} is unavailable: {exc}") from exc
@@ -201,11 +207,27 @@ class RedroidSupervisor:
                  host_arch: str | None = None, binder_path: Path = Path("/dev/binder"),
                  docker_path: str | None = None, adb_path: str | None = None,
                  binder_available: bool | None = None, image_provenance: Path | None = None,
-                 image_profile: str = "default"):
+                 image_profile: str = "default", state_dir: Path | None = None, fps: int | None = None, startup_attempts: int = 1,
+                 binder_bootstrap: Path | None = None):
         if image_profile not in IMAGE_PROFILES:
             raise RedroidError(f"unknown image profile: {image_profile}")
         if image_profile != "default" and image_provenance:
             raise RedroidError("image profiles cannot be combined with image provenance until that contract exists")
+        if fps not in (None, 30, 60):
+            raise RedroidError("fps must be 30 or 60")
+        if type(startup_attempts) is not int or not 1 <= startup_attempts <= 3:
+            raise RedroidError("startup attempts must be 1..3")
+        self.binder_bootstrap = binder_bootstrap.resolve() if binder_bootstrap else None
+        if self.binder_bootstrap:
+            if image_profile != "android15-64only" or image_provenance:
+                raise RedroidError("private Binder bootstrap requires the pinned android15-64only profile")
+            if (not self.binder_bootstrap.is_file() or not os.access(self.binder_bootstrap, os.X_OK)
+                    or any(c in str(self.binder_bootstrap) for c in ",\n\r")):
+                raise RedroidError("private Binder bootstrap must be a local executable")
+        self.startup_attempts = startup_attempts
+        self.state_dir = state_dir
+        self.storage = None
+        self.fps = fps
         self.output_dir = Path(output_dir)
         self.adb_port = adb_port
         self.timeout = timeout
@@ -222,7 +244,7 @@ class RedroidSupervisor:
         self.image_index = IMAGE_PROFILES[image_profile]["index"]
         self.platform_digests = IMAGE_PROFILES[image_profile]["platform_digests"]
         self.image = f"redroid/redroid@{self.image_index}"
-        self.display = DISPLAY
+        self.display = {**DISPLAY, "fps": fps or DISPLAY["fps"]}
         self.architecture = ""
         self.run_id = str(uuid.uuid4())
         self.container_name = f"ashnazg-redroid-{self.run_id}"
@@ -247,7 +269,7 @@ class RedroidSupervisor:
             bounded_timeout = timeout or 30
             if use_deadline:
                 bounded_timeout = min(bounded_timeout, self._remaining())
-            completed = self.runner(list(args), capture_output=True, text=True,
+            completed = self.runner(list(args), capture_output=True, text=True, stdin=subprocess.DEVNULL,
                                     timeout=bounded_timeout, check=False)
         except subprocess.TimeoutExpired as exc:
             raise RedroidError(f"command timed out: {args[0]}") from exc
@@ -273,7 +295,11 @@ class RedroidSupervisor:
                     self.binder_path, os.R_OK | os.W_OK)
             except OSError:
                 binder_available = False
-        self.architecture = validate_host(self.host_system, self.host_arch, binder_available)
+        self.architecture = validate_host(self.host_system, self.host_arch, binder_available or self.binder_bootstrap is not None)
+        if self.binder_bootstrap and self.architecture != "amd64":
+            raise RedroidError("private Binder bootstrap is qualified only for Linux x86_64")
+        if self.binder_bootstrap:
+            self.receipt["binder_mode"] = "private guest Binderfs"
         self.docker_path = self.docker_path or shutil.which("docker")
         self.adb_path = self.adb_path or shutil.which("adb")
         if not self.docker_path:
@@ -285,10 +311,8 @@ class RedroidSupervisor:
         endpoint = os.environ.get("DOCKER_HOST") or endpoint
         if not endpoint.startswith("unix://"):
             raise RedroidError("ReDroid requires a local Unix-socket Docker endpoint")
-        check_port_available(self.adb_port)
-        devices = self._command([self.adb_path, "devices", "-l"], check=True, timeout=10).stdout
-        if re.search(rf"(?m)^{re.escape(self.serial)}\s+", devices):
-            raise RedroidError(f"ADB serial {self.serial} is already in use")
+        if self.state_dir is None:
+            self._check_endpoint()
         if self.image_provenance:
             repository = str(Path(__file__).resolve().parent.parent)
             try:
@@ -310,6 +334,8 @@ class RedroidSupervisor:
             self.image = validate_image_provenance(self.image_provenance, architecture=self.architecture,
                                                    checkout_sha=source_sha, checkout_dirty=dirty,
                                                    inspect_raw=actual)
+            if self.fps not in (None, 60):
+                raise RedroidError("derived image requires 60 fps")
             # The recipe's known runtime profile is fixed at 60 fps; no governor claim is made.
             self.display = {**DISPLAY, "fps": 60, "renderer": "guest"}
             self.receipt["image_provenance"] = str(self.image_provenance)
@@ -325,6 +351,12 @@ class RedroidSupervisor:
             self.receipt["image"] = self.image
             self.receipt["image_profile"] = self.image_profile
             self.receipt["platform_digest"] = platform_digest
+
+    def _check_endpoint(self) -> None:
+        check_port_available(self.adb_port)
+        devices = self._command([self.adb_path, "devices", "-l"], check=True, timeout=10).stdout
+        if re.search(rf"(?m)^{re.escape(self.serial)}\s+", devices):
+            raise RedroidError(f"ADB serial {self.serial} is already in use")
 
     def _write_metadata(self) -> None:
         source_dirty = None
@@ -352,15 +384,66 @@ class RedroidSupervisor:
             "started_at_unix": time.time(), "status": "running", "setup_timings_seconds": {},
         })
 
+    def _prepare_storage(self) -> None:
+        if self.state_dir is None:
+            return
+        self.storage = SessionData(self.state_dir, {
+            "image": self.image, "architecture": self.architecture, "display": self.display,
+        })
+        self.storage.__enter__()
+        self.receipt["storage"] = {"identity": self.storage.identity,
+                                   "directory": str(self.storage.path), "persistent": True}
+        # A killed supervisor releases flock but can leave a privileged container
+        # alive. Fence it before attaching /data to a new Android instance.
+        ids = self._command([self.docker_path, "ps", "--all", "--quiet", "--no-trunc",
+                             "--filter", f"volume={self.storage.data}"], timeout=10).stdout.split()
+        for container_id in ids:
+            if not re.fullmatch(r"[0-9a-f]{64}", container_id):
+                raise RedroidError("invalid container identity during storage recovery")
+            document = json.loads(self._command([self.docker_path, "inspect", container_id], timeout=10).stdout)
+            entry = document[0] if isinstance(document, list) and len(document) == 1 else {}
+            labels = entry.get("Config", {}).get("Labels") or {}
+            mounts = entry.get("Mounts") or []
+            if (entry.get("Id") != container_id or
+                    labels.get("org.ashnazg.redroid.data-id") != self.storage.identity or
+                    not labels.get("org.ashnazg.redroid.run-id") or
+                    not any(m.get("Source") == str(self.storage.data) and m.get("Destination") == "/data"
+                            and m.get("Type") == "bind" for m in mounts)):
+                raise RedroidError("storage container ownership could not be verified; refusing recovery")
+            self._command([self.docker_path, "rm", "--force", container_id], timeout=15)
+            self.receipt.setdefault("recovered_containers", []).append(container_id)
+            # Remove stale ADB registrations only for this verified old guest's
+            # loopback-published endpoint, never disconnect all devices.
+            ports = (entry.get("NetworkSettings", {}).get("Ports") or {}).get("5555/tcp")
+            # Docker clears NetworkSettings.Ports after a guest crash/stop.
+            bindings = ports or (entry.get("HostConfig", {}).get("PortBindings") or {}).get("5555/tcp") or []
+            for binding in bindings:
+                port = binding.get("HostPort", "")
+                if binding.get("HostIp") == "127.0.0.1" and port.isdecimal() and 1 <= int(port) <= 65535:
+                    self._command([self.adb_path or "adb", "disconnect", f"127.0.0.1:{port}"],
+                                  timeout=5)
+
     def _launch_container(self) -> None:
         args = [self.docker_path, "run", "--detach", "--privileged", "--name", self.container_name,
                 "--label", f"org.ashnazg.redroid.run-id={self.run_id}",
-                "--platform", f"linux/{self.architecture}", "--volume", "/data",
-                "--publish", f"127.0.0.1:{self.adb_port}:5555", "--device", "/dev/binder:/dev/binder",
-                "--env", "ANDROID_BINDER_DEVICES=binder,hwbinder,vndbinder", self.image]
+                "--platform", f"linux/{self.architecture}",
+                "--publish", f"127.0.0.1:{self.adb_port}:5555"]
+        if self.binder_bootstrap:
+            args.extend(["--mount", f"type=bind,source={self.binder_bootstrap},target=/ashnazg-binder-bootstrap,readonly",
+                         "--entrypoint", "/ashnazg-binder-bootstrap"])
+        else:
+            args.extend(["--device", "/dev/binder:/dev/binder",
+                         "--env", "ANDROID_BINDER_DEVICES=binder,hwbinder,vndbinder"])
+        args.append(self.image)
+        storage_args = (["--label", f"org.ashnazg.redroid.data-id={self.storage.identity}",
+                         "--mount", f"type=bind,source={self.storage.data},target=/data"]
+                        if self.storage else ["--volume", "/data"])
+        args[-1:-1] = storage_args
+        if self.binder_bootstrap:
+            args.extend(["/init", "qemu=1", "androidboot.hardware=redroid"])
         if not self.image_provenance:
             args.extend(["androidboot.redroid_width=720", "androidboot.redroid_height=1280",
-                         "androidboot.redroid_dpi=320", "androidboot.redroid_fps=30",
+                         "androidboot.redroid_dpi=320", f"androidboot.redroid_fps={self.display['fps']}",
                          "androidboot.redroid_gpu_mode=guest", "androidboot.use_memfd=true"])
         # A timed-out Docker client may already have created the container. Cleanup
         # inspects its unique label before acting, including this ambiguous path.
@@ -441,10 +524,10 @@ class RedroidSupervisor:
         except Exception as exc:
             self.receipt.setdefault("resource_samples", {})[phase] = {"unavailable": _bounded(str(exc), 1000)}
 
-    def _owned_container(self) -> bool:
+    def _owned_container(self, timeout: float = 5.0) -> bool:
         inspect = self._command([self.docker_path or "docker", "inspect", "--format",
                                  "{{ index .Config.Labels \"org.ashnazg.redroid.run-id\" }}", self.container_name],
-                                timeout=5, check=False, use_deadline=False)
+                                timeout=timeout, check=False, use_deadline=False)
         return inspect.returncode == 0 and inspect.stdout.strip() == self.run_id
 
     def _cleanup(self) -> None:
@@ -474,15 +557,20 @@ class RedroidSupervisor:
             self.receipt["cleanup_diagnostics_error"] = _bounded(str(exc), 1200)
         finally:
             try:
-                removed = self._command([self.docker_path or "docker", "rm", "--force", "--volumes", self.container_name],
+                removed = self._command([self.docker_path or "docker", "rm", "--force",
+                                         *([] if self.storage else ["--volumes"]), self.container_name],
                                         timeout=10, check=False, use_deadline=False)
                 if removed.returncode:
                     self.receipt["cleanup_error"] = _bounded(removed.stderr or removed.stdout, 1200)
             except Exception as exc:
                 self.receipt["cleanup_error"] = _bounded(str(exc), 1200)
 
-    def _collect_diagnostics(self) -> None:
+    def _collect_diagnostics(self, budget_seconds: float = 45.0) -> None:
         if not self.container_started or os.environ.get("ASHNAZG_CI_DIAGNOSTICS") != "1":
+            return
+        budget_seconds = max(0.0, min(45.0, budget_seconds))
+        if not budget_seconds:
+            self.receipt["diagnostics_skipped"] = "startup recovery reserved remaining time"
             return
         container_probes = (
             ("container_logcat", ("/system/bin/logcat", "-b", "all", "-d", "-t", "250")),
@@ -500,7 +588,7 @@ class RedroidSupervisor:
         )
         started = time.monotonic()
         try:
-            if not self._owned_container():
+            if not self._owned_container(timeout=min(5.0, budget_seconds)):
                 self.receipt["diagnostics_skipped"] = "container ownership could not be verified"
                 return
         except Exception:
@@ -514,9 +602,12 @@ class RedroidSupervisor:
             ("windows", ("shell", "dumpsys", "window", "-a", "windows")),
             ("logcat", ("shell", "logcat", "-d", "-t", "300")),
         )
-        deadline = started + 45.0
-        # Reserve a full five-second attempt for each established ADB probe.
-        container_deadline = deadline - 5.0 * len(adb_probes)
+        deadline = started + budget_seconds
+        # Retain container fallback evidence even with a shortened recovery
+        # budget, while reserving up to half the remaining time for ADB.
+        available = max(0.0, deadline - time.monotonic())
+        reserved_adb = min(5.0 * len(adb_probes), available / 2)
+        container_deadline = deadline - reserved_adb
         probes = [(name, [self.docker_path or "docker", "exec", self.container_name, *arguments],
                    container_deadline)
                   for name, arguments in container_probes]
@@ -546,6 +637,72 @@ class RedroidSupervisor:
             self.receipt["exit_code"] = exit_code
         _atomic_json(self.output_dir / "receipt.json", self.receipt)
 
+    def _boot_with_recovery(self) -> None:
+        overall_deadline = self.deadline
+        history = self.receipt.setdefault("startup_attempts", [])
+        try:
+            for number in range(1, self.startup_attempts + 1):
+                # Reserve time for remaining attempts without extending the
+                # original startup deadline. Diagnostics/cleanup have own bounds.
+                remaining = overall_deadline - time.monotonic()
+                self.deadline = time.monotonic() + max(0, remaining) / (self.startup_attempts - number + 1)
+                attempt = {"attempt": number, "run_id": self.run_id, "status": "starting"}
+                history.append(attempt)
+                started = time.monotonic()
+                try:
+                    self.receipt["startup_phase"] = "container_start"
+                    self._launch_container()
+                    self.receipt["setup_timings_seconds"]["container_start"] = round(time.monotonic() - started, 3)
+                    self.receipt["startup_phase"] = "android_readiness"
+                    ready_started = time.monotonic()
+                    self._wait_ready()
+                    self.receipt["setup_timings_seconds"]["readiness"] = round(time.monotonic() - ready_started, 3)
+                    attempt["status"] = "ready"
+                    return
+                except RedroidError as exc:
+                    transient = (isinstance(exc.__cause__, subprocess.TimeoutExpired) or
+                                 str(exc) == f"operation exceeded {self.timeout}s timeout")
+                    attempt.update(status="retryable_failure" if transient else "permanent_failure",
+                                   phase=self.receipt["startup_phase"], failure=_bounded(str(exc), 2000))
+                    if not transient or number == self.startup_attempts:
+                        raise
+                    # Cleanup can consume 25 seconds (ownership, disconnect,
+                    # logs and removal). Bound intermediate evidence collection
+                    # so it cannot spend the remaining attempts' share as well.
+                    remaining = max(0.0, overall_deadline - time.monotonic())
+                    recovery_share = remaining / (self.startup_attempts - number + 1)
+                    diagnostic_budget = min(45.0, max(0.0, recovery_share - 25.0))
+                    attempt["diagnostic_budget_seconds"] = round(diagnostic_budget, 3)
+                    self._collect_diagnostics(budget_seconds=diagnostic_budget)
+                    for key in ("diagnostics", "diagnostics_skipped"):
+                        if key in self.receipt:
+                            attempt[key] = self.receipt.pop(key)
+                    self._cleanup()
+                    errors = ("cleanup_error", "cleanup_refused", "adb_cleanup_error")
+                    if any(key in self.receipt for key in errors):
+                        raise RedroidError("startup recovery refused: cleanup was not verified") from exc
+                    if self.docker_log.exists():
+                        self.docker_log.replace(self.output_dir / f"container-attempt-{number}.log")
+                    self.container_started = self.adb_connected = False
+                    self.run_id = str(uuid.uuid4())
+                    self.container_name = f"ashnazg-redroid-{self.run_id}"
+                    self.receipt["run_id"] = self.run_id
+                    self.receipt.pop("container_id", None)
+                    self.receipt.pop("last_readiness", None)
+                    self.deadline = overall_deadline
+                    self._remaining()
+                    time.sleep(min(0.25 * number, self._remaining()))
+                    self.receipt["startup_phase"] = "endpoint"
+                    self._check_endpoint()
+                finally:
+                    attempt["elapsed_seconds"] = round(time.monotonic() - started, 3)
+                    try:
+                        _atomic_json(self.output_dir / f"startup-attempt-{number}.json", attempt)
+                    except OSError as diagnostic_error:
+                        self.receipt["attempt_record_error"] = _bounded(str(diagnostic_error), 1200)
+        finally:
+            self.deadline = overall_deadline
+
     def run(self, command: Sequence[str]) -> int:
         if not command:
             raise RedroidError("a command after -- is required")
@@ -567,15 +724,18 @@ class RedroidSupervisor:
         status = "failure"
         try:
             started = time.monotonic()
+            self.receipt["startup_phase"] = "preflight"
             self._preflight()
             self.receipt["setup_timings_seconds"]["preflight"] = round(time.monotonic() - started, 3)
             started = time.monotonic()
-            self._launch_container()
-            self.receipt["setup_timings_seconds"]["container_start"] = round(time.monotonic() - started, 3)
-            started = time.monotonic()
-            self._wait_ready()
-            self.receipt["setup_timings_seconds"]["readiness"] = round(time.monotonic() - started, 3)
+            self.receipt["startup_phase"] = "storage"
+            self._prepare_storage()
+            if self.storage:
+                self.receipt["startup_phase"] = "endpoint"
+                self._check_endpoint()
+            self._boot_with_recovery()
             self._sample_resources("before_command")
+            self.receipt["startup_phase"] = "host_command"
             code = self._run_child(command)
             self.receipt["command_exit_code"] = code
             self._sample_resources("after_command")
@@ -586,12 +746,19 @@ class RedroidSupervisor:
             status = "interrupted"
         except Exception as exc:
             failure = str(exc)
+            self.receipt["failed_phase"] = self.receipt.get("startup_phase")
             status = "timeout" if "timeout" in failure.lower() or "exceeded" in failure.lower() else "failure"
             code = 1
         finally:
-            if status != "success":
-                self._collect_diagnostics()
-            self._cleanup()
+            try:
+                if status != "success":
+                    self._collect_diagnostics()
+            finally:
+                try:
+                    self._cleanup()
+                finally:
+                    if self.storage:
+                        self.storage.close()
             if code == 0 and any(key in self.receipt for key in ("cleanup_error", "cleanup_refused", "adb_cleanup_error")):
                 status = "cleanup_failure"
                 code = 1
@@ -606,6 +773,11 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
     run = subparsers.add_parser("run", help="run a command against an owned ReDroid instance")
     run.add_argument("--output-dir", type=Path, required=True)
+    run.add_argument("--startup-attempts", type=int, choices=(1, 2, 3), default=1,
+                     help="bounded attempts before host command; share the original startup deadline")
+    run.add_argument("--binder-bootstrap", type=Path, help="trusted static private Binderfs launcher")
+    run.add_argument("--state-dir", type=Path, help="retain Android data; recover exclusively owned stale containers")
+    run.add_argument("--fps", type=int, choices=(30, 60), help="explicit upstream display cadence")
     run.add_argument("--adb-port", type=int, default=5555)
     run.add_argument("--timeout", type=int, default=180)
     run.add_argument("--command-timeout", type=int, default=2400,
@@ -634,7 +806,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return RedroidSupervisor(output_dir=args.output_dir, adb_port=args.adb_port,
                                  timeout=args.timeout, command_timeout=args.command_timeout,
                                  image_provenance=args.image_provenance,
-                                 image_profile=args.image_profile).run(command)
+                                 image_profile=args.image_profile, state_dir=args.state_dir, fps=args.fps,
+                                 startup_attempts=args.startup_attempts, binder_bootstrap=args.binder_bootstrap).run(command)
     except RedroidError as exc:
         print(f"redroid: {exc}", file=sys.stderr)
         return 1

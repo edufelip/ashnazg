@@ -11,6 +11,7 @@ output_dir=${ASHNAZG_REDROID_OUTPUT_DIRECTORY-artifacts/redroid}
 adb_port=${ASHNAZG_REDROID_ADB_PORT-5555}
 boot_timeout=${ASHNAZG_REDROID_BOOT_TIMEOUT-180}
 image_provenance=${ASHNAZG_REDROID_IMAGE_PROVENANCE-}
+binder_bootstrap=${ASHNAZG_REDROID_BINDER_BOOTSTRAP-}
 
 [[ -n "$command_text" ]] || fail 'command input is required'
 [[ -n "$output_dir" ]] || fail 'output-directory must not be empty'
@@ -28,6 +29,7 @@ esac
 (( 10#$adb_port <= 65535 )) || fail 'adb-port must be a decimal integer from 1 through 65535'
 [[ "$boot_timeout" =~ ^[1-9][0-9]{0,3}$ ]] || fail 'boot-timeout must be a decimal integer from 1 through 3600 seconds'
 (( 10#$boot_timeout <= 3600 )) || fail 'boot-timeout must be a decimal integer from 1 through 3600 seconds'
+[[ -z "$binder_bootstrap" || -z "$image_provenance" ]] || fail 'binder-bootstrap and image-provenance are mutually exclusive'
 
 umask 077
 command_file=$(mktemp "${TMPDIR:-/tmp}/ashnazg-redroid-command.XXXXXXXX") || fail 'could not create the temporary command file'
@@ -57,6 +59,9 @@ runtime_args=(run
   --timeout "$boot_timeout")
 if [[ -n "$image_provenance" ]]; then
   runtime_args+=(--image-provenance "$image_provenance")
+fi
+if [[ -n "$binder_bootstrap" ]]; then
+  runtime_args+=(--image-profile android15-64only --binder-bootstrap "$binder_bootstrap")
 fi
 python3 "$script_dir/redroid.py" "${runtime_args[@]}" \
   -- bash --noprofile --norc -e -o pipefail "$command_file" &

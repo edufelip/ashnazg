@@ -20,6 +20,10 @@ inputs:
     description: Optional provenance JSON for a locally built derived ReDroid image
     required: false
     default: ''
+  binder-bootstrap:
+    description: Path to the trusted static private Binderfs launcher for the pinned Android 15 guest
+    required: false
+    default: ''
 runs:
   using: composite
   steps:
@@ -31,5 +35,6 @@ runs:
         ASHNAZG_REDROID_ADB_PORT: ${{ inputs.adb-port }}
         ASHNAZG_REDROID_BOOT_TIMEOUT: ${{ inputs.boot-timeout }}
         ASHNAZG_REDROID_IMAGE_PROVENANCE: ${{ inputs.image-provenance }}
+        ASHNAZG_REDROID_BINDER_BOOTSTRAP: ${{ inputs.binder-bootstrap }}
         ASHNAZG_REDROID_ACTION_PATH: ${{ github.action_path }}
       run: bash "$ASHNAZG_REDROID_ACTION_PATH/scripts/redroid_action.sh"

@@ -50,7 +50,10 @@ def select_device(adb: str | None = None) -> str:
 
 
 class DeviceHarness:
-    def __init__(self, readiness_timeout: float = 45.0):
+    def __init__(self, readiness_timeout: float = 45.0, *, local_port: int = 7777):
+        if type(local_port) is not int or not 0 <= local_port <= 65535:
+            raise HarnessError("invalid local ADB forwarding port")
+        self.local_port = local_port
         self.adb = adb_path()
         self.serial = select_device(self.adb)
         self.token = secrets.token_urlsafe(32)
@@ -65,7 +68,7 @@ class DeviceHarness:
                 text: bool = True, timeout: float | None = 120) -> subprocess.CompletedProcess:
         return subprocess.run(
             [self.adb, "-s", self.serial, *args], check=check,
-            capture_output=capture_output, text=text, timeout=timeout,
+            capture_output=capture_output, text=text, timeout=timeout, stdin=subprocess.DEVNULL,
         )
 
     def install(self, agent_apk: Path, fixture_apk: Path) -> None:
@@ -77,16 +80,39 @@ class DeviceHarness:
     def assert_available(self) -> None:
         """Refuse an existing local port forward before any package or app mutation."""
         existing = subprocess.run([self.adb, "forward", "--list"], check=True, text=True, capture_output=True).stdout.splitlines()
-        if any("tcp:7777" in line.split() for line in existing):
-            raise HarnessError("adb tcp:7777 is already forwarded; refusing to overwrite it")
+        for line in existing:
+            fields = line.split()
+            if len(fields) != 3:
+                continue
+            serial, local, remote = fields
+            if local == f"tcp:{self.local_port}" or (serial == self.serial and remote == "tcp:7777"):
+                raise HarnessError(f"ADB agent port is already forwarded for {serial}; refusing to overwrite it")
+
+    @property
+    def agent_addr(self) -> str:
+        return f"127.0.0.1:{self.local_port}"
+
+    def open_forward(self) -> None:
+        result = self.adb_cmd("forward", "--no-rebind", f"tcp:{self.local_port}", "tcp:7777")
+        if self.local_port == 0:
+            port = result.stdout.strip()
+            if not port.isascii() or not port.isdecimal() or len(port) > 5 or not 1 <= int(port) <= 65535:
+                raise HarnessError("ADB did not return an allocated forwarding port")
+            self.local_port = int(port)
+        self.forward_created = True
+
+    def close_forward(self, timeout: float = 120) -> None:
+        if self.forward_created:
+            self.adb_cmd("forward", "--remove", f"tcp:{getattr(self, 'local_port', 7777)}",
+                         check=False, **({"timeout": timeout} if timeout != 120 else {}))
+            self.forward_created = False
 
     def start(self, agent_apk: Path, fixture_apk: Path, *, install: bool = True) -> None:
         self.assert_available()
         self.started_at = time.perf_counter()
         if install:
             self.install(agent_apk, fixture_apk)
-        self.adb_cmd("forward", "--no-rebind", "tcp:7777", "tcp:7777")
-        self.forward_created = True
+        self.open_forward()
         instrumentation_args = [self.adb, "-s", self.serial, "shell", "am", "instrument", "-w",
                                 "-e", "token", self.token]
         if os.environ.get("ASHNAZG_CI_DIAGNOSTICS") == "1":
@@ -102,7 +128,7 @@ class DeviceHarness:
             if self.instrumentation.poll() is not None:
                 raise HarnessError("instrumentation exited before readiness: " + self.instrumentation_output())
             try:
-                with socket.create_connection(("127.0.0.1", 7777), timeout=0.6) as probe:
+                with socket.create_connection(("127.0.0.1", self.local_port), timeout=0.6) as probe:
                     probe.settimeout(0.6)
                     probe.sendall(json.dumps({"jsonrpc": "2.0", "id": 1, "token": self.token,
                                              "method": "ping", "params": {}}, separators=(",", ":")).encode() + b"\n")
@@ -172,19 +198,35 @@ class DeviceHarness:
         return (self.ready_at - self.started_at) * 1000
 
     def cleanup(self) -> None:
-        if self.instrumentation is not None and self.instrumentation.poll() is None:
-            self.instrumentation.terminate()
+        failures = []
+
+        def attempt(step, operation):
             try:
-                self.instrumentation.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                self.instrumentation.kill()
-                self.instrumentation.wait(timeout=5)
-        if self.instrumentation is not None:
-            self.adb_cmd("shell", "am", "force-stop", "dev.ashnazg.agent", check=False, timeout=20)
-        if self.forward_created:
-            self.adb_cmd("forward", "--remove", "tcp:7777", check=False)
-            self.forward_created = False
-        self.instrument_log.close()
+                operation()
+            except Exception as exc:
+                failures.append((step, exc))
+
+        def stop_instrumentation():
+            if self.instrumentation is not None and self.instrumentation.poll() is None:
+                self.instrumentation.terminate()
+                try:
+                    self.instrumentation.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self.instrumentation.kill()
+                    self.instrumentation.wait(timeout=5)
+
+        try:
+            attempt("instrumentation process", stop_instrumentation)
+            if self.instrumentation is not None:
+                attempt("agent force-stop", lambda: self.adb_cmd(
+                    "shell", "am", "force-stop", "dev.ashnazg.agent", check=False, timeout=20))
+            attempt("owned forward", self.close_forward)
+        finally:
+            attempt("instrumentation log", self.instrument_log.close)
+        if failures:
+            error = HarnessError("session cleanup failed: " + "; ".join(step for step, _ in failures))
+            error.failures = tuple(failures)  # Preserve causes without printing token-bearing command arguments.
+            raise error from None
 
 
 def artifact_apks(root: Path) -> tuple[Path, Path]:
