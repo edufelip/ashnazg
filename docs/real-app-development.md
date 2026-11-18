@@ -1,6 +1,6 @@
 # Real app development acceptance
 
-The first selected product app is GuiaBrechó / Meer, at `~/Projects/meer-mono/apps/mobile`. A frozen Meer DEV APK is the workload for the Linux MCP, viewer, session recovery, and AVD comparison runs.
+The first selected product app is GuiaBrechó / Meer, at `~/Projects/meer-mono/apps/mobile`. A frozen Meer DEV APK is the workload for the Linux MCP, viewer, session persistence, and AVD comparison runs.
 
 ## Before selecting an app
 
@@ -25,6 +25,14 @@ Start and verify the app's developer server separately using the selected app's 
 - [ ] Relevant app/server/device logs with credentials and personal data removed.
 - [ ] Issues, reproducible steps, and unresolved gaps; distinguish local preparation from completed real-app proof.
 
+## Acceptance status
+
+- [Packaged Linux](evidence/packaged-linux-development-2026-11-18/README.md) verified an explicit install, Metro and mock API connectivity, login-field input with semantic readback, PNG, logs, and scrcpy reconnect.
+- [Paired Android benchmark](evidence/meer-runtime-comparison-2026-11-18/README.md) verified the mock login, Search and Home journey on both Android runtimes.
+- Native Ashnazg v0.3.0 on Apple Silicon passed the mock login, Search and return-to-Home Detox journey with the ARM64 Meer DEV and AndroidTest APKs. Detox attached to the owned guest's loopback relay through a private ADB server. The run used the login-button and Home feed readiness checks from the [Linux CI pilot](evidence/meer-ci-pilot-2026-11-18/README.md).
+- [Packaged persistence](evidence/packaged-linux-development-2026-11-18/meer-persistence.json) verified authenticated Home after a fresh guest boot and reinstall of the same APK. Cross-version app updates still need live verification.
+- [scrcpy input](evidence/packaged-linux-development-2026-11-18/scrcpy-input.json) verified one operator click in the Linux viewer after reconnect on the native fixture.
+
 ## Meer qualification target
 
 The existing `.detoxrc.js` builds `:app:assembleDevDebug` and
@@ -41,6 +49,12 @@ Read the app's `scripts/run-e2e-mock.js` before starting mock/Metro services;
 use isolated ports and never adopt an occupied service from another checkout.
 The prepared app's developer-server port must be reversed with this helper,
 not a host-to-device `adb forward`.
+
+For the attached-device Meer DEV run, use `http://localhost:<port>` in the app's
+mock API and Expo dev-client URLs, and advertise `localhost` from Metro. The
+Android debug network policy allows that hostname. Expo reports a cleartext
+HTTP error if the dev-client URL uses `127.0.0.1`. The host services can still
+listen on IPv4 loopback.
 
 Required acceptance rows: install/update and retained app data; mock login;
 home/search/detail navigation; text input and keyboard; scrolling; mock API

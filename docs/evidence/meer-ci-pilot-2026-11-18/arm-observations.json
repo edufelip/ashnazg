@@ -1,0 +1,33 @@
+{
+  "redroid": {
+    "image_profile": "android15-64only",
+    "image": "redroid/redroid@sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
+    "platform_digest": "sha256:58e548d78c4854f032912757dc0782d7a86b9d602ffc10b2f09fb9e86731adf3",
+    "source_sha": "cad527370a76a0944649bb77d1a69e08bab9538a",
+    "source_dirty": true,
+    "binder_mode": "private guest Binderfs",
+    "setup_timings_seconds": {
+      "container_start": 1.351,
+      "preflight": 2.473,
+      "readiness": 14.199
+    },
+    "requested_display": {
+      "ashmem": "memfd",
+      "dpi": 320,
+      "fps": 30,
+      "height": 1280,
+      "renderer": "software",
+      "width": 720
+    },
+    "readiness": "focused application window is drawn",
+    "elapsed_seconds": 104.465,
+    "container_absent": true
+  },
+  "avd": {
+    "launch_to_android_boot_completed_seconds": 55,
+    "provision_seconds": 3,
+    "avd_provision_launch_test_cleanup_seconds": 153,
+    "exit_code": 0,
+    "adb_device_absent": true
+  }
+}

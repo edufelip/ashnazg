@@ -1,0 +1,26 @@
+{
+  "15641": {
+    "tools": [
+      "app_install",
+      "app_logs",
+      "ui_act",
+      "ui_screenshot",
+      "ui_snapshot"
+    ],
+    "pid": 2133239
+  },
+  "15642": {
+    "tools": [
+      "app_install",
+      "app_logs",
+      "ui_act",
+      "ui_screenshot",
+      "ui_snapshot"
+    ],
+    "pid": 2133240
+  },
+  "initial_live_snapshots": true,
+  "session_a_exit": 0,
+  "session_b_survives_session_a_cleanup": true,
+  "session_b_exit": 0
+}

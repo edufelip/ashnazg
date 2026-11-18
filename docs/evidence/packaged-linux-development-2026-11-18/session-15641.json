@@ -1,0 +1,28 @@
+{
+  "container_id": "4b3e89add1da51220a7aa77cb20208f3da14e0780c4365ed4e45a8a4b666f374",
+  "source_sha": "cad527370a76a0944649bb77d1a69e08bab9538a",
+  "source_dirty": false,
+  "serial": "127.0.0.1:15641",
+  "image": "redroid/redroid@sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
+  "platform_digest": "sha256:58e548d78c4854f032912757dc0782d7a86b9d602ffc10b2f09fb9e86731adf3",
+  "binder_mode": "private guest Binderfs",
+  "readiness": "focused application window is drawn",
+  "requested_display": {
+    "ashmem": "memfd",
+    "dpi": 320,
+    "fps": 60,
+    "height": 1280,
+    "renderer": "software",
+    "width": 720
+  },
+  "setup_timings_seconds": {
+    "container_start": 0.51,
+    "preflight": 1.237,
+    "readiness": 12.279
+  },
+  "command_exit_code": 0,
+  "status": "success",
+  "container_absent": true,
+  "relay_absent": true,
+  "adb_port_closed": true
+}

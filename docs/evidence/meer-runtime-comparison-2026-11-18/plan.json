@@ -1,0 +1,43 @@
+{
+  "design": "four serial pairs, alternating runtime order. 60s settle, one warm-up, five measured trials. Pair 1 AVD was already running over 60s before warm-up.",
+  "primary_speed": "monotonic walltime of complete Meer login \u2192 Search \u2192 Home Detox test body",
+  "primary_memory": "runtime process PSS plus SwapPSS immediately after each completed trial",
+  "test_profile": "feed-ready-stock30",
+  "common_host_logical_cpus": [
+    14,
+    15
+  ],
+  "system_images": "Android 15 x86_64. AVD Google APIs and ReDroid AOSP; separate software renderer builds.",
+  "app_controls": {
+    "location_mode": "0",
+    "android_animation_scales": [
+      0,
+      0,
+      0
+    ],
+    "width": 720,
+    "height": 1280,
+    "density": 320
+  },
+  "android_accounting": "deployment comparison under the same CPU affinity. MemTotal and CPU topology seen by Android differ, and AVD has no independent two-core quota. Both can schedule on two cores.",
+  "order": [
+    [
+      "avd",
+      "redroid"
+    ],
+    [
+      "redroid",
+      "avd"
+    ],
+    [
+      "avd",
+      "redroid"
+    ],
+    [
+      "redroid",
+      "avd"
+    ]
+  ],
+  "success": "all trials pass, identical input and feed coordinates per matched arm, lower per-boot median time and memory across pairs",
+  "statistics": "Median (midpoint for even n). Nearest-rank p95. Report raw inner samples and paired boot-level results."
+}
