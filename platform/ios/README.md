@@ -27,7 +27,10 @@ snapshot with `Count: 1` and two different screenshots. Coordinates are
 Simulator points. The tests carry a synthetic text value and avoid real app
 accounts and secure fields.
 
-The source prototype is awaiting its first Xcode build and Simulator run.
-A subsequent transport experiment can map the validated fixture operations
-onto the existing MCP tool names. See the [iOS research plan](../../docs/research/ios.md)
+Both XCTest cases passed on hosted macOS using Xcode 26.6 and iOS 26.5.
+The run produced an XCResult with semantic and screenshot attachments.
+[Hosted Simulator run](https://github.com/edufelip/ashnazg/actions/runs/44289589457)
+
+The prototype runs as an XCTest fixture. MCP transport and real app
+qualification are future work. See the [iOS research plan](../../docs/research/ios.md)
 and Apple's [XCUIAutomation reference](https://developer.apple.com/documentation/XCUIAutomation).
