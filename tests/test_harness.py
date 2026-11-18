@@ -239,3 +239,19 @@ class DeviceOwnershipTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AutomaticForwardTests(unittest.TestCase):
+    def test_two_serials_keep_distinct_endpoints_and_remove_only_owned_ports(self):
+        from unittest.mock import Mock
+
+        with patch("scripts.harness.adb_path", return_value="adb"), \
+             patch("scripts.harness.select_device", side_effect=["guest-a", "guest-b"]):
+            first, second = DeviceHarness(local_port=0), DeviceHarness(local_port=0)
+        for harness, port in [(first, 23451), (second, 23452)]:
+            harness.adb_cmd = Mock(return_value=subprocess.CompletedProcess([], 0, str(port), ""))
+            harness.open_forward()
+            harness.adb_cmd.assert_called_once_with("forward", "--no-rebind", "tcp:0", "tcp:7777")
+            self.assertEqual(harness.agent_addr, f"127.0.0.1:{port}")
+            harness.cleanup()
+            harness.adb_cmd.assert_called_with("forward", "--remove", f"tcp:{port}", check=False)

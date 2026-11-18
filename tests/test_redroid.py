@@ -583,14 +583,54 @@ class RedroidRegressionTests(unittest.TestCase):
     def test_diagnostics_stop_probing_when_the_collection_budget_is_exhausted(self):
         supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'))
         supervisor.container_started = True
+        readings = iter([0.0])
         with patch.object(supervisor, '_owned_container', return_value=True), \
              patch.object(supervisor, '_command') as command, \
-             patch.object(redroid.time, 'monotonic', side_effect=[0.0] + [46.0] * 17):
+             patch.object(redroid.time, 'monotonic', side_effect=lambda: next(readings, 46.0)):
             supervisor._collect_diagnostics()
         command.assert_not_called()
         self.assertTrue(supervisor.receipt['diagnostics'])
         self.assertTrue(all('budget exhausted' in probe['unavailable']
                             for probe in supervisor.receipt['diagnostics'].values()))
+
+    @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
+    def test_short_recovery_diagnostics_bound_ownership_and_skip_zero_budget(self):
+        supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'))
+        supervisor.container_started = True
+        now = [0.0]
+        def ownership(timeout):
+            self.assertEqual(timeout, 2.0)
+            now[0] += timeout
+            return True
+        with patch.object(supervisor, '_owned_container', side_effect=ownership) as owned, \
+             patch.object(supervisor, '_command') as command, \
+             patch.object(redroid.time, 'monotonic', side_effect=lambda: now[0]):
+            supervisor._collect_diagnostics(budget_seconds=2.0)
+            command.assert_not_called()
+            supervisor._collect_diagnostics(budget_seconds=0.0)
+            self.assertEqual(owned.call_count, 1)
+        self.assertIn('reserved remaining time', supervisor.receipt['diagnostics_skipped'])
+
+    @patch.dict(os.environ, {'ASHNAZG_CI_DIAGNOSTICS': '1'})
+    def test_short_diagnostic_budget_retains_container_and_adb_evidence(self):
+        supervisor = redroid.RedroidSupervisor(output_dir=Path('unused'), docker_path='docker', adb_path='adb')
+        supervisor.container_started = True
+        now = [0.0]
+        calls = []
+        def command(args, **kwargs):
+            calls.append(args)
+            now[0] += min(1.0, kwargs['timeout'])
+            return redroid.CommandResult(0, 'evidence')
+        def ownership(**kwargs):
+            now[0] += 0.25
+            return True
+        with patch.object(supervisor, '_owned_container', side_effect=ownership), \
+             patch.object(supervisor, '_command', side_effect=command), \
+             patch.object(redroid.time, 'monotonic', side_effect=lambda: now[0]):
+            supervisor._collect_diagnostics(budget_seconds=5.0)
+        self.assertTrue(any(args[:2] == ['docker', 'exec'] for args in calls))
+        self.assertTrue(any(args[0] == 'adb' for args in calls))
+        self.assertLessEqual(now[0], 5.0)
 
     def test_diagnostic_redaction_covers_json_and_flag_token_formats(self):
         output = redroid._bounded('{"refresh_token": "json-secret", --access-token=flag-secret, token plain-secret}')
@@ -641,3 +681,35 @@ class RedroidRegressionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PrivateBinderTests(unittest.TestCase):
+    def test_bootstrap_replaces_shared_binder_with_readonly_mount(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            executable = root / "binder-bootstrap"
+            executable.write_bytes(b"fixture")
+            executable.chmod(0o755)
+            supervisor = redroid.RedroidSupervisor(
+                output_dir=root, docker_path="docker", image_profile="android15-64only",
+                binder_bootstrap=executable,
+            )
+            supervisor.architecture = "amd64"
+            supervisor.deadline = redroid.time.monotonic() + 10
+            with patch.object(supervisor, "_command", return_value=redroid.CommandResult(0, "cid", "")) as run:
+                supervisor._launch_container()
+            args = run.call_args.args[0]
+            self.assertNotIn("--device", args)
+            self.assertIn(f"type=bind,source={executable},target=/ashnazg-binder-bootstrap,readonly", args)
+            self.assertEqual(args[args.index(supervisor.image)+1:args.index(supervisor.image)+4],
+                             ["/init", "qemu=1", "androidboot.hardware=redroid"])
+
+    def test_startup_probes_cannot_consume_the_child_commands_stdin(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(redroid, "subprocess") as process:
+                process.DEVNULL = subprocess.DEVNULL
+                runner = process.run
+                runner.return_value = redroid.CommandResult(0, "device", "")
+                supervisor = redroid.RedroidSupervisor(output_dir=Path(directory), runner=runner)
+                supervisor._command(["adb", "shell", "getprop", "sys.boot_completed"], use_deadline=False)
+                self.assertEqual(runner.call_args.kwargs.get("stdin"), subprocess.DEVNULL)
