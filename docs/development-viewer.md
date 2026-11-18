@@ -15,3 +15,9 @@ For a host development server, use the [real-app preparation helper](real-app-de
 ## macOS boundary
 
 This workflow is currently supported only on Linux hosts with external ADB. Ashnazg's native Apple Silicon macOS VM/MCP session uses its owned loopback ADB relay internally and intentionally runs without host ADB (`ASHNAZG_ADB` is unavailable in its acceptance environment). Its guest serial is not automatically exposed to macOS platform-tools. Installing scrcpy on macOS alone therefore does not make this workflow work for that native session. Use the MCP tools for that session, or connect a separately addressable Android device to a Linux host and run this helper there. No native macOS ADB bridge or scrcpy integration is claimed.
+
+The Linux Meer run verified scrcpy rendering during packaged MCP input. In a
+follow-up on a disposable ReDroid guest, one operator click in the reconnected
+scrcpy window incremented the native fixture from 0 to 1. The Device panel
+showed the new value and the app logged exactly one increment.
+[Linux viewer evidence](evidence/packaged-linux-development-2026-11-18/README.md)

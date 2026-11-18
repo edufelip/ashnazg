@@ -1,0 +1,58 @@
+{
+  "status": "passed",
+  "boot_runs": [
+    {
+      "step": "login",
+      "launch_to_first_mcp_snapshot_seconds": 16.066535457968712,
+      "journey_passed": true,
+      "exit": 0,
+      "owned_container_id": "4595279e68cbfa537ca0ec2561191d890efe48c8f2da3dff10365854f22b519f",
+      "container_absent": true,
+      "source_sha": "d5bfc97e0a7ddae9a532918d5c84c1674901b59e",
+      "source_dirty": true,
+      "image": "redroid/redroid@sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
+      "requested_display": {
+        "ashmem": "memfd",
+        "dpi": 320,
+        "fps": 60,
+        "height": 1280,
+        "renderer": "software",
+        "width": 720
+      },
+      "meer_source": "a4c2f58f2cceb016136254b58f04d5b322cfa30a",
+      "apk_sha256": {
+        "app": "513bea68fc46587f425dd6ee88e0fe69921623e0d47b5b2d48cf27d1a646e575",
+        "test": "a7ac1a29c04d6f3b592c8f5223864274a7de538b4170fc8386e66667eb021971"
+      }
+    },
+    {
+      "step": "resume",
+      "launch_to_first_mcp_snapshot_seconds": 13.069538686890155,
+      "reinstall_sha256": "513bea68fc46587f425dd6ee88e0fe69921623e0d47b5b2d48cf27d1a646e575",
+      "same_apk_reinstall": true,
+      "journey_passed": true,
+      "exit": 0,
+      "owned_container_id": "4e67973665d6d3ea832efaeef6711f4b90f993d7a5b7591ce894d789d90aa35e",
+      "container_absent": true,
+      "source_sha": "d5bfc97e0a7ddae9a532918d5c84c1674901b59e",
+      "source_dirty": true,
+      "image": "redroid/redroid@sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
+      "requested_display": {
+        "ashmem": "memfd",
+        "dpi": 320,
+        "fps": 60,
+        "height": 1280,
+        "renderer": "software",
+        "width": 720
+      },
+      "meer_source": "a4c2f58f2cceb016136254b58f04d5b322cfa30a",
+      "apk_sha256": {
+        "app": "513bea68fc46587f425dd6ee88e0fe69921623e0d47b5b2d48cf27d1a646e575",
+        "test": "a7ac1a29c04d6f3b592c8f5223864274a7de538b4170fc8386e66667eb021971"
+      }
+    }
+  ],
+  "same_persistent_storage_identity": true,
+  "owned_guest_and_service_ports_closed": true,
+  "resume_spec_sha256": "1b0a69397453ba0fd03e576da01f1a642559ca11ec1edb0ac1e5847058f037b0"
+}

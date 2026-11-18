@@ -1,0 +1,63 @@
+{
+  "status": "passed",
+  "boot_runs": [
+    {
+      "step": "login",
+      "launch_to_first_mcp_snapshot_seconds": 27.24932106398046,
+      "journey_passed": true,
+      "installed": {
+        "versionCode": "1",
+        "firstInstallTime": "2026-11-18 19:03:42",
+        "lastUpdateTime": "2026-11-18 19:03:42"
+      },
+      "exit": 0,
+      "build_source": "a4c2f58f2cceb016136254b58f04d5b322cfa30a",
+      "detox_runner_source": "0e519b9317bf7175755f168a18247b230414a66a",
+      "apk_sha256": {
+        "app": "513bea68fc46587f425dd6ee88e0fe69921623e0d47b5b2d48cf27d1a646e575",
+        "test": "a7ac1a29c04d6f3b592c8f5223864274a7de538b4170fc8386e66667eb021971"
+      },
+      "detox_exit": 0,
+      "guest_run_id": "acdd1850-e2e7-4f5f-886f-9b71dd56ac83"
+    },
+    {
+      "step": "resume",
+      "launch_to_first_mcp_snapshot_seconds": 18.18694985890761,
+      "before_upgrade": {
+        "versionCode": "1",
+        "firstInstallTime": "2026-11-18 19:03:42",
+        "lastUpdateTime": "2026-11-18 19:03:42"
+      },
+      "after_upgrade": {
+        "versionCode": "2",
+        "firstInstallTime": "2026-11-18 19:03:42",
+        "lastUpdateTime": "2026-11-18 19:04:50"
+      },
+      "journey_passed": true,
+      "exit": 0,
+      "build_source": "0e519b9317bf7175755f168a18247b230414a66a",
+      "detox_runner_source": "0e519b9317bf7175755f168a18247b230414a66a",
+      "apk_sha256": {
+        "app": "33aba190804161e148bec8b637a9e0d972d69ab681546bd39ef0582fdc034b8b",
+        "test": "a7ac1a29c04d6f3b592c8f5223864274a7de538b4170fc8386e66667eb021971"
+      },
+      "detox_exit": 0,
+      "guest_run_id": "5f1e5308-7eef-401e-9f19-1ed32b2a6e28"
+    }
+  ],
+  "date": "2026-11-18",
+  "package": "com.edufelip.meer.dev",
+  "host": "Linux x86_64",
+  "runtime": "ReDroid Android 15",
+  "launcher_source": "ce7f0cd3cd37dd338131a0296566b8fceebb95bb",
+  "launcher_checkout_dirty": true,
+  "release_version": "0.3.0",
+  "guest_image": "redroid/redroid@sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee",
+  "same_persistent_storage_identity": true,
+  "guest_containers_removed": true,
+  "owned_adb_registration_forwards_and_service_listeners_closed": true,
+  "same_signing_certificate": true,
+  "home_visible_without_login_action_after_update": true,
+  "account_identity_asserted": false,
+  "resume_spec_sha256": "1b0a69397453ba0fd03e576da01f1a642559ca11ec1edb0ac1e5847058f037b0"
+}

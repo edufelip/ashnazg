@@ -1,0 +1,1403 @@
+{
+  "artifact_manifest": {
+    "run_sha256": "54571381d6482917ada303e33ace3bd333b41d0b4e4fbb624a89f23c62e08011",
+    "published_redaction_sha256": "07b48d6008e6866e53462e10ca4d6e6fb64e81388923bb35c0aa079b3389125e",
+    "redacted_fields": [
+      "path"
+    ]
+  },
+  "arms": {
+    "pair1-avd": {
+      "trial-1": {
+        "process_receipt_sha256": "062fcd82a7f20f1b12331fca505ee3293dc2bfa7f845cd57268eaaf6829412f6",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "736843a7dca58eadc2ad6a7973c8249ae74b8136df18dc41532cc9c489d51d43",
+            "line": 40127,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "736843a7dca58eadc2ad6a7973c8249ae74b8136df18dc41532cc9c489d51d43",
+            "line": 46834,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-2": {
+        "process_receipt_sha256": "f3aa7c194d02d1620b33c816bd8943d0966660166fb23298a53dc5f62c9a8c00",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "8b380e403cca01979c4ad2e1132d6bcdf3ed4b512dc6b8ab6278979285059c88",
+            "line": 40127,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "8b380e403cca01979c4ad2e1132d6bcdf3ed4b512dc6b8ab6278979285059c88",
+            "line": 48288,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "8b380e403cca01979c4ad2e1132d6bcdf3ed4b512dc6b8ab6278979285059c88",
+            "line": 54501,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-3": {
+        "process_receipt_sha256": "3ffd401e1b96e800e7ce6ddcbf4034600e3395275b3128c9b49ec5b28db1a982",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "31bac9ebc493934db85f82e7dd6d5faf1885b34ef99e8b535598b33d04dd5c34",
+            "line": 40127,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "31bac9ebc493934db85f82e7dd6d5faf1885b34ef99e8b535598b33d04dd5c34",
+            "line": 48288,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "31bac9ebc493934db85f82e7dd6d5faf1885b34ef99e8b535598b33d04dd5c34",
+            "line": 56180,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "31bac9ebc493934db85f82e7dd6d5faf1885b34ef99e8b535598b33d04dd5c34",
+            "line": 62584,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-4": {
+        "process_receipt_sha256": "a2845ba277964bbf2066cc957380223d82398d0438884306bbfa4af2d434f7eb",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "cf99334381c92ca2cd9513a2cf2e52b4efe2e0f712e582f0a3daa6f0cb1755e7",
+            "line": 40127,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "cf99334381c92ca2cd9513a2cf2e52b4efe2e0f712e582f0a3daa6f0cb1755e7",
+            "line": 48288,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "cf99334381c92ca2cd9513a2cf2e52b4efe2e0f712e582f0a3daa6f0cb1755e7",
+            "line": 56180,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "cf99334381c92ca2cd9513a2cf2e52b4efe2e0f712e582f0a3daa6f0cb1755e7",
+            "line": 64352,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "cf99334381c92ca2cd9513a2cf2e52b4efe2e0f712e582f0a3daa6f0cb1755e7",
+            "line": 70524,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-5": {
+        "process_receipt_sha256": "fffe263ec0017c16d334d76eeca084d1af825720b6fbc7a889b6cf8c48465864",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "e9b7a1a9a8e899c8b69a96d2a403b9f576351933c435aefc8818ba33fd3aeb0a",
+            "line": 40127,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "e9b7a1a9a8e899c8b69a96d2a403b9f576351933c435aefc8818ba33fd3aeb0a",
+            "line": 48288,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "e9b7a1a9a8e899c8b69a96d2a403b9f576351933c435aefc8818ba33fd3aeb0a",
+            "line": 56180,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "e9b7a1a9a8e899c8b69a96d2a403b9f576351933c435aefc8818ba33fd3aeb0a",
+            "line": 64352,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "e9b7a1a9a8e899c8b69a96d2a403b9f576351933c435aefc8818ba33fd3aeb0a",
+            "line": 73229,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "e9b7a1a9a8e899c8b69a96d2a403b9f576351933c435aefc8818ba33fd3aeb0a",
+            "line": 79423,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      }
+    },
+    "pair1-redroid": {
+      "trial-1": {
+        "process_receipt_sha256": "221da2bea5295208e1cf5e6f27a7779cfacf2d53c042c527e946083a49867371",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "7582aed7654243bfd168abb708e1df094cdc0225b11077c53bbfa4c425844677",
+            "line": 20232,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "7582aed7654243bfd168abb708e1df094cdc0225b11077c53bbfa4c425844677",
+            "line": 24484,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-2": {
+        "process_receipt_sha256": "e39fb4eeb91069e24249e3b9524c0307870fa9f626a5b50a08ff0e2f112d512a",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "0220f4c9ff8e5e54e9a64c6d53c5605e534f42ffb41bbf49009a15fe95b1cd12",
+            "line": 15099,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "0220f4c9ff8e5e54e9a64c6d53c5605e534f42ffb41bbf49009a15fe95b1cd12",
+            "line": 19955,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "0220f4c9ff8e5e54e9a64c6d53c5605e534f42ffb41bbf49009a15fe95b1cd12",
+            "line": 24337,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-3": {
+        "process_receipt_sha256": "8ec3889471e3e5a3f2b26a3f5d7f4eb0af71aef8d1ea6d9f24183f055b8ffd8e",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "e2b8d2e3084fe6490202b50a5404985ae29eee3ed0237bdc9576609c578d95a8",
+            "line": 10966,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "e2b8d2e3084fe6490202b50a5404985ae29eee3ed0237bdc9576609c578d95a8",
+            "line": 15822,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "e2b8d2e3084fe6490202b50a5404985ae29eee3ed0237bdc9576609c578d95a8",
+            "line": 20731,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "e2b8d2e3084fe6490202b50a5404985ae29eee3ed0237bdc9576609c578d95a8",
+            "line": 24974,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-4": {
+        "process_receipt_sha256": "ac96e5b888fb650ee059000a879d0125535eae1e1b5b4e1eefffa202775dbe2c",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "fedbd5c60b1319fa1caa8030a5ce1d2af4b9d55bd6b5fbc96a65cb06a50c684e",
+            "line": 16502,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "fedbd5c60b1319fa1caa8030a5ce1d2af4b9d55bd6b5fbc96a65cb06a50c684e",
+            "line": 21443,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "fedbd5c60b1319fa1caa8030a5ce1d2af4b9d55bd6b5fbc96a65cb06a50c684e",
+            "line": 25917,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-5": {
+        "process_receipt_sha256": "ddc8412b62d592ea5176c8ea37dc5171024b01a33b742b8281c1304da00a59a0",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "f7b55c4527ede6edab358c4f09b50c7357e9b4933b5fbbc3bbc5a34e0306d131",
+            "line": 17236,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "f7b55c4527ede6edab358c4f09b50c7357e9b4933b5fbbc3bbc5a34e0306d131",
+            "line": 22304,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "f7b55c4527ede6edab358c4f09b50c7357e9b4933b5fbbc3bbc5a34e0306d131",
+            "line": 26567,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      }
+    },
+    "pair2-avd": {
+      "trial-1": {
+        "process_receipt_sha256": "a8f0bc9237174a077917f44ae1f0d71cf21ae1a8ed5f3ec4f2cc8315876205cd",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "19e657ee2649ecca41d544896de1972fdc136640212e87bb3b716832a491e1e6",
+            "line": 38268,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "19e657ee2649ecca41d544896de1972fdc136640212e87bb3b716832a491e1e6",
+            "line": 44727,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-2": {
+        "process_receipt_sha256": "7301f36794bbb9cf6378619dbace018241fb1751f3b5654fdcd0ae8011aa365f",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "553a48a4583d979c313e33858a035aa89b917190dc63d6e02379b843184b3800",
+            "line": 38268,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "553a48a4583d979c313e33858a035aa89b917190dc63d6e02379b843184b3800",
+            "line": 46186,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "553a48a4583d979c313e33858a035aa89b917190dc63d6e02379b843184b3800",
+            "line": 52605,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-3": {
+        "process_receipt_sha256": "ca2b108f61f9f16556b7a8812a9bbba3de7ad78e73ed0c72ae37423e6e43ec24",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "1c27e58acb8ad1319b26fd8b7eb9f888b0a5a0714e085ccca458b40679b76562",
+            "line": 38268,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "1c27e58acb8ad1319b26fd8b7eb9f888b0a5a0714e085ccca458b40679b76562",
+            "line": 46186,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "1c27e58acb8ad1319b26fd8b7eb9f888b0a5a0714e085ccca458b40679b76562",
+            "line": 54095,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "1c27e58acb8ad1319b26fd8b7eb9f888b0a5a0714e085ccca458b40679b76562",
+            "line": 60030,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-4": {
+        "process_receipt_sha256": "1a1cb166ad31fcd06062ac0b8f234b9ec80328b90e4fea0795fb6e0a466b918c",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "8e36cc5b3bf0cd0d1f03b6fd09825a5105a24951c49eb974db87f4f8fcf8126f",
+            "line": 38268,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "8e36cc5b3bf0cd0d1f03b6fd09825a5105a24951c49eb974db87f4f8fcf8126f",
+            "line": 46186,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "8e36cc5b3bf0cd0d1f03b6fd09825a5105a24951c49eb974db87f4f8fcf8126f",
+            "line": 54095,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "8e36cc5b3bf0cd0d1f03b6fd09825a5105a24951c49eb974db87f4f8fcf8126f",
+            "line": 61541,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "8e36cc5b3bf0cd0d1f03b6fd09825a5105a24951c49eb974db87f4f8fcf8126f",
+            "line": 67550,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-5": {
+        "process_receipt_sha256": "799f7600e096b0210f02ea344b8a49ab8f0f1bc5459948afb86b11a9553bbb65",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "70d38be28bd9918c335ac1fa00ed57863dcc68c16187e6bcc544ff883eb24c82",
+            "line": 38268,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "70d38be28bd9918c335ac1fa00ed57863dcc68c16187e6bcc544ff883eb24c82",
+            "line": 46186,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "70d38be28bd9918c335ac1fa00ed57863dcc68c16187e6bcc544ff883eb24c82",
+            "line": 54095,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "70d38be28bd9918c335ac1fa00ed57863dcc68c16187e6bcc544ff883eb24c82",
+            "line": 61541,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "70d38be28bd9918c335ac1fa00ed57863dcc68c16187e6bcc544ff883eb24c82",
+            "line": 69181,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "70d38be28bd9918c335ac1fa00ed57863dcc68c16187e6bcc544ff883eb24c82",
+            "line": 76236,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      }
+    },
+    "pair2-redroid": {
+      "trial-1": {
+        "process_receipt_sha256": "833b6243b8f9f903fa3c6c26c55a70463082a2e016f1393d358544a491b5e598",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "ef5b61f82840e4f315bde9449800e1306c384fb7986849183f53b8650bd46e22",
+            "line": 20824,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "ef5b61f82840e4f315bde9449800e1306c384fb7986849183f53b8650bd46e22",
+            "line": 25237,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-2": {
+        "process_receipt_sha256": "fae1e3048cc363eb61de0f2a9870b9214276286634563675cf04013a092b33d8",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "2733ed1be25bf3f753df2c26ee6a11453a811e4e19d543005dd620bb2bc575da",
+            "line": 16153,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "2733ed1be25bf3f753df2c26ee6a11453a811e4e19d543005dd620bb2bc575da",
+            "line": 21058,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "2733ed1be25bf3f753df2c26ee6a11453a811e4e19d543005dd620bb2bc575da",
+            "line": 25346,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-3": {
+        "process_receipt_sha256": "64d943cc4c07f2fec0c3cb2982307a47bcb6c4f37a2885742e80f43fd7806a23",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "f9e7ca7c8851e3658e4f86683c14c8bb1940b67864e80e2e9ff2f02ae8cfb1aa",
+            "line": 12073,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "f9e7ca7c8851e3658e4f86683c14c8bb1940b67864e80e2e9ff2f02ae8cfb1aa",
+            "line": 16978,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "f9e7ca7c8851e3658e4f86683c14c8bb1940b67864e80e2e9ff2f02ae8cfb1aa",
+            "line": 21781,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "f9e7ca7c8851e3658e4f86683c14c8bb1940b67864e80e2e9ff2f02ae8cfb1aa",
+            "line": 26095,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-4": {
+        "process_receipt_sha256": "02389badb13f6a7ea7fa968b6764a3169caebcf08450d7a749f91d50ef73484b",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "7ff525919ed9677df1f96bb989116a7e82319fa109fc1b4f87e86b915d01e2da",
+            "line": 17070,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "7ff525919ed9677df1f96bb989116a7e82319fa109fc1b4f87e86b915d01e2da",
+            "line": 22005,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "7ff525919ed9677df1f96bb989116a7e82319fa109fc1b4f87e86b915d01e2da",
+            "line": 26344,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-5": {
+        "process_receipt_sha256": "954abcbbc1c681aeb1a4082978574fdb83d0da0123f3d1a4996d5c7eccc0cd05",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "0e7773439e37d64ee9bb7c8c7992f5f1c945122f16cefa4869af5d9fa8d37901",
+            "line": 13176,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "0e7773439e37d64ee9bb7c8c7992f5f1c945122f16cefa4869af5d9fa8d37901",
+            "line": 18111,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "0e7773439e37d64ee9bb7c8c7992f5f1c945122f16cefa4869af5d9fa8d37901",
+            "line": 23011,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "0e7773439e37d64ee9bb7c8c7992f5f1c945122f16cefa4869af5d9fa8d37901",
+            "line": 27150,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      }
+    },
+    "pair3-avd": {
+      "trial-1": {
+        "process_receipt_sha256": "685e5fca7771a778c070469d93df65b0b51ecf16b02af97550e7fcc78e24c47c",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "2939f98db345269d0de60cdc4fb78eb39311a51ec13134209b93ffd557ba5927",
+            "line": 38948,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "2939f98db345269d0de60cdc4fb78eb39311a51ec13134209b93ffd557ba5927",
+            "line": 45097,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-2": {
+        "process_receipt_sha256": "e0f79e055e7e0d35bd391cbef486923adec87e682a6eb3872656d12893a5f5a1",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "bc5382ce6bfbf72cc58e3fe9c1077758b586bd29e24d42d0157cd956b718ca39",
+            "line": 38948,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "bc5382ce6bfbf72cc58e3fe9c1077758b586bd29e24d42d0157cd956b718ca39",
+            "line": 46589,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "bc5382ce6bfbf72cc58e3fe9c1077758b586bd29e24d42d0157cd956b718ca39",
+            "line": 52709,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-3": {
+        "process_receipt_sha256": "3987885cd3bb6a867b88d7416cd9d2e6f2281aca8de60fd30cdca6ec2e7637de",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "84fd56af09119cd9dd9e89d657d20760bcd5e606cd7e6da63c41616bb024c1c0",
+            "line": 38948,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "84fd56af09119cd9dd9e89d657d20760bcd5e606cd7e6da63c41616bb024c1c0",
+            "line": 46589,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "84fd56af09119cd9dd9e89d657d20760bcd5e606cd7e6da63c41616bb024c1c0",
+            "line": 54165,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "84fd56af09119cd9dd9e89d657d20760bcd5e606cd7e6da63c41616bb024c1c0",
+            "line": 60215,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-4": {
+        "process_receipt_sha256": "5fce0cdf6823039171d85832524dd559cdfccc5a5ce947f13e1519888f06fe06",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "338945eeb27caa3806cceb29682b1cae7e4cd90d0975a432ce341b3805b692cf",
+            "line": 38948,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "338945eeb27caa3806cceb29682b1cae7e4cd90d0975a432ce341b3805b692cf",
+            "line": 46589,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "338945eeb27caa3806cceb29682b1cae7e4cd90d0975a432ce341b3805b692cf",
+            "line": 54165,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "338945eeb27caa3806cceb29682b1cae7e4cd90d0975a432ce341b3805b692cf",
+            "line": 61661,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "338945eeb27caa3806cceb29682b1cae7e4cd90d0975a432ce341b3805b692cf",
+            "line": 67667,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-5": {
+        "process_receipt_sha256": "f6d37b224648aaac6df488618155154f7025a2037414a2bcd43ce739a9580b6c",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "ca89f0c42ec3779f4c1a13774289d406b77aed04784eec776ab8cd976f3201d3",
+            "line": 38948,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "ca89f0c42ec3779f4c1a13774289d406b77aed04784eec776ab8cd976f3201d3",
+            "line": 46589,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "ca89f0c42ec3779f4c1a13774289d406b77aed04784eec776ab8cd976f3201d3",
+            "line": 54165,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "ca89f0c42ec3779f4c1a13774289d406b77aed04784eec776ab8cd976f3201d3",
+            "line": 61661,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "ca89f0c42ec3779f4c1a13774289d406b77aed04784eec776ab8cd976f3201d3",
+            "line": 69324,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "ca89f0c42ec3779f4c1a13774289d406b77aed04784eec776ab8cd976f3201d3",
+            "line": 75012,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      }
+    },
+    "pair3-redroid": {
+      "trial-1": {
+        "process_receipt_sha256": "61c26d99332b101c243436126e86c7bd8f7f482c508b86c5ccdddfc48f5dd5c2",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "005fd47d403d7ee1cf7fd401557b9d6a9f8a71fb02cc1455af4c3afbf285eda8",
+            "line": 21777,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "005fd47d403d7ee1cf7fd401557b9d6a9f8a71fb02cc1455af4c3afbf285eda8",
+            "line": 26261,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-2": {
+        "process_receipt_sha256": "ef737f56b1499409cd6fc19624825acd6b37c9ebdefe8d6b0c3d669e131ab306",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "62a7dad294bd1f28ed26e0386d0881c041281d4f4966f72f0ad5cc190484d0dc",
+            "line": 17240,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "62a7dad294bd1f28ed26e0386d0881c041281d4f4966f72f0ad5cc190484d0dc",
+            "line": 22285,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "62a7dad294bd1f28ed26e0386d0881c041281d4f4966f72f0ad5cc190484d0dc",
+            "line": 26289,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-3": {
+        "process_receipt_sha256": "d5ff6deffaf964e5e59a75d4cb3c88c9a01667ac24d35e1406a26df71322dc9c",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "c489579c9220cefc1127fa9b8e17f484d89ca7561c1c4b1d64b1beacd291dd6c",
+            "line": 17760,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "c489579c9220cefc1127fa9b8e17f484d89ca7561c1c4b1d64b1beacd291dd6c",
+            "line": 22385,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "c489579c9220cefc1127fa9b8e17f484d89ca7561c1c4b1d64b1beacd291dd6c",
+            "line": 26826,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-4": {
+        "process_receipt_sha256": "ddabcd53f601fed8713c40e5aff997782e3d6320c2d8fd3679bcd59446b805f3",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "123b46b81a3c38653ff3b1e28934bacb63c729076c9eba32b3214508872572cb",
+            "line": 13745,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "123b46b81a3c38653ff3b1e28934bacb63c729076c9eba32b3214508872572cb",
+            "line": 18370,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "123b46b81a3c38653ff3b1e28934bacb63c729076c9eba32b3214508872572cb",
+            "line": 23412,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "123b46b81a3c38653ff3b1e28934bacb63c729076c9eba32b3214508872572cb",
+            "line": 27843,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-5": {
+        "process_receipt_sha256": "8a0234d0fbdd6a56e336a6188511eaddb57b531f5b1224431516f42f90296516",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "1a859e939ec9460a070dd707ae93a2071e71553e7d4fe8eef79ad017c90f8b77",
+            "line": 14563,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "1a859e939ec9460a070dd707ae93a2071e71553e7d4fe8eef79ad017c90f8b77",
+            "line": 19605,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "1a859e939ec9460a070dd707ae93a2071e71553e7d4fe8eef79ad017c90f8b77",
+            "line": 24596,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "1a859e939ec9460a070dd707ae93a2071e71553e7d4fe8eef79ad017c90f8b77",
+            "line": 28615,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      }
+    },
+    "pair4-avd": {
+      "trial-1": {
+        "process_receipt_sha256": "260c11ffb6087906813e95113c6b005dd6d1cd922e9a84855394318ce3e13596",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "dbaec1085368de6eb3d59671b102240d46b9e4d93126c864d93f5bbb93e63b82",
+            "line": 42232,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "dbaec1085368de6eb3d59671b102240d46b9e4d93126c864d93f5bbb93e63b82",
+            "line": 48885,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-2": {
+        "process_receipt_sha256": "f2f89692591cc56da00dd10b0ca14a494f6f0afcbb5e4604dbeafe3ca3c4805a",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "724477a42ce0f0407c172406f8cfeee366ee80ae3d806763e9291fd67b9d6664",
+            "line": 42232,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "724477a42ce0f0407c172406f8cfeee366ee80ae3d806763e9291fd67b9d6664",
+            "line": 50363,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "724477a42ce0f0407c172406f8cfeee366ee80ae3d806763e9291fd67b9d6664",
+            "line": 56547,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-3": {
+        "process_receipt_sha256": "fd997180db938107758018dc7d53f31a71589b8ef449c5124485475c2bd3c53d",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "1f7c14f625bcab24da7d059e87ac038d476a353ba9141e70810c315a32e3a612",
+            "line": 42232,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "1f7c14f625bcab24da7d059e87ac038d476a353ba9141e70810c315a32e3a612",
+            "line": 50363,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "1f7c14f625bcab24da7d059e87ac038d476a353ba9141e70810c315a32e3a612",
+            "line": 58031,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "1f7c14f625bcab24da7d059e87ac038d476a353ba9141e70810c315a32e3a612",
+            "line": 64174,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-4": {
+        "process_receipt_sha256": "8ba712297c97676c96da53504cd2c968a1357de240193969d6fffb906a671e2b",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "c5ae1e5815829fd3d12d88ec842906ddde169e28c728bc123d2da7f0214fc516",
+            "line": 42232,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "c5ae1e5815829fd3d12d88ec842906ddde169e28c728bc123d2da7f0214fc516",
+            "line": 50363,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "c5ae1e5815829fd3d12d88ec842906ddde169e28c728bc123d2da7f0214fc516",
+            "line": 58031,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "c5ae1e5815829fd3d12d88ec842906ddde169e28c728bc123d2da7f0214fc516",
+            "line": 65635,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "c5ae1e5815829fd3d12d88ec842906ddde169e28c728bc123d2da7f0214fc516",
+            "line": 71442,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-5": {
+        "process_receipt_sha256": "e68fbdda6232db6d322fbd41603cc6e550b9e2919f25039a3910b2a754e51883",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "cdcf6c9a47fd78b774dd35537c3f499db3edc5349dae95cb72b23fa1c2cf18fd",
+            "line": 42232,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "cdcf6c9a47fd78b774dd35537c3f499db3edc5349dae95cb72b23fa1c2cf18fd",
+            "line": 50363,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "cdcf6c9a47fd78b774dd35537c3f499db3edc5349dae95cb72b23fa1c2cf18fd",
+            "line": 58031,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "cdcf6c9a47fd78b774dd35537c3f499db3edc5349dae95cb72b23fa1c2cf18fd",
+            "line": 65635,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "cdcf6c9a47fd78b774dd35537c3f499db3edc5349dae95cb72b23fa1c2cf18fd",
+            "line": 72962,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "cdcf6c9a47fd78b774dd35537c3f499db3edc5349dae95cb72b23fa1c2cf18fd",
+            "line": 79141,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      }
+    },
+    "pair4-redroid": {
+      "trial-1": {
+        "process_receipt_sha256": "7881c3727ba6da0e049f5ff35c465e0a660be1ecad69fe709904299fc7854a9e",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "7b35a315911656b0b673e2b582aaec31d58824fe91f3ab3dbcc0b6af419bb8a7",
+            "line": 20498,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "7b35a315911656b0b673e2b582aaec31d58824fe91f3ab3dbcc0b6af419bb8a7",
+            "line": 24770,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-2": {
+        "process_receipt_sha256": "109c2530de0cb40829b6032dc2cfb29cbcc7f094b347394b9710884edc9e28cf",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "bf43b1d2755324a1f8bd42ca38559a3f6f5d3567454607abafe7e78eeb343bdd",
+            "line": 15780,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "bf43b1d2755324a1f8bd42ca38559a3f6f5d3567454607abafe7e78eeb343bdd",
+            "line": 20588,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "bf43b1d2755324a1f8bd42ca38559a3f6f5d3567454607abafe7e78eeb343bdd",
+            "line": 24876,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-3": {
+        "process_receipt_sha256": "31fd761aac8ec67cca79de867ccb59043e5d1540cb305b28fff82b7e2f9a0275",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "c0f0216410a042d69af5e7b91352f15409d17a8964e3ac7106826227a67c4990",
+            "line": 16711,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "c0f0216410a042d69af5e7b91352f15409d17a8964e3ac7106826227a67c4990",
+            "line": 21730,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "c0f0216410a042d69af5e7b91352f15409d17a8964e3ac7106826227a67c4990",
+            "line": 25951,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-4": {
+        "process_receipt_sha256": "7d48a7e7a2b386cafb3bfea8b3fd6218e03baf4a702e3e1c2c2dec3b75313956",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "8c79b80d7d8555590b06f087db1810a66649311262e191167a0b83846d620c93",
+            "line": 12216,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "8c79b80d7d8555590b06f087db1810a66649311262e191167a0b83846d620c93",
+            "line": 17235,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "8c79b80d7d8555590b06f087db1810a66649311262e191167a0b83846d620c93",
+            "line": 21999,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "8c79b80d7d8555590b06f087db1810a66649311262e191167a0b83846d620c93",
+            "line": 26403,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      },
+      "trial-5": {
+        "process_receipt_sha256": "db09b3f0c2c703be401cbd17f701fe4e04326b346934cddba09f6033376f96c8",
+        "exit_code": 0,
+        "nearby_requests": [
+          {
+            "log_sha256": "9e931b747d674a2d698a8e3ecec8d1c112c2ffe341727569c9b610b1dbe10568",
+            "line": 17802,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "9e931b747d674a2d698a8e3ecec8d1c112c2ffe341727569c9b610b1dbe10568",
+            "line": 22810,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          },
+          {
+            "log_sha256": "9e931b747d674a2d698a8e3ecec8d1c112c2ffe341727569c9b610b1dbe10568",
+            "line": 26980,
+            "coordinates": [
+              "-23.5561782",
+              "-46.6375468"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
