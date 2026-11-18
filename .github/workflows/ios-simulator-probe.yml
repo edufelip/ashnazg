@@ -1,0 +1,59 @@
+name: iOS Simulator control probe
+
+on:
+  pull_request:
+    paths:
+      - platform/ios/**
+      - .github/workflows/ios-simulator-probe.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  simulator:
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install XcodeGen
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: brew install xcodegen
+      - name: Test semantic input and screenshot capture
+        working-directory: platform/ios
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ashnazg-ios-probe"
+          output="$RUNNER_TEMP/ashnazg-ios-probe"
+          xcodebuild -version | tee "$output/xcode.txt"
+          xcodegen --version | tee "$output/xcodegen.txt"
+          xcrun simctl list -j runtimes > "$output/runtimes.json"
+          runtime=$(jq -er '[.runtimes[] | select(.platform == "iOS" and .isAvailable)]
+            | sort_by(.version | split(".") | map(tonumber)) | last | .identifier' "$output/runtimes.json")
+          simulator=$(xcrun simctl create "AshnazgProbe-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" \
+            com.apple.CoreSimulator.SimDeviceType.iPhone-17 "$runtime")
+          cleanup() {
+            local result=$?
+            trap - EXIT
+            xcrun simctl shutdown "$simulator" >/dev/null 2>&1 || true
+            xcrun simctl delete "$simulator" || result=1
+            exit "$result"
+          }
+          trap cleanup EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+          printf '%s\n' "$simulator" > "$output/owned-simulator.txt"
+          xcodegen generate
+          xcodebuild test -project AshnazgSimulatorProbe.xcodeproj -scheme AshnazgSimulatorProbe \
+            -destination "platform=iOS Simulator,id=$simulator" \
+            -parallel-testing-enabled NO -resultBundlePath "$output/Probe.xcresult" 2>&1 | tee "$output/test.log"
+      - name: Upload Simulator probe evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ios-simulator-probe
+          path: ${{ runner.temp }}/ashnazg-ios-probe
+          if-no-files-found: warn
