@@ -1,0 +1,36 @@
+name: AshnazgSimulatorProbe
+options:
+  deploymentTarget:
+    iOS: '17.0'
+settings:
+  base:
+    GENERATE_INFOPLIST_FILE: YES
+    SWIFT_VERSION: '5.0'
+    CODE_SIGNING_ALLOWED: NO
+targets:
+  Fixture:
+    type: application
+    platform: iOS
+    sources: [Fixture]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.ashnazg.ios.fixture
+  FixtureUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: Fixture
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.ashnazg.ios.fixture.uitests
+schemes:
+  AshnazgSimulatorProbe:
+    build:
+      targets:
+        Fixture: all
+        FixtureUITests: [test]
+    test:
+      targets:
+        - name: FixtureUITests
+          parallelizable: false
