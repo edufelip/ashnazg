@@ -36,5 +36,12 @@ logging in again. The first successful MCP snapshot arrived 16.07 s and 13.07 s
 after the two session launches. These are individual Android-session timings.
 [Persistence and timing receipt](meer-persistence.json) · [Resume test](meer-resume.e2e.js)
 
-Cross-version app upgrades still need a live run. The native Apple Silicon Meer journey is documented in
+A subsequent run upgraded a separately built Meer DEV APK from Android
+version code 1 to 2 across two boots using the same private state. Android
+reported the original install timestamp, and Detox reached authenticated Home
+without signing in again. Both APKs use the same signing certificate and
+DEV version name. This run covers the Android upgrade transaction and session
+retention for this pair. [Upgrade receipt](meer-upgrade.json)
+
+The native Apple Silicon Meer journey is documented in
 [real app development acceptance](../../real-app-development.md).
