@@ -87,3 +87,16 @@ Button, label: "Increment", identifier: "other-increment", hitPoint: {50, 50}
             ]
             self.assertEqual(actions, ["t 120 30", "t 100 80 sender keyboard kbd AshnazgAppleProbe"])
             self.assertNotIn("private", repr(receipt))
+
+    def test_resolves_accessibility_id_in_the_captured_xcode_27_tree(self):
+        from scripts.xcode_mcp_fixture import target_point
+
+        tree = (
+            "Application bundle identifier: dev.ashnazg.ios.fixture\n"
+            " Button, {{162.7, 440.7}, {76.7, 20.3}}, identifier: 'fixture-increment', "
+            "label: 'Increment', hitPoint: {201.0, 450.8}\n"
+            " TextField, {{24.0, 485.0}, {354.0, 34.0}}, identifier: 'fixture-input', "
+            "placeholderValue: 'Probe text', hitPoint: {201.0, 502.0}"
+        )
+        self.assertEqual(target_point(tree, "fixture-increment", "Increment"), ("201.0 450.8", "identifier"))
+        self.assertEqual(target_point(tree, "fixture-input", "Probe text"), ("201.0 502.0", "identifier"))

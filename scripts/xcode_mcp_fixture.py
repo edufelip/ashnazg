@@ -54,11 +54,12 @@ def retain_file(result, key, output):
 
 def target_point(hierarchy, identifier, label):
     lines = hierarchy.splitlines()
-    identifiers = [
-        line for line in lines
-        if re.search(r'\b(?:identifier|accessibilityIdentifier)\s*[:=]\s*"' + re.escape(identifier) + '"', line)
-    ]
-    matches = identifiers or [line for line in lines if f'"{label}"' in line]
+    escaped_id = re.escape(identifier)
+    id_field = re.compile(
+        r"\b(?:identifier|accessibilityIdentifier)\s*[:=]\s*(['\"])" + escaped_id + r"\1"
+    )
+    identifiers = [line for line in lines if id_field.search(line)]
+    matches = identifiers or [line for line in lines if f'"{label}"' in line or f"'{label}'" in line]
     if len(matches) != 1:
         raise InventoryError(f"the fixture requires a unique target for {identifier}")
     point = re.search(r"\b(?:hitPoint|center)\s*:\s*\{([0-9.]+),\s*([0-9.]+)\}", matches[0])
@@ -171,7 +172,8 @@ def main():
         receipt["bridge_exit_code"] = process.returncode
     (args.output / "receipt.json").write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
     print(f"Apple MCP fixture state: {receipt['status']}")
+    return int(args.exercise and receipt["status"] != "exercised")
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
