@@ -94,16 +94,15 @@ jobs:
             xcrun simctl bootstatus "$simulator" -b
             xcrun simctl install "$simulator" "$derived/Build/Products/Debug-iphonesimulator/Fixture.app"
             xcrun simctl launch "$simulator" dev.ashnazg.ios.fixture
-            python3 -m scripts.xcode_mcp_fixture --simulator "$simulator" --output "$output/fixture"
-            if [[ "$APPLE_MCP_UNATTENDED" == true ]] && jq -e '
-              .status == "blocked" and (.error | contains("agent isn\u0027t approved"))
-            ' "$output/fixture/receipt.json" >/dev/null; then
+            if [[ "$APPLE_MCP_UNATTENDED" == true ]]; then
               test "$GITHUB_REPOSITORY" = edufelip/ashnazg
               test "$RUNNER_ENVIRONMENT" = github-hosted
               sudo -n xcrun mcp-server disable > "$output/disable-before-unattended.txt" 2>&1
               sudo -n xcrun mcp-server enable --unsafe-always-allow-all-agents \
                 > "$output/enable-unattended.txt" 2>&1
-              python3 -m scripts.xcode_mcp_fixture --simulator "$simulator" --output "$output/unattended"
+              python3 -m scripts.xcode_mcp_fixture --simulator "$simulator" --output "$output/unattended" --exercise
+            else
+              python3 -m scripts.xcode_mcp_fixture --simulator "$simulator" --output "$output/fixture"
             fi
           fi
       - name: Upload Apple MCP inventory

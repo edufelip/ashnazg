@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import itertools
 import json
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -51,7 +52,55 @@ def retain_file(result, key, output):
     return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
 
 
-def observe_fixture(call, simulator, output):
+def target_point(hierarchy, identifier, label):
+    lines = hierarchy.splitlines()
+    identifiers = [
+        line for line in lines
+        if re.search(r'\b(?:identifier|accessibilityIdentifier)\s*[:=]\s*"' + re.escape(identifier) + '"', line)
+    ]
+    matches = identifiers or [line for line in lines if f'"{label}"' in line]
+    if len(matches) != 1:
+        raise InventoryError(f"the fixture requires a unique target for {identifier}")
+    point = re.search(r"\b(?:hitPoint|center)\s*:\s*\{([0-9.]+),\s*([0-9.]+)\}", matches[0])
+    if point is None or any(not re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", value) for value in point.groups()):
+        raise InventoryError(f"the hierarchy did not provide a usable point for {identifier}")
+    return " ".join(point.groups()), "identifier" if identifiers else "label"
+
+
+def exercise_fixture(call, arguments, output, receipt):
+    before = (output / "before-hierarchy.txt").read_text()
+    if "Count: 0" not in before:
+        raise InventoryError("the pre-tap hierarchy did not show Count: 0")
+    point, mode = target_point(before, "fixture-increment", "Increment")
+    receipt["counter_selector_basis"] = mode
+    begin = time.monotonic()
+    acted = call("DeviceInteractionSynthesize", {**arguments, "interactionCommand": f"t {point}"})
+    receipt["after_tap_png"] = retain_file(acted, "screenshotPath", output / "after-tap.png")
+    receipt["after_tap_hierarchy"] = retain_file(acted, "hierarchyPath", output / "after-tap-hierarchy.txt")
+    after = (output / "after-tap-hierarchy.txt").read_text()
+    if "Count: 1" not in after or "Count: 0" in after:
+        raise InventoryError("the tap did not change the observed counter from 0 to 1")
+    if receipt["screenshot"]["sha256"] == receipt["after_tap_png"]["sha256"]:
+        raise InventoryError("the post-tap frame repeated the pre-tap PNG")
+    receipt["tap_to_validated_png_seconds"] = round(time.monotonic() - begin, 6)
+    receipt["counter_transition"] = [0, 1]
+
+    point, mode = target_point(after, "fixture-input", "Probe text")
+    receipt["text_selector_basis"] = mode
+    marker = "AshnazgAppleProbe"
+    if marker in after:
+        raise InventoryError("the text marker was already in the hierarchy")
+    typed = call("DeviceInteractionSynthesize", {
+        **arguments, "interactionCommand": f"t {point} sender keyboard kbd {marker}",
+    })
+    receipt["after_type_png"] = retain_file(typed, "screenshotPath", output / "after-type.png")
+    receipt["after_type_hierarchy"] = retain_file(typed, "hierarchyPath", output / "after-type-hierarchy.txt")
+    if marker not in (output / "after-type-hierarchy.txt").read_text():
+        raise InventoryError("the typed marker did not appear in the hierarchy")
+    receipt["typing_observed"] = True
+
+
+def observe_fixture(call, simulator, output, exercise=False):
     receipt = {"status": "blocked", "simulator": simulator}
     started = time.monotonic()
     session_key = None
@@ -67,14 +116,16 @@ def observe_fixture(call, simulator, output):
         if session.get("deviceIsSimulator") is not True or not isinstance(device, str) or device.lower() != simulator.lower():
             raise InventoryError("Apple selected a device other than the owned simulator")
         begin = time.monotonic()
-        state = call("DeviceInteractionSynthesize", {
-            "interactSessionKey": session_key, "activationBundleId": BUNDLE,
-        })
+        arguments = {"interactSessionKey": session_key, "activationBundleId": BUNDLE}
+        state = call("DeviceInteractionSynthesize", arguments)
         receipt["capture_seconds"] = round(time.monotonic() - begin, 6)
         receipt["application_state"] = state.get("applicationState")
         receipt["screenshot"] = retain_file(state, "screenshotPath", output / "before.png")
         receipt["hierarchy"] = retain_file(state, "hierarchyPath", output / "before-hierarchy.txt")
         receipt["status"] = "captured"
+        if exercise:
+            exercise_fixture(call, arguments, output, receipt)
+            receipt["status"] = "exercised"
     except (OSError, RuntimeError) as error:
         message = str(error).replace(session_key, "[redacted]") if session_key else str(error)
         receipt["error"] = sanitize(message)[:2000]
@@ -94,6 +145,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--simulator", required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--exercise", action="store_true", help="Verify one tap and non-secret text entry")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     process = subprocess.Popen(
@@ -102,7 +154,7 @@ def main():
     client = StdioClient(process)
     try:
         list_tools(client)
-        receipt = observe_fixture(tool_caller(client), args.simulator, args.output)
+        receipt = observe_fixture(tool_caller(client), args.simulator, args.output, exercise=args.exercise)
     except (OSError, RuntimeError) as error:
         receipt = {"status": "blocked", "error": sanitize(str(error))[:2000]}
     finally:
