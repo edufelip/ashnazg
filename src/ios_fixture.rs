@@ -236,19 +236,24 @@ impl FixtureSession {
         Ok(json!({"snapshotId": sequence, "nodes": nodes, "platform": "ios-fixture"}))
     }
 
-    /// One live tap; the selector must come from a prior snapshot. The bridge
-    /// only answers after the fixture state settled, matching the Android
-    /// action result shape `{"settled": ..., "snapshot": ...}`.
+    /// One live tap or type action; the selector must come from a prior
+    /// snapshot. The bridge only answers after the fixture state settled,
+    /// matching the Android action result shape `{"settled": ..., "snapshot":
+    /// ...}`.
     pub async fn act(
         &self,
         command: &Value,
         cancel: &CancellationToken,
     ) -> Result<Value, BridgeError> {
+        let action = command
+            .get("action")
+            .and_then(Value::as_str)
+            .unwrap_or("act");
         let (response, sequence) = self.exchange(command, cancel).await?;
         let nodes = response
             .get("nodes")
             .cloned()
-            .ok_or_else(|| anyhow::anyhow!("bridge tap response omitted nodes"))?;
+            .ok_or_else(|| anyhow::anyhow!("bridge {action} response omitted nodes"))?;
         Ok(json!({
             "settled": true,
             "snapshot": {"snapshotId": sequence, "nodes": nodes, "platform": "ios-fixture"},

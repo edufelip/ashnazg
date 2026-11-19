@@ -15,6 +15,7 @@ final class McpBridgeTests: XCTestCase {
         let action: String?
         let testId: String?
         let text: String?
+        let value: String?
     }
 
     @MainActor
@@ -23,19 +24,41 @@ final class McpBridgeTests: XCTestCase {
         case "ui_snapshot":
             return ["ok": true, "nodes": Self.snapshotNodes(app: app)]
         case "ui_act":
-            guard command.action == "tap" else {
-                return ["ok": false, "error": "bridge only supports the tap action"]
+            switch command.action ?? "" {
+            case "tap":
+                if let testId = command.testId, !testId.isEmpty {
+                    let query = app.descendants(matching: .any).matching(identifier: testId)
+                    return Self.tapFirstMatch(of: query, selector: "testId \(testId)", in: app)
+                }
+                if let text = command.text, !text.isEmpty {
+                    let query = app.descendants(matching: .any)
+                        .matching(NSPredicate(format: "label == %@", text))
+                    return Self.tapFirstMatch(of: query, selector: "text \(text)", in: app)
+                }
+                return ["ok": false, "error": "tap requires a testId or text selector"]
+            case "type":
+                // The typed payload rides `value`, separate from the testId
+                // or text selector.
+                guard let value = command.value else {
+                    return ["ok": false, "error": "type requires text"]
+                }
+                if let testId = command.testId, !testId.isEmpty {
+                    let query = app.descendants(matching: .any).matching(identifier: testId)
+                    return Self.typeText(
+                        into: query, selector: "testId \(testId)", value: value, in: app
+                    )
+                }
+                if let text = command.text, !text.isEmpty {
+                    let query = app.descendants(matching: .any)
+                        .matching(NSPredicate(format: "label == %@", text))
+                    return Self.typeText(
+                        into: query, selector: "text \(text)", value: value, in: app
+                    )
+                }
+                return ["ok": false, "error": "type requires a testId or text selector"]
+            default:
+                return ["ok": false, "error": "bridge only supports the tap and type actions"]
             }
-            if let testId = command.testId, !testId.isEmpty {
-                let query = app.descendants(matching: .any).matching(identifier: testId)
-                return Self.tapFirstMatch(of: query, selector: "testId \(testId)", in: app)
-            }
-            if let text = command.text, !text.isEmpty {
-                let query = app.descendants(matching: .any)
-                    .matching(NSPredicate(format: "label == %@", text))
-                return Self.tapFirstMatch(of: query, selector: "text \(text)", in: app)
-            }
-            return ["ok": false, "error": "tap requires a testId or text selector"]
         case "ui_screenshot":
             let png = app.screenshot().pngRepresentation
             return ["ok": true,
@@ -74,6 +97,79 @@ final class McpBridgeTests: XCTestCase {
         return ["ok": true, "nodes": snapshotNodes(app: app)]
     }
 
+    /// One live text entry into a uniquely matched editable field. The tap
+    /// focuses the field and `typeText` is genuine XCTest keyboard input; the
+    /// settle observes the field value without ever echoing it. An empty
+    /// payload settles as a no-op before any secure-text boundary; a nonempty
+    /// payload onto existing secure text is rejected, mirroring the Android
+    /// `type` boundary. Secure values never appear in snapshots or errors.
+    @MainActor
+    private static func typeText(
+        into query: XCUIElementQuery,
+        selector: String,
+        value: String,
+        in app: XCUIApplication
+    ) -> [String: Any] {
+        let matches = query.count
+        guard matches == 1 else {
+            return ["ok": false,
+                    "error": "selector \(selector) matched \(matches) elements, expected exactly one"]
+        }
+        let element = query.element(boundBy: 0)
+        guard element.isEnabled, element.isHittable else {
+            return ["ok": false, "error": "selector \(selector) is not an enabled hittable element"]
+        }
+        guard element.elementType == .textField || element.elementType == .secureTextField else {
+            return ["ok": false, "error": "selector \(selector) is not an editable text element"]
+        }
+        // XCUI may report a placeholder as the value of an empty field; that
+        // is not typed content.
+        let reported = element.value as? String ?? ""
+        let placeholder = element.placeholderValue ?? ""
+        let existing = reported == placeholder ? "" : reported
+        if value.isEmpty {
+            // Parity with the shared schema: an empty payload settles as a
+            // no-op with a fresh snapshot, never an error.
+            return ["ok": true, "nodes": snapshotNodes(app: app)]
+        }
+        if element.elementType == .secureTextField && !existing.isEmpty {
+            // Mirrors the Android boundary on nonempty secure text; the
+            // bridge offers no clear action to work around it.
+            return ["ok": false,
+                    "error": "selector \(selector) holds existing secure text; typing onto it is not supported"]
+        }
+        element.tap()
+        element.typeText(value)
+        let expected = existing + value
+        // The settle never embeds the typed value in a predicate: XCTest may
+        // retain predicate descriptions in native diagnostics. A plain field
+        // settles on the observed content (the payload is the synthetic
+        // fixture value); a secure field settles on a genuine native mask
+        // observation only — every character a mask bullet, exactly the
+        // typed length, mirroring the Android password mask comparison
+        // without reading or echoing content.
+        let settled: XCTNSPredicateExpectation
+        if element.elementType == .secureTextField {
+            settled = XCTNSPredicateExpectation(
+                predicate: NSPredicate(
+                    format: "value MATCHES %@ AND value.length == %d",
+                    "^[•●*]+$",
+                    value.count
+                ),
+                object: element
+            )
+        } else {
+            settled = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "value == %@", expected),
+                object: element
+            )
+        }
+        guard XCTWaiter().wait(for: [settled], timeout: 10) == .completed else {
+            return ["ok": false, "error": "fixture text did not settle after typing"]
+        }
+        return ["ok": true, "nodes": snapshotNodes(app: app)]
+    }
+
     private static func snapshotNodes(app: XCUIApplication) -> [[String: Any]] {
         var nodes: [[String: Any]] = []
         for element in app.descendants(matching: .any).allElementsBoundByIndex {
@@ -87,7 +183,11 @@ final class McpBridgeTests: XCTestCase {
                 "rect": [frame.minX, frame.minY, frame.maxX, frame.maxY],
                 "enabled": element.isEnabled,
             ]
-            if let value = element.value as? String, !value.isEmpty {
+            // Secure field values are never serialized, and a placeholder is
+            // not typed content even for a plain field.
+            if element.elementType != .secureTextField,
+               let value = element.value as? String, !value.isEmpty,
+               value != element.placeholderValue {
                 node["value"] = value
             }
             nodes.append(node)

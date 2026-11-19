@@ -60,6 +60,14 @@ final class SimulatorProbeTests: XCTestCase {
         XCTAssertTrue(input.waitForExistence(timeout: 10))
         XCTAssertEqual(query.count, 1)
         XCTAssertTrue(input.isHittable)
+        // Pins the empty-field report the bridge normalization relies on:
+        // before typing, XCUI reports either no value or exactly the
+        // placeholder, never anything else.
+        let initial = input.value as? String ?? ""
+        XCTAssertTrue(
+            initial.isEmpty || initial == input.placeholderValue,
+            "unexpected initial field value: \(initial)"
+        )
         input.tap()
         input.typeText("Ashnazg")
         XCTAssertEqual(input.value as? String, "Ashnazg")

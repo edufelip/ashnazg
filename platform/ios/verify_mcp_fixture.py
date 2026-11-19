@@ -3,11 +3,12 @@
 
 macOS only. Exercises the actual public protocol (initialize, tools/list,
 tools/call) against one live XCTest fixture session: an accessibility
-snapshot, a tap whose selector comes from that snapshot, and fresh
-screenshots, with the resulting distinct accessibility state and PNG evidence
-correlated through session sequence ids and live counter observations.
-Verifies owned-resource cleanup on EOF and writes a sanitized
-machine-readable receipt plus raw artifacts.
+snapshot, a tap whose selector comes from that snapshot, fresh screenshots,
+and keyboard text entry that appends like the Android `type` action, with
+the resulting distinct accessibility state and PNG evidence correlated
+through session sequence ids and live counter observations. Verifies
+owned-resource cleanup on EOF and writes a sanitized machine-readable
+receipt plus raw artifacts.
 
 Usage:
     python3 platform/ios/verify_mcp_fixture.py \
@@ -210,6 +211,7 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
     descriptor: dict | None = None
     next_id = [1]
 
+    launch_started = time.monotonic()
     process = subprocess.Popen(
         [str(binary), "mcp", "--ios-fixture"],
         stdin=subprocess.PIPE,
@@ -222,7 +224,10 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
     client.start()
 
     def record(tool: str, arguments: dict, result: dict, elapsed: float) -> None:
-        entry = {"tool": tool, "arguments": arguments, "elapsed_seconds": round(elapsed, 3)}
+        sanitized = dict(arguments)
+        if sanitized.get("target", {}).get("testId") == "fixture-secret":
+            sanitized["text"] = "<redacted synthetic secret>"
+        entry = {"tool": tool, "arguments": sanitized, "elapsed_seconds": round(elapsed, 3)}
         if "content" in result:
             entry["content_kinds"] = [block.get("type") for block in result["content"]]
         if result.get("isError"):
@@ -243,6 +248,10 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
         return result
 
     failure: str | None = None
+    # Fixture-only synthetic sentinel for the secure redaction checks; bound
+    # before the session so failure paths can always scrub it from retained
+    # text. It is never a real credential.
+    secret_value = "synthetic-fixture-secret-3fa1"
     try:
         init = client.request(
             {
@@ -312,6 +321,7 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
         selector = {"testId": buttons[0]["testId"]}
         if not any(node.get("text") == "Count: 0" for node in nodes):
             raise AcceptanceError(f"initial snapshot did not show Count: 0: {nodes}")
+        first_snapshot_ready = time.monotonic()
 
         png_before, meta_before = image_and_metadata(
             call("ui_screenshot", {"format": "png"}, REQUEST_TIMEOUT)
@@ -322,6 +332,7 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
         if meta_before.get("counterLabel") != "Count: 0":
             raise AcceptanceError(f"pre-tap counter observation was {meta_before.get('counterLabel')}")
 
+        tap_started = time.monotonic()
         acted = structured(call("ui_act", {"action": "tap", "target": selector}, REQUEST_TIMEOUT))
         (output / "snapshot-after.json").write_text(json.dumps(acted, indent=2, sort_keys=True))
         if acted.get("settled") is not True:
@@ -349,6 +360,7 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
             raise AcceptanceError("post-tap screenshot did not follow the settled tap state")
         if meta_after.get("counterLabel") != "Count: 1":
             raise AcceptanceError(f"post-tap counter observation was {meta_after.get('counterLabel')}")
+        post_tap_png_verified = time.monotonic()
         receipt["state_evidence"] = {
             "selector_from_snapshot": selector,
             "button_role": buttons[0]["role"],
@@ -382,17 +394,235 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
             },
             "mime": "image/png",
         }
+        # Single-run monotonic observations with their exact boundaries; both
+        # intervals end before any text-entry request runs. Neither is a
+        # benchmark or a latency claim.
+        receipt["fixture_timings"] = {
+            "child_launch_to_first_validated_snapshot": {
+                "seconds": round(first_snapshot_ready - launch_started, 3),
+                "start": "immediately before spawning the mcp --ios-fixture child",
+                "end": "first ui_snapshot validated (Count: 0, one enabled fixture-increment)",
+            },
+            "tap_to_verified_post_tap_png": {
+                "seconds": round(post_tap_png_verified - tap_started, 3),
+                "start": "immediately before the ui_act tap request",
+                "end": "post-tap PNG verified (valid, distinct, sequence-correlated, Count: 1)",
+            },
+            "note": "single-run monotonic observations on this host only",
+        }
 
-        # Explicit iOS-mode surface: the unsupported action and the disabled
-        # Android tool must fail cleanly (JSON-RPC error or MCP isError).
+        # Text entry (fixture-scoped): type appends onto existing text like
+        # the Android type action, proven by typing twice into the same
+        # nonempty field. The selector comes from the live post-tap snapshot
+        # and the payload rides the wire separately from the selector text.
+        input_nodes = [node for node in nodes_after if node.get("testId") == "fixture-input"]
+        if (
+            len(input_nodes) != 1
+            or input_nodes[0].get("role") != "textfield"
+            or input_nodes[0].get("enabled") is not True
+        ):
+            raise AcceptanceError(
+                f"expected one enabled fixture-input textfield in the post-tap snapshot, got {input_nodes}"
+            )
+        first_typed = structured(
+            call(
+                "ui_act",
+                {"action": "type", "target": {"testId": "fixture-input"}, "text": "Ashnazg"},
+                REQUEST_TIMEOUT,
+            )
+        )
+        (output / "snapshot-after-first-type.json").write_text(
+            json.dumps(first_typed, indent=2, sort_keys=True)
+        )
+        typed_state = first_typed.get("snapshot") or {}
+        if first_typed.get("settled") is not True:
+            raise AcceptanceError("the first type action did not settle")
+        if typed_state.get("snapshotId", 0) <= meta_after.get("snapshotId", 0):
+            raise AcceptanceError("the first type action did not advance the session sequence")
+        if not any(
+            node.get("testId") == "fixture-input" and node.get("value") == "Ashnazg"
+            for node in typed_state.get("nodes") or []
+        ):
+            raise AcceptanceError(f"the first type did not show value Ashnazg: {typed_state.get('nodes')}")
+        second_typed = structured(
+            call(
+                "ui_act",
+                {"action": "type", "target": {"testId": "fixture-input"}, "text": "-fixture"},
+                REQUEST_TIMEOUT,
+            )
+        )
+        (output / "snapshot-after-second-type.json").write_text(
+            json.dumps(second_typed, indent=2, sort_keys=True)
+        )
+        appended_state = second_typed.get("snapshot") or {}
+        if second_typed.get("settled") is not True:
+            raise AcceptanceError("the second type action did not settle")
+        if appended_state.get("snapshotId", 0) <= typed_state.get("snapshotId", 0):
+            raise AcceptanceError("the second type action did not advance the session sequence")
+        if not any(
+            node.get("testId") == "fixture-input" and node.get("value") == "Ashnazg-fixture"
+            for node in appended_state.get("nodes") or []
+        ):
+            raise AcceptanceError("the second type did not append onto the existing nonempty text")
+        noop_typed = structured(
+            call(
+                "ui_act",
+                {"action": "type", "target": {"testId": "fixture-input"}, "text": ""},
+                REQUEST_TIMEOUT,
+            )
+        )
+        if noop_typed.get("settled") is not True:
+            raise AcceptanceError("the empty type payload did not settle as a no-op")
+        if not any(
+            node.get("testId") == "fixture-input" and node.get("value") == "Ashnazg-fixture"
+            for node in (noop_typed.get("snapshot") or {}).get("nodes") or []
+        ):
+            raise AcceptanceError("the empty type payload changed the observed field value")
+        # A direct fresh snapshot confirms the persisted typed state.
+        confirmed = structured(call("ui_snapshot", {"includeInvisible": False}, REQUEST_TIMEOUT))
+        (output / "snapshot-after-types.json").write_text(
+            json.dumps(confirmed, indent=2, sort_keys=True)
+        )
+        confirmed_nodes = confirmed.get("nodes") or []
+        if not any(
+            node.get("testId") == "fixture-input" and node.get("value") == "Ashnazg-fixture"
+            for node in confirmed_nodes
+        ):
+            raise AcceptanceError("the direct fresh snapshot lost the typed value")
+
+        # Secure field: a fixture-only synthetic sentinel is typed through
+        # the real bridge and must never surface in any snapshot, artifact,
+        # or receipt this verifier retains. Both post-type states are
+        # validated entirely in memory before any secure artifact is written;
+        # every failure message reports counts and labels, never node text.
+        secret_nodes = [node for node in confirmed_nodes if node.get("testId") == "fixture-secret"]
+        if len(secret_nodes) != 1:
+            raise AcceptanceError(
+                f"expected one fixture-secret node in the fresh snapshot, found {len(secret_nodes)}"
+            )
+        if secret_nodes[0].get("role") != "securetextfield":
+            raise AcceptanceError("the fixture-secret node did not report the securetextfield role")
+        if "value" in secret_nodes[0]:
+            raise AcceptanceError("the snapshot serialized a secure field value before typing")
+        secure_typed = structured(
+            call(
+                "ui_act",
+                {"action": "type", "target": {"testId": "fixture-secret"}, "text": secret_value},
+                REQUEST_TIMEOUT,
+            )
+        )
+        secure_fresh = structured(call("ui_snapshot", {"includeInvisible": False}, REQUEST_TIMEOUT))
+        if secure_typed.get("settled") is not True:
+            raise AcceptanceError("the secure type action did not settle")
+        for label, document in [
+            ("act response", secure_typed),
+            ("fresh snapshot", secure_fresh),
+        ]:
+            state = document.get("snapshot") or {}
+            typed_secret = [
+                node for node in state.get("nodes") or []
+                if node.get("testId") == "fixture-secret"
+            ]
+            if len(typed_secret) != 1:
+                raise AcceptanceError(f"the {label} lost or duplicated the fixture-secret node")
+            if typed_secret[0].get("role") != "securetextfield":
+                raise AcceptanceError(f"the {label} changed the fixture-secret role")
+            if "value" in typed_secret[0]:
+                raise AcceptanceError(f"the secure field value leaked into the {label}")
+            # The sentinel scan covers the complete document, including the
+            # settled/snapshot wrapper, not only the node list.
+            if secret_value in json.dumps(document):
+                raise AcceptanceError(f"the synthetic sentinel leaked into the {label}")
+        if secret_value in client.stderr_text():
+            raise AcceptanceError("the synthetic sentinel leaked into server stderr")
+        # Only after both states validate are the secure artifacts retained.
+        (output / "snapshot-after-secure-type.json").write_text(
+            json.dumps(secure_typed, indent=2, sort_keys=True)
+        )
+        (output / "snapshot-after-secure.json").write_text(
+            json.dumps(secure_fresh, indent=2, sort_keys=True)
+        )
+        for artifact in output.glob("*.json"):
+            if secret_value in artifact.read_text():
+                raise AcceptanceError(f"the synthetic sentinel leaked into {artifact.name}")
+        receipt["text_evidence"] = {
+            "typed_values": ["Ashnazg", "-fixture", ""],
+            "append_proof": {
+                "first": "Ashnazg",
+                "second": "-fixture",
+                "observed": "Ashnazg-fixture",
+                "observed_in": [
+                    "second act response",
+                    "empty-payload no-op response",
+                    "direct fresh ui_snapshot",
+                ],
+            },
+            "selector_from_snapshot": {"testId": "fixture-input", "role": "textfield"},
+            "sequence_advanced": {
+                "after_tap_screenshot": meta_after.get("snapshotId"),
+                "first_type": typed_state.get("snapshotId"),
+                "second_type": appended_state.get("snapshotId"),
+            },
+            "secure_redaction": {
+                "target": {"testId": "fixture-secret", "role": "securetextfield"},
+                "settled": True,
+                "value_key_absent_from": [
+                    "act response snapshot",
+                    "direct fresh ui_snapshot",
+                    "retained json artifacts",
+                    "server stderr",
+                    "this receipt",
+                ],
+                "payload": "<redacted synthetic sentinel>",
+                "native_diagnostics_unverified": (
+                    "xcodebuild/xcresult diagnostics retained by Xcode were not scanned for"
+                    " the synthetic sentinel; this verifier only proves redaction of bridge"
+                    " snapshots and the evidence it owns"
+                ),
+            },
+        }
+
+        # Bad-input boundaries: a non-editable target, a selector with no
+        # match, and a type without text are each rejected cleanly.
         expect_tool_rejected(
             call(
                 "ui_act",
-                {"action": "type", "target": selector, "text": "x"},
+                {"action": "type", "target": {"testId": "fixture-increment"}, "text": "x"},
                 REQUEST_TIMEOUT,
                 allow_error=True,
             ),
-            "the type action",
+            "type into the non-editable increment button",
+        )
+        expect_tool_rejected(
+            call(
+                "ui_act",
+                {"action": "type", "target": {"testId": "fixture-missing"}, "text": "x"},
+                REQUEST_TIMEOUT,
+                allow_error=True,
+            ),
+            "type into a selector with no match",
+        )
+        expect_tool_rejected(
+            call(
+                "ui_act",
+                {"action": "type", "target": {"testId": "fixture-input"}},
+                REQUEST_TIMEOUT,
+                allow_error=True,
+            ),
+            "type without text",
+        )
+
+        # Explicit iOS-mode surface: an action that validates against the
+        # shared schema but has no iOS mapping, and the disabled Android
+        # tool, must each fail cleanly (JSON-RPC error or MCP isError).
+        expect_tool_rejected(
+            call(
+                "ui_act",
+                {"action": "clear", "target": selector},
+                REQUEST_TIMEOUT,
+                allow_error=True,
+            ),
+            "the clear action",
         )
         expect_tool_rejected(
             call(
@@ -406,7 +636,7 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
 
         receipt["status"] = "tools_verified"
     except AcceptanceError as error:
-        failure = str(error)
+        failure = str(error).replace(secret_value, "<redacted synthetic sentinel>")
     finally:
         # EOF: the deterministic close path must verify cleanup. Keep working
         # when no descriptor ever arrived (startup failure).
@@ -421,7 +651,9 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
             failure = failure or "server did not exit after EOF within the deadline"
         receipt["cleanup"] = {
             "process_exit_code": exit_code,
-            "stderr_tail": client.stderr_text()[-4096:],
+            "stderr_tail": client.stderr_text()[-4096:].replace(
+                secret_value, "<redacted synthetic sentinel>"
+            ),
         }
         if descriptor is not None:
             work_dir = Path(descriptor["workDir"])
