@@ -13,11 +13,51 @@ on:
       - runtime/mcp-tools.schema.json
       - .github/workflows/ios-simulator-probe.yml
   workflow_dispatch:
+    inputs:
+      apple_mcp_inventory:
+        description: Record Apple MCP admission and tools on an isolated Xcode 27 runner
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
+  apple-mcp-inventory:
+    if: github.event_name == 'workflow_dispatch' && inputs.apple_mcp_inventory
+    runs-on: xcode-27
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Probe Apple MCP with no open workspace
+        run: |
+          set -euo pipefail
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          output="$RUNNER_TEMP/ashnazg-apple-mcp"
+          mkdir -p "$output"
+          sw_vers > "$output/macos.txt"
+          xcodebuild -version > "$output/xcode.txt"
+          if pgrep -x Xcode > "$output/open-xcode-pids.txt"; then
+            echo "Unexpected Xcode desktop session on isolated runner" >&2
+            exit 1
+          fi
+          xcrun mcp-server status > "$output/status-before.txt" 2>&1 || true
+          python3 -m scripts.xcode_mcp_inventory --output "$output/stock.json"
+          if sudo -n xcrun mcp-server enable > "$output/enable.txt" 2>&1; then
+            trap 'sudo -n xcrun mcp-server disable' EXIT
+            xcrun mcp-server status > "$output/status-enabled.txt" 2>&1 || true
+            python3 -m scripts.xcode_mcp_inventory --output "$output/headless.json"
+          fi
+      - name: Upload Apple MCP inventory
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: apple-mcp-inventory
+          path: ${{ runner.temp }}/ashnazg-apple-mcp
+          if-no-files-found: error
+
   simulator:
     runs-on: macos-26
     timeout-minutes: 15
