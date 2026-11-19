@@ -26,11 +26,15 @@ jobs:
   apple-mcp-inventory:
     if: github.event_name == 'workflow_dispatch' && inputs.apple_mcp_inventory
     runs-on: xcode-27
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+      - name: Install XcodeGen
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: brew install xcodegen
       - name: Probe Apple MCP with no open workspace
         run: |
           set -euo pipefail
@@ -46,9 +50,41 @@ jobs:
           xcrun mcp-server status > "$output/status-before.txt" 2>&1 || true
           python3 -m scripts.xcode_mcp_inventory --output "$output/stock.json"
           if sudo -n xcrun mcp-server enable > "$output/enable.txt" 2>&1; then
-            trap 'sudo -n xcrun mcp-server disable' EXIT
+            simulator=
+            cleanup() {
+              local result=$?
+              trap - EXIT
+              if [[ -n "$simulator" ]]; then
+                xcrun simctl shutdown "$simulator" >/dev/null 2>&1 || true
+                xcrun simctl delete "$simulator" > "$output/simulator-delete.txt" 2>&1 || result=1
+                xcrun simctl list -j devices > "$RUNNER_TEMP/ashnazg-ios-cleanup.json" || result=1
+                jq -e --arg id "$simulator" 'all(.devices[][]; .udid != $id)' \
+                  "$RUNNER_TEMP/ashnazg-ios-cleanup.json" > "$output/simulator-absent.txt" || result=1
+              fi
+              sudo -n xcrun mcp-server disable > "$output/disable.txt" 2>&1 || result=1
+              exit "$result"
+            }
+            trap cleanup EXIT
+            trap 'exit 130' INT
+            trap 'exit 143' TERM
             xcrun mcp-server status > "$output/status-enabled.txt" 2>&1 || true
             python3 -m scripts.xcode_mcp_inventory --output "$output/headless.json"
+            xcrun simctl list -j runtimes > "$output/runtimes.json"
+            runtime=$(jq -er '[.runtimes[] | select(.platform == "iOS" and .isAvailable)]
+              | sort_by(.version | split(".") | map(tonumber)) | last | .identifier' "$output/runtimes.json")
+            simulator=$(xcrun simctl create "AshnazgAppleMCP-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" \
+              com.apple.CoreSimulator.SimDeviceType.iPhone-17 "$runtime")
+            printf '%s\n' "$simulator" > "$output/owned-simulator.txt"
+            xcrun simctl boot "$simulator"
+            (cd platform/ios && xcodegen generate)
+            derived="$RUNNER_TEMP/ashnazg-apple-fixture-build"
+            xcodebuild build -project platform/ios/AshnazgSimulatorProbe.xcodeproj \
+              -scheme AshnazgSimulatorProbe -destination "platform=iOS Simulator,id=$simulator" \
+              -derivedDataPath "$derived" > "$output/fixture-build.txt" 2>&1
+            xcrun simctl bootstatus "$simulator" -b
+            xcrun simctl install "$simulator" "$derived/Build/Products/Debug-iphonesimulator/Fixture.app"
+            xcrun simctl launch "$simulator" dev.ashnazg.ios.fixture
+            python3 -m scripts.xcode_mcp_fixture --simulator "$simulator" --output "$output/fixture"
           fi
       - name: Upload Apple MCP inventory
         if: always()
