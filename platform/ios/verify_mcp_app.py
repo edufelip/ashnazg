@@ -74,7 +74,10 @@ MAX_CREDENTIAL_CHARS = 256
 
 # A failed exchange is uncertain only when the effect may or may not have
 # happened; a definitive rejection is an observation, never uncertainty.
-UNCERTAIN_CODES = {"request-timed-out", "server-closed-stdout", "stdout-drain-failed"}
+PRE_DISPATCH_REJECTIONS = {
+    "selector-ambiguous", "target-not-enabled-hittable",
+    "target-not-editable", "deep-link-not-allowlisted",
+}
 MANIFEST_KEYS = {
     "appPath",
     "appSha256",
@@ -106,7 +109,9 @@ def safe_code(message: str) -> str:
         return "server-closed-stdout"
     if "stdout drain failed" in lowered:
         return "stdout-drain-failed"
-    return "rejected-unknown-static-boundary"
+    if "did not settle" in lowered or "was not observed in the foreground after" in lowered:
+        return "action-readback-not-confirmed"
+    return "unclassified-server-error"
 
 
 def safe_structured(result: dict) -> dict:
@@ -325,7 +330,7 @@ def run_acceptance(
         except AcceptanceError as error:
             # Raw server text never reaches a receipt: classify, detach.
             code = safe_code(str(error))
-            fail(stage, code, uncertain=code in UNCERTAIN_CODES)
+            fail(stage, code, uncertain=params.get("name") == "ui_act")
         next_id[0] += 1
         return result
 
@@ -370,6 +375,13 @@ def run_acceptance(
                 fail(stage, "target-not-observed-within-bound", polls=len(ids), last_snapshot_id=ids[-1], bound_seconds=bound)
             time.sleep(POLL_PAUSE_SECONDS)
 
+    def check_mutation_error(result: dict, stage: str) -> None:
+        if "error" in result:
+            code = safe_code(result["error"].get("message", ""))
+            fail(stage, code, uncertain=code not in PRE_DISPATCH_REJECTIONS)
+        if result.get("isError"):
+            fail(stage, "tool-returned-isError-post-dispatch", uncertain=True)
+
     def type_once(stage: str, test_id: str, role: str, value: str) -> dict:
         once(stage)
         result = call(
@@ -378,11 +390,7 @@ def run_acceptance(
             stage,
             allow_error=True,
         )
-        if "error" in result:
-            fail(stage, safe_code(result["error"].get("message", "")))
-        if result.get("isError"):
-            # Dispatched, then failed: the effect is unknown, so uncertain.
-            fail(stage, "tool-returned-isError-post-dispatch", uncertain=True)
+        check_mutation_error(result, stage)
         try:
             acted = safe_structured(result)
         except AcceptanceError:
@@ -408,10 +416,7 @@ def run_acceptance(
     def deep_link_once(stage: str, uri: str) -> dict:
         once(stage)
         result = call("ui_act", {"action": "deep_link", "text": uri}, stage, allow_error=True)
-        if "error" in result:
-            fail(stage, safe_code(result["error"].get("message", "")))
-        if result.get("isError"):
-            fail(stage, "tool-returned-isError-post-dispatch", uncertain=True)
+        check_mutation_error(result, stage)
         try:
             acted = safe_structured(result)
         except AcceptanceError:
@@ -515,10 +520,7 @@ def run_acceptance(
             "login/submit",
             allow_error=True,
         )
-        if "error" in tap:
-            fail("login/submit", safe_code(tap["error"].get("message", "")))
-        if tap.get("isError"):
-            fail("login/submit", "tool-returned-isError-post-dispatch", uncertain=True)
+        check_mutation_error(tap, "login/submit")
         try:
             acted = safe_structured(tap)
         except AcceptanceError:
@@ -659,11 +661,26 @@ def run_acceptance(
         }
         if not stderr_clean:
             failure = failure or "the synthetic mock credentials leaked into server stderr"
+        if descriptor is None:
+            try:
+                descriptor = app_session_descriptor(client)
+            except (AcceptanceError, ValueError):
+                descriptor = None
         if descriptor is not None:
             try:
+                simulator = descriptor["simulator"]
+                owned_udid = simulator["udid"]
+                if (
+                    not owned_udid or owned_udid in pre_udids
+                    or descriptor.get("bundleId") != manifest["bundleId"]
+                    or descriptor.get("appSha256") != manifest["appSha256"]
+                    or simulator.get("runtime") != manifest["runtime"]
+                    or simulator.get("deviceType") != manifest["deviceType"]
+                ):
+                    raise ValueError("the owned session descriptor did not match the manifest")
                 work_dir = Path(descriptor["workDir"])
                 receipt["cleanup"]["work_dir_removed"] = not work_dir.exists()
-                receipt["cleanup"]["simulator_deleted"] = udid not in device_udids()
+                receipt["cleanup"]["simulator_deleted"] = owned_udid not in device_udids()
             except Exception:
                 receipt["cleanup"]["readback_failed"] = True
         if failure is None:
