@@ -19,6 +19,7 @@ use std::{
     io::Read as _,
     path::{Path, PathBuf},
     process::Stdio,
+    sync::atomic::{AtomicBool, Ordering},
     time::Duration,
 };
 use tokio::{
@@ -73,12 +74,16 @@ impl From<anyhow::Error> for BridgeError {
 struct Owned {
     simulator: String,
     work_dir: PathBuf,
+    simulator_deleted: AtomicBool,
 }
 
 impl Owned {
     /// Shuts the simulator down and deletes it, then verifies the device is
     /// gone; required before any successful session exit.
     async fn destroy(&self) -> anyhow::Result<()> {
+        if self.simulator_deleted.load(Ordering::Relaxed) {
+            return Ok(());
+        }
         let _ = Command::new("xcrun")
             .args(["simctl", "shutdown", &self.simulator])
             .stdout(Stdio::null())
@@ -94,6 +99,7 @@ impl Owned {
                 .await
                 .context("failed to run simctl delete")?;
             if deleted.success() && !Self::device_exists(&self.simulator).await {
+                self.simulator_deleted.store(true, Ordering::Relaxed);
                 return Ok(());
             }
             if attempt == 0 {
@@ -193,6 +199,7 @@ impl FixtureSession {
         let owned = Owned {
             simulator: simulator.clone(),
             work_dir: work_dir.clone(),
+            simulator_deleted: AtomicBool::new(false),
         };
 
         let token = capability_token()?;
@@ -642,10 +649,11 @@ impl From<anyhow::Error> for Poisoned {
 
 impl Drop for FixtureSession {
     fn drop(&mut self) {
-        // The deterministic close() path awaited verified deletion; this only
-        // covers sessions abandoned without close().
+        // A failed or abandoned session can leave diagnostics in the work directory.
+        if *self.owned.simulator_deleted.get_mut() {
+            return;
+        }
         let simulator = self.owned.simulator.clone();
-        let work_dir = self.owned.work_dir.clone();
         std::thread::spawn(move || {
             for arguments in [["shutdown", &simulator], ["delete", &simulator]] {
                 let _ = std::process::Command::new("xcrun")
@@ -655,7 +663,6 @@ impl Drop for FixtureSession {
                     .stderr(Stdio::null())
                     .status();
             }
-            let _ = fs::remove_dir_all(&work_dir);
         });
     }
 }
