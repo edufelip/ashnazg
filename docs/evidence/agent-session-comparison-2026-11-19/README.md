@@ -52,3 +52,16 @@ python3 -m scripts.agent_session_report docs/evidence/agent-session-comparison-2
 The first pair includes warm PNGs before and after the tap for
 [ReDroid](screenshots/redroid-warm-before.png) ([after](screenshots/redroid-warm-after.png))
 and [AVD](screenshots/avd-warm-before.png) ([after](screenshots/avd-warm-after.png)).
+
+## Meer mock journey replay
+
+The existing Meer pilot at source `0e519b9317bf7175755f168a18247b230414a66a`
+passed Login → Search → Home on fresh owned ReDroid and AVD guests on the same
+host. Both used the same DEV and AndroidTest APK pair. The pilot retained its
+standard no-retry policy, mock backend and accessibility assertions. It cleaned
+up both developer services and the two ADB reverse mappings. The host then
+confirmed that the two guests and their listeners had exited.
+
+[ReDroid receipt](meer-replay/redroid-journey.json) · [AVD receipt](meer-replay/avd-journey.json).
+These are functional replay receipts. Their command times include Detox
+installation and setup and do not enter the fixture medians above.
