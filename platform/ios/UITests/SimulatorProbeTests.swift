@@ -1,3 +1,5 @@
+import Dispatch
+import UIKit
 import XCTest
 
 final class SimulatorProbeTests: XCTestCase {
@@ -5,25 +7,48 @@ final class SimulatorProbeTests: XCTestCase {
     func testObserveTapObserveAndCapture() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
+        let firstUsableStart = DispatchTime.now().uptimeNanoseconds
         app.launch()
         defer { app.terminate() }
 
-        let count = app.staticTexts["fixture-count"]
+        let countQuery = app.staticTexts.matching(identifier: "fixture-count")
+        let count = countQuery.firstMatch
         XCTAssertTrue(count.waitForExistence(timeout: 10))
+        XCTAssertEqual(countQuery.count, 1)
         XCTAssertEqual(count.label, "Count: 0")
         let buttonQuery = app.buttons.matching(identifier: "fixture-increment")
         XCTAssertEqual(buttonQuery.count, 1)
         let button = buttonQuery.firstMatch
         XCTAssertTrue(button.isEnabled && button.isHittable)
+        let countRect = count.frame
+        let buttonRect = button.frame
+        let windowRect = app.windows.firstMatch.frame
+        XCTAssertTrue(
+            buttonRect.width > 0 && buttonRect.height > 0
+                && buttonRect.minX.isFinite && buttonRect.minY.isFinite
+                && buttonRect.maxX.isFinite && buttonRect.maxY.isFinite)
+        XCTAssertTrue(windowRect.contains(buttonRect), "button not visible in window")
+        XCTAssertTrue(
+            countRect.width > 0 && countRect.height > 0 && windowRect.contains(countRect),
+            "counter not visible in window"
+        )
+        let firstUsableEnd = DispatchTime.now().uptimeNanoseconds
         let before = app.screenshot()
+        let beforePNG = before.pngRepresentation
+        let beforeImage = try XCTUnwrap(before.image.cgImage)
 
+        let tapStart = DispatchTime.now().uptimeNanoseconds
         button.tap()
         let changed = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "label == %@", "Count: 1"), object: count
         )
         XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 5), .completed)
         let after = app.screenshot()
-        XCTAssertNotEqual(before.pngRepresentation, after.pngRepresentation)
+        XCTAssertNotEqual(beforePNG, after.pngRepresentation)
+        let afterImage = try XCTUnwrap(after.image.cgImage)
+        XCTAssertEqual(afterImage.width, beforeImage.width)
+        XCTAssertEqual(afterImage.height, beforeImage.height)
+        let tapEnd = DispatchTime.now().uptimeNanoseconds
 
         let frame = count.frame
         XCTAssertGreaterThan(frame.width, 0)
@@ -46,6 +71,29 @@ final class SimulatorProbeTests: XCTestCase {
             attachment.lifetime = .keepAlways
             add(attachment)
         }
+
+        // Keep the two in-run intervals independent of attachment export.
+        let boundaries: [String: Any] = [
+            "schema": "simulator-probe-boundaries",
+            "version": 1,
+            "clock": "dispatch-uptime-ns",
+            "firstUsableStartUptimeNs": Int(firstUsableStart),
+            "firstUsableEndUptimeNs": Int(firstUsableEnd),
+            "tapStartUptimeNs": Int(tapStart),
+            "tapEndUptimeNs": Int(tapEnd),
+            "buttonRect": [buttonRect.minX, buttonRect.minY, buttonRect.maxX, buttonRect.maxY],
+            "countRect": [countRect.minX, countRect.minY, countRect.maxX, countRect.maxY],
+            "windowRect": [windowRect.minX, windowRect.minY, windowRect.maxX, windowRect.maxY],
+            "preCapture": "before-increment",
+            "postCapture": "after-increment",
+            "captureExtent": "app",
+            "capturePixels": [afterImage.width, afterImage.height],
+        ]
+        let record = try JSONSerialization.data(withJSONObject: boundaries, options: [.sortedKeys])
+        let boundariesAttachment = XCTAttachment(data: record, uniformTypeIdentifier: "public.json")
+        boundariesAttachment.name = "fixture-observation-boundaries"
+        boundariesAttachment.lifetime = .keepAlways
+        add(boundariesAttachment)
     }
 
     @MainActor
