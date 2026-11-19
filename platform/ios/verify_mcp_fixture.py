@@ -444,13 +444,26 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
             for node in typed_state.get("nodes") or []
         ):
             raise AcceptanceError(f"the first type did not show value Ashnazg: {typed_state.get('nodes')}")
-        second_typed = structured(
-            call(
-                "ui_act",
-                {"action": "type", "target": {"testId": "fixture-input"}, "text": "-fixture"},
-                REQUEST_TIMEOUT,
-            )
+        second_result = call(
+            "ui_act",
+            {"action": "type", "target": {"testId": "fixture-input"}, "text": "-fixture"},
+            REQUEST_TIMEOUT,
+            allow_error=True,
         )
+        if "error" in second_result or second_result.get("isError"):
+            # Inspect the result once without replaying the rejected mutation.
+            latest = structured(call("ui_snapshot", {"includeInvisible": False}, REQUEST_TIMEOUT))
+            receipt["append_failure"] = {
+                "before_snapshot_id": typed_state.get("snapshotId"),
+                "after_snapshot_id": latest.get("snapshotId"),
+                "observed_fixture_values": [
+                    node.get("value")
+                    for node in latest.get("nodes", [])
+                    if node.get("testId") == "fixture-input"
+                ],
+            }
+            raise AcceptanceError("the second type action failed; see the fresh append_failure readback")
+        second_typed = structured(second_result)
         (output / "snapshot-after-second-type.json").write_text(
             json.dumps(second_typed, indent=2, sort_keys=True)
         )
@@ -667,7 +680,6 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
             receipt["cleanup"]["simulator_deleted"] = (
                 descriptor["simulator"]["udid"] not in remaining
             )
-        (output / "receipt.json").write_text(json.dumps(receipt, indent=2, sort_keys=True))
         if failure is None:
             if exit_code != 0:
                 failure = f"server exited with {exit_code} on clean EOF"
@@ -678,12 +690,13 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
             elif not receipt["cleanup"]["simulator_deleted"]:
                 failure = "the owned simulator was not deleted on close"
 
+    receipt["status"] = "failed" if failure is not None else "passed"
+    receipt["elapsed_seconds"] = round(time.monotonic() - started, 3)
+    if failure is not None:
+        receipt["error"] = failure
+    (output / "receipt.json").write_text(json.dumps(receipt, indent=2, sort_keys=True))
     if failure is not None:
         raise AcceptanceError(failure)
-
-    receipt["status"] = "passed"
-    receipt["elapsed_seconds"] = round(time.monotonic() - started, 3)
-    (output / "receipt.json").write_text(json.dumps(receipt, indent=2, sort_keys=True))
     return receipt
 
 
