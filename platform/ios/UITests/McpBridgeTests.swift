@@ -35,7 +35,7 @@ final class McpBridgeTests: XCTestCase {
     private func perform(_ command: Command, app: XCUIApplication) -> [String: Any] {
         switch command.op {
         case "ui_snapshot":
-            return ["ok": true, "nodes": Self.snapshotNodes(app: app)]
+            return Self.snapshotResponse(app: app)
         case "ui_act":
             switch command.action ?? "" {
             case "tap":
@@ -171,7 +171,7 @@ final class McpBridgeTests: XCTestCase {
                     "error": "app state was not observed in the foreground after the tap",
                 ]
             }
-            return ["ok": true, "nodes": snapshotNodes(app: app)]
+            return snapshotResponse(app: app)
         }
         let count = app.staticTexts["fixture-count"]
         let before = count.label
@@ -183,7 +183,7 @@ final class McpBridgeTests: XCTestCase {
         guard XCTWaiter().wait(for: [settled], timeout: 10) == .completed else {
             return ["ok": false, "error": "fixture state did not settle after the tap"]
         }
-        return ["ok": true, "nodes": snapshotNodes(app: app)]
+        return snapshotResponse(app: app)
     }
 
     /// One live text entry into a uniquely matched editable field. The tap
@@ -222,7 +222,7 @@ final class McpBridgeTests: XCTestCase {
         if value.isEmpty {
             // Parity with the shared schema: an empty payload settles as a
             // no-op with a fresh snapshot, never an error.
-            return ["ok": true, "nodes": Self.snapshotNodes(app: app)]
+            return Self.snapshotResponse(app: app)
         }
         if element.elementType == .secureTextField && !existing.isEmpty {
             // Mirrors the Android boundary on nonempty secure text; the
@@ -322,7 +322,7 @@ final class McpBridgeTests: XCTestCase {
             return ["ok": false, "error": "fixture text did not settle after typing"]
         }
         typingSelector = selector
-        return ["ok": true, "nodes": Self.snapshotNodes(app: app)]
+        return Self.snapshotResponse(app: app)
     }
 
     /// One controlled reveal of a uniquely matched enabled element clipped
@@ -351,7 +351,7 @@ final class McpBridgeTests: XCTestCase {
         if element.isHittable {
             // Already visibly hittable: a settled no-op with fresh observed
             // state, mirroring the empty-payload type boundary.
-            return ["ok": true, "nodes": snapshotNodes(app: app)]
+            return snapshotResponse(app: app)
         }
         // The target is clipped. The containing native scroll view resolves
         // by exact descendant matching — the public XCUI ancestry test — so
@@ -377,7 +377,7 @@ final class McpBridgeTests: XCTestCase {
                     + "element after one bounded swipe",
             ]
         }
-        return ["ok": true, "nodes": snapshotNodes(app: app)]
+        return snapshotResponse(app: app)
     }
 
     /// Opens one host-allowlisted deep link through XCUIApplication.open,
@@ -401,7 +401,7 @@ final class McpBridgeTests: XCTestCase {
                 "error": "app state was not observed in the foreground after the deep link",
             ]
         }
-        return ["ok": true, "nodes": Self.snapshotNodes(app: app)]
+        return Self.snapshotResponse(app: app)
     }
 
     /// Bounded observation of the app owning the foreground.
@@ -440,29 +440,60 @@ final class McpBridgeTests: XCTestCase {
         return field.count == 1 && field.element(boundBy: 0).exists
     }
 
-    private static func snapshotNodes(app: XCUIApplication) -> [[String: Any]] {
+    /// Collect the app's descendants from a single native capture. The
+    /// captured attributes avoid a live XCTest query for every property.
+    @MainActor
+    static func snapshotNodes(app: XCUIApplication) throws -> [[String: Any]] {
+        let root = try app.snapshot()
         var nodes: [[String: Any]] = []
-        for element in app.descendants(matching: .any).allElementsBoundByIndex {
-            guard element.exists else { continue }
-            let frame = element.frame
-            guard frame.width > 0, frame.height > 0 else { continue }
+        for child in root.children {
+            appendNodes(of: child, into: &nodes)
+        }
+        return nodes
+    }
+
+    /// One pre-order visit. An element becomes a node only with a finite
+    /// positive frame — a non-finite or degenerate frame also cannot be
+    /// serialized — but a frame-less container still owns the elements
+    /// inside it, so the walk always descends regardless of the gate.
+    /// Secure field values are never read or serialized, and a
+    /// placeholder is not typed content even for a plain field.
+    @MainActor
+    private static func appendNodes(
+        of snapshot: any XCUIElementSnapshot,
+        into nodes: inout [[String: Any]]
+    ) {
+        let frame = snapshot.frame
+        if frame.width > 0, frame.height > 0,
+           frame.minX.isFinite, frame.minY.isFinite,
+           frame.maxX.isFinite, frame.maxY.isFinite {
             var node: [String: Any] = [
-                "testId": element.identifier,
-                "role": roleName(of: element.elementType),
-                "text": element.label,
+                "testId": snapshot.identifier,
+                "role": roleName(of: snapshot.elementType),
+                "text": snapshot.label,
                 "rect": [frame.minX, frame.minY, frame.maxX, frame.maxY],
-                "enabled": element.isEnabled,
+                "enabled": snapshot.isEnabled,
             ]
-            // Secure field values are never serialized, and a placeholder is
-            // not typed content even for a plain field.
-            if element.elementType != .secureTextField,
-               let value = element.value as? String, !value.isEmpty,
-               value != element.placeholderValue {
+            if snapshot.elementType != .secureTextField,
+               let value = snapshot.value as? String, !value.isEmpty,
+               value != snapshot.placeholderValue {
                 node["value"] = value
             }
             nodes.append(node)
         }
-        return nodes
+        for child in snapshot.children {
+            appendNodes(of: child, into: &nodes)
+        }
+    }
+
+    @MainActor
+    private static func snapshotResponse(app: XCUIApplication) -> [String: Any] {
+        do {
+            return ["ok": true, "nodes": try snapshotNodes(app: app)]
+        } catch {
+            // A failed observation leaves any preceding action uncertain.
+            return ["ok": false, "error": "the native element snapshot could not be read"]
+        }
     }
 
     private static func roleName(of type: XCUIElement.ElementType) -> String {

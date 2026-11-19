@@ -158,4 +158,55 @@ final class SimulatorProbeTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [full], timeout: 5), .completed)
         XCTAssertEqual(input.value as? String, "Ashnazg-fixture")
     }
+
+    /// Focused invariants of the bridge snapshot walk against the live
+    /// fixture: the node fields stay exactly the bridge wire set, every
+    /// rect is finite and positive, an empty input never carries the
+    /// placeholder as a value, and the synthetic secure field never
+    /// carries a value. The walk itself lives in McpBridgeTests; this
+    /// probe runs in the ordinary scheme so the Mac acceptance covers it
+    /// without a bridge session.
+    @MainActor
+    func testBridgeSnapshotWalkKeepsTheWireInvariants() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(
+            app.staticTexts["fixture-count"].waitForExistence(timeout: 10),
+            "fixture counter did not appear"
+        )
+
+        let nodes = try McpBridgeTests.snapshotNodes(app: app)
+        XCTAssertFalse(nodes.isEmpty)
+        let byTestId = Dictionary(
+            nodes.compactMap { node in (node["testId"] as? String).map { ($0, node) } },
+            uniquingKeysWith: { first, _ in first }
+        )
+        XCTAssertEqual(byTestId["fixture-count"]?["text"] as? String, "Count: 0")
+        XCTAssertEqual(byTestId["fixture-count"]?["role"] as? String, "text")
+        XCTAssertEqual(byTestId["fixture-increment"]?["role"] as? String, "button")
+        XCTAssertEqual(byTestId["fixture-input"]?["role"] as? String, "textfield")
+        // A placeholder is not typed content: the empty input never
+        // carries a value, mirroring the pinned empty-field report.
+        XCTAssertNil(byTestId["fixture-input"]?["value"])
+        // The synthetic secure field is the redaction boundary: a role on
+        // the wire, never a value.
+        XCTAssertEqual(byTestId["fixture-secret"]?["role"] as? String, "securetextfield")
+        XCTAssertNil(byTestId["fixture-secret"]?["value"])
+        for node in nodes {
+            let rect = try XCTUnwrap(
+                node["rect"] as? [CGFloat], "node rect was not four numbers"
+            )
+            XCTAssertEqual(rect.count, 4)
+            XCTAssertTrue(rect.allSatisfy { $0.isFinite })
+            XCTAssertGreaterThan(rect[2] - rect[0], 0, "node width was not positive")
+            XCTAssertGreaterThan(rect[3] - rect[1], 0, "node height was not positive")
+        }
+        // The exact bridge serialization must accept every node: it
+        // rejects non-finite numbers, so this also pins the wire bytes.
+        XCTAssertNoThrow(
+            try JSONSerialization.data(withJSONObject: ["nodes": nodes], options: [.sortedKeys])
+        )
+    }
 }
