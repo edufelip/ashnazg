@@ -38,7 +38,13 @@ Apple’s documented GUI setup requires access enabled in Xcode Intelligence set
 
 With normal headless permission, Apple rejected `DeviceInteractionStartSession` for the unapproved client before the fixture received input. The run confirmed that the owned simulator was removed and the service disabled. The workflow also has an explicit unattended control for a disposable public runner, which explicitly selects Apple’s documented blanket approval option for the fixture call. [Normal-permission fixture result](https://github.com/edufelip/ashnazg/actions/runs/44519728136/job/135544971758)
 
-Ashnazg’s hosted fixture run on Xcode 26.6 passed semantic selection, `Count: 0 → Count: 1`, distinct PNGs, and EOF cleanup of the process, work directory, and simulator. The published fixture legs used separate runners. They provide functional evidence with no matched performance result. [Ashnazg MCP fixture](https://github.com/edufelip/ashnazg/actions/runs/44519728136/job/135544972223)
+Ashnazg’s hosted fixture run on Xcode 26.6 passed semantic selection, `Count: 0 → Count: 1`, distinct PNGs, and EOF cleanup of the process, work directory, and simulator. The two retained 960 × 1440 PNGs visibly show the counter change and crop the lower form. Compare the same capture extent in any timed trial. The published fixture legs used separate runners. They provide functional evidence with no matched performance result. [Ashnazg MCP fixture](https://github.com/edufelip/ashnazg/actions/runs/44519728136/job/135544972223)
+
+## Apple unattended fixture result
+
+The isolated hosted run at `ece016b` used Xcode 27.1 and a dedicated iPhone 17 simulator on iOS 27.0. It found `fixture-increment` and `fixture-input` by accessibility identifier with reported bounds and hit points. A tap produced `Count: 1` from `Count: 0`. Text entry returned the exact synthetic marker as the value of `fixture-input`. The three 402 × 874 PNGs captured the full fixture display. Apple reported `applicationState: NotRun` for the externally launched app, so the probe verified the foreground bundle and semantic state separately. Apple accepted EndSession, the harness confirmed simulator deletion, and the service was disabled. [Hosted Apple fixture and artifacts](https://github.com/edufelip/ashnazg/actions/runs/44526579859/job/135568646219)
+
+The approved unattended runner was a disposable GitHub-hosted environment using the public fixture. It establishes the functional Apple tool surface for that profile. A separately approved project session, secure input, the full Meer workflow and matched lifecycle or resource measurements still need their own evidence.
 
 ## Qualification gaps
 
@@ -46,6 +52,10 @@ The linked Mac preflight found less than 1 GiB free on its writable Data volume,
 
 The existing Ashnazg bridge creates a fresh simulator and builds its fixture before MCP initialization. It deletes the simulator at close. Calls repeated within that session exercise a running bridge. They cannot supply a measurement of restart with retained app data. A matched benchmark needs a prebuilt app and test runner, explicit simulator selection, equivalent restart and shutdown boundaries, and one serial job on a shared host.
 
-Keep the native XCTest bridge as the current Ashnazg fixture backend. Apple’s workspace approval, semantic target data, secure input behavior, and real Meer journey need qualification before changing the backend. Keep direct XCTest as the reference for native interactions.
+Keep the native XCTest bridge as the current Ashnazg fixture backend. Apple’s workspace approval, secure input behavior, and real Meer journey need qualification before changing the backend. Keep direct XCTest as the reference for native interactions.
 
 Two controlled retries exposed separate harness failures. CoreSimulator rejected a device-specific iOS 27.2 runtime for iPhone 17, so the workflow now filters runtimes against the requested device type. In the compatible rerun, a second MCP connection through the already enabled daemon timed out during protocol negotiation. The job still verified that it deleted the simulator and disabled the daemon. The unattended leg now starts a fresh service for its operational test. [Incompatible runtime](https://github.com/edufelip/ashnazg/actions/runs/44521457985) · [Negotiation timeout](https://github.com/edufelip/ashnazg/actions/runs/44522065880)
+
+Another Xcode 27.1 runner offered generic iOS 27.2 as available and device-compatible but could not boot it because the runtime image lacked `launchd_sim`. The unattended control pins the generic iOS 27.0 runtime for this reason. [Runtime-image failure](https://github.com/edufelip/ashnazg/actions/runs/44523900084)
+
+The first hosted Ashnazg text-entry run observed `Ashnazg` in the correct text field. Its second type call returned an unsettled result and the run verified teardown. The verifier now takes a fresh readback on that failure without replaying the action. [Initial native text-entry run](https://github.com/edufelip/ashnazg/actions/runs/44525683713/job/135565509064)
