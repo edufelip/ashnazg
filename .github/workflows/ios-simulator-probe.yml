@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - platform/ios/**
+      - src/ios_app.rs
       - src/ios_fixture.rs
       - src/lib.rs
       - src/main.rs
