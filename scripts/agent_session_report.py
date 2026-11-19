@@ -1,6 +1,7 @@
 """Recompute paired Android session results from the raw per-trial receipts."""
 
 import argparse
+import gzip
 import json
 import statistics
 from pathlib import Path
@@ -38,11 +39,16 @@ def report(root):
             pair = {"index": index}
             for runtime in runtimes:
                 path = root / f"pair-{index}" / runtime / mode / "trial.json"
-                if not path.is_file():
-                    status = "not_run"
-                else:
+                compressed = path.with_suffix(".json.gz")
+                if path.is_file():
                     trial = json.loads(path.read_text())
                     status = trial["status"]
+                elif compressed.is_file():
+                    with gzip.open(compressed, "rt", encoding="utf-8") as file:
+                        trial = json.load(file)
+                    status = trial["status"]
+                else:
+                    status = "not_run"
                 if status == "passed":
                     pair[runtime] = trial_metrics(trial)
                 else:

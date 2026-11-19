@@ -1,4 +1,5 @@
 import json
+import gzip
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,7 +21,7 @@ class AgentSessionReportTest(unittest.TestCase):
                         if index == 2 and mode == "warm" and runtime == "avd":
                             continue
                         duration = 100 if index == 1 else 600
-                        (folder / "trial.json").write_text(json.dumps({
+                        trial = json.dumps({
                             "status": "failed" if failed else "passed",
                             "shutdown_ns": duration,
                             "probe": {"timings_ns": {name: duration for name in (
@@ -31,7 +32,11 @@ class AgentSessionReportTest(unittest.TestCase):
                                 {"phase": "interaction", "memory_current_bytes": duration},
                                 {"phase": "post_agent", "memory_current_bytes": duration},
                             ]},
-                        }))
+                        })
+                        if runtime == "redroid":
+                            (folder / "trial.json.gz").write_bytes(gzip.compress(trial.encode()))
+                        else:
+                            (folder / "trial.json").write_text(trial)
             results = report(root)
             self.assertFalse(results["complete"])
             self.assertEqual(results["valid_pair_counts"], {"cold": 1, "warm": 1})

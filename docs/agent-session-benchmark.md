@@ -30,6 +30,11 @@ python3 -m scripts.agent_session_report artifacts/agent-session-pair
 
 Cold means a fresh runtime data directory with APK installation included. Warm means a new runtime process with the same user data and the same installed APKs. The AVD takes full boots in both modes. Its Quick Boot snapshots are disabled. Fresh pairs get distinct ReDroid state directories and private AVD homes. The operator's configured AVD is read only as a template.
 
+Both guests flush their data before release. The AVD uses the emulator console
+for orderly shutdown, with an owned systemd scope as the cleanup fallback.
+Warm admission checks both previously installed packages and the cold run's
+state marker before timing a usable MCP snapshot.
+
 Both guests must report Android API 35, x86_64, 720×1280 at 320 dpi, and disabled animation scales. Both are configured for 60 Hz and software rendering. The Android system images, graphics implementations and virtual hardware can differ. The monitor confirms the same available host CPUs, a two-CPU quota, the same 8 GiB host cgroup limit and swap disabled. A hit on the memory limit invalidates that trial. The AVD has its own guest RAM setting. Host cgroup limits do not determine the memory or CPU topology reported by either guest.
 
 ## Interpret the receipts

@@ -26,6 +26,7 @@ CGROUP_ROOT = Path("/sys/fs/cgroup")
 COUNTER = "dev.ashnazg.fixture:id/increment"
 MARKER = "dev.ashnazg.fixture:id/frame_marker"
 PACKAGE = "dev.ashnazg.fixture"
+STATE_MARKER = "/data/local/tmp/ashnazg-session-benchmark"
 MEMORY_LIMIT = 8 * 1024**3
 INTERVAL = 0.2
 DWELL = 3.0
@@ -184,7 +185,9 @@ def probe(args):
         if not args.warm:
             stage = "install"
             harness.install(args.agent, args.fixture)
+            adb("shell", "touch", STATE_MARKER)
         else:
+            adb("shell", "test", "-f", STATE_MARKER)
             for package in (PACKAGE, "dev.ashnazg.agent"):
                 if not adb("shell", "pm", "path", package).stdout.startswith("package:"):
                     raise RuntimeError("warm guest is missing a retained package")
@@ -246,6 +249,10 @@ def probe(args):
                 result["errors"].append({"stage": "probe_cleanup", "type": type(exc).__name__})
         result["agent_shutdown_ns"] = time.monotonic_ns() - agent_shutdown_started
         if not result["errors"]:
+            try:
+                harness.adb_cmd("shell", "sync", timeout=20)
+            except (OSError, subprocess.SubprocessError) as exc:
+                result["errors"].append({"stage": "guest_sync", "type": type(exc).__name__})
             with memory.window("post_agent"):
                 time.sleep(DWELL)
             try:
@@ -345,6 +352,7 @@ def run_avd(args, output, directory, name, warm, epoch_ns):
     serial = f"emulator-{args.avd_port}"
     unit = f"ashnazg-agent-benchmark-{uuid.uuid4().hex}.scope"
     env = {**os.environ, "ANDROID_AVD_HOME": str(directory)}
+    ready = None
     with (output / "emulator.log").open("wb") as log:
         process = subprocess.Popen(
             ["systemd-run", "--user", "--scope", "--quiet", f"--unit={unit}",
@@ -365,9 +373,15 @@ def run_avd(args, output, directory, name, warm, epoch_ns):
                                   env={**env, "ANDROID_SERIAL": serial}, timeout=240, check=False).returncode
         finally:
             if process.poll() is None:
-                # systemd stops only the unique scope created for this trial.
-                run("systemctl", "--user", "stop", unit, timeout=30)
-                process.wait(timeout=10)
+                try:
+                    if ready is not None:
+                        run(args.adb, "-s", serial, "emu", "kill", timeout=5)
+                        process.wait(timeout=20)
+                finally:
+                    if process.poll() is None:
+                        # Stop only the unique scope created for this trial.
+                        run("systemctl", "--user", "stop", unit, timeout=30)
+                        process.wait(timeout=10)
 
 
 def trial(args, parent, runtime, warm, avd_name):
@@ -383,6 +397,8 @@ def trial(args, parent, runtime, warm, avd_name):
         else:
             code = run_avd(args, output, parent / "avds", avd_name, warm, epoch)
         record["exit_code"] = code
+        if code in (128 + signal.SIGHUP, 128 + signal.SIGINT, 128 + signal.SIGTERM):
+            raise KeyboardInterrupt("runtime supervisor was interrupted")
     except (ValueError, OSError, subprocess.SubprocessError, RuntimeError) as exc:
         record["error"] = {"type": type(exc).__name__, "detail": str(exc)[:500]}
     finally:
