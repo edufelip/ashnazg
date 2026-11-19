@@ -77,10 +77,11 @@ jobs:
             python3 -m scripts.xcode_mcp_inventory --output "$output/headless.json"
             xcrun simctl list -j runtimes > "$output/runtimes.json"
             device_type=com.apple.CoreSimulator.SimDeviceType.iPhone-17
-            runtime=$(jq -er --arg device "$device_type" '
-              [.runtimes[] | select(.platform == "iOS" and .isAvailable
-                and any(.supportedDeviceTypes[]?; .identifier == $device))]
-              | sort_by(.version | split(".") | map(tonumber)) | last | .identifier' "$output/runtimes.json")
+            runtime=com.apple.CoreSimulator.SimRuntime.iOS-27-0
+            jq -e --arg device "$device_type" --arg runtime "$runtime" '
+              any(.runtimes[]; .identifier == $runtime and .isAvailable
+                and any(.supportedDeviceTypes[]?; .identifier == $device))
+            ' "$output/runtimes.json" > "$output/runtime-device-compatible.txt"
             printf '%s\n' "$runtime" > "$output/owned-runtime.txt"
             simulator=$(xcrun simctl create "AshnazgAppleMCP-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" \
               "$device_type" "$runtime")
