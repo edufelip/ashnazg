@@ -375,9 +375,40 @@ def run_acceptance(
                 fail(stage, "target-not-observed-within-bound", polls=len(ids), last_snapshot_id=ids[-1], bound_seconds=bound)
             time.sleep(POLL_PAUSE_SECONDS)
 
-    def check_mutation_error(result: dict, stage: str) -> None:
+    def observe_unsettled_text(stage: str, test_id: str, expected: str) -> dict:
+        try:
+            snap = snapshot(f"{stage}/readback")
+        except (AcceptanceError, OSError):
+            return {"status": "unavailable"}
+        sequence = snap.get("snapshotId")
+        if type(sequence) is not int or sequence <= last_sequence[0]:
+            return {"status": "stale"}
+        nodes = [node for node in (snap.get("nodes") or []) if node.get("testId") == test_id]
+        if len(nodes) != 1 or nodes[0].get("role") != "textfield":
+            return {"status": "target-not-usable", "matched": len(nodes)}
+        observed = nodes[0].get("value")
+        if not isinstance(observed, str) or not observed:
+            return {"status": "observed", "value_relation": "empty-or-omitted"}
+        if observed == expected:
+            relation = "exact"
+        elif observed.casefold() == expected.casefold():
+            relation = "case-only"
+        elif expected.startswith(observed):
+            relation = "prefix-only"
+        elif expected.endswith(observed):
+            relation = "suffix-only"
+        else:
+            relation = "different"
+        return {"status": "observed", "value_relation": relation, "observed_chars": len(observed)}
+
+    def check_mutation_error(
+        result: dict, stage: str, plain_text: tuple[str, str] | None = None
+    ) -> None:
         if "error" in result:
             code = safe_code(result["error"].get("message", ""))
+            if code == "action-readback-not-confirmed" and plain_text is not None:
+                readback = observe_unsettled_text(stage, *plain_text)
+                fail(stage, code, uncertain=True, readback=readback)
             fail(stage, code, uncertain=code not in PRE_DISPATCH_REJECTIONS)
         if result.get("isError"):
             fail(stage, "tool-returned-isError-post-dispatch", uncertain=True)
@@ -390,7 +421,7 @@ def run_acceptance(
             stage,
             allow_error=True,
         )
-        check_mutation_error(result, stage)
+        check_mutation_error(result, stage, (test_id, value) if role == "textfield" else None)
         try:
             acted = safe_structured(result)
         except AcceptanceError:
