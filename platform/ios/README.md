@@ -142,33 +142,42 @@ readback — there is no fixture counter in the external path — and
 `deep_link` opens the host-allowlisted URI via availability-gated
 `XCUIApplication.open` (iOS 16.4+).
 
-## Scope and unproven cases
+## Verify the mock Meer journey
 
-The external app session returns observed state only: an unchanged
-post-tap readback is honest success-with-unchanged-UI, and nothing here
-asserts an app journey such as a login passing. Ambiguous selectors are
-rejected and never replayed. The `--initialUrl` and dev-menu argv
-conventions require an Expo dev-client build and stay unproven until the
-hosted macOS run records a real receipt; the shared scheme also builds the
-in-tree fixture app alongside the bridge runner, and the absolute-symlink
-rejection keeps the installed copy relocatable.
+Start the loopback Metro and mock API for the pinned app. Set the manifest's
+`initialUrl` to that Metro URL and allowlist the exact Search and Home links.
+Keep the synthetic login in a separate local JSON file with `email` and
+`password` fields.
 
-Text entry is fixture-scoped. XCUIAutomation exposes no editable flag, so
-the bridge routes payloads only to uniquely matched, enabled, hittable native
-text field elements. An empty field may report its placeholder as the value;
-the bridge normalizes that to empty, and the native probe asserts the raw
-report is empty or exactly the placeholder before typing. Repeated append
-assumes the caret rests at the end after the first entry; the settle fails
-loudly if it does not, so this stays unproven until the hosted repeated
-append passes. `XCUIElement.typeKey(_:modifierFlags:)` with
-`XCUIKeyboardKey.end` exists in the API surface, but availability does not
-prove the key jumps the caret to the end on iPhone. The secure settle observes
-a native mask of the typed length only; it never reads or echoes content, and
-the typed value never appears in a predicate. Redaction is proven for bridge
-snapshots and the evidence this verifier owns; native `xcodebuild`/`xcresult`
-diagnostics retained by Xcode are not scanned and stay unverified. Nothing
-here says production credentials are safe.
+```sh
+python3 platform/ios/verify_mcp_app.py \
+  --binary target/debug/ashnazg \
+  --manifest /absolute/path/to/app-manifest.json \
+  --credentials /absolute/path/to/mock-login.json \
+  --output-dir /absolute/path/to/empty-evidence-directory
+```
 
-The prototype runs as an XCTest fixture. Real app qualification is future
-work. See the [iOS research plan](../../docs/research/ios.md)
+The driver checks independent Login, Home, Search, and return-to-Home
+observations. It submits each mutation once, records missing state or an
+unconfirmed effect, and checks cleanup of the simulator defined in its
+session descriptor. The receipt excludes credential values and raw
+screenshots. Pair a passing receipt with mock API evidence if the result
+needs to establish a successful login request.
+
+## Scope and evidence
+
+App-mode tap and deep-link results record foreground state and a fresh
+snapshot. The journey driver checks the resulting screen separately.
+The real Expo app launch arguments still require live qualification.
+
+Typing requires one enabled, hittable native text field. The hosted
+fixture verified consecutive append with retained focus, an empty-payload
+no-op, and secure-field value omission. The bridge preserves focus between
+successful type requests to the same selector and rejects an append to a
+populated field if focus is unverified. Redaction covers bridge snapshots
+and the verifier's artifacts. Use synthetic input because native XCTest
+diagnostics remain outside that check.
+[Hosted fixture evidence](https://github.com/edufelip/ashnazg/actions/runs/44540151441)
+
+See the [iOS comparison record](../../docs/research/ios-mcp-comparison.md)
 and Apple's [XCUIAutomation reference](https://developer.apple.com/documentation/XCUIAutomation).
