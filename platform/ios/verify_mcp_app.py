@@ -64,6 +64,7 @@ LOGIN_DIAGNOSTIC_IDS = frozenset({
 })
 HOME_SEARCH = "home-search-button"
 SEARCH_INPUT = "search-input"
+NAVIGATION_DIAGNOSTIC_IDS = frozenset({LOGIN_EMAIL, HOME_SEARCH, SEARCH_INPUT, "search-back-button"})
 PINNED_DEEP_LINKS = ("exp+meer://search", "exp+meer://home")
 CREDENTIAL_PLACEHOLDER = "<redacted synthetic mock credential>"
 
@@ -406,6 +407,10 @@ def run_acceptance(
                         }),
                         "email_readback": email_readback,
                     }
+                elif stage in ("search/after-link", "home-return/after-link"):
+                    observed["observed_selectors"] = sorted({
+                        node["testId"] for node in nodes if node.get("testId") in NAVIGATION_DIAGNOSTIC_IDS
+                    })
                 fail(stage, "target-not-observed-within-bound", **observed)
             time.sleep(POLL_PAUSE_SECONDS)
 

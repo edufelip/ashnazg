@@ -380,21 +380,12 @@ final class McpBridgeTests: XCTestCase {
         return snapshotResponse(app: app)
     }
 
-    /// Opens one host-allowlisted deep link through XCUIApplication.open,
-    /// gated on the documented iOS 16.4 availability. `open` reports
-    /// success only by observation: the settle afterwards watches the app
-    /// foreground and returns fresh observed state; whether the app handled
-    /// the URL is a journey question that state answers, never this bridge.
+    /// Deliver one host-allowlisted URL through the simulator's system URL
+    /// handler. Return fresh state after the pinned app is in the foreground
+    /// so the caller can verify the requested destination.
     @MainActor
     private func openDeepLink(_ url: URL, in app: XCUIApplication) -> [String: Any] {
-        if #available(iOS 16.4, *) {
-            app.open(url)
-        } else {
-            return [
-                "ok": false,
-                "error": "XCUIApplication.open requires iOS 16.4; this run does not provide it",
-            ]
-        }
+        XCUIDevice.shared.system.open(url)
         guard Self.waitAppForeground(app) else {
             return [
                 "ok": false,

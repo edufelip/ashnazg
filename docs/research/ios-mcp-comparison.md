@@ -117,3 +117,17 @@ The independent mock recorded zero login POSTs. Six fresh snapshots failed to fi
 The Mac retains `ashnazg-g6-trial-28069/evidence/receipt.json`. The verifier and harness confirmed that the simulator and bridge work directory were removed, the two owned ports closed, the synthetic input file was removed, and the app and Expo overlay matched their original digests. The scratch verifier added a final Home capture check and accepted the pinned source identity from the archive wrapper. The bridge used the archived candidate Swift and Rust sources.
 
 The verifier now records `tap_completed` until it observes Home. If Home times out, it retains only allowlisted login selector IDs and the email comparison outcome from the last snapshot. This adds evidence for field validation and app errors without retaining labels or values. The cause of zero login POSTs remains open.
+
+### Batched native accessibility capture
+
+The next isolated Mac trial used `1b727eb` and the same pinned Meer app. It replaced the per-element bridge queries with one `XCUIApplication.snapshot()` per response and used the same action sequence with fresh synthetic inputs. The email read back exactly and the secure field returned mask-only evidence. The mock recorded exactly one login POST with HTTP 200. The verifier observed Home and captured a fresh 1206 × 2622 PNG, which it validated in memory.
+
+The first login snapshot took 29.275 seconds with the per-element reader and 0.163 seconds with the batched reader. The pre-submit snapshot took 40.799 and 0.171 seconds, respectively. These were two diagnostic runs with different outcomes. The receipt timing covers each stdio request and response.
+
+The subsequent `exp+meer://search` action returned an advancing snapshot while the app was in the foreground. The Search input did not appear in 169 fresh polls over 180 seconds. The verifier stopped without replay, exited 1, and did not issue the Home return action. The app-side URL delivery remains unverified. The Mac retains `ashnazg-g7-trial-33713/evidence/receipt.json`. The simulator and bridge work directory were removed, the owned ports closed, and the app and overlay digests matched. The archive verifier again added a pinned source identity and a check for a final Home PNG, which the run never reached.
+
+Detox sends `openURL` through its in-app client. The Ashnazg candidate used `XCUIApplication.open`. The next candidate sends the same allowlisted URL via the native system URL handler and records the last observed Home, Search and login selector IDs if navigation times out. [Pinned Detox dispatch](https://github.com/wix/Detox/blob/20.46.0/detox/src/devices/runtime/RuntimeDevice.js#L266-L271) · [Apple system URL API](https://developer.apple.com/documentation/xcuiautomation/xcuisystem/open(_:))
+
+### Direct XCTest timing attachment
+
+The hosted fixture at `0313b4b` recorded 14.900 seconds from `app.launch()` invocation through verified initial controls, and 2.045 seconds from one tap through the counter assertion and capture validation. Both app-scoped PNGs were 960 × 1440. The intervals came from the native monotonic attachment in the passing XCTest result. These are one fixture's observations. The matched comparison still needs the same host, workload and capture extent for all arms. [Hosted XCTest result](https://github.com/edufelip/ashnazg/actions/runs/44620413260/job/135900249617)
