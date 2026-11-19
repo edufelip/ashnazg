@@ -10,9 +10,16 @@ from live snapshots and typed/tapped exactly once each, one bounded
 scroll_to reveal runs after each credential (the keyboard compresses the
 login scroll container and clips the later controls), Home and Search are
 confirmed by bounded read-only snapshot polling after the accepted actions,
-and the pinned exp+meer://search and exp+meer://home allowlisted URIs carry
-the journey. Receipts carry typed stage status and safe scalars only: no
-raw request, response, snapshot, stdout, stderr, exception text or screenshot
+and the default deep-link workload carries Search and the return Home
+through the pinned exp+meer://search and exp+meer://home allowlisted URIs.
+The opt-in --navigation ui workload carries the same journey with real UI
+taps instead: one tap on the exact home-search-button selected from the
+observed Home snapshot, one tap on the exact search-back-button (the pinned
+native Pressable navigation.goBack control) selected from the fresh Search
+snapshot, and a final Home PNG validated in memory — never a deep link,
+never a replay, and never Detox deep-link benchmark parity. Receipts carry
+typed stage status and safe scalars only: no raw request, response,
+snapshot, stdout, stderr, exception text or screenshot
 is retained or printed, no screenshot is published, and nothing asserts that
 Xcode-retained diagnostics enforce secrecy. Failed stages record a safe
 reason code, safe observations and uncertainty; mutating interactions run
@@ -24,7 +31,8 @@ Usage:
         --binary target/debug/ashnazg \
         --manifest <frozen Meer app manifest.json> \
         --credentials <synthetic mock email/password.json> \
-        --output-dir <empty owned dir>
+        --output-dir <empty owned dir> \
+        [--navigation deep-link|ui]
 """
 
 from __future__ import annotations
@@ -52,6 +60,7 @@ PROTOCOL_VERSION = "2024-11-05"
 FROZEN_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "runtime/mcp-tools.schema.json"
 UI_TOOLS = ("ui_act", "ui_screenshot", "ui_snapshot")
 SESSION_MARKER = "ios-app-session"
+NAVIGATION_MODES = ("deep-link", "ui")
 
 # The pinned Meer journey: selectors resolve from live snapshots only, and
 # the deep links are the exact allowlisted URIs the frozen manifest carries.
@@ -64,7 +73,8 @@ LOGIN_DIAGNOSTIC_IDS = frozenset({
 })
 HOME_SEARCH = "home-search-button"
 SEARCH_INPUT = "search-input"
-NAVIGATION_DIAGNOSTIC_IDS = frozenset({LOGIN_EMAIL, HOME_SEARCH, SEARCH_INPUT, "search-back-button"})
+SEARCH_BACK = "search-back-button"
+NAVIGATION_DIAGNOSTIC_IDS = frozenset({LOGIN_EMAIL, HOME_SEARCH, SEARCH_INPUT, SEARCH_BACK})
 PINNED_DEEP_LINKS = ("exp+meer://search", "exp+meer://home")
 CREDENTIAL_PLACEHOLDER = "<redacted synthetic mock credential>"
 
@@ -75,7 +85,7 @@ REQUEST_TIMEOUT = 120.0
 SHUTDOWN_TIMEOUT = 300.0
 FIRST_LOGIN_TIMEOUT = 180.0
 HOME_AFTER_SUBMIT_TIMEOUT = 240.0
-SCREEN_AFTER_LINK_TIMEOUT = 180.0
+NAVIGATION_TIMEOUT = 180.0
 POLL_PAUSE_SECONDS = 1.0
 MAX_CREDENTIAL_CHARS = 256
 
@@ -225,7 +235,12 @@ def run_acceptance(
     credentials_path: Path,
     output: Path,
     source_sha: str,
+    navigation: str = "deep-link",
 ) -> dict:
+    # The workload is selected before the session opens; the default keeps
+    # the existing deep-link journey and receipt schema exactly.
+    if navigation not in NAVIGATION_MODES:
+        raise AcceptanceError("--navigation must select the deep-link or ui workload")
     require_macos_host()
     binary = binary.resolve(strict=True)
     if not binary.is_file() or not os.access(binary, os.X_OK):
@@ -276,6 +291,10 @@ def run_acceptance(
         "cleanup": {},
         "evidence_dir": str(output),
     }
+    if navigation == "ui":
+        # Only the opt-in workload is marked; the default receipt keeps the
+        # existing deep-link schema byte-for-byte.
+        receipt["navigation"] = "ui"
     started = time.monotonic()
     descriptor: dict | None = None
     udid: str | None = None
@@ -384,9 +403,14 @@ def run_acceptance(
         deadline = time.monotonic() + bound
         while True:
             snap = snapshot(stage)
-            ids.append(snap.get("snapshotId"))
-            if len(ids) > 1 and (ids[-1] is None or ids[-2] is None or ids[-1] <= ids[-2]):
-                fail(stage, "polling-did-not-advance-sequence", uncertain=True, snapshot_id=ids[-1])
+            sequence = snap.get("snapshotId")
+            previous_sequence = ids[-1] if ids else last_sequence[0]
+            if type(sequence) is not int or sequence <= previous_sequence:
+                fail(
+                    stage, "polling-did-not-advance-sequence", uncertain=True,
+                    snapshot_id=sequence if type(sequence) is int else None,
+                )
+            ids.append(sequence)
             nodes = snap.get("nodes") or []
             matches = [node for node in nodes if node.get("testId") == test_id]
             if len(matches) == 1 and matches[0].get("role") == role and matches[0].get("enabled") is True:
@@ -407,7 +431,10 @@ def run_acceptance(
                         }),
                         "email_readback": email_readback,
                     }
-                elif stage in ("search/after-link", "home-return/after-link"):
+                elif stage in (
+                    "search/after-link", "home-return/after-link",
+                    "search/after-tap", "home-return/after-tap",
+                ):
                     observed["observed_selectors"] = sorted({
                         node["testId"] for node in nodes if node.get("testId") in NAVIGATION_DIAGNOSTIC_IDS
                     })
@@ -532,6 +559,36 @@ def run_acceptance(
         return {
             "uri": uri,
             "accepted_once": True,
+            "settled": True,
+            "post_action_snapshot_id": snap.get("snapshotId"),
+        }
+
+    def tap_once(stage: str, test_id: str) -> dict:
+        """Exactly one screen-navigation tap per stage. The selector was
+        already selected from the observed snapshot that verified the
+        current screen; the accepted action must settle and advance the
+        sequence. Any rejection fails the journey closed — no deep-link
+        fallback, no replay."""
+        once(stage)
+        result = call(
+            "ui_act",
+            {"action": "tap", "target": {"testId": test_id}},
+            stage,
+            allow_error=True,
+        )
+        check_mutation_error(result, stage)
+        try:
+            acted = safe_structured(result)
+        except AcceptanceError:
+            fail(stage, "tool-result-without-structured-content", uncertain=True)
+        if acted.get("settled") is not True:
+            fail(stage, "tap-did-not-settle", uncertain=True)
+        snap = acted.get("snapshot") or {}
+        if snap.get("snapshotId", 0) <= last_sequence[0]:
+            fail(stage, "tap-did-not-advance-sequence", uncertain=True, snapshot_id=snap.get("snapshotId"))
+        last_sequence[0] = snap.get("snapshotId", 0)
+        return {
+            "tapped_once": True,
             "settled": True,
             "post_action_snapshot_id": snap.get("snapshotId"),
         }
@@ -682,13 +739,17 @@ def run_acceptance(
             "published": False,
         }
 
-        # Actual Search and the return Home, carried only by the exact
-        # pinned allowlisted URIs from the frozen manifest.
+        visible_navigation = navigation == "ui"
+        transition = "tap" if visible_navigation else "link"
         search = receipt["journey"]["search"] = {"status": "running"}
-        search["deep_link"] = deep_link_once("search/link", PINNED_DEEP_LINKS[0])
-        search_link_accepted = time.monotonic()
-        search_node, search_snap, search_ids = poll_for(
-            "search/after-link", SEARCH_INPUT, "textfield", SCREEN_AFTER_LINK_TIMEOUT
+        if visible_navigation:
+            select(home_snap.get("nodes") or [], HOME_SEARCH, "button", "search/open-tap")
+            search["open_tap"] = tap_once("search/open-tap", HOME_SEARCH)
+        else:
+            search["deep_link"] = deep_link_once("search/link", PINNED_DEEP_LINKS[0])
+        search_action_accepted = time.monotonic()
+        _, search_snap, search_ids = poll_for(
+            f"search/after-{transition}", SEARCH_INPUT, "textfield", NAVIGATION_TIMEOUT
         )
         search_confirmed = time.monotonic()
         last_sequence[0] = search_snap.get("snapshotId", 0)
@@ -697,10 +758,14 @@ def run_acceptance(
         search["status"] = "verified"
 
         home_return = receipt["journey"]["home_return"] = {"status": "running"}
-        home_return["deep_link"] = deep_link_once("home-return/link", PINNED_DEEP_LINKS[1])
-        home_link_accepted = time.monotonic()
-        home_return_node, home_return_snap, home_return_ids = poll_for(
-            "home-return/after-link", HOME_SEARCH, "button", SCREEN_AFTER_LINK_TIMEOUT
+        if visible_navigation:
+            select(search_snap.get("nodes") or [], SEARCH_BACK, "button", "home-return/back-selection")
+            home_return["back_tap"] = tap_once("home-return/back-tap", SEARCH_BACK)
+        else:
+            home_return["deep_link"] = deep_link_once("home-return/link", PINNED_DEEP_LINKS[1])
+        return_action_accepted = time.monotonic()
+        _, home_return_snap, home_return_ids = poll_for(
+            f"home-return/after-{transition}", HOME_SEARCH, "button", NAVIGATION_TIMEOUT
         )
         home_returned = time.monotonic()
         last_sequence[0] = home_return_snap.get("snapshotId", 0)
@@ -708,10 +773,39 @@ def run_acceptance(
         home_return["poll_snapshot_ids"] = home_return_ids
         home_return["status"] = "verified"
 
+        if visible_navigation:
+            # Final read-only Home evidence: one screenshot validated in
+            # memory against the same expected snapshot advancement; only
+            # the digest and dimensions are retained, never the PNG bytes.
+            final_screenshot_result = call(
+                "ui_screenshot", {"format": "png"}, "home-return/screenshot-milestone"
+            )
+            try:
+                final_png, final_meta = safe_screenshot(final_screenshot_result)
+            except AcceptanceError:
+                fail("home-return/screenshot-milestone", "screenshot-content-unexpected")
+            dimensions = png_identity(final_png)
+            if dimensions is None or min(dimensions) <= 0:
+                fail("home-return/screenshot-milestone", "screenshot-not-a-valid-png")
+            if final_meta.get("snapshotId", 0) <= last_sequence[0]:
+                fail(
+                    "home-return/screenshot-milestone",
+                    "screenshot-did-not-follow-confirmed-state",
+                    uncertain=True,
+                )
+            last_sequence[0] = final_meta.get("snapshotId", 0)
+            receipt["readonly_evidence"]["final_home_screenshot"] = {
+                "bytes": len(final_png),
+                "sha256": sha256_bytes(final_png),
+                "dimensions": dimensions,
+                "snapshot_id": final_meta.get("snapshotId"),
+                "published": False,
+            }
+
         # Descriptive single-run milestones; no performance claim. They
         # become performance evidence only behind a fully successful journey
         # and a qualified comparison, which this receipt never asserts.
-        receipt["timings"] = {
+        timings = {
             "launch_to_first_valid_snapshot": {
                 "seconds": round(first_valid - launch_started, 3),
                 "boundary": "spawn of the mcp --ios-app child -> first read-only snapshot with both login fields resolving uniquely",
@@ -724,16 +818,36 @@ def run_acceptance(
                 "seconds": round(screenshot_verified - home_confirmed, 3),
                 "boundary": "Home confirmed by read-only polling -> read-only Home screenshot verified as a valid PNG in memory",
             },
-            "search_link_accept_to_search_confirmed": {
-                "seconds": round(search_confirmed - search_link_accepted, 3),
-                "boundary": "pinned exp+meer://search deep link settled -> first read-only snapshot resolving one usable search-input",
-            },
-            "home_link_accept_to_home_return_confirmed": {
-                "seconds": round(home_returned - home_link_accepted, 3),
-                "boundary": "pinned exp+meer://home deep link settled -> first read-only snapshot resolving one usable home-search-button again",
-            },
-            "note": "descriptive single-run monotonic milestones on this host only; not performance evidence and not a qualified comparison",
         }
+        if navigation == "ui":
+            timings["search_tap_accept_to_search_confirmed"] = {
+                "seconds": round(search_confirmed - search_action_accepted, 3),
+                "boundary": "single home-search-button tap settled -> first read-only snapshot resolving one usable search-input",
+            }
+            timings["back_tap_accept_to_home_return_confirmed"] = {
+                "seconds": round(home_returned - return_action_accepted, 3),
+                "boundary": "single search-back-button tap settled -> first read-only snapshot resolving one usable home-search-button again",
+            }
+            timings["note"] = (
+                "descriptive single-run monotonic milestones on this host only; the opt-in ui"
+                " navigation workload is a separate journey that never counts toward benchmark"
+                " parity with the Detox deep-link workload; not performance evidence and not a"
+                " qualified comparison"
+            )
+        else:
+            timings["search_link_accept_to_search_confirmed"] = {
+                "seconds": round(search_confirmed - search_action_accepted, 3),
+                "boundary": "pinned exp+meer://search deep link settled -> first read-only snapshot resolving one usable search-input",
+            }
+            timings["home_link_accept_to_home_return_confirmed"] = {
+                "seconds": round(home_returned - return_action_accepted, 3),
+                "boundary": "pinned exp+meer://home deep link settled -> first read-only snapshot resolving one usable home-search-button again",
+            }
+            timings["note"] = (
+                "descriptive single-run monotonic milestones on this host only; not"
+                " performance evidence and not a qualified comparison"
+            )
+        receipt["timings"] = timings
         receipt["secrecy"] = {
             "credential_tool_called": False,
             "credential_tools_listed": "none; tools/list returned exactly ui_act, ui_screenshot, ui_snapshot",
@@ -844,6 +958,12 @@ def main() -> int:
         "--credentials", type=Path, required=True, help="local JSON file with the synthetic mock email and password"
     )
     parser.add_argument("--output-dir", type=Path, required=True, help="empty owned directory for the sanitized receipt")
+    parser.add_argument(
+        "--navigation",
+        choices=NAVIGATION_MODES,
+        default="deep-link",
+        help="acceptance workload: deep-link (default, existing journey) or ui (Login -> Search -> Home through real taps)",
+    )
     arguments = parser.parse_args()
     source_sha = subprocess.run(
         ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
@@ -855,6 +975,7 @@ def main() -> int:
             arguments.credentials,
             arguments.output_dir,
             source_sha,
+            arguments.navigation,
         )
     except AcceptanceError as error:
         print(f"ios app mcp acceptance FAILED: {error}", file=sys.stderr)
