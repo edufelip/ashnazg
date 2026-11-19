@@ -4,6 +4,13 @@ on:
   pull_request:
     paths:
       - platform/ios/**
+      - src/ios_fixture.rs
+      - src/lib.rs
+      - src/main.rs
+      - src/mcp.rs
+      - Cargo.toml
+      - Cargo.lock
+      - runtime/mcp-tools.schema.json
       - .github/workflows/ios-simulator-probe.yml
   workflow_dispatch:
 
@@ -79,7 +86,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/ashnazg-ios-mcp"
           python3 platform/ios/verify_mcp_fixture.py \
             --binary target/debug/ashnazg \
-            --output-dir "$RUNNER_TEMP/ashnazg-ios-mcp" | tee "$RUNNER_TEMP/ashnazg-ios-mcp/verify.log"
+            --output-dir "$RUNNER_TEMP/ashnazg-ios-mcp/evidence" | tee "$RUNNER_TEMP/ashnazg-ios-mcp/verify.log"
       - name: Upload MCP fixture evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

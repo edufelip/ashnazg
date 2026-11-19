@@ -1,0 +1,73 @@
+{
+  "binary_sha256": "a8eae4d09c68684b26d8f58710a4cc703a92d6a191b3f59d663a81fedbfa6483",
+  "cleanup": {
+    "process_exit_code": 0,
+    "simulator_deleted": true,
+    "work_dir_removed": true
+  },
+  "elapsed_seconds": 60.703,
+  "environment": {
+    "fixture_app": "dev.ashnazg.ios.fixture",
+    "ios_runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+    "macos": "26.5",
+    "simulator": {
+      "deviceType": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+      "name": "ashnazg-mcp-fixture-e3386533",
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+      "udid": "C9A335C9-6754-44C3-8ED9-56C0C4160111"
+    },
+    "xcode": "Xcode 26.6"
+  },
+  "native_command": "xcodebuild test -project AshnazgSimulatorProbe.xcodeproj -scheme AshnazgSimulatorProbe -destination platform=iOS Simulator,id=C9A335C9-6754-44C3-8ED9-56C0C4160111 -only-testing:FixtureUITests/McpBridgeTests -parallel-testing-enabled NO -resultBundlePath <owned directory>/Probe.xcresult",
+  "png_evidence": {
+    "after": {
+      "bytes": 46089,
+      "dimensions": [
+        960,
+        1440
+      ],
+      "sha256": "ab41a4c10e4e9fca3bfba727b16945ef192d9975103e449bd031cbf36940f162"
+    },
+    "before": {
+      "bytes": 48371,
+      "dimensions": [
+        960,
+        1440
+      ],
+      "sha256": "08fae8c236112856cc81ec34f9660548c77b0aa052e78d71b0b95b3f6572fb0c"
+    },
+    "correlated_state": {
+      "counter_label": "Count: 1",
+      "snapshot_id": 4
+    },
+    "distinct": true,
+    "mime": "image/png"
+  },
+  "source_sha": "b07b275927f1c94df8de3cf0fb8d08f977e9c5cf",
+  "state_evidence": {
+    "button_role": "button",
+    "count_after": "Count: 1",
+    "count_before": "Count: 0",
+    "counter_observations": {
+      "after_screenshot": "Count: 1",
+      "before_screenshot": "Count: 0"
+    },
+    "selector_from_snapshot": {
+      "testId": "fixture-increment"
+    },
+    "snapshot_ids": {
+      "after_screenshot": 4,
+      "after_tap": 3,
+      "before": 1
+    }
+  },
+  "status": "passed",
+  "tool_sequence": [
+    "ui_snapshot",
+    "ui_screenshot",
+    "ui_act",
+    "ui_screenshot",
+    "ui_act",
+    "app_install"
+  ]
+}

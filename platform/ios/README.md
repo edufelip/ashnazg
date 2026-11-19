@@ -51,8 +51,9 @@ verifies deletion of the owned simulator.
 
 ```sh
 cargo build --locked
+fixture_evidence=$(mktemp -d)
 python3 platform/ios/verify_mcp_fixture.py \
-  --binary target/debug/ashnazg --output-dir <empty owned dir>
+  --binary target/debug/ashnazg --output-dir "$fixture_evidence"
 ```
 
 The verifier drives the real binary through `initialize`, `tools/list`, and
