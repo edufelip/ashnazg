@@ -18,6 +18,10 @@ on:
         description: Record Apple MCP admission and tools on an isolated Xcode 27 runner
         type: boolean
         default: false
+      apple_mcp_unattended:
+        description: Test Apple’s unattended approval mode on a disposable public runner
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -36,6 +40,8 @@ jobs:
           HOMEBREW_NO_AUTO_UPDATE: '1'
         run: brew install xcodegen
       - name: Probe Apple MCP with no open workspace
+        env:
+          APPLE_MCP_UNATTENDED: ${{ inputs.apple_mcp_unattended }}
         run: |
           set -euo pipefail
           test "$RUNNER_ENVIRONMENT" = github-hosted
@@ -85,6 +91,16 @@ jobs:
             xcrun simctl install "$simulator" "$derived/Build/Products/Debug-iphonesimulator/Fixture.app"
             xcrun simctl launch "$simulator" dev.ashnazg.ios.fixture
             python3 -m scripts.xcode_mcp_fixture --simulator "$simulator" --output "$output/fixture"
+            if [[ "$APPLE_MCP_UNATTENDED" == true ]] && jq -e '
+              .status == "blocked" and (.error | contains("agent isn\u0027t approved"))
+            ' "$output/fixture/receipt.json" >/dev/null; then
+              test "$GITHUB_REPOSITORY" = edufelip/ashnazg
+              test "$RUNNER_ENVIRONMENT" = github-hosted
+              sudo -n xcrun mcp-server disable > "$output/disable-before-unattended.txt" 2>&1
+              sudo -n xcrun mcp-server enable --unsafe-always-allow-all-agents \
+                > "$output/enable-unattended.txt" 2>&1
+              python3 -m scripts.xcode_mcp_fixture --simulator "$simulator" --output "$output/unattended"
+            fi
           fi
       - name: Upload Apple MCP inventory
         if: always()
@@ -95,6 +111,7 @@ jobs:
           if-no-files-found: error
 
   simulator:
+    if: github.event_name != 'workflow_dispatch' || !inputs.apple_mcp_inventory
     runs-on: macos-26
     timeout-minutes: 15
     steps:
@@ -142,6 +159,7 @@ jobs:
           if-no-files-found: warn
 
   mcp:
+    if: github.event_name != 'workflow_dispatch' || !inputs.apple_mcp_inventory
     runs-on: macos-26
     timeout-minutes: 40
     steps:
