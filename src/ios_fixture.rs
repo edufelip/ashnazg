@@ -17,6 +17,7 @@ use serde_json::{Map, Value, json};
 use std::{
     env, fs,
     io::Read as _,
+    os::unix::fs::DirBuilderExt as _,
     path::{Path, PathBuf},
     process::Stdio,
     sync::atomic::{AtomicBool, Ordering},
@@ -637,6 +638,9 @@ impl FixtureSession {
             ready_selector,
             deep_links,
         } = manifest;
+        if bundle_id == FIXTURE_BUNDLE_ID {
+            bail!("--ios-app requires a bundle identifier distinct from the embedded fixture");
+        }
         let source = Self::fixture_source()?;
         Self::preflight_launch_pair(runtime, device_type).await?;
 
@@ -826,6 +830,7 @@ impl FixtureSession {
             Command::new("xcrun")
                 .args(["simctl", "install", &owned.simulator])
                 .arg(staged)
+                .kill_on_drop(true)
                 .output(),
         )
         .await
@@ -1105,7 +1110,9 @@ impl FixtureSession {
 
     fn fresh_work_dir(prefix: &str) -> anyhow::Result<PathBuf> {
         let work_dir = env::temp_dir().join(format!("{prefix}-{}", hex_suffix(8)));
-        fs::create_dir(&work_dir)
+        fs::DirBuilder::new()
+            .mode(0o700)
+            .create(&work_dir)
             .with_context(|| format!("failed to create {}", work_dir.display()))?;
         Ok(work_dir)
     }

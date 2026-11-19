@@ -83,6 +83,7 @@ final class McpBridgeTests: XCTestCase {
                 guard let raw = command.url, let url = URL(string: raw) else {
                     return ["ok": false, "error": "deep_link requires a url"]
                 }
+                typingSelector = nil
                 return openDeepLink(url, in: app)
             default:
                 if externalApp {
