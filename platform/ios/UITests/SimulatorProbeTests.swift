@@ -74,4 +74,40 @@ final class SimulatorProbeTests: XCTestCase {
         input.typeText("-fixture")
         XCTAssertEqual(input.value as? String, "Ashnazg-fixture")
     }
+
+    /// Observed-prefix delivery mirror of `testTypesIntoTheIdentifiedField`
+    /// (which stays as the bulk burst control): type the first grapheme
+    /// once, wait for that exact observed prefix, then type the remainder
+    /// once and assert the exact final readback. No replay anywhere.
+    @MainActor
+    func testTypesObservedPrefixIntoTheIdentifiedField() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launch()
+        defer { app.terminate() }
+
+        let query = app.textFields.matching(identifier: "fixture-input")
+        let input = query.firstMatch
+        XCTAssertTrue(input.waitForExistence(timeout: 10))
+        XCTAssertEqual(query.count, 1)
+        XCTAssertTrue(input.isHittable)
+        let initial = input.value as? String ?? ""
+        XCTAssertTrue(
+            initial.isEmpty || initial == input.placeholderValue,
+            "unexpected initial field value: \(initial)"
+        )
+        input.tap()
+        input.typeText("A")
+        let prefix = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "A"), object: input
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [prefix], timeout: 5), .completed)
+        XCTAssertEqual(input.value as? String, "A")
+        input.typeText("shnazg-fixture")
+        let full = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "Ashnazg-fixture"), object: input
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [full], timeout: 5), .completed)
+        XCTAssertEqual(input.value as? String, "Ashnazg-fixture")
+    }
 }

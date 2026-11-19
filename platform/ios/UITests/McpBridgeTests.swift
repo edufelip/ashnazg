@@ -23,6 +23,7 @@ final class McpBridgeTests: XCTestCase {
         let text: String?
         let value: String?
         let url: String?
+        let direction: String?
     }
 
     private struct ReadySelector: Codable {
@@ -85,11 +86,42 @@ final class McpBridgeTests: XCTestCase {
                 }
                 typingSelector = nil
                 return openDeepLink(url, in: app)
+            case "scroll_to":
+                // External launches only: the keyboard-compressed scroll
+                // reveal is an app-journey action; the fixture keeps its
+                // exact unsupported-action boundary.
+                guard externalApp else {
+                    return ["ok": false, "error": "bridge only supports the tap and type actions"]
+                }
+                guard command.direction == "down" else {
+                    return ["ok": false, "error": "scroll_to requires the down direction"]
+                }
+                typingSelector = nil
+                if let testId = command.testId, !testId.isEmpty {
+                    let selector = "testId \(testId)"
+                    return Self.scrollTo(
+                        selector: selector,
+                        root: { $0.descendants(matching: .any).matching(identifier: testId) },
+                        in: app
+                    )
+                }
+                if let text = command.text, !text.isEmpty {
+                    let selector = "text \(text)"
+                    return Self.scrollTo(
+                        selector: selector,
+                        root: {
+                            $0.descendants(matching: .any)
+                                .matching(NSPredicate(format: "label == %@", text))
+                        },
+                        in: app
+                    )
+                }
+                return ["ok": false, "error": "scroll_to requires a testId or text selector"]
             default:
                 if externalApp {
                     return [
                         "ok": false,
-                        "error": "bridge only supports the tap, type, and deep_link actions",
+                        "error": "bridge only supports the tap, type, scroll_to, and deep_link actions",
                     ]
                 }
                 return ["ok": false, "error": "bridge only supports the tap and type actions"]
@@ -155,8 +187,11 @@ final class McpBridgeTests: XCTestCase {
     }
 
     /// One live text entry into a uniquely matched editable field. The tap
-    /// focuses the field and `typeText` is genuine XCTest keyboard input; the
-    /// settle observes the field value without ever echoing it. An empty
+    /// focuses the field and `typeText` is genuine XCTest keyboard input;
+    /// delivery types the first grapheme, observes that exact prefix, then
+    /// sends the remainder once, so a lost or changed burst stops at the
+    /// first unconfirmed prefix without ever replaying it. The settle
+    /// observes the field value without ever echoing it. An empty
     /// payload settles as a no-op before any secure-text boundary; a nonempty
     /// payload onto existing secure text is rejected, mirroring the Android
     /// `type` boundary. Secure values never appear in snapshots or errors.
@@ -205,7 +240,60 @@ final class McpBridgeTests: XCTestCase {
         if !keepsFocus {
             element.tap()
         }
-        element.typeText(value)
+        // Observed-prefix delivery: the empty-payload boundary above
+        // guarantees `value` is nonempty. Type only the first grapheme,
+        // observe that exact prefix, then send the remainder once. A single
+        // bulk typeText lost or changed text on one real app; the prefix
+        // observation bounds the damage and a rejected mutation is never
+        // replayed.
+        let prefix = String(value.first!)
+        element.typeText(prefix)
+        // The prefix observation mirrors the final settle: a plain field
+        // settles on the exact observed prefix; a secure field settles on a
+        // genuine native mask observation only — every character a mask
+        // bullet, exactly one more than before — without reading or echoing
+        // content.
+        let prefixSettled: XCTNSPredicateExpectation
+        if element.elementType == .secureTextField {
+            prefixSettled = XCTNSPredicateExpectation(
+                predicate: NSPredicate(
+                    format: "value MATCHES %@ AND value.length == %d",
+                    "^[•●*]+$",
+                    existing.count + 1
+                ),
+                object: element
+            )
+        } else {
+            prefixSettled = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "value == %@", existing + prefix),
+                object: element
+            )
+        }
+        guard XCTWaiter().wait(for: [prefixSettled], timeout: 10) == .completed else {
+            // A rejected mutation is never replayed. The error classifies
+            // the unconfirmed prefix with the observed new-character count
+            // only; typed content is never echoed, matching the existing
+            // redaction style.
+            typingSelector = nil
+            let postTyping = element.value as? String ?? ""
+            let observed = postTyping == element.placeholderValue ? "" : postTyping
+            let delta = observed.count - existing.count
+            let classification: String
+            switch delta {
+            case ...0: classification = "no typed characters observed"
+            case 1: classification = "one unconfirmed character observed"
+            default: classification = "more characters than requested observed"
+            }
+            return [
+                "ok": false,
+                "error": "unconfirmed prefix after first grapheme: "
+                    + "\(classification), requested 1, observed \(delta)",
+            ]
+        }
+        let remainder = String(value.dropFirst())
+        if !remainder.isEmpty {
+            element.typeText(remainder)
+        }
         let expected = existing + value
         // The settle never embeds the typed value in a predicate: XCTest may
         // retain predicate descriptions in native diagnostics. A plain field
@@ -235,6 +323,61 @@ final class McpBridgeTests: XCTestCase {
         }
         typingSelector = selector
         return ["ok": true, "nodes": Self.snapshotNodes(app: app)]
+    }
+
+    /// One controlled reveal of a uniquely matched enabled element clipped
+    /// by a compressed scroll container. A `down` scroll moves content
+    /// upward: exactly one bounded swipe on the unique native scroll view
+    /// containing the target, dispatched only when the target is not
+    /// already visibly hittable, and the answer returns only after the
+    /// exact target is hittable. No coordinates, no retry, no second
+    /// swipe; an unresolved or ambiguous container fails closed.
+    @MainActor
+    private static func scrollTo(
+        selector: String,
+        root: (XCUIElement) -> XCUIElementQuery,
+        in app: XCUIApplication
+    ) -> [String: Any] {
+        let query = root(app)
+        let matches = query.count
+        guard matches == 1 else {
+            return ["ok": false,
+                    "error": "selector \(selector) matched \(matches) elements, expected exactly one"]
+        }
+        let element = query.element(boundBy: 0)
+        guard element.isEnabled else {
+            return ["ok": false, "error": "selector \(selector) is not an enabled hittable element"]
+        }
+        if element.isHittable {
+            // Already visibly hittable: a settled no-op with fresh observed
+            // state, mirroring the empty-payload type boundary.
+            return ["ok": true, "nodes": snapshotNodes(app: app)]
+        }
+        // The target is clipped. The containing native scroll view resolves
+        // by exact descendant matching — the public XCUI ancestry test — so
+        // hidden elements still resolve and no coordinates are computed.
+        let containers = app.scrollViews.allElementsBoundByIndex.filter { container in
+            container.exists && root(container).count == 1
+        }
+        guard containers.count == 1, let container = containers.first, container.isHittable else {
+            return ["ok": false,
+                    "error": "selector \(selector) did not resolve to a unique containing scroll view"]
+        }
+        // Direction down moves content upward: one bounded swipe, no retry.
+        container.swipeUp()
+        let revealed = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "hittable == true AND enabled == true"),
+            object: element
+        )
+        guard XCTWaiter().wait(for: [revealed], timeout: 10) == .completed,
+              query.count == 1 else {
+            return [
+                "ok": false,
+                "error": "selector \(selector) did not settle into a visibly hittable "
+                    + "element after one bounded swipe",
+            ]
+        }
+        return ["ok": true, "nodes": snapshotNodes(app: app)]
     }
 
     /// Opens one host-allowlisted deep link through XCUIApplication.open,

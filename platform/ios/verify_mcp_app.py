@@ -6,7 +6,9 @@ the ios-app-session descriptor (bundleId, appSha256, owned simulator) is
 verified against the manifest and the host device list with absence checked
 before and after EOF, synthetic mock Meer credentials arrive through a local
 input file and never argv, the login fields and submit button are selected
-from live snapshots and typed/tapped exactly once each, Home and Search are
+from live snapshots and typed/tapped exactly once each, one bounded
+scroll_to reveal runs after each credential (the keyboard compresses the
+login scroll container and clips the later controls), Home and Search are
 confirmed by bounded read-only snapshot polling after the accepted actions,
 and the pinned exp+meer://search and exp+meer://home allowlisted URIs carry
 the journey. Receipts carry typed stage status and safe scalars only: no
@@ -77,6 +79,7 @@ MAX_CREDENTIAL_CHARS = 256
 PRE_DISPATCH_REJECTIONS = {
     "selector-ambiguous", "target-not-enabled-hittable",
     "target-not-editable", "deep-link-not-allowlisted",
+    "scroll-container-not-resolved", "scroll-direction-not-supported",
 }
 MANIFEST_KEYS = {
     "appPath",
@@ -103,13 +106,21 @@ def safe_code(message: str) -> str:
         return "target-not-editable"
     if "not in the app manifest allowlist" in lowered:
         return "deep-link-not-allowlisted"
+    if "did not resolve to a unique containing scroll view" in lowered:
+        return "scroll-container-not-resolved"
+    if "requires the down direction" in lowered:
+        return "scroll-direction-not-supported"
     if "timed out" in lowered:
         return "request-timed-out"
     if "closed stdout" in lowered:
         return "server-closed-stdout"
     if "stdout drain failed" in lowered:
         return "stdout-drain-failed"
-    if "did not settle" in lowered or "was not observed in the foreground after" in lowered:
+    if (
+        "did not settle" in lowered
+        or "was not observed in the foreground after" in lowered
+        or "unconfirmed prefix after first grapheme:" in lowered
+    ):
         return "action-readback-not-confirmed"
     return "unclassified-server-error"
 
@@ -307,6 +318,9 @@ def run_acceptance(
                 entry["target_test_id"] = target.get("testId") or target.get("text")
             if arguments.get("action") == "type":
                 entry["text"] = CREDENTIAL_PLACEHOLDER
+            elif arguments.get("action") == "scroll_to":
+                # A safe scalar; the reveal direction is part of the journey.
+                entry["direction"] = arguments.get("direction")
             elif "text" in arguments:
                 # Only the pinned allowlisted deep-link URI rides here.
                 entry["text"] = arguments["text"]
@@ -444,6 +458,38 @@ def run_acceptance(
             fail(stage, "typed-value-did-not-settle", value_observed_matches_typed=False)
         return {"typed_once": True, "settled": True, "value_observed_matches_typed": True}
 
+    def scroll_to_once(stage: str, test_id: str) -> dict:
+        """Exactly one bounded reveal scroll per stage. After a credential
+        lands the keyboard compresses the login scroll container and clips
+        the later controls; one `scroll_to` (direction down: one bounded
+        native swipe on the unique containing scroll view) makes the exact
+        target visibly hittable before the next interaction. Any rejection
+        fails the journey closed; nothing is replayed."""
+        once(stage)
+        result = call(
+            "ui_act",
+            {"action": "scroll_to", "target": {"testId": test_id}, "direction": "down"},
+            stage,
+            allow_error=True,
+        )
+        check_mutation_error(result, stage)
+        try:
+            acted = safe_structured(result)
+        except AcceptanceError:
+            fail(stage, "tool-result-without-structured-content", uncertain=True)
+        if acted.get("settled") is not True:
+            fail(stage, "scroll-to-did-not-settle", uncertain=True)
+        snap = acted.get("snapshot") or {}
+        if snap.get("snapshotId", 0) <= last_sequence[0]:
+            fail(stage, "scroll-to-did-not-advance-sequence", uncertain=True, snapshot_id=snap.get("snapshotId"))
+        last_sequence[0] = snap.get("snapshotId", 0)
+        return {
+            "scroll_requested_once": True,
+            "settled": True,
+            "direction": "down",
+            "post_scroll_snapshot_id": snap.get("snapshotId"),
+        }
+
     def deep_link_once(stage: str, uri: str) -> dict:
         once(stage)
         result = call("ui_act", {"action": "deep_link", "text": uri}, stage, allow_error=True)
@@ -530,9 +576,14 @@ def run_acceptance(
         login = receipt["journey"]["login"] = {"status": "running", "first_valid_poll_ids": first_ids}
 
         # Each credential is typed exactly once; the values are compared in
-        # memory only and never recorded.
+        # memory only and never recorded. The keyboard compresses the login
+        # scroll container after the email lands, so one bounded reveal
+        # scroll makes the exact next control visibly hittable before its
+        # single interaction — one scroll per stage, never a retry.
         login["email_input"] = type_once("login/email", LOGIN_EMAIL, "textfield", email)
+        login["email_reveal_scroll"] = scroll_to_once("login/email-reveal", LOGIN_PASSWORD)
         login["password_input"] = type_once("login/password", LOGIN_PASSWORD, "securetextfield", password)
+        login["password_reveal_scroll"] = scroll_to_once("login/password-reveal", LOGIN_SUBMIT)
 
         # The submit tap happens once, and only if a fresh read-only snapshot
         # resolves one usable submit button. A native rejection (a visible

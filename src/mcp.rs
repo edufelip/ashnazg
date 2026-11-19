@@ -506,8 +506,9 @@ fn ios_bridge_command(params: &ActParams) -> Result<serde_json::Value, &'static 
 /// Maps one shared-schema ui_act request onto the external iOS app bridge
 /// wire. Pure and host-independent so the focused tests execute the exact
 /// mapping the live macOS session uses. `deep_link` must name an exact
-/// allowlisted app-owned URI; rejections are static strings, so a typed
-/// payload can never leak into an error.
+/// allowlisted app-owned URI; `scroll_to` carries one explicit direction
+/// because the bridge dispatches exactly one bounded swipe. Rejections
+/// are static strings, so a typed payload can never leak into an error.
 #[cfg(any(target_os = "macos", test))]
 fn ios_app_bridge_command(
     params: &ActParams,
@@ -516,6 +517,27 @@ fn ios_app_bridge_command(
     match params.action {
         Action::Tap | Action::Type => {
             bridge_tap_type_command(params, "iOS app selectors are testId or text only")
+        }
+        Action::ScrollTo => {
+            let target = params
+                .target
+                .as_ref()
+                .ok_or("scroll_to requires a target")?;
+            // One bounded native swipe needs an explicit direction; the
+            // shared schema keeps the field optional, so the app bridge
+            // fails closed instead of inventing a default.
+            let direction = params
+                .direction
+                .as_ref()
+                .ok_or("scroll_to requires a direction")?;
+            let mut command =
+                serde_json::json!({"op": "ui_act", "action": "scroll_to", "direction": direction});
+            ios_selector_field(
+                &mut command,
+                target,
+                "iOS app selectors are testId or text only",
+            )?;
+            Ok(command)
         }
         Action::DeepLink => {
             let url = params
@@ -528,7 +550,9 @@ fn ios_app_bridge_command(
                 Err("deep link is not in the app manifest allowlist")
             }
         }
-        _ => Err("the iOS app bridge supports only the tap, type, and deep_link actions"),
+        _ => {
+            Err("the iOS app bridge supports only the tap, type, scroll_to, and deep_link actions")
+        }
     }
 }
 
@@ -1448,7 +1472,7 @@ fn validate_native_http_inputs(addr: std::net::SocketAddr, bearer: &str) -> anyh
 #[cfg(test)]
 mod tests {
     use super::{
-        ActParams, Action, AshnazgServer, NativeReadiness, NativeSessionOwner,
+        ActParams, Action, AshnazgServer, Direction, NativeReadiness, NativeSessionOwner,
         NativeShutdownFuture, NativeWaitFuture, Target, http_app, initializing_http_app,
         ios_app_bridge_command, ios_bridge_command, run_initializing_public, run_native_owner,
         run_native_public, serve_initializing_native_io, serve_initializing_transport,
@@ -2990,16 +3014,84 @@ mod tests {
                 None,
             ),
             (Action::Clear, Some(ios_target(Some("field"), None)), None),
-            (Action::ScrollTo, Some(ios_target(Some("list"), None)), None),
             (Action::Back, None, None),
         ] {
             let params = ios_act_params(action, target, text);
             // Rejections are static strings, so no typed payload can leak into one.
             assert_eq!(
                 ios_app_bridge_command(&params, &allowlist).unwrap_err(),
-                "the iOS app bridge supports only the tap, type, and deep_link actions"
+                "the iOS app bridge supports only the tap, type, scroll_to, and deep_link actions"
             );
         }
+    }
+
+    #[test]
+    fn ios_app_scroll_to_routes_the_shared_schema_for_reveal_journeys() {
+        let allowlist: Vec<String> = Vec::new();
+        let reveal_password = ActParams {
+            action: Action::ScrollTo,
+            target: Some(ios_target(Some("login-password-input"), None)),
+            text: None,
+            direction: Some(Direction::Down),
+        };
+        assert_eq!(
+            ios_app_bridge_command(&reveal_password, &allowlist).unwrap(),
+            serde_json::json!({
+                "op": "ui_act", "action": "scroll_to",
+                "testId": "login-password-input", "direction": "down",
+            })
+        );
+        let reveal_submit = ActParams {
+            action: Action::ScrollTo,
+            target: Some(ios_target(None, Some("Entrar"))),
+            text: None,
+            direction: Some(Direction::Down),
+        };
+        assert_eq!(
+            ios_app_bridge_command(&reveal_submit, &allowlist).unwrap(),
+            serde_json::json!({
+                "op": "ui_act", "action": "scroll_to",
+                "text": "Entrar", "direction": "down",
+            })
+        );
+        // The shared schema keeps the direction optional (the Android path
+        // owns any default); one bounded native swipe needs an explicit
+        // direction, so the app bridge fails closed instead of inventing one.
+        let mut missing_direction = reveal_password.clone();
+        missing_direction.direction = None;
+        assert_eq!(
+            ios_app_bridge_command(&missing_direction, &allowlist).unwrap_err(),
+            "scroll_to requires a direction"
+        );
+        let no_target = ActParams {
+            action: Action::ScrollTo,
+            target: None,
+            text: None,
+            direction: Some(Direction::Down),
+        };
+        assert_eq!(
+            ios_app_bridge_command(&no_target, &allowlist).unwrap_err(),
+            "scroll_to requires a target"
+        );
+        let by_id = Target {
+            test_id: None,
+            text: None,
+            id: Some(7),
+            snapshot_id: Some(2),
+        };
+        assert_eq!(
+            ios_app_bridge_command(
+                &ActParams {
+                    action: Action::ScrollTo,
+                    target: Some(by_id),
+                    text: None,
+                    direction: Some(Direction::Down),
+                },
+                &allowlist
+            )
+            .unwrap_err(),
+            "iOS app selectors are testId or text only"
+        );
     }
 
     #[test]
