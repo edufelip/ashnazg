@@ -661,6 +661,13 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
             process.kill()
             process.wait(timeout=30.0)
             failure = failure or "server did not exit after EOF within the deadline"
+        # Startup errors can occur after ownership was recorded and before
+        # initialize answered. Verify that device identity on either path.
+        if descriptor is None:
+            try:
+                descriptor = client.session_descriptor()
+            except AcceptanceError:
+                descriptor = None
         receipt["cleanup"] = {
             "process_exit_code": exit_code,
             "stderr_tail": client.stderr_text()[-4096:].replace(
@@ -679,6 +686,19 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
             receipt["cleanup"]["simulator_deleted"] = (
                 descriptor["simulator"]["udid"] not in remaining
             )
+            if failure is not None and (work_dir / "xcodebuild.log").is_file():
+                with (work_dir / "xcodebuild.log").open("rb") as log:
+                    end = log.seek(0, os.SEEK_END)
+                    log.seek(max(0, end - 128 * 1024))
+                    lines = log.read().decode("utf-8", errors="replace").splitlines()
+                receipt["native_failure_lines"] = [
+                    line.replace(secret_value, "<redacted synthetic sentinel>")[:512]
+                    for line in lines
+                    if "token" not in line.lower()
+                    and any(term in line.lower() for term in (
+                        "error:", "failed", "coresimulator.simerror", "** test"
+                    ))
+                ][-16:]
         if failure is None:
             if exit_code != 0:
                 failure = f"server exited with {exit_code} on clean EOF"
