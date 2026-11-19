@@ -34,6 +34,8 @@ pub struct AshnazgServer {
     config: Option<HostConfig>,
     provider: NativeProvider,
     tool_router: ToolRouter<Self>,
+    #[cfg(target_os = "macos")]
+    ios: Option<std::sync::Arc<crate::ios_fixture::FixtureSession>>,
 }
 
 #[derive(Clone)]
@@ -356,6 +358,8 @@ impl AshnazgServer {
             config: Some(config),
             provider: NativeProvider::External,
             tool_router: Self::tool_router(),
+            #[cfg(target_os = "macos")]
+            ios: None,
         }
     }
 
@@ -364,6 +368,8 @@ impl AshnazgServer {
             config: None,
             provider: NativeProvider::Ready(Arc::new(native)),
             tool_router: Self::tool_router(),
+            #[cfg(target_os = "macos")]
+            ios: None,
         }
     }
 
@@ -372,6 +378,34 @@ impl AshnazgServer {
             config: None,
             provider: NativeProvider::Initializing(readiness),
             tool_router: Self::tool_router(),
+            #[cfg(target_os = "macos")]
+            ios: None,
+        }
+    }
+
+    /// The explicit iOS fixture entry point: exactly the three live ui_* tools
+    /// are exposed, and the Android app tools are disabled.
+    #[cfg(target_os = "macos")]
+    fn with_ios(session: std::sync::Arc<crate::ios_fixture::FixtureSession>) -> Self {
+        Self {
+            config: None,
+            provider: NativeProvider::External,
+            tool_router: Self::tool_router()
+                .with_disabled("app_install")
+                .with_disabled("app_logs"),
+            ios: Some(session),
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    fn ios_error(error: crate::ios_fixture::BridgeError) -> ErrorData {
+        match error {
+            crate::ios_fixture::BridgeError::Rejected(message) => {
+                ErrorData::invalid_params(message, None)
+            }
+            crate::ios_fixture::BridgeError::Host(error) => {
+                ErrorData::internal_error(error.to_string(), None)
+            }
         }
     }
 
@@ -436,6 +470,14 @@ impl AshnazgServer {
         Parameters(params): Parameters<SnapshotParams>,
         request_cancel: CancellationToken,
     ) -> Result<Json<Value>, ErrorData> {
+        #[cfg(target_os = "macos")]
+        if let Some(ios) = &self.ios {
+            let snapshot = ios
+                .snapshot(&request_cancel)
+                .await
+                .map_err(Self::ios_error)?;
+            return Ok(Json(snapshot));
+        }
         self.guest_json(
             "ui_snapshot",
             serde_json::json!({"includeInvisible":params.include_invisible}),
@@ -455,9 +497,38 @@ impl AshnazgServer {
         Parameters(params): Parameters<ActParams>,
         request_cancel: CancellationToken,
     ) -> Result<Json<Value>, ErrorData> {
-        let value = serde_json::to_value(params)
+        let value = serde_json::to_value(&params)
             .map_err(|e| ErrorData::invalid_params(e.to_string(), None))?;
         validate_ui_act(&value).map_err(|e| ErrorData::invalid_params(e.to_string(), None))?;
+        #[cfg(target_os = "macos")]
+        if let Some(ios) = &self.ios {
+            if !matches!(params.action, Action::Tap) {
+                return Err(ErrorData::invalid_params(
+                    "the iOS fixture bridge supports only the tap action",
+                    None,
+                ));
+            }
+            let target = params
+                .target
+                .as_ref()
+                .ok_or_else(|| ErrorData::invalid_params("tap requires a target", None))?;
+            let mut command = serde_json::json!({"op": "ui_act", "action": "tap"});
+            if let Some(test_id) = target.test_id.as_deref() {
+                command["testId"] = serde_json::json!(test_id);
+            } else if let Some(text) = target.text.as_deref() {
+                command["text"] = serde_json::json!(text);
+            } else {
+                return Err(ErrorData::invalid_params(
+                    "iOS fixture selectors are testId or text only",
+                    None,
+                ));
+            }
+            let acted = ios
+                .act(&command, &request_cancel)
+                .await
+                .map_err(Self::ios_error)?;
+            return Ok(Json(acted));
+        }
         self.guest_json("ui_act", value, request_cancel)
             .await
             .map(Json)
@@ -473,6 +544,43 @@ impl AshnazgServer {
         Parameters(params): Parameters<ScreenshotParams>,
         request_cancel: CancellationToken,
     ) -> Result<CallToolResult, ErrorData> {
+        #[cfg(target_os = "macos")]
+        if let Some(ios) = &self.ios {
+            match params.format.as_ref() {
+                None | Some(ScreenshotFormat::Png) => {}
+                Some(ScreenshotFormat::Webp) => {
+                    return Err(ErrorData::invalid_params(
+                        "the iOS fixture bridge captures PNG screenshots only",
+                        None,
+                    ));
+                }
+            }
+            if params.som_overlay {
+                return Err(ErrorData::invalid_params(
+                    "the iOS fixture bridge does not support somOverlay",
+                    None,
+                ));
+            }
+            let (png, sequence, counter) = ios
+                .screenshot(&request_cancel)
+                .await
+                .map_err(Self::ios_error)?;
+            let (width, height) = crate::ios_fixture::png_dimensions(&png)
+                .ok_or_else(|| ErrorData::internal_error("bridge screenshot is not a PNG", None))?;
+            let metadata = serde_json::json!({
+                "mimeType": "image/png",
+                "snapshotId": sequence,
+                "marks": [],
+                "width": width,
+                "height": height,
+                "counterLabel": counter,
+                "platform": "ios-fixture",
+            });
+            return Ok(CallToolResult::success(vec![
+                ContentBlock::image(STANDARD.encode(&png), "image/png".to_owned()),
+                ContentBlock::text(metadata.to_string()),
+            ]));
+        }
         let format = match params.format.unwrap_or(ScreenshotFormat::Webp) {
             ScreenshotFormat::Webp => "webp",
             ScreenshotFormat::Png => "png",
@@ -650,6 +758,22 @@ impl ServerHandler for AshnazgServer {
 pub async fn serve_stdio(config: HostConfig) -> anyhow::Result<()> {
     use rmcp::ServiceExt;
     let server = AshnazgServer::new(config);
+    server
+        .serve(rmcp::transport::io::stdio())
+        .await?
+        .waiting()
+        .await?;
+    Ok(())
+}
+
+/// Serves the explicit macOS-only iOS fixture session over stdio. Exactly the
+/// three live ui_* tools are exposed for the fixture bridge session.
+#[cfg(target_os = "macos")]
+pub async fn serve_stdio_ios(
+    session: std::sync::Arc<crate::ios_fixture::FixtureSession>,
+) -> anyhow::Result<()> {
+    use rmcp::ServiceExt;
+    let server = AshnazgServer::with_ios(session);
     server
         .serve(rmcp::transport::io::stdio())
         .await?

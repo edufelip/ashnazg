@@ -41,6 +41,9 @@ enum CommandLine {
     Mcp {
         #[arg(long, value_name = "LOOPBACK:PORT")]
         http: Option<String>,
+        /// Serve stdio MCP for the live iOS fixture session (macOS only).
+        #[arg(long)]
+        ios_fixture: bool,
     },
     /// Perform one guest JSON-RPC call.
     Rpc {
@@ -85,8 +88,8 @@ async fn run() -> anyhow::Result<()> {
         .with_writer(std::io::stderr)
         .init();
     match Cli::parse().command {
-        None => serve_mcp(None).await,
-        Some(CommandLine::Mcp { http }) => serve_mcp(http).await,
+        None => serve_mcp(None, false).await,
+        Some(CommandLine::Mcp { http, ios_fixture }) => serve_mcp(http, ios_fixture).await,
         Some(CommandLine::Rpc { method, params }) => {
             let params: Value =
                 serde_json::from_str(&params).context("params must be valid JSON")?;
@@ -115,24 +118,41 @@ async fn run() -> anyhow::Result<()> {
     }
 }
 
-async fn serve_mcp(http: Option<String>) -> anyhow::Result<()> {
-    let backend = select_mcp_backend(
-        std::env::var_os("ASHNAZG_TOKEN").is_some(),
-        std::env::consts::OS,
-        std::env::consts::ARCH,
-    )?;
-    match backend {
-        McpBackend::External => {
-            let config = ashnazg::HostConfig::from_env()?;
-            match http {
-                Some(bind) => ashnazg::mcp::serve_http(config, &bind).await,
-                None => ashnazg::mcp::serve_stdio(config).await,
-            }
+async fn serve_mcp(http: Option<String>, ios_fixture: bool) -> anyhow::Result<()> {
+    if ios_fixture {
+        if http.is_some() {
+            bail!("--ios-fixture serves stdio only");
         }
-        McpBackend::Native => match http {
-            Some(bind) => serve_native_http(&bind).await,
-            None => serve_native_stdio().await,
-        },
+        #[cfg(target_os = "macos")]
+        {
+            let session = std::sync::Arc::new(ashnazg::ios_fixture::FixtureSession::open().await?);
+            let result = ashnazg::mcp::serve_stdio_ios(std::sync::Arc::clone(&session)).await;
+            session.close().await?;
+            result
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            bail!("--ios-fixture requires macOS with Xcode and an iOS Simulator runtime");
+        }
+    } else {
+        let backend = select_mcp_backend(
+            std::env::var_os("ASHNAZG_TOKEN").is_some(),
+            std::env::consts::OS,
+            std::env::consts::ARCH,
+        )?;
+        match backend {
+            McpBackend::External => {
+                let config = ashnazg::HostConfig::from_env()?;
+                match http {
+                    Some(bind) => ashnazg::mcp::serve_http(config, &bind).await,
+                    None => ashnazg::mcp::serve_stdio(config).await,
+                }
+            }
+            McpBackend::Native => match http {
+                Some(bind) => serve_native_http(&bind).await,
+                None => serve_native_stdio().await,
+            },
+        }
     }
 }
 
