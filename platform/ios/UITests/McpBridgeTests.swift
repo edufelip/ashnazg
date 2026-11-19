@@ -9,6 +9,8 @@ import Network
 // fixture state. The test skips itself when the host has not selected it, so
 // the ordinary probe scheme run keeps exercising the two native tests.
 final class McpBridgeTests: XCTestCase {
+    @MainActor private var typingSelector: String?
+
     private struct Command: Codable {
         let op: String
         let id: UInt64?
@@ -26,6 +28,7 @@ final class McpBridgeTests: XCTestCase {
         case "ui_act":
             switch command.action ?? "" {
             case "tap":
+                typingSelector = nil
                 if let testId = command.testId, !testId.isEmpty {
                     let query = app.descendants(matching: .any).matching(identifier: testId)
                     return Self.tapFirstMatch(of: query, selector: "testId \(testId)", in: app)
@@ -44,14 +47,14 @@ final class McpBridgeTests: XCTestCase {
                 }
                 if let testId = command.testId, !testId.isEmpty {
                     let query = app.descendants(matching: .any).matching(identifier: testId)
-                    return Self.typeText(
+                    return typeText(
                         into: query, selector: "testId \(testId)", value: value, in: app
                     )
                 }
                 if let text = command.text, !text.isEmpty {
                     let query = app.descendants(matching: .any)
                         .matching(NSPredicate(format: "label == %@", text))
-                    return Self.typeText(
+                    return typeText(
                         into: query, selector: "text \(text)", value: value, in: app
                     )
                 }
@@ -104,7 +107,7 @@ final class McpBridgeTests: XCTestCase {
     /// payload onto existing secure text is rejected, mirroring the Android
     /// `type` boundary. Secure values never appear in snapshots or errors.
     @MainActor
-    private static func typeText(
+    private func typeText(
         into query: XCUIElementQuery,
         selector: String,
         value: String,
@@ -130,7 +133,7 @@ final class McpBridgeTests: XCTestCase {
         if value.isEmpty {
             // Parity with the shared schema: an empty payload settles as a
             // no-op with a fresh snapshot, never an error.
-            return ["ok": true, "nodes": snapshotNodes(app: app)]
+            return ["ok": true, "nodes": Self.snapshotNodes(app: app)]
         }
         if element.elementType == .secureTextField && !existing.isEmpty {
             // Mirrors the Android boundary on nonempty secure text; the
@@ -138,7 +141,16 @@ final class McpBridgeTests: XCTestCase {
             return ["ok": false,
                     "error": "selector \(selector) holds existing secure text; typing onto it is not supported"]
         }
-        element.tap()
+        // Re-tapping a populated field can replace its previous value.
+        // Only append when this bridge established focus through a settled type.
+        let keepsFocus = typingSelector == selector
+        if !existing.isEmpty && !keepsFocus {
+            return ["ok": false, "error": "append requires focus established by the bridge"]
+        }
+        typingSelector = nil
+        if !keepsFocus {
+            element.tap()
+        }
         element.typeText(value)
         let expected = existing + value
         // The settle never embeds the typed value in a predicate: XCTest may
@@ -167,7 +179,8 @@ final class McpBridgeTests: XCTestCase {
         guard XCTWaiter().wait(for: [settled], timeout: 10) == .completed else {
             return ["ok": false, "error": "fixture text did not settle after typing"]
         }
-        return ["ok": true, "nodes": snapshotNodes(app: app)]
+        typingSelector = selector
+        return ["ok": true, "nodes": Self.snapshotNodes(app: app)]
     }
 
     private static func snapshotNodes(app: XCUIApplication) -> [[String: Any]] {

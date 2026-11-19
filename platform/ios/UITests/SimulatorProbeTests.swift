@@ -71,5 +71,7 @@ final class SimulatorProbeTests: XCTestCase {
         input.tap()
         input.typeText("Ashnazg")
         XCTAssertEqual(input.value as? String, "Ashnazg")
+        input.typeText("-fixture")
+        XCTAssertEqual(input.value as? String, "Ashnazg-fixture")
     }
 }
