@@ -39,6 +39,10 @@ pub const OPEN_TIMEOUT: Duration = Duration::from_secs(900);
 pub const COMMAND_TIMEOUT: Duration = Duration::from_secs(180);
 /// The bridge test must finish and exit xcodebuild within this grace.
 pub const CLOSE_TIMEOUT: Duration = Duration::from_secs(300);
+/// Bounded wait for `simctl bootstatus -b` on the owned device.
+const BOOT_TIMEOUT: Duration = Duration::from_secs(240);
+/// Bounded wait for installing the pinned staged copy on the owned device.
+const INSTALL_TIMEOUT: Duration = Duration::from_secs(300);
 /// One bridge response line (base64 PNG of an app screenshot fits easily).
 pub const LINE_LIMIT: usize = 16 * 1024 * 1024;
 const SCREENSHOT_LIMIT: usize = 8 * 1024 * 1024;
@@ -133,10 +137,37 @@ impl Owned {
     }
 }
 
+/// Which live bridge one `FixtureSession` owns: the classic in-tree iOS
+/// fixture, or an external app pinned by a manifest. Both modes share the
+/// owned simulator, bridge transport, token handshake, sequencing,
+/// cancellation and teardown; only the launch differs.
+pub enum SessionLaunch {
+    Fixture,
+    App(crate::ios_app::AppManifest),
+}
+
+/// Everything the shared transport needs that differs per launch mode.
+struct LaunchPlan {
+    name: String,
+    work_dir: PathBuf,
+    scheme: &'static str,
+    only_testing: &'static str,
+    result_bundle: &'static str,
+    install: Option<PathBuf>,
+    extra_envs: Vec<(String, String)>,
+    greeting_app: String,
+    platform: &'static str,
+    session_tag: &'static str,
+    descriptor_extra: Value,
+    device_type: String,
+    runtime: String,
+}
+
 pub struct FixtureSession {
     owned: Owned,
     child: Mutex<Child>,
     io: Mutex<Option<BridgeIo>>,
+    launch: SessionLaunch,
 }
 
 struct BridgeIo {
@@ -147,41 +178,31 @@ struct BridgeIo {
 }
 
 impl FixtureSession {
-    /// Creates the disposable simulator, generates the fixture project in a
+    /// Creates the disposable simulator, generates the bridge project in a
     /// private work directory, starts the bridge test, and completes the
     /// capability-token handshake. On any failure the simulator is deleted
     /// before the error returns, and the work directory is preserved as
-    /// evidence with its path in the error chain.
-    pub async fn open() -> anyhow::Result<Self> {
+    /// evidence with its path in the error chain. The app launch adds its
+    /// manifest, digest, bundle, platform and deep-link validation before
+    /// the simulator exists and installs the pinned staged copy on the
+    /// owned device.
+    pub async fn open(launch: SessionLaunch) -> anyhow::Result<Self> {
         Self::require_tool("xcodebuild", &["-version"]).await?;
         Self::require_tool("xcrun", &["simctl", "help"]).await?;
         Self::require_tool("xcodegen", &["--version"]).await?;
 
-        let source = Self::fixture_source()?;
-        let runtime = Self::newest_runtime().await?;
-        let device_type = Self::newest_iphone_type().await?;
-        let work_dir = Self::fresh_work_dir()?;
-        copy_tree(&source.join("Fixture"), &work_dir.join("Fixture"))?;
-        copy_tree(&source.join("UITests"), &work_dir.join("UITests"))?;
-        fs::copy(source.join("project.yml"), work_dir.join("project.yml"))?;
+        let plan = match &launch {
+            SessionLaunch::Fixture => Self::fixture_plan().await?,
+            SessionLaunch::App(manifest) => Self::app_plan(manifest).await?,
+        };
 
-        let generate = Command::new("xcodegen")
-            .arg("generate")
-            .current_dir(&work_dir)
-            .output()
-            .await
-            .context("failed to run xcodegen")?;
-        if !generate.status.success() {
-            bail!(
-                "xcodegen failed with {}: {}",
-                generate.status,
-                String::from_utf8_lossy(&generate.stderr)
-            );
-        }
+        // The capability token exists before the UDID is allocated, so a
+        // generation failure cannot leave an owned device behind.
+        let token = capability_token()?;
 
-        let name = format!("ashnazg-mcp-fixture-{}", hex_suffix(4));
+        let name = plan.name.clone();
         let create = Command::new("xcrun")
-            .args(["simctl", "create", &name, &device_type, &runtime])
+            .args(["simctl", "create", &name, &plan.device_type, &plan.runtime])
             .output()
             .await
             .context("failed to run simctl create")?;
@@ -198,12 +219,27 @@ impl FixtureSession {
         }
         let owned = Owned {
             simulator: simulator.clone(),
-            work_dir: work_dir.clone(),
+            work_dir: plan.work_dir.clone(),
             simulator_deleted: AtomicBool::new(false),
         };
 
-        let token = capability_token()?;
-        let connected = Self::connect(&owned, &token, &name, &device_type, &runtime).await;
+        if let Some(staged) = plan.install.as_deref() {
+            let installed = Self::boot_and_install(&owned, staged).await;
+            if let Err(error) = installed {
+                let cleanup = owned.destroy().await;
+                let message = format!(
+                    "evidence preserved at {}; {}",
+                    owned.evidence(),
+                    log_tail(&owned.work_dir)
+                );
+                return match cleanup {
+                    Err(cleanup) => Err(error.context(format!("{message}; {cleanup}"))),
+                    Ok(()) => Err(error.context(message)),
+                };
+            }
+        }
+
+        let connected = Self::connect(&owned, &plan, &token).await;
         let (child, io) = match connected {
             Ok(connected) => connected,
             Err(error) => {
@@ -223,17 +259,39 @@ impl FixtureSession {
             owned,
             child: Mutex::new(child),
             io: Mutex::new(Some(io)),
+            launch,
         })
     }
 
-    /// One live snapshot against the running fixture app.
+    /// True when this session drives an external manifest-pinned app.
+    pub(crate) fn is_app_launch(&self) -> bool {
+        matches!(self.launch, SessionLaunch::App(_))
+    }
+
+    /// The platform label carried by every snapshot and action result.
+    pub(crate) fn platform(&self) -> &'static str {
+        match self.launch {
+            SessionLaunch::App(_) => "ios-app",
+            SessionLaunch::Fixture => "ios-fixture",
+        }
+    }
+
+    /// The exact deep-link allowlist the host-side routing checks against.
+    pub(crate) fn deep_links(&self) -> &[String] {
+        match &self.launch {
+            SessionLaunch::App(manifest) => &manifest.deep_links,
+            SessionLaunch::Fixture => &[],
+        }
+    }
+
+    /// One live snapshot against the running session app.
     pub async fn snapshot(&self, cancel: &CancellationToken) -> Result<Value, BridgeError> {
         let (response, sequence) = self.exchange(&json!({"op": "ui_snapshot"}), cancel).await?;
         let nodes = response
             .get("nodes")
             .cloned()
             .ok_or_else(|| anyhow::anyhow!("bridge snapshot omitted nodes"))?;
-        Ok(json!({"snapshotId": sequence, "nodes": nodes, "platform": "ios-fixture"}))
+        Ok(json!({"snapshotId": sequence, "nodes": nodes, "platform": self.platform()}))
     }
 
     /// One live tap or type action; the selector must come from a prior
@@ -256,17 +314,18 @@ impl FixtureSession {
             .ok_or_else(|| anyhow::anyhow!("bridge {action} response omitted nodes"))?;
         Ok(json!({
             "settled": true,
-            "snapshot": {"snapshotId": sequence, "nodes": nodes, "platform": "ios-fixture"},
+            "snapshot": {"snapshotId": sequence, "nodes": nodes, "platform": self.platform()},
         }))
     }
 
     /// One live screenshot; returns the PNG bytes, the state sequence id the
-    /// image was captured in, and the fixture counter the bridge observed at
-    /// capture time, for correlation with the post-tap snapshot.
+    /// image was captured in, and the fixture counter the bridge observed
+    /// at capture time when the session has one, for correlation with the
+    /// post-tap snapshot. An external app session reports no counter.
     pub async fn screenshot(
         &self,
         cancel: &CancellationToken,
-    ) -> Result<(Vec<u8>, u64, String), BridgeError> {
+    ) -> Result<(Vec<u8>, u64, Option<String>), BridgeError> {
         let (response, sequence) = self
             .exchange(&json!({"op": "ui_screenshot"}), cancel)
             .await?;
@@ -288,8 +347,7 @@ impl FixtureSession {
         let counter = response
             .get("counter")
             .and_then(Value::as_str)
-            .unwrap_or_default()
-            .to_owned();
+            .map(str::to_owned);
         Ok((png, sequence, counter))
     }
 
@@ -406,10 +464,8 @@ impl FixtureSession {
 
     async fn connect(
         owned: &Owned,
+        plan: &LaunchPlan,
         token: &str,
-        name: &str,
-        device_type: &str,
-        runtime: &str,
     ) -> anyhow::Result<(Child, BridgeIo)> {
         let listener = TcpListener::bind(("127.0.0.1", 0))
             .await
@@ -424,14 +480,18 @@ impl FixtureSession {
             "-project".to_owned(),
             "AshnazgSimulatorProbe.xcodeproj".to_owned(),
             "-scheme".to_owned(),
-            "AshnazgSimulatorProbe".to_owned(),
+            plan.scheme.to_owned(),
             "-destination".to_owned(),
             format!("platform=iOS Simulator,id={}", owned.simulator),
-            "-only-testing:FixtureUITests/McpBridgeTests".to_owned(),
+            format!("-only-testing:{}", plan.only_testing),
             "-parallel-testing-enabled".to_owned(),
             "NO".to_owned(),
             "-resultBundlePath".to_owned(),
-            owned.work_dir.join("Probe.xcresult").display().to_string(),
+            owned
+                .work_dir
+                .join(plan.result_bundle)
+                .display()
+                .to_string(),
         ];
         let command = format!("xcodebuild {}", arguments.join(" "));
         let log = fs::File::create(owned.work_dir.join("xcodebuild.log")).with_context(|| {
@@ -444,6 +504,13 @@ impl FixtureSession {
             .args(&arguments)
             .env("TEST_RUNNER_ASHNAZG_PROBE_BRIDGE", port.to_string())
             .env("TEST_RUNNER_ASHNAZG_PROBE_TOKEN", token)
+            // External-mode selection keys are cleared first so a fixture
+            // launch can never inherit them from this process's ambient
+            // environment; an app launch re-applies its own values below.
+            .env_remove("TEST_RUNNER_ASHNAZG_APP_BUNDLE_ID")
+            .env_remove("TEST_RUNNER_ASHNAZG_APP_INITIAL_URL")
+            .env_remove("TEST_RUNNER_ASHNAZG_APP_READY_SELECTOR")
+            .envs(plan.extra_envs.iter().map(|(key, value)| (key, value)))
             .stdout(Stdio::from(log.try_clone()?))
             .stderr(Stdio::from(log))
             .current_dir(&owned.work_dir)
@@ -451,20 +518,27 @@ impl FixtureSession {
             .spawn()
             .context("failed to start xcodebuild")?;
 
-        let descriptor = json!({
+        let mut descriptor = json!({
             "simulator": {
                 "udid": owned.simulator,
-                "name": name,
-                "deviceType": device_type,
-                "runtime": runtime,
+                "name": plan.name,
+                "deviceType": plan.device_type,
+                "runtime": plan.runtime,
             },
             "bridgePort": port,
             "workDir": owned.evidence(),
             "pid": child.id().unwrap_or_default(),
             "command": command,
-            "fixtureApp": FIXTURE_BUNDLE_ID,
         });
-        tracing::info!("ios-fixture-session {descriptor}");
+        if let (Some(object), Some(extra)) = (
+            descriptor.as_object_mut(),
+            plan.descriptor_extra.as_object(),
+        ) {
+            for (key, value) in extra {
+                object.insert(key.clone(), value.clone());
+            }
+        }
+        tracing::info!("{} {descriptor}", plan.session_tag);
 
         let (stream, _) = tokio::select! {
             accepted = listener.accept() => {
@@ -500,7 +574,7 @@ impl FixtureSession {
         })()
         .filter(|greeting| {
             greeting.get("token").and_then(Value::as_str) == Some(token)
-                && greeting.get("app").and_then(Value::as_str) == Some(FIXTURE_BUNDLE_ID)
+                && greeting.get("app").and_then(Value::as_str) == Some(plan.greeting_app.as_str())
         });
         if greeting_ok.is_none() {
             bail!("bridge greeting failed the capability handshake");
@@ -515,6 +589,403 @@ impl FixtureSession {
                 sequence: 0,
             },
         ))
+    }
+
+    /// The classic in-tree fixture launch: newest runtime and iPhone type,
+    /// no install step, the fixture bridge test, and the fixture bundle id
+    /// in the capability handshake.
+    async fn fixture_plan() -> anyhow::Result<LaunchPlan> {
+        let source = Self::fixture_source()?;
+        let runtime = Self::newest_runtime().await?;
+        let device_type = Self::newest_iphone_type().await?;
+        let work_dir = Self::fresh_work_dir("ashnazg-ios-fixture")?;
+        Self::copy_bridge_sources(&source, &work_dir)?;
+        Self::generate_project(&work_dir).await?;
+        Ok(LaunchPlan {
+            name: format!("ashnazg-mcp-fixture-{}", hex_suffix(4)),
+            work_dir,
+            scheme: "AshnazgSimulatorProbe",
+            only_testing: "FixtureUITests/McpBridgeTests",
+            result_bundle: "Probe.xcresult",
+            install: None,
+            extra_envs: Vec::new(),
+            greeting_app: FIXTURE_BUNDLE_ID.to_owned(),
+            platform: "ios-fixture",
+            session_tag: "ios-fixture-session",
+            descriptor_extra: json!({"fixtureApp": FIXTURE_BUNDLE_ID}),
+            device_type,
+            runtime,
+        })
+    }
+
+    /// The external app launch from a validated manifest. Every wrong
+    /// bundle, platform, digest, path and URI failure happens here, before
+    /// the simulator exists; the pinned staged copy is what gets installed
+    /// on the owned device.
+    async fn app_plan(manifest: &crate::ios_app::AppManifest) -> anyhow::Result<LaunchPlan> {
+        use crate::ios_app::{AppManifest, ReadySelector, stage_tree_pinned};
+
+        manifest.validate()?;
+
+        let AppManifest {
+            app_path,
+            app_sha256,
+            bundle_id,
+            runtime,
+            device_type,
+            initial_url,
+            ready_selector,
+            deep_links,
+        } = manifest;
+        let source = Self::fixture_source()?;
+        Self::preflight_launch_pair(runtime, device_type).await?;
+
+        let app_name = app_path
+            .file_name()
+            .with_context(|| format!("appPath {} has no bundle name", app_path.display()))?
+            .to_owned();
+        let app_stat = fs::metadata(app_path)
+            .with_context(|| format!("failed to stat the app at {}", app_path.display()))?;
+        if !app_stat.is_dir() {
+            bail!(
+                "appPath {} is not an app bundle directory",
+                app_path.display()
+            );
+        }
+
+        let work_dir = Self::fresh_work_dir("ashnazg-ios-app")?;
+        Self::copy_bridge_sources(&source, &work_dir)?;
+        Self::generate_project(&work_dir)
+            .await
+            .with_context(|| format!("evidence preserved at {}", work_dir.display()))?;
+
+        // The pinned staging copy is what gets installed: its digest is
+        // computed and compared before any simulator is created.
+        let staged = work_dir.join("Staged").join(&app_name);
+        fs::create_dir_all(staged.parent().expect("the staged parent exists"))
+            .with_context(|| format!("failed to create {}", staged.display()))?;
+        let digest = stage_tree_pinned(app_path, &staged)
+            .with_context(|| format!("evidence preserved at {}", work_dir.display()))?;
+        if digest != *app_sha256 {
+            bail!(
+                "staged app digest {digest} does not match the manifest appSha256; evidence preserved at {}",
+                work_dir.display()
+            );
+        }
+
+        let plist = read_plist(&staged.join("Info.plist"))
+            .with_context(|| format!("evidence preserved at {}", work_dir.display()))?;
+        let staged_bundle_id = plist
+            .get("CFBundleIdentifier")
+            .and_then(Value::as_str)
+            .with_context(|| {
+                format!(
+                    "staged app has no CFBundleIdentifier; evidence preserved at {}",
+                    work_dir.display()
+                )
+            })?;
+        if staged_bundle_id != bundle_id {
+            bail!(
+                "staged app bundle id {staged_bundle_id} does not match the manifest bundleId {bundle_id}; evidence preserved at {}",
+                work_dir.display()
+            );
+        }
+        let executable = plist
+            .get("CFBundleExecutable")
+            .and_then(Value::as_str)
+            .with_context(|| {
+                format!(
+                    "staged app has no CFBundleExecutable; evidence preserved at {}",
+                    work_dir.display()
+                )
+            })?
+            .to_owned();
+        // One plain basename only: a manifest-controlled plist value must
+        // never steer validation outside the hashed bundle root.
+        if executable.is_empty()
+            || executable == "."
+            || executable == ".."
+            || executable.contains(['/', '\\'])
+            || Path::new(&executable).components().count() != 1
+        {
+            bail!(
+                "staged app CFBundleExecutable must be one plain bundle-root basename; evidence preserved at {}",
+                work_dir.display()
+            );
+        }
+        let staged_executable = staged.join(&executable);
+        if !staged_executable.is_file() {
+            bail!(
+                "staged app executable {} is missing; evidence preserved at {}",
+                staged_executable.display(),
+                work_dir.display()
+            );
+        }
+        Self::validate_simulator_platform(&staged_executable).await?;
+        Self::validate_deep_link_schemes(&plist, deep_links, &work_dir)?;
+
+        let mut extra_envs = Vec::new();
+        if let Some(initial_url) = initial_url.as_deref() {
+            extra_envs.push((
+                "TEST_RUNNER_ASHNAZG_APP_INITIAL_URL".to_owned(),
+                initial_url.to_owned(),
+            ));
+        }
+        let selector = match ready_selector {
+            ReadySelector {
+                test_id: Some(test_id),
+                text: None,
+            } => {
+                json!({"testId": test_id})
+            }
+            ReadySelector {
+                test_id: None,
+                text: Some(text),
+            } => json!({"text": text}),
+            _ => bail!("readySelector must be exactly one nonempty testId or text"),
+        };
+        extra_envs.push((
+            "TEST_RUNNER_ASHNAZG_APP_READY_SELECTOR".to_owned(),
+            selector.to_string(),
+        ));
+        extra_envs.push((
+            "TEST_RUNNER_ASHNAZG_APP_BUNDLE_ID".to_owned(),
+            bundle_id.clone(),
+        ));
+
+        Ok(LaunchPlan {
+            name: format!("ashnazg-mcp-app-{}", hex_suffix(4)),
+            work_dir,
+            scheme: "AshnazgSimulatorProbe",
+            only_testing: "FixtureUITests/McpBridgeTests",
+            result_bundle: "AppProbe.xcresult",
+            install: Some(staged),
+            extra_envs,
+            greeting_app: bundle_id.clone(),
+            platform: "ios-app",
+            session_tag: "ios-app-session",
+            descriptor_extra: json!({"bundleId": bundle_id, "appSha256": digest}),
+            device_type: device_type.clone(),
+            runtime: runtime.clone(),
+        })
+    }
+
+    fn copy_bridge_sources(source: &Path, work_dir: &Path) -> anyhow::Result<()> {
+        copy_tree(&source.join("Fixture"), &work_dir.join("Fixture"))?;
+        copy_tree(&source.join("UITests"), &work_dir.join("UITests"))?;
+        fs::copy(source.join("project.yml"), work_dir.join("project.yml"))?;
+        Ok(())
+    }
+
+    async fn generate_project(work_dir: &Path) -> anyhow::Result<()> {
+        let generate = Command::new("xcodegen")
+            .arg("generate")
+            .current_dir(work_dir)
+            .output()
+            .await
+            .context("failed to run xcodegen")?;
+        if !generate.status.success() {
+            bail!(
+                "xcodegen failed with {}: {}",
+                generate.status,
+                String::from_utf8_lossy(&generate.stderr)
+            );
+        }
+        Ok(())
+    }
+
+    /// Boots the owned device and installs the pinned staged copy on it;
+    /// both waits are bounded.
+    async fn boot_and_install(owned: &Owned, staged: &Path) -> anyhow::Result<()> {
+        let boot = Command::new("xcrun")
+            .args(["simctl", "boot", &owned.simulator])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .await
+            .context("failed to run simctl boot")?;
+        if !boot.success() {
+            bail!("simctl boot failed with {boot}");
+        }
+        let booted = timeout(
+            BOOT_TIMEOUT,
+            Command::new("xcrun")
+                .args(["simctl", "bootstatus", &owned.simulator, "-b"])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .kill_on_drop(true)
+                .status(),
+        )
+        .await
+        .context("simctl bootstatus timed out")??;
+        if !booted.success() {
+            bail!("simulator {} did not finish booting", owned.simulator);
+        }
+        let install = timeout(
+            INSTALL_TIMEOUT,
+            Command::new("xcrun")
+                .args(["simctl", "install", &owned.simulator])
+                .arg(staged)
+                .output(),
+        )
+        .await
+        .context("simctl install timed out")?
+        .context("failed to run simctl install")?;
+        if !install.status.success() {
+            bail!(
+                "simctl install failed with {}: {}",
+                install.status,
+                String::from_utf8_lossy(&install.stderr)
+            );
+        }
+        Ok(())
+    }
+
+    /// Qualifies the manifest's explicit runtime/deviceType pair against
+    /// the host, mirroring the hosted probe evidence: the named runtime must
+    /// be available and its own `supportedDeviceTypes` must list the named
+    /// device type. An absent or empty list is never treated as verified
+    /// compatibility, and separate presence of either identifier alone is
+    /// insufficient.
+    async fn preflight_launch_pair(runtime: &str, device_type: &str) -> anyhow::Result<()> {
+        let output = Command::new("xcrun")
+            .args(["simctl", "list", "-j", "runtimes"])
+            .output()
+            .await
+            .context("failed to list simulator runtimes")?;
+        let runtimes: Value = serde_json::from_slice(&output.stdout)
+            .context("simctl runtimes output was not JSON")?;
+        let selected = runtimes
+            .get("runtimes")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .find(|candidate| candidate.get("identifier").and_then(Value::as_str) == Some(runtime));
+        let Some(selected) = selected else {
+            bail!("manifest runtime {runtime} is not an installed simulator runtime");
+        };
+        if selected.get("isAvailable") != Some(&Value::Bool(true)) {
+            bail!("manifest runtime {runtime} is not available on this host");
+        }
+        let supported = selected
+            .get("supportedDeviceTypes")
+            .and_then(Value::as_array);
+        let Some(supported) = supported else {
+            bail!(
+                "manifest runtime {runtime} did not report supportedDeviceTypes; the device pair is not verified compatible"
+            );
+        };
+        let listed = supported
+            .iter()
+            .any(|entry| entry.get("identifier").and_then(Value::as_str) == Some(device_type));
+        if !listed {
+            bail!(
+                "manifest deviceType {device_type} is not in runtime {runtime}'s supportedDeviceTypes; the pair is not verified compatible"
+            );
+        }
+        Ok(())
+    }
+
+    /// Apple-tool platform validation on the staged executable, the same
+    /// recipe the Meer proof uses: `lipo -archs` must contain the host's
+    /// native slice (a universal simulator build is fine), and
+    /// `xcrun vtool -arch <native>` must report the iOSSimulator platform
+    /// for that slice. Device and wrong-slice builds fail before the
+    /// simulator exists.
+    async fn validate_simulator_platform(staged_executable: &Path) -> anyhow::Result<()> {
+        let native = match std::env::consts::ARCH {
+            "aarch64" => "arm64",
+            "x86_64" => "x86_64",
+            other => bail!("unsupported host architecture {other} for the iOS app session"),
+        };
+        let lipo = Command::new("lipo")
+            .arg("-archs")
+            .arg(staged_executable)
+            .output()
+            .await
+            .context("failed to run lipo")?;
+        if !lipo.status.success() {
+            bail!(
+                "lipo -archs failed with {}: {}",
+                lipo.status,
+                String::from_utf8_lossy(&lipo.stderr)
+            );
+        }
+        let archs = String::from_utf8_lossy(&lipo.stdout);
+        if !archs.split_whitespace().any(|arch| arch == native) {
+            bail!(
+                "staged executable has no {native} slice (lipo -archs: {})",
+                archs.trim()
+            );
+        }
+        let vtool = Command::new("xcrun")
+            .args(["vtool", "-arch", native, "-show-build"])
+            .arg(staged_executable)
+            .output()
+            .await
+            .context("failed to run vtool")?;
+        if !vtool.status.success() {
+            bail!(
+                "xcrun vtool failed with {}: {}",
+                vtool.status,
+                String::from_utf8_lossy(&vtool.stderr)
+            );
+        }
+        // The platform line is compared case-insensitively on its exact
+        // value, with the numeric iOSSimulator platform accepted; a loose
+        // substring match would let "iOS" or unrelated output pass.
+        let build = String::from_utf8_lossy(&vtool.stdout);
+        let platform = build
+            .lines()
+            .find_map(|line| {
+                let lowered = line.trim().to_ascii_lowercase();
+                let rest = lowered.strip_prefix("platform")?;
+                rest.trim_start_matches([':', ' ', '\t'])
+                    .split_whitespace()
+                    .next()
+                    .map(str::to_owned)
+            })
+            .unwrap_or_default();
+        if platform != "iossimulator" && platform != "7" {
+            bail!(
+                "staged executable {native} slice was not built for the iOS Simulator platform; vtool reported platform {platform:?}"
+            );
+        }
+        Ok(())
+    }
+
+    /// Every manifest deep link must be an exact allowlist entry whose
+    /// scheme the staged app actually declares in CFBundleURLTypes.
+    fn validate_deep_link_schemes(
+        plist: &Value,
+        deep_links: &[String],
+        work_dir: &Path,
+    ) -> anyhow::Result<()> {
+        let declared: Vec<String> = plist
+            .get("CFBundleURLTypes")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(|entry| entry.get("CFBundleURLSchemes"))
+            .filter_map(Value::as_array)
+            .flatten()
+            .filter_map(Value::as_str)
+            .map(str::to_lowercase)
+            .collect();
+        for deep_link in deep_links {
+            let scheme = deep_link
+                .split_once(':')
+                .map(|(scheme, _)| scheme)
+                .unwrap_or_default()
+                .to_lowercase();
+            if !declared.iter().any(|declared| declared == &scheme) {
+                bail!(
+                    "deep link {deep_link} scheme {scheme} is not declared by the staged app's CFBundleURLTypes; evidence preserved at {}",
+                    work_dir.display()
+                );
+            }
+        }
+        Ok(())
     }
 
     async fn require_tool(program: &str, args: &[&str]) -> anyhow::Result<()> {
@@ -632,8 +1103,8 @@ impl FixtureSession {
             .context("no iPhone simulator device type was found")
     }
 
-    fn fresh_work_dir() -> anyhow::Result<PathBuf> {
-        let work_dir = env::temp_dir().join(format!("ashnazg-ios-fixture-{}", hex_suffix(8)));
+    fn fresh_work_dir(prefix: &str) -> anyhow::Result<PathBuf> {
+        let work_dir = env::temp_dir().join(format!("{prefix}-{}", hex_suffix(8)));
         fs::create_dir(&work_dir)
             .with_context(|| format!("failed to create {}", work_dir.display()))?;
         Ok(work_dir)
@@ -726,4 +1197,25 @@ fn capability_token() -> anyhow::Result<String> {
         bail!("capability token generation failed");
     }
     Ok(token)
+}
+
+/// Reads one staged plist as JSON through the real `plutil` executable.
+/// A nonzero status or an unparseable document is an explicit error, so a
+/// malformed staged `Info.plist` fails before any simulator exists.
+fn read_plist(path: &Path) -> anyhow::Result<Value> {
+    let output = std::process::Command::new("/usr/bin/plutil")
+        .args(["-convert", "json", "-o", "-"])
+        .arg(path)
+        .output()
+        .context("failed to run plutil on the staged Info.plist")?;
+    if !output.status.success() {
+        bail!(
+            "plutil failed with {} on {}: {}",
+            output.status,
+            path.display(),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    serde_json::from_slice(&output.stdout)
+        .with_context(|| format!("plutil did not emit JSON for {}", path.display()))
 }

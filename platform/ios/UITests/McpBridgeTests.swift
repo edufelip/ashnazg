@@ -11,6 +11,10 @@ import Network
 final class McpBridgeTests: XCTestCase {
     @MainActor private var typingSelector: String?
 
+    /// True when this session launches an external manifest-pinned app
+    /// (`ashnazg mcp --ios-app`) instead of the in-tree fixture.
+    @MainActor private var externalApp = false
+
     private struct Command: Codable {
         let op: String
         let id: UInt64?
@@ -18,6 +22,12 @@ final class McpBridgeTests: XCTestCase {
         let testId: String?
         let text: String?
         let value: String?
+        let url: String?
+    }
+
+    private struct ReadySelector: Codable {
+        let testId: String?
+        let text: String?
     }
 
     @MainActor
@@ -31,12 +41,16 @@ final class McpBridgeTests: XCTestCase {
                 typingSelector = nil
                 if let testId = command.testId, !testId.isEmpty {
                     let query = app.descendants(matching: .any).matching(identifier: testId)
-                    return Self.tapFirstMatch(of: query, selector: "testId \(testId)", in: app)
+                    return Self.tapFirstMatch(
+                        of: query, selector: "testId \(testId)", in: app, external: externalApp
+                    )
                 }
                 if let text = command.text, !text.isEmpty {
                     let query = app.descendants(matching: .any)
                         .matching(NSPredicate(format: "label == %@", text))
-                    return Self.tapFirstMatch(of: query, selector: "text \(text)", in: app)
+                    return Self.tapFirstMatch(
+                        of: query, selector: "text \(text)", in: app, external: externalApp
+                    )
                 }
                 return ["ok": false, "error": "tap requires a testId or text selector"]
             case "type":
@@ -59,24 +73,53 @@ final class McpBridgeTests: XCTestCase {
                     )
                 }
                 return ["ok": false, "error": "type requires a testId or text selector"]
+            case "deep_link":
+                // External launches only: the host never forwards a deep
+                // link to the fixture, and the fixture keeps its exact
+                // unsupported-action boundary.
+                guard externalApp else {
+                    return ["ok": false, "error": "bridge only supports the tap and type actions"]
+                }
+                guard let raw = command.url, let url = URL(string: raw) else {
+                    return ["ok": false, "error": "deep_link requires a url"]
+                }
+                return openDeepLink(url, in: app)
             default:
+                if externalApp {
+                    return [
+                        "ok": false,
+                        "error": "bridge only supports the tap, type, and deep_link actions",
+                    ]
+                }
                 return ["ok": false, "error": "bridge only supports the tap and type actions"]
             }
         case "ui_screenshot":
-            let png = app.screenshot().pngRepresentation
-            return ["ok": true,
-                    "png": png.base64EncodedString(),
-                    "counter": app.staticTexts["fixture-count"].label]
+            var response: [String: Any] = [
+                "ok": true,
+                "png": app.screenshot().pngRepresentation.base64EncodedString(),
+            ]
+            // Only the fixture owns a counter element; an external app
+            // reports its observed image only.
+            if !externalApp {
+                response["counter"] = app.staticTexts["fixture-count"].label
+            }
+            return response
         default:
             return ["ok": false, "error": "bridge operation unsupported: \(command.op)"]
         }
     }
 
+    /// One live tap on a uniquely matched enabled hittable element. The
+    /// fixture launch settles on its observed counter change; an external
+    /// app has no counter and settles on the observed foreground readback
+    /// instead, returning fresh observed state — unchanged UI included —
+    /// and never claiming the app's own journey succeeded.
     @MainActor
     private static func tapFirstMatch(
         of query: XCUIElementQuery,
         selector: String,
-        in app: XCUIApplication
+        in app: XCUIApplication,
+        external: Bool
     ) -> [String: Any] {
         let matches = query.count
         guard matches == 1 else {
@@ -86,6 +129,16 @@ final class McpBridgeTests: XCTestCase {
         let element = query.element(boundBy: 0)
         guard element.isEnabled, element.isHittable else {
             return ["ok": false, "error": "selector \(selector) is not an enabled hittable element"]
+        }
+        if external {
+            element.tap()
+            guard waitAppForeground(app) else {
+                return [
+                    "ok": false,
+                    "error": "app state was not observed in the foreground after the tap",
+                ]
+            }
+            return ["ok": true, "nodes": snapshotNodes(app: app)]
         }
         let count = app.staticTexts["fixture-count"]
         let before = count.label
@@ -183,6 +236,66 @@ final class McpBridgeTests: XCTestCase {
         return ["ok": true, "nodes": Self.snapshotNodes(app: app)]
     }
 
+    /// Opens one host-allowlisted deep link through XCUIApplication.open,
+    /// gated on the documented iOS 16.4 availability. `open` reports
+    /// success only by observation: the settle afterwards watches the app
+    /// foreground and returns fresh observed state; whether the app handled
+    /// the URL is a journey question that state answers, never this bridge.
+    @MainActor
+    private func openDeepLink(_ url: URL, in app: XCUIApplication) -> [String: Any] {
+        if #available(iOS 16.4, *) {
+            app.open(url)
+        } else {
+            return [
+                "ok": false,
+                "error": "XCUIApplication.open requires iOS 16.4; this run does not provide it",
+            ]
+        }
+        guard Self.waitAppForeground(app) else {
+            return [
+                "ok": false,
+                "error": "app state was not observed in the foreground after the deep link",
+            ]
+        }
+        return ["ok": true, "nodes": Self.snapshotNodes(app: app)]
+    }
+
+    /// Bounded observation of the app owning the foreground.
+    @MainActor
+    private static func waitAppForeground(_ app: XCUIApplication) -> Bool {
+        let foreground = XCTNSPredicateExpectation(
+            predicate: NSPredicate(
+                format: "state == %d",
+                XCUIApplication.State.runningForeground.rawValue
+            ),
+            object: app
+        )
+        return XCTWaiter().wait(for: [foreground], timeout: 30) == .completed
+    }
+
+    /// Bounded external-launch readiness: the app must own the foreground
+    /// and the manifest ready selector must resolve to exactly one usable
+    /// element. Cold app content may not exist while a Metro-backed bundle
+    /// loads, so the wait comes first and the exact count is verified after.
+    @MainActor
+    private static func awaitAppReadiness(
+        _ app: XCUIApplication,
+        selector: ReadySelector
+    ) -> Bool {
+        guard waitAppForeground(app) else { return false }
+        let field: XCUIElementQuery
+        if let testId = selector.testId {
+            field = app.descendants(matching: .any).matching(identifier: testId)
+        } else if let text = selector.text {
+            field = app.descendants(matching: .any)
+                .matching(NSPredicate(format: "label == %@", text))
+        } else {
+            return false
+        }
+        guard field.firstMatch.waitForExistence(timeout: 120) else { return false }
+        return field.count == 1 && field.element(boundBy: 0).exists
+    }
+
     private static func snapshotNodes(app: XCUIApplication) -> [[String: Any]] {
         var nodes: [[String: Any]] = []
         for element in app.descendants(matching: .any).allElementsBoundByIndex {
@@ -223,7 +336,7 @@ final class McpBridgeTests: XCTestCase {
         continueAfterFailure = false
         let environment = ProcessInfo.processInfo.environment
         guard let portValue = environment["ASHNAZG_PROBE_BRIDGE"] else {
-            throw XCTSkip("bridge session not selected: run ashnazg mcp --ios-fixture")
+            throw XCTSkip("bridge session not selected: run ashnazg mcp --ios-fixture or --ios-app")
         }
         guard let token = environment["ASHNAZG_PROBE_TOKEN"], !token.isEmpty else {
             XCTFail("ASHNAZG_PROBE_TOKEN capability is missing from the test runner environment")
@@ -233,13 +346,47 @@ final class McpBridgeTests: XCTestCase {
             XCTFail("ASHNAZG_PROBE_BRIDGE is not a port: \(portValue)")
             return
         }
-        let app = XCUIApplication()
+        let app: XCUIApplication
+        let greetingApp: String
+        if let bundleId = environment["ASHNAZG_APP_BUNDLE_ID"], !bundleId.isEmpty {
+            // External manifest-pinned app: the host has already validated
+            // the manifest, staged the pinned bytes, created and booted the
+            // owned simulator, and installed the app.
+            externalApp = true
+            app = XCUIApplication(bundleIdentifier: bundleId)
+            if let initialUrl = environment["ASHNAZG_APP_INITIAL_URL"], !initialUrl.isEmpty {
+                // Expo dev-client reads `--initialUrl` from the app argv
+                // (expo/expo#33235); the dev-menu flags disable its launch
+                // sheet, onboarding and floating button so journeys run on
+                // the app itself.
+                app.launchArguments += [
+                    "--initialUrl", initialUrl,
+                    "-EXDevMenuShowsAtLaunch", "NO",
+                    "-EXDevMenuIsOnboardingFinished", "YES",
+                    "-EXDevMenuShowFloatingActionButton", "NO",
+                ]
+            }
+            greetingApp = bundleId
+        } else {
+            app = XCUIApplication()
+            greetingApp = "dev.ashnazg.ios.fixture"
+        }
         app.launch()
         defer { app.terminate() }
-        XCTAssertTrue(
-            app.staticTexts["fixture-count"].waitForExistence(timeout: 60),
-            "fixture counter did not appear"
-        )
+        if externalApp {
+            guard let selectorData = environment["ASHNAZG_APP_READY_SELECTOR"]?.data(using: .utf8),
+                  let selector = try? JSONDecoder().decode(ReadySelector.self, from: selectorData),
+                  Self.awaitAppReadiness(app, selector: selector)
+            else {
+                XCTFail("the manifest ready selector was not observed")
+                return
+            }
+        } else {
+            XCTAssertTrue(
+                app.staticTexts["fixture-count"].waitForExistence(timeout: 60),
+                "fixture counter did not appear"
+            )
+        }
 
         let closed = expectation(description: "bridge session closed by the host")
         var sequence = 0
@@ -275,7 +422,7 @@ final class McpBridgeTests: XCTestCase {
             }
         }
         bridge.startReceiving()
-        bridge.send(["ready": true, "token": token, "app": "dev.ashnazg.ios.fixture"])
+        bridge.send(["ready": true, "token": token, "app": greetingApp])
         wait(for: [closed], timeout: 900)
     }
 }

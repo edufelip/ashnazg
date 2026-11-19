@@ -3,6 +3,7 @@ mod axml_package;
 pub mod build_identity;
 mod guest;
 mod host;
+pub mod ios_app;
 #[cfg(target_os = "macos")]
 pub mod ios_fixture;
 pub mod mcp;

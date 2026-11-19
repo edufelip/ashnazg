@@ -78,7 +78,80 @@ simulator and work directory. It writes a sanitized receipt (including two
 single-run monotonic fixture timings with their exact boundaries) and raw
 artifacts to the output directory.
 
+## External iOS app session (macOS only)
+
+`ashnazg mcp --ios-app <manifest.json>` is the explicit entry point for
+driving an external, already-built app on a disposable simulator. It is
+mutually exclusive with `--ios-fixture` and serves stdio only; on Linux it
+refuses to start. One live session reuses the same machinery as the fixture
+bridge — the owned simulator with a unique name, the capability-token
+loopback transport, the sequencing/poisoning rules, and the same
+`McpBridgeTests` bridge case, which takes an external launch branch when
+`ASHNAZG_APP_BUNDLE_ID` is present. The fixture `typeText` helper is
+byte-identical to the published source.
+
+The manifest is camelCase JSON with unknown fields rejected:
+
+| Field | Meaning |
+| --- | --- |
+| `appPath` | the `.app` bundle directory to install |
+| `appSha256` | REQUIRED pinned digest of the whole bundle tree (below) |
+| `bundleId` | must equal the staged app's `CFBundleIdentifier` |
+| `runtime` + `deviceType` | explicit identifiers; the pair is qualified against the selected available runtime's own `supportedDeviceTypes`, never by separate presence |
+| `initialUrl` | optional loopback Metro URL handed to the app argv |
+| `readySelector` | REQUIRED: exactly one of `testId` or `text` |
+| `deepLinks` | exact allowlist; each entry's scheme must be declared in the staged app's `CFBundleURLTypes` |
+
+Every wrong-bundle, wrong-platform, wrong-digest, wrong-path and wrong-URI
+failure happens before the simulator exists. The bundle is staged into an
+owned work directory while its bytes are hashed, so the digest pins exactly
+what `simctl install` installs; relative in-tree symlinks are preserved,
+while escaping, absolute or dangling links are rejected. The staged
+`Info.plist` is read with `plutil`; the executable must be one plain
+bundle-root basename; `lipo -archs` must contain the host's native slice
+(universal simulator builds pass) and `xcrun vtool -arch <native>
+-show-build` must report the iOSSimulator platform — compared
+case-insensitively on the exact platform line, with the numeric platform 7
+accepted. Then the owned device is created with the explicit pair, booted
+with a bounded `bootstatus` wait, the pinned copy installed within a
+bounded deadline, and the bridge handshake asserts the manifest bundle id.
+
+`appSha256` is the Meer `hashApp` convention
+(`apps/mobile/ios/ci_scripts/debug-smoke-proof.cjs` at
+e6aca58675085368f1eb21fa92db4446e8581e6b): entries sort by name in UTF-16
+code-unit order (non-UTF-8 names are rejected), each entry contributes the
+JSON frame `["<relative path>",<mode & 0o777>,<directory ? 0 : size>]`
+followed by file bytes or the read symlink target, so retargeted symlinks
+and changed modes rebind the digest. Compute it with that script
+(`node -e '…hashApp(app)…'`); two recorded cross-tool reference digests in
+`src/ios_app.rs` pin the parity.
+
+The external launch uses `XCUIApplication(bundleIdentifier:)`. When
+`initialUrl` is supplied the app argv gains `--initialUrl <url>` plus the
+Expo dev-menu disable flags (`-EXDevMenuShowsAtLaunch NO`,
+`-EXDevMenuIsOnboardingFinished YES`,
+`-EXDevMenuShowFloatingActionButton NO`), matching the Expo dev-client argv
+convention (expo/expo#33235; EXDevLauncherController reads exactly
+`--initialUrl`). The established app recipe keeps its own
+`?disableOnboarding=1` marker on the loopback URL and this slice accepts
+that URL unchanged — the extra controlled launch inputs beyond the URL
+itself are exactly those three dev-menu argv flags. Readiness is bounded:
+the app must own the foreground and the ready selector must resolve to
+exactly one usable element. A tap settles on that observed foreground
+readback — there is no fixture counter in the external path — and
+`deep_link` opens the host-allowlisted URI via availability-gated
+`XCUIApplication.open` (iOS 16.4+).
+
 ## Scope and unproven cases
+
+The external app session returns observed state only: an unchanged
+post-tap readback is honest success-with-unchanged-UI, and nothing here
+asserts an app journey such as a login passing. Ambiguous selectors are
+rejected and never replayed. The `--initialUrl` and dev-menu argv
+conventions require an Expo dev-client build and stay unproven until the
+hosted macOS run records a real receipt; the shared scheme also builds the
+in-tree fixture app alongside the bridge runner, and the absolute-symlink
+rejection keeps the installed copy relocatable.
 
 Text entry is fixture-scoped. XCUIAutomation exposes no editable flag, so
 the bridge routes payloads only to uniquely matched, enabled, hittable native
