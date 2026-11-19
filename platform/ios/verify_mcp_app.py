@@ -58,6 +58,10 @@ SESSION_MARKER = "ios-app-session"
 LOGIN_EMAIL = "login-email-input"
 LOGIN_PASSWORD = "login-password-input"
 LOGIN_SUBMIT = "login-submit-button"
+LOGIN_DIAGNOSTIC_IDS = frozenset({
+    LOGIN_EMAIL, LOGIN_PASSWORD, LOGIN_SUBMIT,
+    "login-email-error", "login-password-error", "login-error-box", "login-error-retry",
+})
 HOME_SEARCH = "home-search-button"
 SEARCH_INPUT = "search-input"
 PINNED_DEEP_LINKS = ("exp+meer://search", "exp+meer://home")
@@ -382,11 +386,27 @@ def run_acceptance(
             ids.append(snap.get("snapshotId"))
             if len(ids) > 1 and (ids[-1] is None or ids[-2] is None or ids[-1] <= ids[-2]):
                 fail(stage, "polling-did-not-advance-sequence", uncertain=True, snapshot_id=ids[-1])
-            matches = [node for node in (snap.get("nodes") or []) if node.get("testId") == test_id]
+            nodes = snap.get("nodes") or []
+            matches = [node for node in nodes if node.get("testId") == test_id]
             if len(matches) == 1 and matches[0].get("role") == role and matches[0].get("enabled") is True:
                 return matches[0], snap, ids
             if time.monotonic() >= deadline:
-                fail(stage, "target-not-observed-within-bound", polls=len(ids), last_snapshot_id=ids[-1], bound_seconds=bound)
+                observed = dict(polls=len(ids), last_snapshot_id=ids[-1], bound_seconds=bound)
+                if stage == "home/after-submit":
+                    email_fields = [
+                        node for node in nodes
+                        if node.get("testId") == LOGIN_EMAIL and node.get("role") == "textfield"
+                    ]
+                    email_readback = "unobservable"
+                    if len(email_fields) == 1 and isinstance(email_fields[0].get("value"), str):
+                        email_readback = "exact" if email_fields[0]["value"] == email else "different"
+                    observed["login_state"] = {
+                        "observed_selectors": sorted({
+                            node["testId"] for node in nodes if node.get("testId") in LOGIN_DIAGNOSTIC_IDS
+                        }),
+                        "email_readback": email_readback,
+                    }
+                fail(stage, "target-not-observed-within-bound", **observed)
             time.sleep(POLL_PAUSE_SECONDS)
 
     def observe_unsettled_text(stage: str, test_id: str, expected: str) -> dict:
@@ -620,13 +640,14 @@ def run_acceptance(
             "selection_snapshot_id": submit_id,
             "post_tap_snapshot_id": state.get("snapshotId"),
         }
-        login["status"] = "verified"
+        login["status"] = "tap_completed"
 
         # Actual Home: bounded read-only polling after the accepted submit.
         home_node, home_snap, home_ids = poll_for(
             "home/after-submit", HOME_SEARCH, "button", HOME_AFTER_SUBMIT_TIMEOUT
         )
         home_confirmed = time.monotonic()
+        login["status"] = "verified"
         last_sequence[0] = home_snap.get("snapshotId", 0)
         receipt["journey"]["home"] = {
             "status": "verified",
