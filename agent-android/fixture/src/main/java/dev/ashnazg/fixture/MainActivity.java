@@ -41,12 +41,21 @@ public final class MainActivity extends Activity {
         TextView title = new TextView(this); title.setText("Ashnazg fixture"); title.setTextSize(22); outer.addView(title);
         if (deepLink) { TextView route = new TextView(this); route.setText("Deep link"); outer.addView(route, matchWrap()); }
 
+        FrameMarker marker = new FrameMarker(this);
+        marker.setId(R.id.frame_marker);
+        marker.setCount(count);
         Button increment = new Button(this);
         increment.setId(R.id.increment);
         increment.setAllCaps(false);
         increment.setText("Count: " + count);
-        increment.setOnClickListener(view -> { count++; increment.setText("Count: " + count); Log.i("AshnazgFixture", "count=" + count); });
+        increment.setOnClickListener(view -> {
+            count++;
+            increment.setText("Count: " + count);
+            marker.setCount(count);
+            Log.i("AshnazgFixture", "count=" + count);
+        });
         outer.addView(increment, matchWrap());
+        outer.addView(marker, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(12)));
 
         EditText input = new EditText(this);
         input.setId(R.id.input); input.setSingleLine(true); input.setHint("Input"); outer.addView(input, matchWrap());

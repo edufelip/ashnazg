@@ -1,5 +1,6 @@
 <resources>
     <item name="increment" type="id" />
+    <item name="frame_marker" type="id" />
     <item name="input" type="id" />
     <item name="password" type="id" />
 </resources>
