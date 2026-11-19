@@ -527,11 +527,10 @@ def run_acceptance(binary: Path, output: Path, source_sha: str) -> dict:
         secure_fresh = structured(call("ui_snapshot", {"includeInvisible": False}, REQUEST_TIMEOUT))
         if secure_typed.get("settled") is not True:
             raise AcceptanceError("the secure type action did not settle")
-        for label, document in [
-            ("act response", secure_typed),
-            ("fresh snapshot", secure_fresh),
+        for label, document, state in [
+            ("act response", secure_typed, secure_typed.get("snapshot") or {}),
+            ("fresh snapshot", secure_fresh, secure_fresh),
         ]:
-            state = document.get("snapshot") or {}
             typed_secret = [
                 node for node in state.get("nodes") or []
                 if node.get("testId") == "fixture-secret"
