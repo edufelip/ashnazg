@@ -46,3 +46,6 @@ Both guests must report Android API 35, x86_64, 720×1280 at 320 dpi, and disabl
 - **Reporting** keeps raw sample timestamps, screenshot hashes and attempt timings, workload controls, and failed or missing runs. The report groups only successful pairs and exits nonzero for an incomplete comparison. Treat small-sample results as descriptive for these versions, settings and host.
 
 The run directory also contains the raw fixture PNGs and runtime-specific boot logs. Keep local logs private and review their contents before publishing evidence.
+
+The [November 19 run](evidence/agent-session-comparison-2026-11-19/README.md)
+contains two opposite-order pairs, their raw receipts, and representative PNGs.

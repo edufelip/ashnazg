@@ -1,0 +1,41 @@
+{
+  "elapsed_ns": 149583821005,
+  "exit_code": 1,
+  "memory_after_teardown": [
+    {
+      "offset_ns": 208550,
+      "scope_removed": true
+    },
+    {
+      "offset_ns": 1000065018,
+      "scope_removed": true
+    },
+    {
+      "offset_ns": 2000085963,
+      "scope_removed": true
+    }
+  ],
+  "probe": {
+    "agent_shutdown_ns": 662,
+    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/ashnazg-agent-benchmark-66456e9a1974442caa0baf87d6441b85.scope",
+    "errors": [
+      {
+        "detail": "runtime thread affinity exceeded the assigned CPUs",
+        "stage": "guest_control_readback",
+        "type": "RuntimeError"
+      }
+    ],
+    "memory": [],
+    "shutdown_started_ns": 3078058198760722,
+    "timings_ns": {}
+  },
+  "runtime": "avd",
+  "runtime_shutdown_ns": 20225141108,
+  "scope": {
+    "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/ashnazg-agent-benchmark-66456e9a1974442caa0baf87d6441b85.scope",
+    "unit": "ashnazg-agent-benchmark-66456e9a1974442caa0baf87d6441b85.scope"
+  },
+  "shutdown_ns": 20225141770,
+  "status": "failed",
+  "warm": false
+}

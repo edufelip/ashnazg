@@ -1,0 +1,11 @@
+{
+  "elapsed_ns": 73503,
+  "error": {
+    "detail": "ADB loopback port 5570 is unavailable: [Errno 98] Address already in use",
+    "type": "RedroidError"
+  },
+  "memory_after_teardown": [],
+  "runtime": "avd",
+  "status": "failed",
+  "warm": false
+}

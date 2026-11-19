@@ -1,0 +1,44 @@
+{
+  "artifacts": {
+    "agent": "0fd693ee30c092422dd4d10445c22a14b817e0700310bad882af76092541fb14",
+    "binary": "4c13a7b0e44189a6d81b6fb200603f01d739a7053a6fa01d651c2e7138f121f9",
+    "binder_bootstrap": "50d57ec848353d302a86f11fea0729bcc0fc749e997ff5cc0c5e928d295c2df6",
+    "fixture": "0d875f835f0e11a398f38194ef0711906852815c8b1922656f233c54cbae818e"
+  },
+  "avd_config_sha256": "a59d6741620e56f1c4927af9135087437cc5e78d46ee242675b9baa5bdfce582",
+  "cpus": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
+  "first_runtime": "avd",
+  "host": {
+    "machine": "x86_64",
+    "processor": "",
+    "release": "7.0.0-38-generic",
+    "system": "Linux",
+    "version": "#38-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 09:10:14 UTC 2026"
+  },
+  "memory_interval_seconds": 0.2,
+  "memory_limit_bytes": 8589934592,
+  "pairs_requested": 2,
+  "source_pairs": [
+    {
+      "arm_order": [
+        "avd",
+        "redroid"
+      ],
+      "pair": 1,
+      "source_manifest_sha256": "be4e3d1265244d04ac2dd632d4ba7a974ee7d945e56be616efd5bafa1178d024",
+      "source_pair": 1,
+      "source_run": "agent-session-confirmation"
+    },
+    {
+      "arm_order": [
+        "redroid",
+        "avd"
+      ],
+      "pair": 2,
+      "source_manifest_sha256": "5ebaa8ca0bf877812b3cca5c85d5a930b5027f384ea79a5ed8aec7521a3ee8bf",
+      "source_pair": 2,
+      "source_run": "agent-session-retained"
+    }
+  ],
+  "window_seconds": 3.0
+}

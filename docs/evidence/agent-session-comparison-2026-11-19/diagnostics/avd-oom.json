@@ -1,0 +1,10 @@
+{
+  "error": {
+    "detail": "owned AVD did not reach the focused and drawn Android readiness gate",
+    "type": "TimeoutError"
+  },
+  "memory_after_teardown": [],
+  "runtime": "avd",
+  "status": "failed",
+  "warm": false
+}
