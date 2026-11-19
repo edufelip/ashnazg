@@ -48,7 +48,7 @@ The approved unattended runner was a disposable GitHub-hosted environment using 
 
 ## Qualification gaps
 
-The linked Mac preflight found less than 1 GiB free on its writable Data volume, no alternate writable volume, and no simulator app tied to the requested Meer source. The two available builds reported app version 1.12.0. Matching a version string would still be insufficient to bind a build to a particular app source tree. The current Meer source also requires installing its JavaScript dependencies and CocoaPods before a fresh simulator build.
+The initial linked Mac preflight found less than 1 GiB free and no simulator app tied to the requested Meer source. After storage was freed, the Mac had 152 GiB available and the runner prepared an isolated source archive pinned to `e6aca586`. The linked Mac still reported macOS 26.5 and Xcode 26.6. This supports a local native baseline, while the verified Apple MCP fixture used Xcode 27.1 on a separate hosted runner.
 
 The existing Ashnazg bridge creates a fresh simulator and builds its fixture before MCP initialization. It deletes the simulator at close. Calls repeated within that session exercise a running bridge. They cannot supply a measurement of restart with retained app data. A matched benchmark needs a prebuilt app and test runner, explicit simulator selection, equivalent restart and shutdown boundaries, and one serial job on a shared host.
 
@@ -58,4 +58,6 @@ Two controlled retries exposed separate harness failures. CoreSimulator rejected
 
 Another Xcode 27.1 runner offered generic iOS 27.2 as available and device-compatible but could not boot it because the runtime image lacked `launchd_sim`. The unattended control pins the generic iOS 27.0 runtime for this reason. [Runtime-image failure](https://github.com/edufelip/ashnazg/actions/runs/44523900084)
 
-The first hosted Ashnazg text-entry run observed `Ashnazg` in the correct text field. Its second type call returned an unsettled result and the run verified teardown. The verifier now takes a fresh readback on that failure without replaying the action. [Initial native text-entry run](https://github.com/edufelip/ashnazg/actions/runs/44525683713/job/135565509064)
+The first hosted Ashnazg text-entry run inserted `Ashnazg`. The fresh readback after a rejected second request showed only `-fixture`, which confirmed that the original text had been replaced. Keeping focus on the verified target across consecutive requests restored the expected `Ashnazg-fixture` value in both direct XCTest and the Ashnazg snapshot. Neither diagnostic run replayed a rejected mutation. [Replacement receipt](https://github.com/edufelip/ashnazg/actions/runs/44527724348/job/135572631169) · [Append receipt](https://github.com/edufelip/ashnazg/actions/runs/44529171783)
+
+At `2f85dad`, hosted direct XCTest and the Ashnazg MCP fixture both passed. The MCP receipt verified semantic tap and a fresh counter PNG, append and empty-text no-op, secure-field value omission in both the action response and the next direct snapshot, rejected invalid operations, and simulator cleanup. This redaction check covers bridge snapshots and owned acceptance artifacts. Native XCTest diagnostics were outside that check. [Ashnazg text-entry acceptance](https://github.com/edufelip/ashnazg/actions/runs/44531797477)
