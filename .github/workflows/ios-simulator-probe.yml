@@ -76,10 +76,14 @@ jobs:
             xcrun mcp-server status > "$output/status-enabled.txt" 2>&1 || true
             python3 -m scripts.xcode_mcp_inventory --output "$output/headless.json"
             xcrun simctl list -j runtimes > "$output/runtimes.json"
-            runtime=$(jq -er '[.runtimes[] | select(.platform == "iOS" and .isAvailable)]
+            device_type=com.apple.CoreSimulator.SimDeviceType.iPhone-17
+            runtime=$(jq -er --arg device "$device_type" '
+              [.runtimes[] | select(.platform == "iOS" and .isAvailable
+                and any(.supportedDeviceTypes[]?; .identifier == $device))]
               | sort_by(.version | split(".") | map(tonumber)) | last | .identifier' "$output/runtimes.json")
+            printf '%s\n' "$runtime" > "$output/owned-runtime.txt"
             simulator=$(xcrun simctl create "AshnazgAppleMCP-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" \
-              com.apple.CoreSimulator.SimDeviceType.iPhone-17 "$runtime")
+              "$device_type" "$runtime")
             printf '%s\n' "$simulator" > "$output/owned-simulator.txt"
             xcrun simctl boot "$simulator"
             (cd platform/ios && xcodegen generate)
