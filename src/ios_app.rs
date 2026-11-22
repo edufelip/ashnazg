@@ -363,8 +363,11 @@ fn stage_dir(
             }
             hasher.update(link.as_os_str().as_encoded_bytes());
             #[cfg(unix)]
-            std::os::unix::fs::symlink(&link, &to)
-                .with_context(|| format!("failed to stage the symlink {relative}"))?;
+            {
+                std::os::unix::fs::symlink(&link, &to)
+                    .with_context(|| format!("failed to stage the symlink {relative}"))?;
+                apply_symlink_mode(&to, mode)?;
+            }
             #[cfg(not(unix))]
             bail!("app tree contains a symlink {relative}, which this platform cannot stage");
         } else if file_type.is_file() {
@@ -413,6 +416,32 @@ fn apply_mode(path: &Path, mode: u32) -> anyhow::Result<()> {
 
 #[cfg(not(unix))]
 fn apply_mode(_path: &Path, _mode: u32) -> anyhow::Result<()> {
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn apply_symlink_mode(path: &Path, mode: u32) -> anyhow::Result<()> {
+    let c_path = std::ffi::CString::new(path.as_os_str().as_encoded_bytes())
+        .with_context(|| format!("symlink path contains NUL: {}", path.display()))?;
+    // macOS applies process umask to symlink(2); restore the pinned source
+    // symlink mode bits without following the target so restaging matches.
+    if unsafe {
+        libc::fchmodat(
+            libc::AT_FDCWD,
+            c_path.as_ptr(),
+            mode as libc::mode_t,
+            libc::AT_SYMLINK_NOFOLLOW,
+        )
+    } != 0
+    {
+        return Err(io::Error::last_os_error())
+            .with_context(|| format!("failed to set the symlink mode of {}", path.display()));
+    }
+    Ok(())
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+fn apply_symlink_mode(_path: &Path, _mode: u32) -> anyhow::Result<()> {
     Ok(())
 }
 
@@ -724,6 +753,12 @@ mod shape_tests {
         (source, staged, digest)
     }
 
+    #[cfg(unix)]
+    fn symlink_0777(target: &str, link: &Path) {
+        std::os::unix::fs::symlink(target, link).unwrap();
+        apply_symlink_mode(link, 0o777).unwrap();
+    }
+
     /// The exact fixture the pinned Meer `hashApp` (node, verbatim from
     /// `debug-smoke-proof.cjs` at e6aca58675085368f1eb21fa92db4446e8581e6b)
     /// hashed on this host: entries `Alias.plist -> Info.plist`, `Info.plist`
@@ -747,7 +782,7 @@ mod shape_tests {
             fs::Permissions::from_mode(0o600),
         )
         .unwrap();
-        std::os::unix::fs::symlink("Info.plist", root.join("Alias.plist")).unwrap();
+        symlink_0777("Info.plist", &root.join("Alias.plist"));
         (
             source,
             vec![
@@ -792,7 +827,7 @@ mod shape_tests {
             fs::Permissions::from_mode(0o755),
         )
         .unwrap();
-        std::os::unix::fs::symlink("Contents/tool", root.join("Alias")).unwrap();
+        symlink_0777("Contents/tool", &root.join("Alias"));
         (
             source,
             vec![
@@ -829,8 +864,7 @@ mod shape_tests {
                 match label.as_str() {
                     "Alias -> Contents/other" => {
                         let _ = std::fs::remove_file(source.path().join("Alias"));
-                        std::os::unix::fs::symlink("Contents/other", source.path().join("Alias"))
-                            .unwrap();
+                        symlink_0777("Contents/other", &source.path().join("Alias"));
                     }
                     "chmod 0644 Contents/tool" => {
                         fs::set_permissions(
@@ -879,8 +913,7 @@ mod shape_tests {
                 match label.as_str() {
                     "Meer" => {
                         let _ = std::fs::remove_file(source.path().join("Alias.plist"));
-                        std::os::unix::fs::symlink("Meer", source.path().join("Alias.plist"))
-                            .unwrap();
+                        symlink_0777("Meer", &source.path().join("Alias.plist"));
                     }
                     "chmod 0700 Meer" => {
                         fs::set_permissions(
