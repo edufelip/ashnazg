@@ -935,6 +935,13 @@ mod tests {
     use std::os::unix::fs::symlink;
     use tempfile::TempDir;
 
+    fn private_tempdir() -> TempDir {
+        tempfile::Builder::new()
+            .permissions(fs::Permissions::from_mode(0o700))
+            .tempdir()
+            .unwrap()
+    }
+
     fn canonical_parent(parent: &TempDir) -> PathBuf {
         parent.path().canonicalize().unwrap()
     }
@@ -950,7 +957,7 @@ mod tests {
 
     #[test]
     fn initializes_and_holds_exclusive_lock_until_guard_drop() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         assert!(CacheGuard::try_acquire(&root).unwrap().is_none());
@@ -960,7 +967,7 @@ mod tests {
 
     #[test]
     fn simultaneous_initialization_has_one_lock_owner() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = canonical_parent(&parent).join("racing-cache");
         let barrier = std::sync::Arc::new(std::sync::Barrier::new(3));
         let (tx, rx) = std::sync::mpsc::channel();
@@ -982,6 +989,7 @@ mod tests {
                 }
             }));
         }
+        drop(tx);
         barrier.wait();
         let first = rx.recv().unwrap();
         let second = rx.recv().unwrap();
@@ -994,7 +1002,7 @@ mod tests {
 
     #[test]
     fn initializes_missing_root_and_refuses_nonempty_unmarked_root() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = canonical_parent(&parent).join("new-cache");
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         drop(guard);
@@ -1013,7 +1021,7 @@ mod tests {
 
     #[test]
     fn refuses_insecure_root_symlink_and_unknown_top_level_entry() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let insecure = canonical_parent(&parent).join("loose");
         fs::create_dir(&insecure).unwrap();
         fs::set_permissions(&insecure, fs::Permissions::from_mode(0o755)).unwrap();
@@ -1031,7 +1039,7 @@ mod tests {
 
     #[test]
     fn refuses_unknown_or_malformed_private_marker() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         drop(CacheGuard::try_acquire(&root).unwrap().unwrap());
         fs::write(
@@ -1044,7 +1052,7 @@ mod tests {
 
     #[test]
     fn abort_and_drop_remove_private_owned_stage() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         let stage = guard.create_stage().unwrap();
@@ -1060,7 +1068,7 @@ mod tests {
 
     #[test]
     fn stage_cleanup_preserves_replacement_directory() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         let stage = guard.create_stage().unwrap();
@@ -1076,7 +1084,7 @@ mod tests {
 
     #[test]
     fn explicit_abort_reports_replacement_and_preserves_it() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         let stage = guard.create_stage().unwrap();
@@ -1092,7 +1100,7 @@ mod tests {
 
     #[test]
     fn rejects_noncanonical_or_bad_keys() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         for key in ["", "../", &"A".repeat(64), &"0".repeat(63)] {
@@ -1102,7 +1110,7 @@ mod tests {
 
     #[test]
     fn promotion_is_noreplace_and_lookup_checks_marker_not_payload_hashes() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         let first = guard.create_stage().unwrap();
@@ -1118,7 +1126,7 @@ mod tests {
 
     #[test]
     fn recoverable_promotion_error_returns_owned_stage_for_explicit_cleanup() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         let first = guard.create_stage().unwrap();
@@ -1136,7 +1144,7 @@ mod tests {
 
     #[test]
     fn entry_keys_enumerates_valid_owned_entries() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         let entry = guard.create_stage().unwrap().promote(KEY).unwrap();
@@ -1147,7 +1155,7 @@ mod tests {
 
     #[test]
     fn lookup_rejects_entry_marker_bound_to_another_key() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         let entry = guard.create_stage().unwrap().promote(KEY).unwrap();
@@ -1167,7 +1175,7 @@ mod tests {
 
     #[test]
     fn stale_stages_are_validated_but_never_adopted_or_pruned() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         let stage = guard.create_stage().unwrap();
@@ -1183,7 +1191,7 @@ mod tests {
     #[test]
     fn failed_root_setup_rolls_back_control_files_and_can_be_retried() {
         for point in ["root-staging", ROOT_MARKER] {
-            let parent = tempfile::tempdir().unwrap();
+            let parent = private_tempdir();
             let root = private_root(&parent);
             FAIL_AT.with(|failure| failure.set(Some(point)));
             let result = CacheGuard::try_acquire(&root);
@@ -1199,7 +1207,7 @@ mod tests {
 
     #[test]
     fn failed_stage_setup_leaves_no_unmarked_stage_and_cache_can_reopen() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         FAIL_AT.with(|failure| failure.set(Some("stage-setup")));
@@ -1219,7 +1227,7 @@ mod tests {
 
     #[test]
     fn failed_stage_marker_write_explicitly_cleans_owned_stage() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = private_root(&parent);
         let guard = CacheGuard::try_acquire(&root).unwrap().unwrap();
         FAIL_AT.with(|failure| failure.set(Some(STAGE_MARKER)));
