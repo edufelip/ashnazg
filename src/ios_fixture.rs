@@ -145,7 +145,7 @@ impl Owned {
 /// cancellation and teardown; only the launch differs.
 pub enum SessionLaunch {
     Fixture,
-    App(crate::ios_app::AppManifest),
+    App(Box<crate::ios_app::AppManifest>),
 }
 
 /// Everything the shared transport needs that differs per launch mode.
@@ -159,7 +159,6 @@ struct LaunchPlan {
     install: Option<PathBuf>,
     extra_envs: Vec<(String, String)>,
     greeting_app: String,
-    platform: &'static str,
     session_tag: &'static str,
     descriptor_extra: Value,
     device_type: String,
@@ -207,7 +206,10 @@ impl FixtureSession {
         let token = capability_token()?;
 
         let retained = match &launch {
-            SessionLaunch::App(manifest) => manifest.benchmark_simulator.as_ref().map(|_| manifest),
+            SessionLaunch::App(manifest) => manifest
+                .benchmark_simulator
+                .as_ref()
+                .map(|_| manifest.as_ref()),
             SessionLaunch::Fixture => None,
         };
         let simulator = if let Some(manifest) = retained {
@@ -646,7 +648,6 @@ impl FixtureSession {
             install: None,
             extra_envs: Vec::new(),
             greeting_app: FIXTURE_BUNDLE_ID.to_owned(),
-            platform: "ios-fixture",
             session_tag: "ios-fixture-session",
             descriptor_extra: json!({"fixtureApp": FIXTURE_BUNDLE_ID}),
             device_type,
@@ -813,7 +814,6 @@ impl FixtureSession {
             install: Some(staged),
             extra_envs,
             greeting_app: bundle_id.clone(),
-            platform: "ios-app",
             session_tag: "ios-app-session",
             descriptor_extra: json!({"bundleId": bundle_id, "appSha256": digest}),
             device_type: device_type.clone(),

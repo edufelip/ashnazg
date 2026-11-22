@@ -165,7 +165,7 @@ async fn serve_mcp(
             let manifest = ashnazg::ios_app::AppManifest::from_json_file(&manifest_path)?;
             let session = std::sync::Arc::new(
                 ashnazg::ios_fixture::FixtureSession::open(
-                    ashnazg::ios_fixture::SessionLaunch::App(manifest),
+                    ashnazg::ios_fixture::SessionLaunch::App(Box::new(manifest)),
                 )
                 .await?,
             );
