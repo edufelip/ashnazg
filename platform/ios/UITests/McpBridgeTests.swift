@@ -299,6 +299,26 @@ final class McpBridgeTests: XCTestCase {
         typingSelector = nil
         if !keepsFocus {
             element.tap()
+            if !Self.awaitKeyboardFocus(element, timeout: 5) {
+                guard element.isEnabled, element.isHittable else {
+                    return [
+                        "ok": false,
+                        "error": "selector \(selector) is not an enabled hittable element",
+                    ]
+                }
+                // One clean focus retry when a cold simulator tap returned
+                // before the field latched first responder; no text was
+                // typed yet.
+                element.tap()
+                guard Self.awaitKeyboardFocus(element, timeout: 5) else {
+                    return [
+                        "ok": false,
+                        "error": "selector \(selector) did not receive keyboard focus",
+                    ]
+                }
+            }
+        } else if !Self.awaitKeyboardFocus(element, timeout: 2) {
+            return ["ok": false, "error": "selector \(selector) lost keyboard focus"]
         }
         // Observed-prefix delivery: the empty-payload boundary above
         // guarantees `value` is nonempty. Type only the first grapheme,
@@ -383,6 +403,39 @@ final class McpBridgeTests: XCTestCase {
         }
         typingSelector = selector
         return Self.snapshotResponse(app: app, includeSystemPrompts: externalApp)
+    }
+
+    /// True when the field or any of its descendants currently owns XCTest
+    /// keyboard focus.
+    @MainActor
+    private static func hasKeyboardFocus(_ element: XCUIElement) -> Bool {
+        if (element.value(forKey: "hasKeyboardFocus") as? Bool) == true {
+            return true
+        }
+        return element.descendants(matching: .any)
+            .matching(NSPredicate(format: "hasKeyboardFocus == true"))
+            .firstMatch
+            .exists
+    }
+
+    /// Bounded wait for `element` (or a descendant) to take keyboard focus
+    /// before dispatching `typeText`.
+    @MainActor
+    private static func awaitKeyboardFocus(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
+        if hasKeyboardFocus(element) {
+            return true
+        }
+        let direct = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "hasKeyboardFocus == true"),
+            object: element
+        )
+        if XCTWaiter().wait(for: [direct], timeout: timeout) == .completed {
+            return true
+        }
+        return element.descendants(matching: .any)
+            .matching(NSPredicate(format: "hasKeyboardFocus == true"))
+            .firstMatch
+            .exists
     }
 
     /// One controlled reveal of a uniquely matched enabled element clipped
