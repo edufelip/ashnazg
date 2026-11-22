@@ -402,6 +402,29 @@ class NativeCliAcceptanceTests(unittest.TestCase):
         self.assertEqual(Path(receipt["cache"]["path"]), home / "Library/Caches/ashnazg/runtime")
         self.assertEqual(Path(receipt["state"]["path"]), home / "Library/Application Support/ashnazg/native-mcp" / ("a" * 40))
 
+    def test_stdio_client_drains_short_stderr_without_blocking(self):
+        import io
+        import time
+
+        class FakeProc:
+            def __init__(self, r_fd):
+                self.stdout = io.BytesIO(b"")
+                self.stdin = io.BytesIO()
+                self.stderr = os.fdopen(r_fd, "rb", buffering=4096)
+
+        r_fd, w_fd = os.pipe()
+        proc = FakeProc(r_fd)
+        try:
+            client = acceptance.StdioClient(proc)
+            os.write(w_fd, b"ios-app-session descriptor\n")
+            deadline = time.monotonic() + 2.0
+            while bytes(client.stderr) != b"ios-app-session descriptor\n" and time.monotonic() < deadline:
+                time.sleep(0.01)
+            self.assertEqual(bytes(client.stderr), b"ios-app-session descriptor\n")
+        finally:
+            os.close(w_fd)
+            proc.stderr.close()
+
 
 if __name__ == "__main__":
     unittest.main()

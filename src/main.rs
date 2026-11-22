@@ -41,6 +41,12 @@ enum CommandLine {
     Mcp {
         #[arg(long, value_name = "LOOPBACK:PORT")]
         http: Option<String>,
+        /// Serve stdio MCP for the live iOS fixture session (macOS only).
+        #[arg(long)]
+        ios_fixture: bool,
+        /// Serve stdio MCP for an external iOS app session pinned by this manifest (macOS only).
+        #[arg(long, value_name = "MANIFEST")]
+        ios_app: Option<PathBuf>,
     },
     /// Perform one guest JSON-RPC call.
     Rpc {
@@ -85,8 +91,12 @@ async fn run() -> anyhow::Result<()> {
         .with_writer(std::io::stderr)
         .init();
     match Cli::parse().command {
-        None => serve_mcp(None).await,
-        Some(CommandLine::Mcp { http }) => serve_mcp(http).await,
+        None => serve_mcp(None, false, None).await,
+        Some(CommandLine::Mcp {
+            http,
+            ios_fixture,
+            ios_app,
+        }) => serve_mcp(http, ios_fixture, ios_app).await,
         Some(CommandLine::Rpc { method, params }) => {
             let params: Value =
                 serde_json::from_str(&params).context("params must be valid JSON")?;
@@ -115,24 +125,78 @@ async fn run() -> anyhow::Result<()> {
     }
 }
 
-async fn serve_mcp(http: Option<String>) -> anyhow::Result<()> {
-    let backend = select_mcp_backend(
-        std::env::var_os("ASHNAZG_TOKEN").is_some(),
-        std::env::consts::OS,
-        std::env::consts::ARCH,
-    )?;
-    match backend {
-        McpBackend::External => {
-            let config = ashnazg::HostConfig::from_env()?;
-            match http {
-                Some(bind) => ashnazg::mcp::serve_http(config, &bind).await,
-                None => ashnazg::mcp::serve_stdio(config).await,
-            }
+async fn serve_mcp(
+    http: Option<String>,
+    ios_fixture: bool,
+    ios_app: Option<PathBuf>,
+) -> anyhow::Result<()> {
+    if ios_fixture && ios_app.is_some() {
+        bail!("--ios-fixture and --ios-app are mutually exclusive");
+    }
+    if ios_fixture && http.is_some() {
+        bail!("--ios-fixture serves stdio only");
+    }
+    if ios_app.is_some() && http.is_some() {
+        bail!("--ios-app serves stdio only");
+    }
+    if ios_fixture {
+        #[cfg(target_os = "macos")]
+        {
+            let session = std::sync::Arc::new(
+                ashnazg::ios_fixture::FixtureSession::open(
+                    ashnazg::ios_fixture::SessionLaunch::Fixture,
+                )
+                .await?,
+            );
+            let result = ashnazg::mcp::serve_stdio_ios(std::sync::Arc::clone(&session)).await;
+            session.close().await?;
+            result
         }
-        McpBackend::Native => match http {
-            Some(bind) => serve_native_http(&bind).await,
-            None => serve_native_stdio().await,
-        },
+        #[cfg(not(target_os = "macos"))]
+        {
+            bail!("--ios-fixture requires macOS with Xcode and an iOS Simulator runtime");
+        }
+    } else if let Some(manifest_path) = ios_app {
+        #[cfg(target_os = "macos")]
+        {
+            // The manifest is read, parsed and validated before any
+            // simulator is created, so wrong paths, digests, bundles and
+            // URIs fail without touching the host state.
+            let manifest = ashnazg::ios_app::AppManifest::from_json_file(&manifest_path)?;
+            let session = std::sync::Arc::new(
+                ashnazg::ios_fixture::FixtureSession::open(
+                    ashnazg::ios_fixture::SessionLaunch::App(Box::new(manifest)),
+                )
+                .await?,
+            );
+            let result = ashnazg::mcp::serve_stdio_ios(std::sync::Arc::clone(&session)).await;
+            session.close().await?;
+            result
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = manifest_path;
+            bail!("--ios-app requires macOS with Xcode and an iOS Simulator runtime");
+        }
+    } else {
+        let backend = select_mcp_backend(
+            std::env::var_os("ASHNAZG_TOKEN").is_some(),
+            std::env::consts::OS,
+            std::env::consts::ARCH,
+        )?;
+        match backend {
+            McpBackend::External => {
+                let config = ashnazg::HostConfig::from_env()?;
+                match http {
+                    Some(bind) => ashnazg::mcp::serve_http(config, &bind).await,
+                    None => ashnazg::mcp::serve_stdio(config).await,
+                }
+            }
+            McpBackend::Native => match http {
+                Some(bind) => serve_native_http(&bind).await,
+                None => serve_native_stdio().await,
+            },
+        }
     }
 }
 
@@ -322,5 +386,60 @@ mod backend_tests {
         ] {
             assert!(select_mcp_backend(false, os, arch).is_err());
         }
+    }
+
+    #[test]
+    fn cli_parses_the_ios_app_manifest_flag() {
+        use std::path::Path;
+        let parsed =
+            Cli::try_parse_from(["ashnazg", "mcp", "--ios-app", "/tmp/meer-app-manifest.json"])
+                .expect("--ios-app must parse");
+        match parsed.command {
+            Some(CommandLine::Mcp { ios_app, .. }) => {
+                assert_eq!(
+                    ios_app.as_deref(),
+                    Some(Path::new("/tmp/meer-app-manifest.json"))
+                );
+            }
+            _ => panic!("expected the mcp subcommand"),
+        }
+    }
+
+    #[tokio::test]
+    async fn ios_session_flags_are_mutually_exclusive_and_stdio_only() {
+        let both = serve_mcp(None, true, Some(PathBuf::from("app.json"))).await;
+        let message = both.unwrap_err().to_string();
+        assert!(
+            message.contains("mutually exclusive"),
+            "two iOS sessions at once must be refused, got: {message}"
+        );
+        let http_app = serve_mcp(
+            Some("127.0.0.1:7778".into()),
+            false,
+            Some(PathBuf::from("app.json")),
+        )
+        .await;
+        let message = http_app.unwrap_err().to_string();
+        assert!(
+            message.contains("stdio only"),
+            "--ios-app with --http must be refused, got: {message}"
+        );
+        let http_fixture = serve_mcp(Some("127.0.0.1:7778".into()), true, None).await;
+        let message = http_fixture.unwrap_err().to_string();
+        assert!(
+            message.contains("stdio only"),
+            "--ios-fixture with --http must stay refused, got: {message}"
+        );
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    #[tokio::test]
+    async fn ios_app_manifest_refuses_to_start_off_macos() {
+        let result = serve_mcp(None, false, Some(PathBuf::from("app.json"))).await;
+        let message = result.unwrap_err().to_string();
+        assert!(
+            message.contains("--ios-app requires macOS"),
+            "Linux must refuse the app session before any manifest read, got: {message}"
+        );
     }
 }

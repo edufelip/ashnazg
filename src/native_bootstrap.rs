@@ -288,12 +288,20 @@ fn open_dir_at(parent: i32, name: &[u8]) -> std::io::Result<File> {
 mod tests {
     use super::*;
     use std::fs;
+    use std::os::unix::fs::PermissionsExt;
     use std::path::PathBuf;
+
+    fn private_tempdir() -> tempfile::TempDir {
+        tempfile::Builder::new()
+            .permissions(fs::Permissions::from_mode(0o700))
+            .tempdir()
+            .unwrap()
+    }
 
     #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
     #[tokio::test]
     async fn already_cancelled_bootstrap_does_not_create_private_directories() {
-        let home = tempfile::tempdir().unwrap();
+        let home = private_tempdir();
         let config =
             config_for_user(home.path().canonicalize().unwrap(), Some(&"a".repeat(40))).unwrap();
         let library = config.home.join("Library");
@@ -308,14 +316,14 @@ mod tests {
 
     #[test]
     fn config_rejects_missing_source_stamp() {
-        let home = tempfile::tempdir().unwrap();
+        let home = private_tempdir();
         let error = config_for_user(home.path().to_path_buf(), None).unwrap_err();
         assert!(error.to_string().contains("source SHA"));
     }
 
     #[test]
     fn config_rejects_malformed_source_stamp() {
-        let home = tempfile::tempdir().unwrap();
+        let home = private_tempdir();
         for source in ["", "ABCDEF0123456789abcdef0123456789abcdef01", "1234"] {
             assert!(config_for_user(home.path().to_path_buf(), Some(source)).is_err());
         }
@@ -331,7 +339,7 @@ mod tests {
 
     #[test]
     fn config_uses_source_scoped_private_paths() {
-        let home = tempfile::tempdir().unwrap();
+        let home = private_tempdir();
         let source = "0123456789abcdef0123456789abcdef01234567";
         let config = config_for_user(home.path().to_path_buf(), Some(source)).unwrap();
         assert_eq!(
@@ -351,13 +359,14 @@ mod tests {
 
     #[test]
     fn private_directory_setup_refuses_symlink_without_touching_target() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let home = parent.path().canonicalize().unwrap();
         let target = home.join("caller-data");
         fs::create_dir(&target).unwrap();
         fs::write(target.join("keep"), b"unchanged").unwrap();
         let app_dir = home.join("ashnazg");
         fs::create_dir(&app_dir).unwrap();
+        fs::set_permissions(&app_dir, fs::Permissions::from_mode(0o700)).unwrap();
         let link = app_dir.join("link");
         std::os::unix::fs::symlink(&target, &link).unwrap();
         assert!(ensure_private_path(&home, &link.join("child")).is_err());
@@ -368,7 +377,7 @@ mod tests {
     #[test]
     fn private_directory_setup_creates_only_private_app_tree() {
         use std::os::unix::fs::PermissionsExt;
-        let temporary_home = tempfile::tempdir().unwrap();
+        let temporary_home = private_tempdir();
         let home = temporary_home.path().canonicalize().unwrap();
         let path = home.join("Library/Caches/ashnazg/runtime");
         ensure_private_path(&home, &path).unwrap();
@@ -388,10 +397,11 @@ mod tests {
     #[test]
     fn private_directory_setup_does_not_repair_existing_mode() {
         use std::os::unix::fs::PermissionsExt;
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let home = parent.path().canonicalize().unwrap();
         let app_dir = home.join("ashnazg");
         fs::create_dir(&app_dir).unwrap();
+        fs::set_permissions(&app_dir, fs::Permissions::from_mode(0o700)).unwrap();
         let existing = app_dir.join("caller-dir");
         fs::create_dir(&existing).unwrap();
         fs::set_permissions(&existing, fs::Permissions::from_mode(0o755)).unwrap();

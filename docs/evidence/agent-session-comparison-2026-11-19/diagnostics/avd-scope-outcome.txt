@@ -1,0 +1,3 @@
+ActiveState=failed
+Result=oom-kill
+OOMPolicy=stop

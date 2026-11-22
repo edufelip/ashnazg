@@ -19,6 +19,10 @@ A subsequent local fault injection replaced the native fixture Activity during p
 
 ## Performance
 
+The [paired Android MCP session benchmark](agent-session-benchmark.md) measures
+launch to the first usable snapshot, a state-verified tap and PNG, and shutdown.
+It samples both runtime cgroups from the same host.
+
 The following are historical local measurements: ten samples per path, **100 successful samples and no errors**. Snapshot cases repeatedly inspect the unchanged native fixture; cache-warm inspection is distinct from an action with state stabilization. Setup phases, raw samples, host load, device settings and binary hash are retained in the [unaltered local benchmark receipt](evidence/local-2026-11-15-window-guard/benchmark.json). These values are separate from the final hosted run below.
 
 | Path | Sample p50 (ms) | Sample p95 (ms) |

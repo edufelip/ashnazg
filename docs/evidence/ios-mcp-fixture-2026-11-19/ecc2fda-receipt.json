@@ -1,0 +1,66 @@
+{
+  "binary_sha256": "4e1f24f75f626350f75e72f1d9a552f463976f541a199f42bfdd1304e016b9ea",
+  "cleanup": {
+    "process_exit_code": 0,
+    "simulator_deleted": true,
+    "work_dir_removed": true
+  },
+  "elapsed_seconds": 63.172,
+  "environment": {
+    "ios_runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+    "macos": "26.5",
+    "simulator_model": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+    "simulator_name": "ashnazg-mcp-fixture-f3b85ee6",
+    "xcode": "Xcode 26.6"
+  },
+  "native_command": "xcodebuild test -project AshnazgSimulatorProbe.xcodeproj -scheme AshnazgSimulatorProbe -destination platform=iOS Simulator,id=8CBAD699-BBB0-4013-B8DD-91205AF8F6CB -only-testing:FixtureUITests/McpBridgeTests -parallel-testing-enabled NO -resultBundlePath <owned directory>/Probe.xcresult",
+  "png": {
+    "after": {
+      "dims": [
+        960,
+        1440
+      ],
+      "sha256": "98791d09d96c5323af9debc7e005b6f9dad54881fce843bab9a25bf637719b6c"
+    },
+    "before": {
+      "dims": [
+        960,
+        1440
+      ],
+      "sha256": "f10d7579303c053ceb030de5d90b33e7b8ee13d2da2609476701eb312801fc39"
+    },
+    "correlated_state": {
+      "counter_label": "Count: 1",
+      "snapshot_id": 4
+    },
+    "distinct": true
+  },
+  "source_sha": "ecc2fdafad97297cd8b9f8ae4a80ed3a8e238465",
+  "state": {
+    "count": [
+      "Count: 0",
+      "Count: 1"
+    ],
+    "counter_observations": {
+      "after_screenshot": "Count: 1",
+      "before_screenshot": "Count: 0"
+    },
+    "selector_from_snapshot": {
+      "testId": "fixture-increment"
+    },
+    "snapshot_ids": {
+      "after_screenshot": 4,
+      "after_tap": 3,
+      "before": 1
+    }
+  },
+  "status": "passed",
+  "tool_sequence": [
+    "ui_snapshot",
+    "ui_screenshot",
+    "ui_act",
+    "ui_screenshot",
+    "ui_act",
+    "app_install"
+  ]
+}

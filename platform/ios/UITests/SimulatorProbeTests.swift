@@ -1,3 +1,5 @@
+import Dispatch
+import UIKit
 import XCTest
 
 final class SimulatorProbeTests: XCTestCase {
@@ -5,25 +7,48 @@ final class SimulatorProbeTests: XCTestCase {
     func testObserveTapObserveAndCapture() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
+        let firstUsableStart = DispatchTime.now().uptimeNanoseconds
         app.launch()
         defer { app.terminate() }
 
-        let count = app.staticTexts["fixture-count"]
+        let countQuery = app.staticTexts.matching(identifier: "fixture-count")
+        let count = countQuery.firstMatch
         XCTAssertTrue(count.waitForExistence(timeout: 10))
+        XCTAssertEqual(countQuery.count, 1)
         XCTAssertEqual(count.label, "Count: 0")
         let buttonQuery = app.buttons.matching(identifier: "fixture-increment")
         XCTAssertEqual(buttonQuery.count, 1)
         let button = buttonQuery.firstMatch
         XCTAssertTrue(button.isEnabled && button.isHittable)
+        let countRect = count.frame
+        let buttonRect = button.frame
+        let windowRect = app.windows.firstMatch.frame
+        XCTAssertTrue(
+            buttonRect.width > 0 && buttonRect.height > 0
+                && buttonRect.minX.isFinite && buttonRect.minY.isFinite
+                && buttonRect.maxX.isFinite && buttonRect.maxY.isFinite)
+        XCTAssertTrue(windowRect.contains(buttonRect), "button not visible in window")
+        XCTAssertTrue(
+            countRect.width > 0 && countRect.height > 0 && windowRect.contains(countRect),
+            "counter not visible in window"
+        )
+        let firstUsableEnd = DispatchTime.now().uptimeNanoseconds
         let before = app.screenshot()
+        let beforePNG = before.pngRepresentation
+        let beforeImage = try XCTUnwrap(before.image.cgImage)
 
+        let tapStart = DispatchTime.now().uptimeNanoseconds
         button.tap()
         let changed = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "label == %@", "Count: 1"), object: count
         )
         XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 5), .completed)
         let after = app.screenshot()
-        XCTAssertNotEqual(before.pngRepresentation, after.pngRepresentation)
+        XCTAssertNotEqual(beforePNG, after.pngRepresentation)
+        let afterImage = try XCTUnwrap(after.image.cgImage)
+        XCTAssertEqual(afterImage.width, beforeImage.width)
+        XCTAssertEqual(afterImage.height, beforeImage.height)
+        let tapEnd = DispatchTime.now().uptimeNanoseconds
 
         let frame = count.frame
         XCTAssertGreaterThan(frame.width, 0)
@@ -46,6 +71,29 @@ final class SimulatorProbeTests: XCTestCase {
             attachment.lifetime = .keepAlways
             add(attachment)
         }
+
+        // Keep the two in-run intervals independent of attachment export.
+        let boundaries: [String: Any] = [
+            "schema": "simulator-probe-boundaries",
+            "version": 1,
+            "clock": "dispatch-uptime-ns",
+            "firstUsableStartUptimeNs": Int(firstUsableStart),
+            "firstUsableEndUptimeNs": Int(firstUsableEnd),
+            "tapStartUptimeNs": Int(tapStart),
+            "tapEndUptimeNs": Int(tapEnd),
+            "buttonRect": [buttonRect.minX, buttonRect.minY, buttonRect.maxX, buttonRect.maxY],
+            "countRect": [countRect.minX, countRect.minY, countRect.maxX, countRect.maxY],
+            "windowRect": [windowRect.minX, windowRect.minY, windowRect.maxX, windowRect.maxY],
+            "preCapture": "before-increment",
+            "postCapture": "after-increment",
+            "captureExtent": "app",
+            "capturePixels": [afterImage.width, afterImage.height],
+        ]
+        let record = try JSONSerialization.data(withJSONObject: boundaries, options: [.sortedKeys])
+        let boundariesAttachment = XCTAttachment(data: record, uniformTypeIdentifier: "public.json")
+        boundariesAttachment.name = "fixture-observation-boundaries"
+        boundariesAttachment.lifetime = .keepAlways
+        add(boundariesAttachment)
     }
 
     @MainActor
@@ -60,8 +108,105 @@ final class SimulatorProbeTests: XCTestCase {
         XCTAssertTrue(input.waitForExistence(timeout: 10))
         XCTAssertEqual(query.count, 1)
         XCTAssertTrue(input.isHittable)
+        // Pins the empty-field report the bridge normalization relies on:
+        // before typing, XCUI reports either no value or exactly the
+        // placeholder, never anything else.
+        let initial = input.value as? String ?? ""
+        XCTAssertTrue(
+            initial.isEmpty || initial == input.placeholderValue,
+            "unexpected initial field value: \(initial)"
+        )
         input.tap()
         input.typeText("Ashnazg")
         XCTAssertEqual(input.value as? String, "Ashnazg")
+        input.typeText("-fixture")
+        XCTAssertEqual(input.value as? String, "Ashnazg-fixture")
+    }
+
+    /// Observed-prefix delivery mirror of `testTypesIntoTheIdentifiedField`
+    /// (which stays as the bulk burst control): type the first grapheme
+    /// once, wait for that exact observed prefix, then type the remainder
+    /// once and assert the exact final readback. No replay anywhere.
+    @MainActor
+    func testTypesObservedPrefixIntoTheIdentifiedField() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launch()
+        defer { app.terminate() }
+
+        let query = app.textFields.matching(identifier: "fixture-input")
+        let input = query.firstMatch
+        XCTAssertTrue(input.waitForExistence(timeout: 10))
+        XCTAssertEqual(query.count, 1)
+        XCTAssertTrue(input.isHittable)
+        let initial = input.value as? String ?? ""
+        XCTAssertTrue(
+            initial.isEmpty || initial == input.placeholderValue,
+            "unexpected initial field value: \(initial)"
+        )
+        input.tap()
+        input.typeText("A")
+        let prefix = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "A"), object: input
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [prefix], timeout: 5), .completed)
+        XCTAssertEqual(input.value as? String, "A")
+        input.typeText("shnazg-fixture")
+        let full = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "Ashnazg-fixture"), object: input
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [full], timeout: 5), .completed)
+        XCTAssertEqual(input.value as? String, "Ashnazg-fixture")
+    }
+
+    /// Focused invariants of the bridge snapshot walk against the live
+    /// fixture: the node fields stay exactly the bridge wire set, every
+    /// rect is finite and positive, an empty input never carries the
+    /// placeholder as a value, and the synthetic secure field never
+    /// carries a value. The walk itself lives in McpBridgeTests; this
+    /// probe runs in the ordinary scheme so the Mac acceptance covers it
+    /// without a bridge session.
+    @MainActor
+    func testBridgeSnapshotWalkKeepsTheWireInvariants() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(
+            app.staticTexts["fixture-count"].waitForExistence(timeout: 10),
+            "fixture counter did not appear"
+        )
+
+        let nodes = try McpBridgeTests.snapshotNodes(app: app)
+        XCTAssertFalse(nodes.isEmpty)
+        let byTestId = Dictionary(
+            nodes.compactMap { node in (node["testId"] as? String).map { ($0, node) } },
+            uniquingKeysWith: { first, _ in first }
+        )
+        XCTAssertEqual(byTestId["fixture-count"]?["text"] as? String, "Count: 0")
+        XCTAssertEqual(byTestId["fixture-count"]?["role"] as? String, "text")
+        XCTAssertEqual(byTestId["fixture-increment"]?["role"] as? String, "button")
+        XCTAssertEqual(byTestId["fixture-input"]?["role"] as? String, "textfield")
+        // A placeholder is not typed content: the empty input never
+        // carries a value, mirroring the pinned empty-field report.
+        XCTAssertNil(byTestId["fixture-input"]?["value"])
+        // The synthetic secure field is the redaction boundary: a role on
+        // the wire, never a value.
+        XCTAssertEqual(byTestId["fixture-secret"]?["role"] as? String, "securetextfield")
+        XCTAssertNil(byTestId["fixture-secret"]?["value"])
+        for node in nodes {
+            let rect = try XCTUnwrap(
+                node["rect"] as? [CGFloat], "node rect was not four numbers"
+            )
+            XCTAssertEqual(rect.count, 4)
+            XCTAssertTrue(rect.allSatisfy { $0.isFinite })
+            XCTAssertGreaterThan(rect[2] - rect[0], 0, "node width was not positive")
+            XCTAssertGreaterThan(rect[3] - rect[1], 0, "node height was not positive")
+        }
+        // The exact bridge serialization must accept every node: it
+        // rejects non-finite numbers, so this also pins the wire bytes.
+        XCTAssertNoThrow(
+            try JSONSerialization.data(withJSONObject: ["nodes": nodes], options: [.sortedKeys])
+        )
     }
 }

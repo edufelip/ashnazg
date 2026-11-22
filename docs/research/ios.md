@@ -1,6 +1,6 @@
 # iOS research boundary and experiment plan
 
-Status: research only, reviewed against primary sources on 2026-11-15. No Ashnazg iOS backend, iOS runtime image, Linux iOS compatibility layer, or iOS acceptance run is delivered by this document.
+This document records the original research plan reviewed on 2026-11-15. See the [iOS automation comparison](ios-mcp-comparison.md) for current XCTest and Xcode MCP fixture evidence.
 
 ## Recommended supported-platform track
 

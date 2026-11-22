@@ -34,6 +34,8 @@ pub struct AshnazgServer {
     config: Option<HostConfig>,
     provider: NativeProvider,
     tool_router: ToolRouter<Self>,
+    #[cfg(target_os = "macos")]
+    ios: Option<std::sync::Arc<crate::ios_fixture::FixtureSession>>,
 }
 
 #[derive(Clone)]
@@ -356,6 +358,8 @@ impl AshnazgServer {
             config: Some(config),
             provider: NativeProvider::External,
             tool_router: Self::tool_router(),
+            #[cfg(target_os = "macos")]
+            ios: None,
         }
     }
 
@@ -364,6 +368,8 @@ impl AshnazgServer {
             config: None,
             provider: NativeProvider::Ready(Arc::new(native)),
             tool_router: Self::tool_router(),
+            #[cfg(target_os = "macos")]
+            ios: None,
         }
     }
 
@@ -372,6 +378,34 @@ impl AshnazgServer {
             config: None,
             provider: NativeProvider::Initializing(readiness),
             tool_router: Self::tool_router(),
+            #[cfg(target_os = "macos")]
+            ios: None,
+        }
+    }
+
+    /// The explicit iOS fixture entry point: exactly the three live ui_* tools
+    /// are exposed, and the Android app tools are disabled.
+    #[cfg(target_os = "macos")]
+    fn with_ios(session: std::sync::Arc<crate::ios_fixture::FixtureSession>) -> Self {
+        Self {
+            config: None,
+            provider: NativeProvider::External,
+            tool_router: Self::tool_router()
+                .with_disabled("app_install")
+                .with_disabled("app_logs"),
+            ios: Some(session),
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    fn ios_error(error: crate::ios_fixture::BridgeError) -> ErrorData {
+        match error {
+            crate::ios_fixture::BridgeError::Rejected(message) => {
+                ErrorData::invalid_params(message, None)
+            }
+            crate::ios_fixture::BridgeError::Host(error) => {
+                ErrorData::internal_error(error.to_string(), None)
+            }
         }
     }
 
@@ -424,6 +458,120 @@ impl AshnazgServer {
     }
 }
 
+/// Maps the tap and type actions both iOS sessions share onto the bridge
+/// wire. Pure and host-independent so the focused tests execute the exact
+/// mapping the live macOS sessions use.
+#[cfg(any(target_os = "macos", test))]
+fn bridge_tap_type_command(
+    params: &ActParams,
+    selectors_only: &'static str,
+) -> Result<serde_json::Value, &'static str> {
+    let target = params.target.as_ref();
+    match params.action {
+        Action::Tap => {
+            let target = target.ok_or("tap requires a target")?;
+            let mut command = serde_json::json!({"op": "ui_act", "action": "tap"});
+            ios_selector_field(&mut command, target, selectors_only)?;
+            Ok(command)
+        }
+        Action::Type => {
+            let target = target.ok_or("type requires a target")?;
+            // The shared schema permits an empty payload as a settled no-op.
+            // The payload rides `value` so it never collides with the text
+            // selector field.
+            let payload = params.text.as_deref().ok_or("type requires text")?;
+            let mut command = serde_json::json!({"op": "ui_act", "action": "type"});
+            ios_selector_field(&mut command, target, selectors_only)?;
+            command["value"] = serde_json::json!(payload);
+            Ok(command)
+        }
+        _ => Err("only the tap and type actions map onto the shared bridge wire"),
+    }
+}
+
+/// Maps one shared-schema ui_act request onto the private iOS fixture bridge
+/// wire. Pure and host-independent so the focused tests execute the exact
+/// mapping the live macOS session uses. Rejections are static strings, so a
+/// typed payload can never leak into an error.
+#[cfg(any(target_os = "macos", test))]
+fn ios_bridge_command(params: &ActParams) -> Result<serde_json::Value, &'static str> {
+    match params.action {
+        Action::Tap | Action::Type => {
+            bridge_tap_type_command(params, "iOS fixture selectors are testId or text only")
+        }
+        _ => Err("the iOS fixture bridge supports only the tap and type actions"),
+    }
+}
+
+/// Maps one shared-schema ui_act request onto the external iOS app bridge
+/// wire. Pure and host-independent so the focused tests execute the exact
+/// mapping the live macOS session uses. `deep_link` must name an exact
+/// allowlisted app-owned URI; `scroll_to` carries one explicit direction
+/// because the bridge dispatches exactly one bounded swipe. Rejections
+/// are static strings, so a typed payload can never leak into an error.
+#[cfg(any(target_os = "macos", test))]
+fn ios_app_bridge_command(
+    params: &ActParams,
+    allowlist: &[String],
+) -> Result<serde_json::Value, &'static str> {
+    match params.action {
+        Action::Tap | Action::Type => {
+            bridge_tap_type_command(params, "iOS app selectors are testId or text only")
+        }
+        Action::ScrollTo => {
+            let target = params
+                .target
+                .as_ref()
+                .ok_or("scroll_to requires a target")?;
+            // One bounded native swipe needs an explicit direction; the
+            // shared schema keeps the field optional, so the app bridge
+            // fails closed instead of inventing a default.
+            let direction = params
+                .direction
+                .as_ref()
+                .ok_or("scroll_to requires a direction")?;
+            let mut command =
+                serde_json::json!({"op": "ui_act", "action": "scroll_to", "direction": direction});
+            ios_selector_field(
+                &mut command,
+                target,
+                "iOS app selectors are testId or text only",
+            )?;
+            Ok(command)
+        }
+        Action::DeepLink => {
+            let url = params
+                .text
+                .as_deref()
+                .ok_or("deep_link requires text containing a URI")?;
+            if allowlist.iter().any(|allowed| allowed == url) {
+                Ok(serde_json::json!({"op": "ui_act", "action": "deep_link", "url": url}))
+            } else {
+                Err("deep link is not in the app manifest allowlist")
+            }
+        }
+        _ => {
+            Err("the iOS app bridge supports only the tap, type, scroll_to, and deep_link actions")
+        }
+    }
+}
+
+#[cfg(any(target_os = "macos", test))]
+fn ios_selector_field(
+    command: &mut serde_json::Value,
+    target: &Target,
+    selectors_only: &'static str,
+) -> Result<(), &'static str> {
+    if let Some(test_id) = target.test_id.as_deref() {
+        command["testId"] = serde_json::json!(test_id);
+    } else if let Some(text) = target.text.as_deref() {
+        command["text"] = serde_json::json!(text);
+    } else {
+        return Err(selectors_only);
+    }
+    Ok(())
+}
+
 #[tool_router]
 impl AshnazgServer {
     #[tool(
@@ -436,6 +584,14 @@ impl AshnazgServer {
         Parameters(params): Parameters<SnapshotParams>,
         request_cancel: CancellationToken,
     ) -> Result<Json<Value>, ErrorData> {
+        #[cfg(target_os = "macos")]
+        if let Some(ios) = &self.ios {
+            let snapshot = ios
+                .snapshot(&request_cancel)
+                .await
+                .map_err(Self::ios_error)?;
+            return Ok(Json(snapshot));
+        }
         self.guest_json(
             "ui_snapshot",
             serde_json::json!({"includeInvisible":params.include_invisible}),
@@ -455,9 +611,24 @@ impl AshnazgServer {
         Parameters(params): Parameters<ActParams>,
         request_cancel: CancellationToken,
     ) -> Result<Json<Value>, ErrorData> {
-        let value = serde_json::to_value(params)
+        let value = serde_json::to_value(&params)
             .map_err(|e| ErrorData::invalid_params(e.to_string(), None))?;
         validate_ui_act(&value).map_err(|e| ErrorData::invalid_params(e.to_string(), None))?;
+        #[cfg(target_os = "macos")]
+        if let Some(ios) = &self.ios {
+            let command = if ios.is_app_launch() {
+                ios_app_bridge_command(&params, ios.deep_links())
+                    .map_err(|message| ErrorData::invalid_params(message.to_owned(), None))?
+            } else {
+                ios_bridge_command(&params)
+                    .map_err(|message| ErrorData::invalid_params(message.to_owned(), None))?
+            };
+            let acted = ios
+                .act(&command, &request_cancel)
+                .await
+                .map_err(Self::ios_error)?;
+            return Ok(Json(acted));
+        }
         self.guest_json("ui_act", value, request_cancel)
             .await
             .map(Json)
@@ -473,6 +644,47 @@ impl AshnazgServer {
         Parameters(params): Parameters<ScreenshotParams>,
         request_cancel: CancellationToken,
     ) -> Result<CallToolResult, ErrorData> {
+        #[cfg(target_os = "macos")]
+        if let Some(ios) = &self.ios {
+            match params.format.as_ref() {
+                None | Some(ScreenshotFormat::Png) => {}
+                Some(ScreenshotFormat::Webp) => {
+                    return Err(ErrorData::invalid_params(
+                        "the iOS fixture bridge captures PNG screenshots only",
+                        None,
+                    ));
+                }
+            }
+            if params.som_overlay {
+                return Err(ErrorData::invalid_params(
+                    "the iOS fixture bridge does not support somOverlay",
+                    None,
+                ));
+            }
+            let (png, sequence, counter) = ios
+                .screenshot(&request_cancel)
+                .await
+                .map_err(Self::ios_error)?;
+            let (width, height) = crate::ios_fixture::png_dimensions(&png)
+                .ok_or_else(|| ErrorData::internal_error("bridge screenshot is not a PNG", None))?;
+            let mut metadata = serde_json::json!({
+                "mimeType": "image/png",
+                "snapshotId": sequence,
+                "marks": [],
+                "width": width,
+                "height": height,
+                "platform": ios.platform(),
+            });
+            // Only the fixture reports a counter for state correlation; an
+            // external app session reports its observed image only.
+            if let Some(counter) = counter {
+                metadata["counterLabel"] = serde_json::json!(counter);
+            }
+            return Ok(CallToolResult::success(vec![
+                ContentBlock::image(STANDARD.encode(&png), "image/png".to_owned()),
+                ContentBlock::text(metadata.to_string()),
+            ]));
+        }
         let format = match params.format.unwrap_or(ScreenshotFormat::Webp) {
             ScreenshotFormat::Webp => "webp",
             ScreenshotFormat::Png => "png",
@@ -650,6 +862,22 @@ impl ServerHandler for AshnazgServer {
 pub async fn serve_stdio(config: HostConfig) -> anyhow::Result<()> {
     use rmcp::ServiceExt;
     let server = AshnazgServer::new(config);
+    server
+        .serve(rmcp::transport::io::stdio())
+        .await?
+        .waiting()
+        .await?;
+    Ok(())
+}
+
+/// Serves the explicit macOS-only iOS fixture session over stdio. Exactly the
+/// three live ui_* tools are exposed for the fixture bridge session.
+#[cfg(target_os = "macos")]
+pub async fn serve_stdio_ios(
+    session: std::sync::Arc<crate::ios_fixture::FixtureSession>,
+) -> anyhow::Result<()> {
+    use rmcp::ServiceExt;
+    let server = AshnazgServer::with_ios(session);
     server
         .serve(rmcp::transport::io::stdio())
         .await?
@@ -1244,10 +1472,12 @@ fn validate_native_http_inputs(addr: std::net::SocketAddr, bearer: &str) -> anyh
 #[cfg(test)]
 mod tests {
     use super::{
-        AshnazgServer, NativeReadiness, NativeSessionOwner, NativeShutdownFuture, NativeWaitFuture,
-        http_app, initializing_http_app, run_initializing_public, run_native_owner,
+        ActParams, Action, AshnazgServer, Direction, NativeReadiness, NativeSessionOwner,
+        NativeShutdownFuture, NativeWaitFuture, Target, http_app, initializing_http_app,
+        ios_app_bridge_command, ios_bridge_command, run_initializing_public, run_native_owner,
         run_native_public, serve_initializing_native_io, serve_initializing_transport,
         serve_native_http_listener, serve_native_transport, validate_native_http_inputs,
+        validate_ui_act,
     };
     use crate::GuestClient;
     use axum::{
@@ -2546,6 +2776,363 @@ mod tests {
             );
         }
         assert!(!text.contains("device_boot"));
+    }
+
+    fn ios_target(test_id: Option<&str>, text: Option<&str>) -> Target {
+        Target {
+            test_id: test_id.map(str::to_owned),
+            text: text.map(str::to_owned),
+            id: None,
+            snapshot_id: None,
+        }
+    }
+
+    fn ios_act_params(action: Action, target: Option<Target>, text: Option<String>) -> ActParams {
+        ActParams {
+            action,
+            target,
+            text,
+            direction: None,
+        }
+    }
+
+    #[test]
+    fn ios_tap_mapping_is_unchanged_on_the_bridge_wire() {
+        let by_test_id = ios_act_params(
+            Action::Tap,
+            Some(ios_target(Some("fixture-increment"), None)),
+            None,
+        );
+        assert_eq!(
+            ios_bridge_command(&by_test_id).unwrap(),
+            serde_json::json!({"op": "ui_act", "action": "tap", "testId": "fixture-increment"})
+        );
+        let by_text = ios_act_params(Action::Tap, Some(ios_target(None, Some("Increment"))), None);
+        assert_eq!(
+            ios_bridge_command(&by_text).unwrap(),
+            serde_json::json!({"op": "ui_act", "action": "tap", "text": "Increment"})
+        );
+        assert_eq!(
+            ios_bridge_command(&ios_act_params(Action::Tap, None, None)).unwrap_err(),
+            "tap requires a target"
+        );
+        let by_id = Target {
+            test_id: None,
+            text: None,
+            id: Some(3),
+            snapshot_id: Some(1),
+        };
+        assert_eq!(
+            ios_bridge_command(&ios_act_params(Action::Tap, Some(by_id), None)).unwrap_err(),
+            "iOS fixture selectors are testId or text only"
+        );
+    }
+
+    #[test]
+    fn ios_type_routes_the_payload_as_a_separate_bridge_value() {
+        let into_test_id = ios_act_params(
+            Action::Type,
+            Some(ios_target(Some("fixture-input"), None)),
+            Some("Ashnazg".into()),
+        );
+        assert_eq!(
+            ios_bridge_command(&into_test_id).unwrap(),
+            serde_json::json!({
+                "op": "ui_act",
+                "action": "type",
+                "testId": "fixture-input",
+                "value": "Ashnazg",
+            })
+        );
+        let into_text = ios_act_params(
+            Action::Type,
+            Some(ios_target(None, Some("Probe text"))),
+            Some("-fixture".into()),
+        );
+        assert_eq!(
+            ios_bridge_command(&into_text).unwrap(),
+            serde_json::json!({
+                "op": "ui_act",
+                "action": "type",
+                "text": "Probe text",
+                "value": "-fixture",
+            })
+        );
+        let no_payload = ios_act_params(
+            Action::Type,
+            Some(ios_target(Some("fixture-input"), None)),
+            Some(String::new()),
+        );
+        assert_eq!(
+            ios_bridge_command(&no_payload).unwrap()["value"],
+            serde_json::json!("")
+        );
+    }
+
+    #[test]
+    fn ios_type_rejects_missing_target_missing_payload_and_id_selectors() {
+        assert_eq!(
+            ios_bridge_command(&ios_act_params(Action::Type, None, Some("x".into()))).unwrap_err(),
+            "type requires a target"
+        );
+        assert_eq!(
+            ios_bridge_command(&ios_act_params(
+                Action::Type,
+                Some(ios_target(Some("fixture-input"), None)),
+                None,
+            ))
+            .unwrap_err(),
+            "type requires text"
+        );
+        let by_id = Target {
+            test_id: None,
+            text: None,
+            id: Some(2),
+            snapshot_id: Some(1),
+        };
+        assert_eq!(
+            ios_bridge_command(&ios_act_params(Action::Type, Some(by_id), Some("x".into())))
+                .unwrap_err(),
+            "iOS fixture selectors are testId or text only"
+        );
+    }
+
+    #[test]
+    fn ios_unsupported_actions_are_rejected_behind_the_same_boundary() {
+        for (action, target, text) in [
+            (
+                Action::LongPress,
+                Some(ios_target(Some("fixture-increment"), None)),
+                None,
+            ),
+            (
+                Action::Clear,
+                Some(ios_target(Some("fixture-input"), None)),
+                None,
+            ),
+            (
+                Action::ScrollTo,
+                Some(ios_target(Some("fixture-increment"), None)),
+                None,
+            ),
+            (Action::Back, None, None),
+            (Action::DeepLink, None, Some("ashnazg://fixture".into())),
+        ] {
+            let params = ios_act_params(action, target, text);
+            // Rejections are static strings, so no typed payload can leak into one.
+            assert_eq!(
+                ios_bridge_command(&params).unwrap_err(),
+                "the iOS fixture bridge supports only the tap and type actions"
+            );
+        }
+    }
+
+    #[test]
+    fn ios_app_tap_and_type_reuse_the_shared_bridge_wire_mapping() {
+        let allowlist: Vec<String> = Vec::new();
+        let tap = ios_act_params(
+            Action::Tap,
+            Some(ios_target(Some("submit-button"), None)),
+            None,
+        );
+        assert_eq!(
+            ios_app_bridge_command(&tap, &allowlist).unwrap(),
+            serde_json::json!({"op": "ui_act", "action": "tap", "testId": "submit-button"})
+        );
+        // Ordinary tap covers every enabled hittable control, including a
+        // submit button; the wire never special-cases it.
+        let typed = ios_act_params(
+            Action::Type,
+            Some(ios_target(None, Some("E-mail"))),
+            Some("synthetic-user@example.invalid".into()),
+        );
+        assert_eq!(
+            ios_app_bridge_command(&typed, &allowlist).unwrap(),
+            serde_json::json!({
+                "op": "ui_act", "action": "type",
+                "text": "E-mail", "value": "synthetic-user@example.invalid",
+            })
+        );
+        let by_id = Target {
+            test_id: None,
+            text: None,
+            id: Some(3),
+            snapshot_id: Some(1),
+        };
+        assert_eq!(
+            ios_app_bridge_command(&ios_act_params(Action::Tap, Some(by_id), None), &allowlist)
+                .unwrap_err(),
+            "iOS app selectors are testId or text only"
+        );
+        assert_eq!(
+            ios_app_bridge_command(&ios_act_params(Action::Tap, None, None), &allowlist)
+                .unwrap_err(),
+            "tap requires a target"
+        );
+    }
+
+    #[test]
+    fn ios_app_deep_link_routes_only_exact_allowlisted_uris() {
+        let allowlist = vec!["dev.example.app://shop/17".to_owned()];
+        let allowed = ios_act_params(
+            Action::DeepLink,
+            None,
+            Some("dev.example.app://shop/17".into()),
+        );
+        assert_eq!(
+            ios_app_bridge_command(&allowed, &allowlist).unwrap(),
+            serde_json::json!({
+                "op": "ui_act", "action": "deep_link", "url": "dev.example.app://shop/17",
+            })
+        );
+        for uri in [
+            "dev.example.app://shop/17/extra",
+            "other://route",
+            "dev.example.app://shop/18",
+        ] {
+            let longer = ios_act_params(Action::DeepLink, None, Some(uri.into()));
+            assert_eq!(
+                ios_app_bridge_command(&longer, &allowlist).unwrap_err(),
+                "deep link is not in the app manifest allowlist",
+                "the exact URI {uri} must be allowlisted, not just its scheme"
+            );
+        }
+        let missing_text = ios_act_params(Action::DeepLink, None, None);
+        assert_eq!(
+            ios_app_bridge_command(&missing_text, &allowlist).unwrap_err(),
+            "deep_link requires text containing a URI"
+        );
+    }
+
+    #[test]
+    fn ios_app_unsupported_actions_are_rejected_behind_the_same_boundary() {
+        let allowlist = vec!["dev.example.app://shop/17".to_owned()];
+        for (action, target, text) in [
+            (
+                Action::LongPress,
+                Some(ios_target(Some("submit-button"), None)),
+                None,
+            ),
+            (Action::Clear, Some(ios_target(Some("field"), None)), None),
+            (Action::Back, None, None),
+        ] {
+            let params = ios_act_params(action, target, text);
+            // Rejections are static strings, so no typed payload can leak into one.
+            assert_eq!(
+                ios_app_bridge_command(&params, &allowlist).unwrap_err(),
+                "the iOS app bridge supports only the tap, type, scroll_to, and deep_link actions"
+            );
+        }
+    }
+
+    #[test]
+    fn ios_app_scroll_to_routes_the_shared_schema_for_reveal_journeys() {
+        let allowlist: Vec<String> = Vec::new();
+        let reveal_password = ActParams {
+            action: Action::ScrollTo,
+            target: Some(ios_target(Some("login-password-input"), None)),
+            text: None,
+            direction: Some(Direction::Down),
+        };
+        assert_eq!(
+            ios_app_bridge_command(&reveal_password, &allowlist).unwrap(),
+            serde_json::json!({
+                "op": "ui_act", "action": "scroll_to",
+                "testId": "login-password-input", "direction": "down",
+            })
+        );
+        let reveal_submit = ActParams {
+            action: Action::ScrollTo,
+            target: Some(ios_target(None, Some("Entrar"))),
+            text: None,
+            direction: Some(Direction::Down),
+        };
+        assert_eq!(
+            ios_app_bridge_command(&reveal_submit, &allowlist).unwrap(),
+            serde_json::json!({
+                "op": "ui_act", "action": "scroll_to",
+                "text": "Entrar", "direction": "down",
+            })
+        );
+        // The shared schema keeps the direction optional (the Android path
+        // owns any default); one bounded native swipe needs an explicit
+        // direction, so the app bridge fails closed instead of inventing one.
+        let mut missing_direction = reveal_password.clone();
+        missing_direction.direction = None;
+        assert_eq!(
+            ios_app_bridge_command(&missing_direction, &allowlist).unwrap_err(),
+            "scroll_to requires a direction"
+        );
+        let no_target = ActParams {
+            action: Action::ScrollTo,
+            target: None,
+            text: None,
+            direction: Some(Direction::Down),
+        };
+        assert_eq!(
+            ios_app_bridge_command(&no_target, &allowlist).unwrap_err(),
+            "scroll_to requires a target"
+        );
+        let by_id = Target {
+            test_id: None,
+            text: None,
+            id: Some(7),
+            snapshot_id: Some(2),
+        };
+        assert_eq!(
+            ios_app_bridge_command(
+                &ActParams {
+                    action: Action::ScrollTo,
+                    target: Some(by_id),
+                    text: None,
+                    direction: Some(Direction::Down),
+                },
+                &allowlist
+            )
+            .unwrap_err(),
+            "iOS app selectors are testId or text only"
+        );
+    }
+
+    #[test]
+    fn ios_type_mapping_runs_behind_the_shared_ui_act_validation() {
+        // The production sequence: serialize, validate, then map.
+        let typed = ios_act_params(
+            Action::Type,
+            Some(ios_target(Some("fixture-input"), None)),
+            Some("Ashnazg".into()),
+        );
+        let value = serde_json::to_value(&typed).unwrap();
+        validate_ui_act(&value).unwrap();
+        assert_eq!(
+            ios_bridge_command(&typed).unwrap(),
+            serde_json::json!({
+                "op": "ui_act", "action": "type",
+                "testId": "fixture-input", "value": "Ashnazg",
+            })
+        );
+        let missing_text = ios_act_params(
+            Action::Type,
+            Some(ios_target(Some("fixture-input"), None)),
+            None,
+        );
+        assert!(
+            validate_ui_act(&serde_json::to_value(&missing_text).unwrap())
+                .unwrap_err()
+                .to_string()
+                .contains("type requires text")
+        );
+        let tap_with_text = ios_act_params(
+            Action::Tap,
+            Some(ios_target(Some("fixture-increment"), None)),
+            Some("x".into()),
+        );
+        assert!(
+            validate_ui_act(&serde_json::to_value(&tap_with_text).unwrap())
+                .unwrap_err()
+                .to_string()
+                .contains("text is only valid for type and deep_link actions")
+        );
     }
 
     #[tokio::test]

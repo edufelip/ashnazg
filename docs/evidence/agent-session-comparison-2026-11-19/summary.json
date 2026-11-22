@@ -1,0 +1,176 @@
+{
+  "complete": true,
+  "incomplete": [],
+  "median": {
+    "cold": {
+      "avd": {
+        "idle_anon_median_bytes": 5334221824.0,
+        "idle_file_median_bytes": 1366602752.0,
+        "idle_memory_median_bytes": 6738137088.0,
+        "interaction_memory_sampled_max_bytes": 6872145920.0,
+        "launch_to_snapshot_ns": 69256923696.0,
+        "post_agent_memory_median_bytes": 6920595456.0,
+        "shutdown_ns": 1354782038.0,
+        "tap_response_to_fresh_png_ns": 413929535.5,
+        "tap_rpc_ns": 1056967855.5,
+        "tap_to_fresh_png_ns": 1470897391.0
+      },
+      "redroid": {
+        "idle_anon_median_bytes": 774590464.0,
+        "idle_file_median_bytes": 512794624.0,
+        "idle_memory_median_bytes": 1445912576.0,
+        "interaction_memory_sampled_max_bytes": 1447819264.0,
+        "launch_to_snapshot_ns": 18735962586.0,
+        "post_agent_memory_median_bytes": 1323476992.0,
+        "shutdown_ns": 1761068307.5,
+        "tap_response_to_fresh_png_ns": 29653400.0,
+        "tap_rpc_ns": 740875211.5,
+        "tap_to_fresh_png_ns": 770528611.5
+      }
+    },
+    "warm": {
+      "avd": {
+        "idle_anon_median_bytes": 4175817728.0,
+        "idle_file_median_bytes": 1159289856.0,
+        "idle_memory_median_bytes": 5332163584.0,
+        "interaction_memory_sampled_max_bytes": 5754998784.0,
+        "launch_to_snapshot_ns": 41665832397.5,
+        "post_agent_memory_median_bytes": 5874265088.0,
+        "shutdown_ns": 1891753225.0,
+        "tap_response_to_fresh_png_ns": 553391333.0,
+        "tap_rpc_ns": 1155495211.5,
+        "tap_to_fresh_png_ns": 1708886544.5
+      },
+      "redroid": {
+        "idle_anon_median_bytes": 667856896.0,
+        "idle_file_median_bytes": 391145472.0,
+        "idle_memory_median_bytes": 1212972032.0,
+        "interaction_memory_sampled_max_bytes": 1239523328.0,
+        "launch_to_snapshot_ns": 16438775236.0,
+        "post_agent_memory_median_bytes": 1113894912.0,
+        "shutdown_ns": 1653611792.0,
+        "tap_response_to_fresh_png_ns": 29960467.0,
+        "tap_rpc_ns": 744449993.5,
+        "tap_to_fresh_png_ns": 774410460.5
+      }
+    }
+  },
+  "pairs": {
+    "cold": [
+      {
+        "avd": {
+          "idle_anon_median_bytes": 5378775040.0,
+          "idle_file_median_bytes": 1338802176.0,
+          "idle_memory_median_bytes": 6756003840.0,
+          "interaction_memory_sampled_max_bytes": 6784098304,
+          "launch_to_snapshot_ns": 72040503545,
+          "post_agent_memory_median_bytes": 6729365504.0,
+          "shutdown_ns": 1160707888,
+          "tap_response_to_fresh_png_ns": 512158217,
+          "tap_rpc_ns": 957164339,
+          "tap_to_fresh_png_ns": 1469322556
+        },
+        "index": 1,
+        "redroid": {
+          "idle_anon_median_bytes": 767934464.0,
+          "idle_file_median_bytes": 653512704.0,
+          "idle_memory_median_bytes": 1578717184.0,
+          "interaction_memory_sampled_max_bytes": 1572413440,
+          "launch_to_snapshot_ns": 20531335690,
+          "post_agent_memory_median_bytes": 1450575872.0,
+          "shutdown_ns": 1845451236,
+          "tap_response_to_fresh_png_ns": 30214145,
+          "tap_rpc_ns": 729968249,
+          "tap_to_fresh_png_ns": 760182394
+        }
+      },
+      {
+        "avd": {
+          "idle_anon_median_bytes": 5289668608.0,
+          "idle_file_median_bytes": 1394403328.0,
+          "idle_memory_median_bytes": 6720270336.0,
+          "interaction_memory_sampled_max_bytes": 6960193536,
+          "launch_to_snapshot_ns": 66473343847,
+          "post_agent_memory_median_bytes": 7111825408.0,
+          "shutdown_ns": 1548856188,
+          "tap_response_to_fresh_png_ns": 315700854,
+          "tap_rpc_ns": 1156771372,
+          "tap_to_fresh_png_ns": 1472472226
+        },
+        "index": 2,
+        "redroid": {
+          "idle_anon_median_bytes": 781246464.0,
+          "idle_file_median_bytes": 372076544.0,
+          "idle_memory_median_bytes": 1313107968.0,
+          "interaction_memory_sampled_max_bytes": 1323225088,
+          "launch_to_snapshot_ns": 16940589482,
+          "post_agent_memory_median_bytes": 1196378112.0,
+          "shutdown_ns": 1676685379,
+          "tap_response_to_fresh_png_ns": 29092655,
+          "tap_rpc_ns": 751782174,
+          "tap_to_fresh_png_ns": 780874829
+        }
+      }
+    ],
+    "warm": [
+      {
+        "avd": {
+          "idle_anon_median_bytes": 4191461376.0,
+          "idle_file_median_bytes": 1155500032.0,
+          "idle_memory_median_bytes": 5309620224.0,
+          "interaction_memory_sampled_max_bytes": 5649813504,
+          "launch_to_snapshot_ns": 43309978577,
+          "post_agent_memory_median_bytes": 5799530496.0,
+          "shutdown_ns": 1658496819,
+          "tap_response_to_fresh_png_ns": 758350193,
+          "tap_rpc_ns": 1268869113,
+          "tap_to_fresh_png_ns": 2027219306
+        },
+        "index": 1,
+        "redroid": {
+          "idle_anon_median_bytes": 670523392.0,
+          "idle_file_median_bytes": 552630272.0,
+          "idle_memory_median_bytes": 1373999104.0,
+          "interaction_memory_sampled_max_bytes": 1400971264,
+          "launch_to_snapshot_ns": 17461614725,
+          "post_agent_memory_median_bytes": 1282277376.0,
+          "shutdown_ns": 1754185693,
+          "tap_response_to_fresh_png_ns": 30339046,
+          "tap_rpc_ns": 745925079,
+          "tap_to_fresh_png_ns": 776264125
+        }
+      },
+      {
+        "avd": {
+          "idle_anon_median_bytes": 4160174080.0,
+          "idle_file_median_bytes": 1163079680.0,
+          "idle_memory_median_bytes": 5354706944.0,
+          "interaction_memory_sampled_max_bytes": 5860184064,
+          "launch_to_snapshot_ns": 40021686218,
+          "post_agent_memory_median_bytes": 5948999680.0,
+          "shutdown_ns": 2125009631,
+          "tap_response_to_fresh_png_ns": 348432473,
+          "tap_rpc_ns": 1042121310,
+          "tap_to_fresh_png_ns": 1390553783
+        },
+        "index": 2,
+        "redroid": {
+          "idle_anon_median_bytes": 665190400.0,
+          "idle_file_median_bytes": 229660672.0,
+          "idle_memory_median_bytes": 1051944960.0,
+          "interaction_memory_sampled_max_bytes": 1078075392,
+          "launch_to_snapshot_ns": 15415935747,
+          "post_agent_memory_median_bytes": 945512448.0,
+          "shutdown_ns": 1553037891,
+          "tap_response_to_fresh_png_ns": 29581888,
+          "tap_rpc_ns": 742974908,
+          "tap_to_fresh_png_ns": 772556796
+        }
+      }
+    ]
+  },
+  "valid_pair_counts": {
+    "cold": 2,
+    "warm": 2
+  }
+}

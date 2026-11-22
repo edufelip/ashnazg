@@ -186,7 +186,7 @@ class McpProcess:
     """One long-lived stdio MCP host process, initialized once for all timed calls."""
     def __init__(self, binary: str, harness: DeviceHarness):
         env = os.environ.copy()
-        env.update({"ASHNAZG_TOKEN": harness.token, "ASHNAZG_AGENT_ADDR": "127.0.0.1:7777",
+        env.update({"ASHNAZG_TOKEN": harness.token, "ASHNAZG_AGENT_ADDR": harness.agent_addr,
                     "ANDROID_SERIAL": harness.serial})
         self.process = subprocess.Popen([binary, "mcp"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE, text=True, bufsize=1, env=env)

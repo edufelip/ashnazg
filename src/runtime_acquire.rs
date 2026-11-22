@@ -1025,6 +1025,13 @@ mod tests {
         }
     }
 
+    fn private_tempdir() -> tempfile::TempDir {
+        tempfile::Builder::new()
+            .permissions(fs::Permissions::from_mode(PRIVATE_DIR))
+            .tempdir()
+            .unwrap()
+    }
+
     fn digest(bytes: &[u8]) -> String {
         bytes
             .iter()
@@ -1107,7 +1114,7 @@ mod tests {
 
     #[tokio::test]
     async fn cold_acquisition_promotes_then_reuses_offline_cache() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = parent.path().canonicalize().unwrap().join("runtime-cache");
         let source = Arc::new(fixture_source());
         let first = acquire_runtime_with_source(
@@ -1149,7 +1156,7 @@ mod tests {
 
     #[tokio::test]
     async fn corrupt_cached_helper_is_refused_without_network_fallback() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = parent.path().canonicalize().unwrap().join("runtime-cache");
         let source = Arc::new(fixture_source());
         let result = acquire_runtime_with_source(
@@ -1181,7 +1188,7 @@ mod tests {
 
     #[tokio::test]
     async fn oversized_cached_asset_and_matching_receipt_are_refused() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = parent.path().canonicalize().unwrap().join("runtime-cache");
         let source = Arc::new(fixture_source());
         let result = acquire_runtime_with_source(
@@ -1228,7 +1235,7 @@ mod tests {
 
     #[tokio::test]
     async fn duplicate_integrity_members_are_refused() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = parent.path().canonicalize().unwrap().join("runtime-cache");
         let source = Arc::new(fixture_source());
         let result = acquire_runtime_with_source(
@@ -1266,7 +1273,7 @@ mod tests {
     #[tokio::test]
     async fn cached_helper_symlink_fifo_and_wrong_mode_are_refused() {
         for kind in ["symlink", "fifo", "mode"] {
-            let parent = tempfile::tempdir().unwrap();
+            let parent = private_tempdir();
             let root = parent.path().canonicalize().unwrap().join("runtime-cache");
             let source = Arc::new(fixture_source());
             let result = acquire_runtime_with_source(
@@ -1316,7 +1323,7 @@ mod tests {
 
     #[tokio::test]
     async fn cached_catalog_hash_corruption_is_refused() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = parent.path().canonicalize().unwrap().join("runtime-cache");
         let source = Arc::new(fixture_source());
         let result = acquire_runtime_with_source(
@@ -1351,7 +1358,7 @@ mod tests {
 
     #[tokio::test]
     async fn occupied_lock_respects_deadline_without_fetching() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = parent.path().canonicalize().unwrap().join("runtime-cache");
         let held = CacheGuard::try_acquire(&root).unwrap().unwrap();
         let source = Arc::new(fixture_source());
@@ -1373,7 +1380,7 @@ mod tests {
 
     #[tokio::test]
     async fn dropping_acquisition_cancels_worker_and_worker_cleans_its_stage() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = parent.path().canonicalize().unwrap().join("runtime-cache");
         let (entered_tx, entered_rx) = mpsc::channel();
         let mut fake = fixture_source();
@@ -1418,7 +1425,7 @@ mod tests {
 
     #[tokio::test]
     async fn unrelated_valid_runtime_remains_available_after_failed_cold_acquisition() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = parent.path().canonicalize().unwrap().join("runtime-cache");
         let other_sha = "1123456789abcdef0123456789abcdef01234567";
         let other = Arc::new(fixture_source_for(other_sha));
@@ -1483,7 +1490,7 @@ mod tests {
     #[tokio::test]
     async fn failed_download_and_extraction_never_publish_or_leave_stages() {
         for failure in ["missing", "truncated", "manifest_source"] {
-            let parent = tempfile::tempdir().unwrap();
+            let parent = private_tempdir();
             let root = parent.path().canonicalize().unwrap().join("runtime-cache");
             let mut source = fixture_source();
             if failure == "missing" {
@@ -1525,7 +1532,7 @@ mod tests {
     #[tokio::test]
     async fn malformed_cached_receipts_fail_without_network_or_mutation() {
         for failure in ["missing", "unknown", "size", "hash", "source"] {
-            let parent = tempfile::tempdir().unwrap();
+            let parent = private_tempdir();
             let root = parent.path().canonicalize().unwrap().join("runtime-cache");
             let source = Arc::new(fixture_source());
             let first = acquire_fixture(&root, SOURCE_SHA, source.clone())
@@ -1567,7 +1574,7 @@ mod tests {
 
     #[tokio::test]
     async fn two_catalogs_for_the_same_stamp_are_ambiguous() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = parent.path().canonicalize().unwrap().join("runtime-cache");
         let source = Arc::new(fixture_source());
         let first = acquire_fixture(&root, SOURCE_SHA, source.clone())
@@ -1619,7 +1626,7 @@ mod tests {
 
     #[tokio::test]
     async fn rejects_unsupported_version_before_touching_cache() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = private_tempdir();
         let root = parent.path().join("must-not-exist");
         let result = acquire_runtime(
             root.clone(),

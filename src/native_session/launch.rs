@@ -476,6 +476,7 @@ mod tests {
         fs::set_permissions(&helper, fs::Permissions::from_mode(0o700)).unwrap();
         let apk = root.join("agent.apk");
         fs::write(&apk, b"apk").unwrap();
+        fs::set_permissions(&apk, fs::Permissions::from_mode(0o600)).unwrap();
         let assets = root.join("assets");
         fs::create_dir(&assets).unwrap();
         fs::set_permissions(&assets, fs::Permissions::from_mode(0o700)).unwrap();

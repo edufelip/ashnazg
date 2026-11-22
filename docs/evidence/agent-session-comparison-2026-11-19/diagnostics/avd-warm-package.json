@@ -1,0 +1,66 @@
+{
+  "elapsed_ns": 55629192295,
+  "exit_code": 1,
+  "memory_after_teardown": [
+    {
+      "offset_ns": 192697,
+      "scope_removed": true
+    },
+    {
+      "offset_ns": 1000160171,
+      "scope_removed": true
+    },
+    {
+      "offset_ns": 2000173555,
+      "scope_removed": true
+    }
+  ],
+  "probe": {
+    "agent_shutdown_ns": 26726,
+    "cgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/ashnazg-agent-benchmark-1d3451be56ec4f8891d018337f589f0f.scope",
+    "errors": [
+      {
+        "detail": "Command '['<home>/Android/Sdk/platform-tools/adb', '-s', 'emulator-5570', 'shell', 'pm', 'path', 'dev.ashnazg.fixture']' returned non-zero exit status 1.",
+        "stage": "guest_control_readback",
+        "type": "CalledProcessError"
+      }
+    ],
+    "memory": [],
+    "scope_controls": {
+      "cpu.max": "200000 100000",
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "observed_host_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "shutdown_started_ns": 3078253711165796,
+    "timings_ns": {
+      "runtime_ready": 35426857261
+    }
+  },
+  "runtime": "avd",
+  "runtime_shutdown_ns": 20092320875,
+  "scope": {
+    "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/ashnazg-agent-benchmark-1d3451be56ec4f8891d018337f589f0f.scope",
+    "unit": "ashnazg-agent-benchmark-1d3451be56ec4f8891d018337f589f0f.scope"
+  },
+  "shutdown_ns": 20092347601,
+  "status": "failed",
+  "warm": true
+}

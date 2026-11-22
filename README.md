@@ -64,10 +64,14 @@ Benchmarks compare persistent RPC with stock adb XML dump and screenshot command
 ## Design and roadmap
 
 - [MCP API and usage](docs/api.md)
+- [Paired Android session benchmark](docs/agent-session-benchmark.md)
+- [macOS iOS Simulator fixture experiment](platform/ios/README.md)
 - [Wire protocol and scope](docs/protocol-v0.1.md)
 - [Performance stack decision and specification corrections](docs/adr-001-performance-stack.md)
 - [Implementation plan](docs/superpowers/plans/2026-11-15-v0.1.md)
 - [Original architecture proposal](docs/architecture-blueprint.md) — preserved as research targets, not implementation evidence.
 - [Contributing](CONTRIBUTING.md)
 
-The experimental macOS VM is now distributed in v0.3.0. Performance targets retain their separate evidence requirements, and iOS remains a separate research track.
+The experimental Android VM is distributed for macOS in v0.3.0. The source
+tree also has a separate, opt-in iOS Simulator fixture experiment. Performance
+claims are scoped to the configurations in the linked evidence.
