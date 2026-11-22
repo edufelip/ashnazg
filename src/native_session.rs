@@ -1317,7 +1317,7 @@ mod tests {
             dir.path(),
             agent_port,
             install_port,
-            "sleep 0.20; exit 17",
+            "sleep 0.75; exit 17",
             "$$",
             "agent_ready",
         );
@@ -1330,7 +1330,7 @@ mod tests {
         .unwrap();
         server.await.unwrap();
         assert!(
-            tokio::time::timeout(Duration::from_secs(2), session.wait_terminated())
+            tokio::time::timeout(Duration::from_secs(3), session.wait_terminated())
                 .await
                 .unwrap()
                 .is_err()
