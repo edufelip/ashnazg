@@ -281,8 +281,11 @@ class StdioClient:
     def _read_stderr(self) -> None:
         try:
             assert self.process.stderr is not None
+            read1 = getattr(self.process.stderr, "read1", None)
             while True:
-                chunk = self.process.stderr.read(4096)
+                # BufferedReader.read(4096) blocks until 4096 bytes or EOF, stalling
+                # on single-line startup descriptors emitted on stderr.
+                chunk = read1(4096) if read1 is not None else self.process.stderr.read(4096)
                 if not chunk:
                     return
                 if self.stderr_bytes + len(chunk) > MAX_STDERR_BYTES:

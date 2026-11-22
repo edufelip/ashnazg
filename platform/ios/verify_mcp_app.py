@@ -593,6 +593,145 @@ def run_acceptance(
             "post_action_snapshot_id": snap.get("snapshotId"),
         }
 
+    def poll_home_clearing_prompts(
+        stage: str, test_id: str, bound: float
+    ) -> tuple[dict, dict, list, list, float]:
+        """Bounded Home observation that clears the one-time fresh-install
+        iOS system prompts as they appear. The bridge's single-capture
+        snapshot only exposes the covered overlays while they are up, so
+        dismissal has to live inside this loop: each observed prompt
+        button — priority order AutoFill "Not Now", Location
+        "Allow While Using App", then the notifications "Don't Allow"
+        shapes — is tapped once through the bridge, and the loop keeps
+        polling until a 2.5s consecutive prompt-free streak holds with
+        the pinned home control uniquely usable. Returns the settled
+        node, snapshot, poll ids, dismissed prompt records and the
+        first-confirmation clock."""
+        order = [
+            ("Not Now", "not-now"),
+            ("Allow While Using App", "allow-while-using-app"),
+            ("Don’t Allow", "dont-allow-curly"),
+            ("Don't Allow", "dont-allow"),
+        ]
+
+        def usable(node: dict) -> bool:
+            rect = node.get("rect")
+            if not isinstance(rect, list) or len(rect) != 4:
+                return False
+            return all(
+                isinstance(value, (int, float)) and value == value and abs(value) != float("inf")
+                for value in rect
+            ) and rect[2] > rect[0] and rect[3] > rect[1]
+
+        dismissed: list = []
+        home_ids: list = []
+        clean_since: float | None = None
+        first_home_confirmed: float | None = None
+        deadline = time.monotonic() + bound
+        while True:
+            snap = snapshot(stage)
+            nodes = snap.get("nodes") or []
+            sequence = snap.get("snapshotId")
+            if type(sequence) is not int or sequence <= last_sequence[0]:
+                fail(
+                    stage,
+                    "polling-did-not-advance-sequence",
+                    uncertain=True,
+                    snapshot_id=sequence if type(sequence) is int else None,
+                )
+            home_ids.append(sequence)
+            prompt = next(
+                (
+                    (label, slug)
+                    for label, slug in order
+                    if any(
+                        node.get("role") == "button"
+                        and node.get("text") == label
+                        and node.get("enabled") is True
+                        and usable(node)
+                        for node in nodes
+                    )
+                ),
+                None,
+            )
+            if prompt is not None:
+                label, slug = prompt
+                dismiss_stage = f"home/dismiss-{len(dismissed) + 1}-{slug}"
+                once(dismiss_stage)
+                result = call(
+                    "ui_act",
+                    {"action": "tap", "target": {"text": label}},
+                    dismiss_stage,
+                    allow_error=True,
+                )
+                check_mutation_error(result, dismiss_stage)
+                try:
+                    acted = safe_structured(result)
+                except AcceptanceError:
+                    fail(
+                        dismiss_stage,
+                        "tool-result-without-structured-content",
+                        uncertain=True,
+                    )
+                if acted.get("settled") is not True:
+                    fail(dismiss_stage, "dismiss-did-not-settle", uncertain=True)
+                dismiss_snap = acted.get("snapshot") or {}
+                dismiss_id = dismiss_snap.get("snapshotId")
+                if type(dismiss_id) is not int or dismiss_id <= last_sequence[0]:
+                    fail(
+                        dismiss_stage,
+                        "dismiss-did-not-advance-sequence",
+                        uncertain=True,
+                        snapshot_id=dismiss_id if type(dismiss_id) is int else None,
+                    )
+                last_sequence[0] = dismiss_id
+                dismissed.append({"stage": dismiss_stage, "button": label})
+                clean_since = None
+                continue
+            home_matches = [
+                node
+                for node in nodes
+                if node.get("testId") == test_id
+                and node.get("role") == "button"
+                and node.get("enabled") is True
+                and usable(node)
+            ]
+            if len(home_matches) == 1:
+                now = time.monotonic()
+                if first_home_confirmed is None:
+                    first_home_confirmed = now
+                if clean_since is None:
+                    clean_since = now
+                elif now - clean_since >= 2.5:
+                    return home_matches[0], snap, home_ids, dismissed, first_home_confirmed
+            else:
+                clean_since = None
+            if time.monotonic() >= deadline:
+                observed = dict(
+                    polls=len(home_ids), last_snapshot_id=home_ids[-1], bound_seconds=bound
+                )
+                email_fields = [
+                    node
+                    for node in nodes
+                    if node.get("testId") == LOGIN_EMAIL and node.get("role") == "textfield"
+                ]
+                email_readback = "unobservable"
+                if len(email_fields) == 1 and isinstance(email_fields[0].get("value"), str):
+                    email_readback = "exact" if email_fields[0]["value"] == email else "different"
+                observed["login_state"] = {
+                    "observed_selectors": sorted(
+                        {
+                            node["testId"]
+                            for node in nodes
+                            if node.get("testId") in LOGIN_DIAGNOSTIC_IDS
+                        }
+                    ),
+                    "email_readback": email_readback,
+                }
+                observed["system_prompts_dismissed"] = dismissed
+                fail(stage, "target-not-observed-within-bound", **observed)
+            time.sleep(0.5)
+
     failure: str | None = None
     try:
         init = exchange(
@@ -704,9 +843,18 @@ def run_acceptance(
         }
         login["status"] = "tap_completed"
 
-        # Actual Home: bounded read-only polling after the accepted submit.
-        home_node, home_snap, home_ids = poll_for(
-            "home/after-submit", HOME_SEARCH, "button", HOME_AFTER_SUBMIT_TIMEOUT
+        # Actual Home: bounded prompt-aware polling after the accepted
+        # submit — fresh-install system prompts are dismissed inside the
+        # loop, and Home counts as confirmed only after a 2.5s
+        # consecutive prompt-free streak with the pinned control usable.
+        (
+            home_node,
+            home_snap,
+            home_ids,
+            home_dismissed,
+            first_home_confirmed,
+        ) = poll_home_clearing_prompts(
+            "home/after-submit", HOME_SEARCH, HOME_AFTER_SUBMIT_TIMEOUT
         )
         home_confirmed = time.monotonic()
         login["status"] = "verified"
@@ -715,6 +863,10 @@ def run_acceptance(
             "status": "verified",
             "home_search_button": {"matched": 1, "role": "button", "enabled": True},
             "poll_snapshot_ids": home_ids,
+            "system_prompts_dismissed": home_dismissed,
+            "first_home_confirmed_after_submit_seconds": round(
+                first_home_confirmed - submit_accepted, 3
+            ),
         }
 
         # Independent read-only evidence milestone at the confirmed Home
@@ -743,6 +895,9 @@ def run_acceptance(
         transition = "tap" if visible_navigation else "link"
         search = receipt["journey"]["search"] = {"status": "running"}
         if visible_navigation:
+            # Prompts were already dismissed inside the Home poll and the
+            # confirmed state is prompt-free, so the search tap selects from
+            # the same confirmed snapshot.
             select(home_snap.get("nodes") or [], HOME_SEARCH, "button", "search/open-tap")
             search["open_tap"] = tap_once("search/open-tap", HOME_SEARCH)
         else:
@@ -811,7 +966,7 @@ def run_acceptance(
                 "boundary": "spawn of the mcp --ios-app child -> first read-only snapshot with both login fields resolving uniquely",
             },
             "submit_accept_to_home_confirmed": {
-                "seconds": round(home_confirmed - submit_accepted, 3),
+                "seconds": round(first_home_confirmed - submit_accepted, 3),
                 "boundary": "single submit tap settled -> first read-only snapshot resolving one usable home-search-button",
             },
             "home_confirmed_to_screenshot_identity": {

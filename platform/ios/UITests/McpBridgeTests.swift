@@ -35,7 +35,7 @@ final class McpBridgeTests: XCTestCase {
     private func perform(_ command: Command, app: XCUIApplication) -> [String: Any] {
         switch command.op {
         case "ui_snapshot":
-            return Self.snapshotResponse(app: app)
+            return Self.snapshotResponse(app: app, includeSystemPrompts: externalApp)
         case "ui_act":
             switch command.action ?? "" {
             case "tap":
@@ -47,6 +47,9 @@ final class McpBridgeTests: XCTestCase {
                     )
                 }
                 if let text = command.text, !text.isEmpty {
+                    if externalApp {
+                        return Self.tapExternalText(text, in: app)
+                    }
                     let query = app.descendants(matching: .any)
                         .matching(NSPredicate(format: "label == %@", text))
                     return Self.tapFirstMatch(
@@ -102,7 +105,8 @@ final class McpBridgeTests: XCTestCase {
                     return Self.scrollTo(
                         selector: selector,
                         root: { $0.descendants(matching: .any).matching(identifier: testId) },
-                        in: app
+                        in: app,
+                        includeSystemPrompts: externalApp
                     )
                 }
                 if let text = command.text, !text.isEmpty {
@@ -113,7 +117,8 @@ final class McpBridgeTests: XCTestCase {
                             $0.descendants(matching: .any)
                                 .matching(NSPredicate(format: "label == %@", text))
                         },
-                        in: app
+                        in: app,
+                        includeSystemPrompts: externalApp
                     )
                 }
                 return ["ok": false, "error": "scroll_to requires a testId or text selector"]
@@ -147,6 +152,61 @@ final class McpBridgeTests: XCTestCase {
     /// app has no counter and settles on the observed foreground readback
     /// instead, returning fresh observed state — unchanged UI included —
     /// and never claiming the app's own journey succeeded.
+    /// External-app text tap with fresh-install system prompts in play.
+    /// Strict uniqueness is kept for normal app UI; the one documented
+    /// exception is the OS AutoFill "Not Now" sheet, whose button plus its
+    /// inner static text can both match a text selector in the app's extra
+    /// window, so that label falls back to a buttons-only query; a
+    /// Springboard alert button is the last resort.
+    @MainActor
+    private static func tapExternalText(_ text: String, in app: XCUIApplication) -> [String: Any] {
+        let appQuery = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label == %@", text))
+        let matches = appQuery.count
+        if matches == 1 {
+            return tapFirstMatch(of: appQuery, selector: "text \(text)", in: app, external: true)
+        }
+        if matches > 1, text == "Not Now", app.windows.count >= 2 {
+            let buttonsOnly = app.buttons.matching(NSPredicate(format: "label == %@", text))
+            if buttonsOnly.count == 1 {
+                return tapFirstMatch(
+                    of: buttonsOnly, selector: "text \(text)", in: app, external: true
+                )
+            }
+        }
+        if matches == 0 {
+            let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+            let alertButtons = springboard.alerts.buttons
+                .matching(NSPredicate(format: "label == %@", text))
+            if alertButtons.count == 1 {
+                let button = alertButtons.element(boundBy: 0)
+                guard button.isEnabled, button.isHittable else {
+                    return [
+                        "ok": false,
+                        "error": "selector text \(text) is not an enabled hittable element",
+                    ]
+                }
+                button.tap()
+                // Only re-activate when the alert actually took the
+                // foreground; repeated activations open the App Switcher.
+                if app.state != .runningForeground {
+                    app.activate()
+                }
+                guard waitAppForeground(app) else {
+                    return [
+                        "ok": false,
+                        "error": "app state was not observed in the foreground after the tap",
+                    ]
+                }
+                return snapshotResponse(app: app, includeSystemPrompts: true)
+            }
+        }
+        return [
+            "ok": false,
+            "error": "selector text \(text) matched \(matches) elements, expected exactly one",
+        ]
+    }
+
     @MainActor
     private static func tapFirstMatch(
         of query: XCUIElementQuery,
@@ -171,7 +231,7 @@ final class McpBridgeTests: XCTestCase {
                     "error": "app state was not observed in the foreground after the tap",
                 ]
             }
-            return snapshotResponse(app: app)
+            return snapshotResponse(app: app, includeSystemPrompts: external)
         }
         let count = app.staticTexts["fixture-count"]
         let before = count.label
@@ -183,7 +243,7 @@ final class McpBridgeTests: XCTestCase {
         guard XCTWaiter().wait(for: [settled], timeout: 10) == .completed else {
             return ["ok": false, "error": "fixture state did not settle after the tap"]
         }
-        return snapshotResponse(app: app)
+        return snapshotResponse(app: app, includeSystemPrompts: external)
     }
 
     /// One live text entry into a uniquely matched editable field. The tap
@@ -222,7 +282,7 @@ final class McpBridgeTests: XCTestCase {
         if value.isEmpty {
             // Parity with the shared schema: an empty payload settles as a
             // no-op with a fresh snapshot, never an error.
-            return Self.snapshotResponse(app: app)
+            return Self.snapshotResponse(app: app, includeSystemPrompts: externalApp)
         }
         if element.elementType == .secureTextField && !existing.isEmpty {
             // Mirrors the Android boundary on nonempty secure text; the
@@ -322,7 +382,7 @@ final class McpBridgeTests: XCTestCase {
             return ["ok": false, "error": "fixture text did not settle after typing"]
         }
         typingSelector = selector
-        return Self.snapshotResponse(app: app)
+        return Self.snapshotResponse(app: app, includeSystemPrompts: externalApp)
     }
 
     /// One controlled reveal of a uniquely matched enabled element clipped
@@ -336,7 +396,8 @@ final class McpBridgeTests: XCTestCase {
     private static func scrollTo(
         selector: String,
         root: (XCUIElement) -> XCUIElementQuery,
-        in app: XCUIApplication
+        in app: XCUIApplication,
+        includeSystemPrompts: Bool
     ) -> [String: Any] {
         let query = root(app)
         let matches = query.count
@@ -351,7 +412,7 @@ final class McpBridgeTests: XCTestCase {
         if element.isHittable {
             // Already visibly hittable: a settled no-op with fresh observed
             // state, mirroring the empty-payload type boundary.
-            return snapshotResponse(app: app)
+            return snapshotResponse(app: app, includeSystemPrompts: includeSystemPrompts)
         }
         // The target is clipped. The containing native scroll view resolves
         // by exact descendant matching — the public XCUI ancestry test — so
@@ -377,7 +438,7 @@ final class McpBridgeTests: XCTestCase {
                     + "element after one bounded swipe",
             ]
         }
-        return snapshotResponse(app: app)
+        return snapshotResponse(app: app, includeSystemPrompts: includeSystemPrompts)
     }
 
     /// Deliver one host-allowlisted URL through the simulator's system URL
@@ -392,7 +453,7 @@ final class McpBridgeTests: XCTestCase {
                 "error": "app state was not observed in the foreground after the deep link",
             ]
         }
-        return Self.snapshotResponse(app: app)
+        return Self.snapshotResponse(app: app, includeSystemPrompts: externalApp)
     }
 
     /// Bounded observation of the app owning the foreground.
@@ -433,14 +494,58 @@ final class McpBridgeTests: XCTestCase {
 
     /// Collect the app's descendants from a single native capture. The
     /// captured attributes avoid a live XCTest query for every property.
+    /// With `includeSystemPrompts`, the fresh-install overlays the capture
+    /// may not carry — the in-app AutoFill "Save Password?" button and any
+    /// Springboard-owned alert — are appended from explicit queries.
     @MainActor
-    static func snapshotNodes(app: XCUIApplication) throws -> [[String: Any]] {
+    static func snapshotNodes(
+        app: XCUIApplication,
+        includeSystemPrompts: Bool = false
+    ) throws -> [[String: Any]] {
         let root = try app.snapshot()
         var nodes: [[String: Any]] = []
         for child in root.children {
             appendNodes(of: child, into: &nodes)
         }
+        if includeSystemPrompts {
+            appendSystemPromptNodes(app: app, into: &nodes)
+        }
         return nodes
+    }
+
+    /// Appends the system prompts the app capture itself may not carry:
+    /// the AutoFill "Save Password?" sheet's "Not Now" button when it
+    /// lives in the app's own window hierarchy, and any Springboard-owned
+    /// alert. Only labels, geometry and enabled state are read — never
+    /// field values or alert content.
+    @MainActor
+    private static func appendSystemPromptNodes(
+        app: XCUIApplication,
+        into nodes: inout [[String: Any]]
+    ) {
+        let notNow = app.buttons["Not Now"]
+        if notNow.exists, notNow.isHittable,
+           !nodes.contains(where: { node in
+               (node["role"] as? String) == "button" && (node["text"] as? String) == "Not Now"
+           }) {
+            let frame = notNow.frame
+            if frame.width > 0, frame.height > 0,
+               frame.minX.isFinite, frame.minY.isFinite,
+               frame.maxX.isFinite, frame.maxY.isFinite {
+                nodes.append([
+                    "testId": "",
+                    "role": "button",
+                    "text": "Not Now",
+                    "rect": [frame.minX, frame.minY, frame.maxX, frame.maxY],
+                    "enabled": true,
+                ])
+            }
+        }
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        if springboard.alerts.firstMatch.exists,
+           let alertSnapshot = try? springboard.alerts.firstMatch.snapshot() {
+            appendNodes(of: alertSnapshot, into: &nodes)
+        }
     }
 
     /// One pre-order visit. An element becomes a node only with a finite
@@ -478,9 +583,15 @@ final class McpBridgeTests: XCTestCase {
     }
 
     @MainActor
-    private static func snapshotResponse(app: XCUIApplication) -> [String: Any] {
+    private static func snapshotResponse(
+        app: XCUIApplication,
+        includeSystemPrompts: Bool = false
+    ) -> [String: Any] {
         do {
-            return ["ok": true, "nodes": try snapshotNodes(app: app)]
+            return [
+                "ok": true,
+                "nodes": try snapshotNodes(app: app, includeSystemPrompts: includeSystemPrompts)
+            ]
         } catch {
             // A failed observation leaves any preceding action uncertain.
             return ["ok": false, "error": "the native element snapshot could not be read"]
@@ -533,6 +644,21 @@ final class McpBridgeTests: XCTestCase {
                 ]
             }
             greetingApp = bundleId
+            // External apps hit one-time iOS system permission alerts
+            // (notifications / location); dismiss them when they interrupt
+            // a tap or type so in-app dismissal stays primary.
+            addUIInterruptionMonitor(withDescription: "Ashnazg external app system prompt") {
+                alert in
+                let dismissLabels = ["Don’t Allow", "Don't Allow", "Allow While Using App"]
+                for label in dismissLabels {
+                    let button = alert.buttons[label]
+                    if button.exists, button.isHittable {
+                        button.tap()
+                        return true
+                    }
+                }
+                return false
+            }
         } else {
             app = XCUIApplication()
             greetingApp = "dev.ashnazg.ios.fixture"
