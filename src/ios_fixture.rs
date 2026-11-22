@@ -78,6 +78,7 @@ impl From<anyhow::Error> for BridgeError {
 /// the simulator exists so every later error path can destroy it.
 struct Owned {
     simulator: String,
+    owns_simulator: bool,
     work_dir: PathBuf,
     simulator_deleted: AtomicBool,
 }
@@ -86,7 +87,7 @@ impl Owned {
     /// Shuts the simulator down and deletes it, then verifies the device is
     /// gone; required before any successful session exit.
     async fn destroy(&self) -> anyhow::Result<()> {
-        if self.simulator_deleted.load(Ordering::Relaxed) {
+        if !self.owns_simulator || self.simulator_deleted.load(Ordering::Relaxed) {
             return Ok(());
         }
         let _ = Command::new("xcrun")
@@ -154,6 +155,7 @@ struct LaunchPlan {
     scheme: &'static str,
     only_testing: &'static str,
     result_bundle: &'static str,
+    xctestrun: Option<PathBuf>,
     install: Option<PathBuf>,
     extra_envs: Vec<(String, String)>,
     greeting_app: String,
@@ -190,7 +192,10 @@ impl FixtureSession {
     pub async fn open(launch: SessionLaunch) -> anyhow::Result<Self> {
         Self::require_tool("xcodebuild", &["-version"]).await?;
         Self::require_tool("xcrun", &["simctl", "help"]).await?;
-        Self::require_tool("xcodegen", &["--version"]).await?;
+        if !matches!(&launch, SessionLaunch::App(manifest) if manifest.benchmark_xctestrun.is_some())
+        {
+            Self::require_tool("xcodegen", &["--version"]).await?;
+        }
 
         let plan = match &launch {
             SessionLaunch::Fixture => Self::fixture_plan().await?,
@@ -201,30 +206,49 @@ impl FixtureSession {
         // generation failure cannot leave an owned device behind.
         let token = capability_token()?;
 
-        let name = plan.name.clone();
-        let create = Command::new("xcrun")
-            .args(["simctl", "create", &name, &plan.device_type, &plan.runtime])
-            .output()
-            .await
-            .context("failed to run simctl create")?;
-        if !create.status.success() {
-            bail!(
-                "simctl create failed with {}: {}",
-                create.status,
-                String::from_utf8_lossy(&create.stderr)
-            );
-        }
-        let simulator = String::from_utf8_lossy(&create.stdout).trim().to_owned();
-        if simulator.is_empty() {
-            bail!("simctl create did not return a device UDID");
-        }
+        let retained = match &launch {
+            SessionLaunch::App(manifest) => manifest.benchmark_simulator.as_ref().map(|_| manifest),
+            SessionLaunch::Fixture => None,
+        };
+        let simulator = if let Some(manifest) = retained {
+            Self::verify_preinstalled_benchmark_app(manifest, &plan.work_dir)
+                .await
+                .with_context(|| format!("evidence preserved at {}", plan.work_dir.display()))?
+        } else {
+            let create = Command::new("xcrun")
+                .args([
+                    "simctl",
+                    "create",
+                    &plan.name,
+                    &plan.device_type,
+                    &plan.runtime,
+                ])
+                .output()
+                .await
+                .context("failed to run simctl create")?;
+            if !create.status.success() {
+                bail!(
+                    "simctl create failed with {}: {}",
+                    create.status,
+                    String::from_utf8_lossy(&create.stderr)
+                );
+            }
+            let simulator = String::from_utf8_lossy(&create.stdout).trim().to_owned();
+            if simulator.is_empty() {
+                bail!("simctl create did not return a device UDID");
+            }
+            simulator
+        };
         let owned = Owned {
-            simulator: simulator.clone(),
+            simulator,
+            owns_simulator: retained.is_none(),
             work_dir: plan.work_dir.clone(),
             simulator_deleted: AtomicBool::new(false),
         };
 
-        if let Some(staged) = plan.install.as_deref() {
+        if owned.owns_simulator
+            && let Some(staged) = plan.install.as_deref()
+        {
             let installed = Self::boot_and_install(&owned, staged).await;
             if let Err(error) = installed {
                 let cleanup = owned.destroy().await;
@@ -476,12 +500,22 @@ impl FixtureSession {
             .context("bridge listener has no local address")?
             .port();
 
-        let arguments = vec![
-            "test".to_owned(),
-            "-project".to_owned(),
-            "AshnazgSimulatorProbe.xcodeproj".to_owned(),
-            "-scheme".to_owned(),
-            plan.scheme.to_owned(),
+        let mut arguments = if let Some(runner) = &plan.xctestrun {
+            vec![
+                "test-without-building".to_owned(),
+                "-xctestrun".to_owned(),
+                runner.display().to_string(),
+            ]
+        } else {
+            vec![
+                "test".to_owned(),
+                "-project".to_owned(),
+                "AshnazgSimulatorProbe.xcodeproj".to_owned(),
+                "-scheme".to_owned(),
+                plan.scheme.to_owned(),
+            ]
+        };
+        arguments.extend([
             "-destination".to_owned(),
             format!("platform=iOS Simulator,id={}", owned.simulator),
             format!("-only-testing:{}", plan.only_testing),
@@ -493,7 +527,7 @@ impl FixtureSession {
                 .join(plan.result_bundle)
                 .display()
                 .to_string(),
-        ];
+        ]);
         let command = format!("xcodebuild {}", arguments.join(" "));
         let log = fs::File::create(owned.work_dir.join("xcodebuild.log")).with_context(|| {
             format!(
@@ -608,6 +642,7 @@ impl FixtureSession {
             scheme: "AshnazgSimulatorProbe",
             only_testing: "FixtureUITests/McpBridgeTests",
             result_bundle: "Probe.xcresult",
+            xctestrun: None,
             install: None,
             extra_envs: Vec::new(),
             greeting_app: FIXTURE_BUNDLE_ID.to_owned(),
@@ -637,11 +672,17 @@ impl FixtureSession {
             initial_url,
             ready_selector,
             deep_links,
+            ..
         } = manifest;
         if bundle_id == FIXTURE_BUNDLE_ID {
             bail!("--ios-app requires a bundle identifier distinct from the embedded fixture");
         }
-        let source = Self::fixture_source()?;
+        let xctestrun = manifest.benchmark_xctestrun.as_ref();
+        if let Some(runner) = xctestrun
+            && !runner.is_file()
+        {
+            bail!("benchmarkXctestrun does not identify a prebuilt test runner");
+        }
         Self::preflight_launch_pair(runtime, device_type).await?;
 
         let app_name = app_path
@@ -658,10 +699,12 @@ impl FixtureSession {
         }
 
         let work_dir = Self::fresh_work_dir("ashnazg-ios-app")?;
-        Self::copy_bridge_sources(&source, &work_dir)?;
-        Self::generate_project(&work_dir)
-            .await
-            .with_context(|| format!("evidence preserved at {}", work_dir.display()))?;
+        if xctestrun.is_none() {
+            Self::copy_bridge_sources(&Self::fixture_source()?, &work_dir)?;
+            Self::generate_project(&work_dir)
+                .await
+                .with_context(|| format!("evidence preserved at {}", work_dir.display()))?;
+        }
 
         // The pinned staging copy is what gets installed: its digest is
         // computed and compared before any simulator is created.
@@ -758,11 +801,15 @@ impl FixtureSession {
         ));
 
         Ok(LaunchPlan {
-            name: format!("ashnazg-mcp-app-{}", hex_suffix(4)),
+            name: manifest.benchmark_simulator.as_ref().map_or_else(
+                || format!("ashnazg-mcp-app-{}", hex_suffix(4)),
+                |simulator| simulator.name.clone(),
+            ),
             work_dir,
             scheme: "AshnazgSimulatorProbe",
             only_testing: "FixtureUITests/McpBridgeTests",
             result_bundle: "AppProbe.xcresult",
+            xctestrun: xctestrun.cloned(),
             install: Some(staged),
             extra_envs,
             greeting_app: bundle_id.clone(),
@@ -796,6 +843,58 @@ impl FixtureSession {
             );
         }
         Ok(())
+    }
+
+    async fn verify_preinstalled_benchmark_app(
+        manifest: &crate::ios_app::AppManifest,
+        work_dir: &Path,
+    ) -> anyhow::Result<String> {
+        let selection = manifest
+            .benchmark_simulator
+            .as_ref()
+            .context("no benchmark simulator was selected")?;
+        let inventory = timeout(
+            Duration::from_secs(30),
+            Command::new("xcrun")
+                .args(["simctl", "list", "-j", "devices"])
+                .kill_on_drop(true)
+                .output(),
+        )
+        .await
+        .context("CoreSimulator inventory timed out")??;
+        if !inventory.status.success() {
+            bail!("CoreSimulator inventory failed");
+        }
+        manifest.verify_benchmark_simulator(&serde_json::from_slice(&inventory.stdout)?)?;
+        let installed = timeout(
+            Duration::from_secs(30),
+            Command::new("xcrun")
+                .args([
+                    "simctl",
+                    "get_app_container",
+                    &selection.udid,
+                    &manifest.bundle_id,
+                    "app",
+                ])
+                .kill_on_drop(true)
+                .output(),
+        )
+        .await
+        .context("installed app lookup timed out")??;
+        if !installed.status.success() {
+            bail!("the pinned app is not installed on the benchmark simulator");
+        }
+        let installed_path = Path::new(std::str::from_utf8(&installed.stdout)?.trim());
+        if !installed_path.is_absolute() {
+            bail!("CoreSimulator did not return an absolute installed app path");
+        }
+        let verification_copy = work_dir.join("InstalledAppVerification");
+        let digest = crate::ios_app::stage_tree_pinned(installed_path, &verification_copy)?;
+        if digest != manifest.app_sha256 {
+            bail!("the installed app tree does not match the pinned appSha256");
+        }
+        fs::remove_dir_all(verification_copy)?;
+        Ok(selection.udid.clone())
     }
 
     /// Boots the owned device and installs the pinned staged copy on it;
@@ -1133,7 +1232,7 @@ impl From<anyhow::Error> for Poisoned {
 impl Drop for FixtureSession {
     fn drop(&mut self) {
         // A failed or abandoned session can leave diagnostics in the work directory.
-        if *self.owned.simulator_deleted.get_mut() {
+        if !self.owned.owns_simulator || *self.owned.simulator_deleted.get_mut() {
             return;
         }
         let simulator = self.owned.simulator.clone();

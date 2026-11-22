@@ -25,6 +25,14 @@ pub struct ReadySelector {
     pub text: Option<String>,
 }
 
+/// A booted, preinstalled disposable simulator retained by the benchmark.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct BenchmarkSimulator {
+    pub udid: String,
+    pub name: String,
+}
+
 /// The reviewed minimal manifest for `ashnazg mcp --ios-app <manifest.json>`.
 ///
 /// `appSha256` is REQUIRED and pins the whole staged `.app` tree with the
@@ -45,6 +53,10 @@ pub struct AppManifest {
     pub initial_url: Option<String>,
     pub ready_selector: ReadySelector,
     pub deep_links: Vec<String>,
+    #[serde(default)]
+    pub benchmark_simulator: Option<BenchmarkSimulator>,
+    #[serde(default)]
+    pub benchmark_xctestrun: Option<PathBuf>,
 }
 
 impl AppManifest {
@@ -61,9 +73,68 @@ impl AppManifest {
         Ok(manifest)
     }
 
+    /// Checks identity against CoreSimulator without changing its state.
+    pub fn verify_benchmark_simulator(&self, inventory: &serde_json::Value) -> anyhow::Result<()> {
+        let simulator = self
+            .benchmark_simulator
+            .as_ref()
+            .context("no benchmark simulator was selected")?;
+        let entries = inventory
+            .get("devices")
+            .and_then(|devices| devices.get(&self.runtime))
+            .and_then(serde_json::Value::as_array)
+            .context("the benchmark runtime is missing from CoreSimulator inventory")?;
+        let mut matches = entries.iter().filter(|entry| {
+            entry["udid"]
+                .as_str()
+                .is_some_and(|id| id.eq_ignore_ascii_case(&simulator.udid))
+        });
+        let entry = matches
+            .next()
+            .context("the benchmark simulator was not found")?;
+        if matches.next().is_some()
+            || entry["name"].as_str() != Some(simulator.name.as_str())
+            || entry["deviceTypeIdentifier"].as_str() != Some(self.device_type.as_str())
+            || entry["state"].as_str() != Some("Booted")
+            || entry["isAvailable"].as_bool() != Some(true)
+        {
+            bail!("the benchmark simulator did not match the pinned name, state or device type");
+        }
+        Ok(())
+    }
+
     /// Rejects every wrong-bundle, wrong-digest, wrong-path and wrong-URI
     /// manifest before a simulator is ever created.
     pub fn validate(&self) -> anyhow::Result<()> {
+        if let Some(simulator) = &self.benchmark_simulator {
+            let id = simulator.udid.as_bytes();
+            let name = simulator
+                .name
+                .strip_prefix("AshnazgIosBenchmark-")
+                .unwrap_or("");
+            if id.len() != 36
+                || !id.iter().enumerate().all(|(index, byte)| {
+                    if matches!(index, 8 | 13 | 18 | 23) {
+                        *byte == b'-'
+                    } else {
+                        byte.is_ascii_hexdigit()
+                    }
+                })
+                || name.len() != 12
+                || !name.bytes().all(|byte| byte.is_ascii_hexdigit())
+            {
+                bail!(
+                    "benchmarkSimulator requires a simulator UDID and a disposable benchmark name"
+                );
+            }
+        }
+        if let Some(runner) = &self.benchmark_xctestrun
+            && (self.benchmark_simulator.is_none()
+                || !runner.is_absolute()
+                || runner.extension().and_then(|ext| ext.to_str()) != Some("xctestrun"))
+        {
+            bail!("benchmarkXctestrun requires an absolute .xctestrun path and benchmarkSimulator");
+        }
         if self.app_path.as_os_str().is_empty() {
             bail!("appPath is required");
         }
@@ -396,6 +467,85 @@ mod shape_tests {
 
     fn parse_manifest(body: Value) -> AppManifest {
         serde_json::from_value(manifest_value(body)).expect("test manifest must parse")
+    }
+
+    #[test]
+    fn benchmark_simulator_requires_a_disposable_name_and_canonical_udid() {
+        let value =
+            |udid: &str, name: &str| json!({"benchmarkSimulator": {"udid": udid, "name": name}});
+        let udid = "FD81F957-6715-4C2B-98BC-444BB15D3043";
+        let name = "AshnazgIosBenchmark-86bbd0d8a961";
+        assert!(parse_manifest(value(udid, name)).validate().is_ok());
+        for (id, label) in [
+            ("booted", name),
+            (udid, "Personal iPhone"),
+            (udid, "AshnazgIosBenchmark-"),
+        ] {
+            assert!(parse_manifest(value(id, label)).validate().is_err());
+        }
+    }
+
+    #[test]
+    fn benchmark_test_runner_requires_a_disposable_simulator_and_absolute_xctestrun() {
+        let runner = json!({"benchmarkXctestrun": "/var/tmp/Probe.xctestrun"});
+        assert!(parse_manifest(runner).validate().is_err());
+        let value = |path| {
+            json!({
+                "benchmarkSimulator": {
+                    "udid": "FD81F957-6715-4C2B-98BC-444BB15D3043",
+                    "name": "AshnazgIosBenchmark-86bbd0d8a961",
+                },
+                "benchmarkXctestrun": path,
+            })
+        };
+        assert!(
+            parse_manifest(value("/var/tmp/Probe.xctestrun"))
+                .validate()
+                .is_ok()
+        );
+        assert!(
+            parse_manifest(value("relative.xctestrun"))
+                .validate()
+                .is_err()
+        );
+        assert!(
+            parse_manifest(value("/var/tmp/Probe.app"))
+                .validate()
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn benchmark_simulator_must_match_the_booted_device_in_the_pinned_runtime() {
+        let manifest = parse_manifest(json!({"benchmarkSimulator": {
+            "udid": "FD81F957-6715-4C2B-98BC-444BB15D3043",
+            "name": "AshnazgIosBenchmark-86bbd0d8a961",
+        }}));
+        let entry = json!({
+            "udid": "fd81f957-6715-4c2b-98bc-444bb15d3043",
+            "name": "AshnazgIosBenchmark-86bbd0d8a961",
+            "state": "Booted",
+            "isAvailable": true,
+            "deviceTypeIdentifier": manifest.device_type,
+        });
+        let inventory = |entries| json!({"devices": {(&manifest.runtime): entries}});
+        assert!(
+            manifest
+                .verify_benchmark_simulator(&inventory(vec![entry.clone()]))
+                .is_ok()
+        );
+        let mut wrong = entry.clone();
+        wrong["state"] = json!("Shutdown");
+        assert!(
+            manifest
+                .verify_benchmark_simulator(&inventory(vec![wrong]))
+                .is_err()
+        );
+        assert!(
+            manifest
+                .verify_benchmark_simulator(&inventory(vec![entry.clone(), entry]))
+                .is_err()
+        );
     }
 
     #[test]
