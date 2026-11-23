@@ -8,9 +8,12 @@ and the fixture carries a synthetic secure field for redaction checks.
 Screenshots and a small synthetic semantic snapshot are attachments in the
 XCTest result bundle.
 
-Use macOS with Xcode, an installed iOS Simulator runtime, and XcodeGen. Select a
-dedicated simulator in the Device panel and use its exact UDID for the test
-destination.
+Use macOS with Xcode, an installed iOS Simulator runtime, and XcodeGen. Packaged
+macOS release archives bundle the XcodeGen fixture sources at `platform/ios/`
+beside `bin/ashnazg`, so released binaries resolve them automatically; set
+`ASHNAZG_IOS_FIXTURE_SOURCE` only to override the fixture source directory.
+Select a dedicated simulator in the Device panel and use its exact UDID for
+the test destination.
 
 ```sh
 cd platform/ios
@@ -139,15 +142,19 @@ itself are exactly those three dev-menu argv flags. Readiness is bounded:
 the app must own the foreground and the ready selector must resolve to
 exactly one usable element. A tap settles on that observed foreground
 readback — there is no fixture counter in the external path — and
-`deep_link` opens the host-allowlisted URI via availability-gated
-`XCUIApplication.open` (iOS 16.4+).
+`deep_link` opens the host-allowlisted URI through
+`XCUIDevice.shared.system.open`.
 
 ## Verify the mock Meer journey
 
 Start the loopback Metro and mock API for the pinned app. Set the manifest's
 `initialUrl` to that Metro URL and allowlist the exact Search and Home links.
 Keep the synthetic login in a separate local JSON file with `email` and
-`password` fields.
+`password` fields. For Expo Dev Client builds under React Native New
+Architecture / Bridgeless mode (such as `Meer-Dev`), pass `--navigation ui` to
+drive Search and return-to-Home through visible controls; see
+`docs/research/ios-mcp-comparison.md` for why external custom-scheme deep links
+are intercepted by `EXDevLauncherController` when launched with `--initialUrl`.
 
 ```sh
 python3 platform/ios/verify_mcp_app.py \

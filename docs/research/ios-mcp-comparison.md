@@ -175,6 +175,19 @@ Detox sends `openURL` through its in-app client. The Ashnazg candidate used `XCU
 
 The system-handler trial at `3051528` again reached Home with one successful login POST and a valid 1206 × 2622 PNG. The single `exp+meer://search` request returned an advancing snapshot, but Search timed out after 169 polls in 180 seconds. The final snapshot contained none of the four allowlisted IDs (`login-email-input`, `home-search-button`, `search-input`, `search-back-button`). It could not establish the post-link screen or whether the app processed the URL. No Home return action was sent. The receipt in `ashnazg-g8-trial-38558/evidence/receipt.json` records a failure and verified cleanup. The two snapshot calls before submit took 0.285 and 0.169 seconds.
 
+#### Root cause of the `exp+meer://search` timeout in `Meer-Dev`
+
+Source inspection of `meer-mono/apps/mobile` explains the `3051528` symptom without requiring any change to the `ashnazg` bridge (`McpBridgeTests.swift` uses `XCUIDevice.shared.system.open(url)`, which delivers the URL normally to `UIApplicationDelegate`):
+
+- React Navigation (`src/app/navigation/linking.ts`) and `ios/Meer/Info.plist` (`CFBundleURLTypes`) both configure `exp+meer://` and route `search` to `SearchScreen`.
+- However, `Meer-Dev` enables React Native New Architecture / Bridgeless mode (`app.json` `"newArchEnabled": true`, `Info.plist` `"RCTNewArchEnabled": true`).
+- When launched with `--initialUrl` (`EXDevLauncherController.m:281-285`), `EXDevLauncherController` calls `loadApp:` directly and never mounts the Dev Launcher React host (`_reactNativeFactory.rootViewFactory.reactHost == nil`).
+- `ExpoDevLauncherReactDelegateHandler.swift:103` assigns `developmentClientController.appBridge = RCTBridge.current()`, which is `nil` (or unpopulated) in Bridgeless `RCTHost` mode (`RCTBridge.mm:779-782`).
+- When an external custom-scheme deep link such as `exp+meer://search` arrives via `application(_:open:url:options:)`, `ExpoDevLauncherAppDelegateSubscriber.swift:14-16` runs before `RCTLinkingManager` and calls `EXDevLauncherController.onDeepLink(_:options:)`, which delegates non-launcher URLs to `_handleExternalDeepLink:` (`EXDevLauncherController.m:356-400`).
+- Because `_appBridge` is `nil`, `isAppRunning` (`EXDevLauncherController.m:615-622`) returns `NO`; seeing `_reactNativeFactory.rootViewFactory.reactHost == nil`, `_handleExternalDeepLink:` calls `[self navigateToLauncher]`, destroying the running React instance (`destroyReactInstance`), replacing the root view controller with `DevLauncherViewController` (hence zero `Meer` selectors remain in foreground `nodes`), and returning `YES` before `RCTLinkingManager` can dispatch the URL.
+
+Accordingly, `platform/ios/verify_mcp_app.py --navigation ui` is the supported verification mode for `--initialUrl`-launched `Meer-Dev` builds, while `ui_act` (`deep_link`) remains intact for Release/non-dev-launcher targets or fixed `expo-dev-launcher` builds.
+
 ### Direct XCTest timing attachment
 
 The hosted fixture at `0313b4b` recorded 14.900 seconds from `app.launch()` invocation through verified initial controls, and 2.045 seconds from one tap through the counter assertion and capture validation. Both app-scoped PNGs were 960 × 1440. The intervals came from the native monotonic attachment in the passing XCTest result. These are one fixture's observations. The matched comparison still needs the same host, workload and capture extent for all arms. [Hosted XCTest result](https://github.com/edufelip/ashnazg/actions/runs/44620413260/job/135900249617)
