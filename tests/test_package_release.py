@@ -5,7 +5,15 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from scripts.package_release import package_release
+from scripts.package_release import IOS_FIXTURE_FILES, package_release
+
+
+def populate_ios_fixture(root: Path) -> Path:
+    for rel in IOS_FIXTURE_FILES:
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(f"// fixture {rel}\n".encode())
+    return root
 
 
 class PackageReleaseTests(unittest.TestCase):
@@ -27,6 +35,7 @@ class PackageReleaseTests(unittest.TestCase):
             if name in {"host", "helper"}:
                 path.chmod(0o755)
             self.inputs[name] = path
+        self.inputs["ios_fixture"] = populate_ios_fixture(self.root / "ios-fixture")
 
     def tearDown(self):
         self.temp.cleanup()
@@ -35,6 +44,10 @@ class PackageReleaseTests(unittest.TestCase):
         values = {**self.inputs, **overrides}
         platform = values.get("platform", "linux-x86_64")
         helper = overrides.get("helper", self.inputs["helper"] if platform == "macos-aarch64" else None)
+        ios_fixture_dir = overrides.get(
+            "ios_fixture_dir",
+            self.inputs["ios_fixture"] if platform.startswith("macos-") else None,
+        )
         return package_release(
             version="0.3.0",
             source_sha="a" * 40,
@@ -42,6 +55,7 @@ class PackageReleaseTests(unittest.TestCase):
             output=self.root / "release.zip",
             host_binary=values["host"],
             vm_helper=helper,
+            ios_fixture_dir=ios_fixture_dir,
             agent_apk=values["agent"],
             fixture_apk=values["fixture"],
             license_file=values["license"],
@@ -122,15 +136,19 @@ class PackageReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "macos-aarch64"):
             self.build(platform="macos-x86_64", helper=self.inputs["helper"])
 
-    def test_macos_arm_package_requires_and_includes_executable_helper(self):
+    def test_macos_arm_package_requires_and_includes_helper_and_ios_fixture(self):
         with self.assertRaisesRegex(ValueError, "require.*helper"):
             self.build(platform="macos-aarch64", helper=None)
+        with self.assertRaisesRegex(ValueError, "require.*iOS fixture"):
+            self.build(platform="macos-aarch64", ios_fixture_dir=None)
 
         archive_path = self.build(platform="macos-aarch64")
         first_bytes = archive_path.read_bytes()
         self.assertEqual(self.build(platform="macos-aarch64").read_bytes(), first_bytes)
         with zipfile.ZipFile(archive_path) as archive:
-            self.assertIn("bin/ashnazg-vm", archive.namelist())
+            names = archive.namelist()
+            self.assertEqual(names, sorted(names))
+            self.assertIn("bin/ashnazg-vm", names)
             self.assertEqual(archive.read("bin/ashnazg-vm"), self.inputs["helper"].read_bytes())
             helper_info = archive.getinfo("bin/ashnazg-vm")
             self.assertEqual((helper_info.external_attr >> 16) & 0o777, 0o755)
@@ -141,7 +159,33 @@ class PackageReleaseTests(unittest.TestCase):
                 hashlib.sha256(self.inputs["helper"].read_bytes()).hexdigest(),
             )
             helper_digest = hashlib.sha256(archive.read("bin/ashnazg-vm")).hexdigest()
-            self.assertIn(f"{helper_digest}  bin/ashnazg-vm\n", archive.read("SHA256SUMS").decode())
+            checksums = archive.read("SHA256SUMS").decode()
+            self.assertIn(f"{helper_digest}  bin/ashnazg-vm\n", checksums)
+            for rel in IOS_FIXTURE_FILES:
+                member = f"platform/ios/{rel}"
+                expected = (self.inputs["ios_fixture"] / rel).read_bytes()
+                self.assertIn(member, names)
+                self.assertEqual(archive.read(member), expected)
+                member_info = archive.getinfo(member)
+                self.assertEqual((member_info.external_attr >> 16) & 0o777, 0o644)
+                digest = hashlib.sha256(expected).hexdigest()
+                self.assertEqual(manifest["files"][member]["sha256"], digest)
+                self.assertIn(f"{digest}  {member}\n", checksums)
+
+    def test_macos_rejects_missing_or_unexpected_ios_fixture_files(self):
+        broken = populate_ios_fixture(self.root / "ios-broken")
+        (broken / "UITests/SimulatorProbeTests.swift").unlink()
+        with self.assertRaisesRegex(FileNotFoundError, "SimulatorProbeTests.swift"):
+            self.build(platform="macos-aarch64", ios_fixture_dir=broken)
+
+        unexpected = populate_ios_fixture(self.root / "ios-unexpected")
+        (unexpected / "UITests/Extra.swift").write_bytes(b"// extra\n")
+        with self.assertRaisesRegex(ValueError, "unexpected iOS fixture source file"):
+            self.build(platform="macos-aarch64", ios_fixture_dir=unexpected)
+
+    def test_linux_package_rejects_ios_fixture_dir(self):
+        with self.assertRaisesRegex(ValueError, "Linux.*iOS fixture"):
+            self.build(platform="linux-x86_64", ios_fixture_dir=self.inputs["ios_fixture"])
 
     def test_macos_arm_rejects_non_file_or_non_executable_helper(self):
         directory = self.root / "helper-directory"
@@ -155,12 +199,14 @@ class PackageReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "executable"):
             self.build(platform="macos-aarch64", helper=non_executable)
 
-    def test_linux_archive_is_deterministic_and_does_not_contain_helper(self):
+    def test_linux_archive_is_deterministic_and_does_not_contain_macos_assets(self):
         first = self.build().read_bytes()
         second = self.build().read_bytes()
         self.assertEqual(first, second)
         with zipfile.ZipFile(self.root / "release.zip") as archive:
-            self.assertNotIn("bin/ashnazg-vm", archive.namelist())
+            names = archive.namelist()
+            self.assertNotIn("bin/ashnazg-vm", names)
+            self.assertFalse(any(name.startswith("platform/ios/") for name in names))
 
 
 if __name__ == "__main__":

@@ -12,8 +12,9 @@ import zipfile
 from pathlib import Path
 
 if __package__:
-    from scripts import runtime_catalog
+    from scripts import package_release, runtime_catalog
 else:  # support direct `python scripts/runtime_release.py ...` execution
+    import package_release
     import runtime_catalog
 
 
@@ -39,6 +40,9 @@ GUEST_MEMBERS = {
 ZIP_BASE_MEMBERS = {
     "LICENSE", "README-SETUP.md", "THIRD-PARTY-NOTICES.tar.xz", "android/agent-instrumentation.apk",
     "android/fixture-instrumentation.apk", "bin/ashnazg",
+}
+IOS_FIXTURE_MEMBERS = {
+    f"platform/ios/{rel}" for rel in package_release.IOS_FIXTURE_FILES
 }
 
 
@@ -254,7 +258,11 @@ def lzma_error():
 def _validate_zip(path, *, source_sha, version, platform, raw_helper, raw_agent, raw_fixture):
     try:
         with zipfile.ZipFile(path) as archive:
-            payload_names = ZIP_BASE_MEMBERS | ({"bin/ashnazg-vm"} if platform == "macos-aarch64" else set())
+            payload_names = (
+                ZIP_BASE_MEMBERS
+                | ({"bin/ashnazg-vm"} if platform == "macos-aarch64" else set())
+                | (IOS_FIXTURE_MEMBERS if platform.startswith("macos-") else set())
+            )
             infos = archive.infolist()
             names = [item.filename for item in infos]
             if len(names) != len(set(names)) or set(names) != payload_names | {"manifest.json", "SHA256SUMS"}:

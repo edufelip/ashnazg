@@ -10,6 +10,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
+from scripts.package_release import IOS_FIXTURE_FILES
 from scripts.runtime_release import prepare_release, verify_release
 
 
@@ -92,6 +93,8 @@ class RuntimeReleaseTests(unittest.TestCase):
             }
             if platform == "macos-aarch64":
                 contents["bin/ashnazg-vm"] = zip_helper or helper
+                for rel in IOS_FIXTURE_FILES:
+                    contents[f"platform/ios/{rel}"] = f"// fixture {rel}\n".encode()
             manifest = {"name": "ashnazg", "version": VERSION, "source_sha": source_sha,
                         "platform": platform,
                         "files": {path: {"sha256": digest(data), "size": len(data)}
@@ -138,13 +141,19 @@ class RuntimeReleaseTests(unittest.TestCase):
                 (folder / name).write_bytes(data)
             helper = self.root / f"ashnazg-vm-v{VERSION}-macos-aarch64"
             helper.chmod(0o755)
+            ios_fixture = folder / "ios-fixture"
+            for rel in IOS_FIXTURE_FILES:
+                target = ios_fixture / rel
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(f"// actual ios {rel}\n".encode())
             for platform in ("linux-x86_64", "macos-aarch64"):
                 package_release(version=VERSION, source_sha=SOURCE_SHA, platform=platform,
                     output=self.root / f"ashnazg-v{VERSION}-{platform}.zip", host_binary=folder / "host",
                     agent_apk=self.root / f"ashnazg-agent-v{VERSION}.apk",
                     fixture_apk=self.root / f"ashnazg-fixture-v{VERSION}.apk",
                     license_file=folder / "license", setup_file=folder / "setup", third_party_notices=folder / "notices",
-                    vm_helper=helper if platform == "macos-aarch64" else None)
+                    vm_helper=helper if platform == "macos-aarch64" else None,
+                    ios_fixture_dir=ios_fixture if platform == "macos-aarch64" else None)
             self.prepare()
             self.assertTrue(verify_release(self.root, source_sha=SOURCE_SHA))
             checksums = (self.root / "SHA256SUMS").read_text()

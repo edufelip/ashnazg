@@ -1107,16 +1107,7 @@ impl FixtureSession {
     }
 
     fn fixture_source() -> anyhow::Result<PathBuf> {
-        let source = env::var_os("ASHNAZG_IOS_FIXTURE_SOURCE")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("platform/ios"));
-        if !source.join("project.yml").is_file() {
-            bail!(
-                "iOS fixture sources are missing at {}; set ASHNAZG_IOS_FIXTURE_SOURCE",
-                source.display()
-            );
-        }
-        Ok(source)
+        crate::ios_app::resolve_fixture_source()
     }
 
     async fn newest_runtime() -> anyhow::Result<String> {

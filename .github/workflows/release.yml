@@ -27,7 +27,10 @@ on:
       - build.rs
       - build_support/**
       - src/build_identity.rs
+      - src/ios_app.rs
+      - src/ios_fixture.rs
       - rust-tests/build_identity.rs
+      - platform/ios/**
       - platform/macos/**
   workflow_dispatch:
     inputs:
@@ -142,13 +145,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
       - name: Test release producers and build agent and fixture once
         run: |
-          python3 -m unittest tests.test_package_release tests.test_runtime_catalog tests.test_runtime_release tests.test_runtime_sources tests.test_rust_notices tests.test_native_cli_acceptance tests.test_release_workflow -v
-          cd agent-android && ./gradlew :agent:assembleDebug :fixture:assembleDebug
+          python3 -m unittest tests.test_package_release tests.test_runtime_catalog tests.test_runtime_release tests.test_runtime_sources tests.test_rust_notices tests.test_native_cli_acceptance tests.test_release_workflow tests.test_ci_gradle -v
+          python3 scripts/ci_gradle.py --workdir agent-android -- :agent:assembleDebug :fixture:assembleDebug
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: android-release-apks
@@ -212,13 +216,13 @@ jobs:
           cargo vendor --locked "$RUNNER_TEMP/notice-vendor" > "$RUNNER_TEMP/notice-vendor-config.toml"
           python3 scripts/rust_notices.py --vendor "$RUNNER_TEMP/notice-vendor" --cargo-lock Cargo.lock \
             --output "$RUNNER_TEMP/THIRD-PARTY-NOTICES.tar.xz"
-          helper_args=()
+          platform_args=()
           case "$(uname -s):$(uname -m)" in
             Linux:x86_64) platform=linux-x86_64 ;;
             Darwin:arm64)
               platform=macos-aarch64
               cp platform/macos/.build/release/ashnazg-vm release-files/ashnazg-vm-v0.3.0-macos-aarch64
-              helper_args=(--vm-helper release-files/ashnazg-vm-v0.3.0-macos-aarch64)
+              platform_args=(--vm-helper release-files/ashnazg-vm-v0.3.0-macos-aarch64 --ios-fixture-dir platform/ios)
               ;;
             *) echo 'Unsupported release runner architecture' >&2; exit 1 ;;
           esac
@@ -227,7 +231,7 @@ jobs:
             --agent-apk android-apks/agent/build/outputs/apk/debug/agent-debug.apk \
             --fixture-apk android-apks/fixture/build/outputs/apk/debug/fixture-debug.apk \
             --license-file LICENSE --setup-file docs/releases.md \
-            --third-party-notices "$RUNNER_TEMP/THIRD-PARTY-NOTICES.tar.xz" "${helper_args[@]}"
+            --third-party-notices "$RUNNER_TEMP/THIRD-PARTY-NOTICES.tar.xz" "${platform_args[@]}"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-${{ matrix.os }}

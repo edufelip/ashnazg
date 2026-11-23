@@ -19,10 +19,52 @@ ARCHIVE_FILES = {
     "setup_file": "README-SETUP.md",
     "third_party_notices": "THIRD-PARTY-NOTICES.tar.xz",
 }
+IOS_FIXTURE_FILES = (
+    "project.yml",
+    "Fixture/ProbeApp.swift",
+    "UITests/McpBridgeTests.swift",
+    "UITests/MeerJourneyBenchmarkTests.swift",
+    "UITests/SimulatorProbeTests.swift",
+)
+_IOS_SOURCE_SUFFIXES = {".swift", ".yml", ".yaml", ".plist"}
+
+
+def _collect_ios_fixture_files(ios_fixture_dir, output: Path) -> dict[str, bytes]:
+    source_root = Path(ios_fixture_dir)
+    if not source_root.is_dir() or source_root.is_symlink():
+        raise FileNotFoundError(f"required real directory for ios_fixture_dir: {source_root}")
+
+    expected_set = set(IOS_FIXTURE_FILES)
+    for rel_dir in ("", "Fixture", "UITests"):
+        directory = source_root / rel_dir if rel_dir else source_root
+        if not directory.is_dir() or directory.is_symlink():
+            raise FileNotFoundError(f"missing iOS fixture directory: {directory}")
+        for entry in sorted(directory.iterdir()):
+            rel = f"{rel_dir}/{entry.name}" if rel_dir else entry.name
+            if entry.is_symlink():
+                if entry.suffix.lower() in _IOS_SOURCE_SUFFIXES or rel in expected_set:
+                    raise FileNotFoundError(f"iOS fixture source must be a regular non-symlink file: {entry}")
+                continue
+            if entry.is_file() and entry.suffix.lower() in _IOS_SOURCE_SUFFIXES and rel not in expected_set:
+                raise ValueError(f"unexpected iOS fixture source file: {rel}")
+
+    collected = {}
+    for rel in IOS_FIXTURE_FILES:
+        source = source_root / rel
+        if not source.is_file() or source.is_symlink():
+            raise FileNotFoundError(f"required regular file for ios_fixture_dir/{rel}: {source}")
+        if source.resolve() == output.resolve():
+            raise ValueError(f"output cannot replace input file: {source}")
+        content = source.read_bytes()
+        if not content:
+            raise ValueError(f"iOS fixture source file must not be empty: {source}")
+        collected[f"platform/ios/{rel}"] = content
+    return collected
 
 
 def package_release(*, version, source_sha, platform, output, host_binary,
-                    agent_apk, fixture_apk, license_file, setup_file, third_party_notices, vm_helper=None):
+                    agent_apk, fixture_apk, license_file, setup_file, third_party_notices,
+                    vm_helper=None, ios_fixture_dir=None):
     if version != VERSION:
         raise ValueError(f"version must match this package release: {VERSION}")
     if not SHA_RE.fullmatch(source_sha):
@@ -31,10 +73,14 @@ def package_release(*, version, source_sha, platform, output, host_binary,
         raise ValueError("platform must identify the actual supported OS and architecture")
     if platform.startswith("linux-") and vm_helper is not None:
         raise ValueError("Linux packages must not include a VM helper")
+    if platform.startswith("linux-") and ios_fixture_dir is not None:
+        raise ValueError("Linux packages must not include iOS fixture sources")
     if platform == "macos-x86_64" and vm_helper is not None:
         raise ValueError("VM helper is only supported for macos-aarch64 packages")
     if platform == "macos-aarch64" and vm_helper is None:
         raise ValueError("macos-aarch64 packages require a VM helper")
+    if platform.startswith("macos-") and ios_fixture_dir is None:
+        raise ValueError("macOS packages require iOS fixture sources")
 
     output = Path(output)
     payload = {}
@@ -55,6 +101,9 @@ def package_release(*, version, source_sha, platform, output, host_binary,
         if helper.resolve() == output.resolve():
             raise ValueError(f"output cannot replace input file: {helper}")
         payload["bin/ashnazg-vm"] = helper.read_bytes()
+
+    if ios_fixture_dir is not None:
+        payload.update(_collect_ios_fixture_files(ios_fixture_dir, output))
 
     files = {
         name: {"sha256": hashlib.sha256(content).hexdigest(), "size": len(content)}
@@ -93,6 +142,7 @@ def main():
     for arg in ARCHIVE_FILES:
         parser.add_argument("--" + arg.replace("_", "-"), required=True)
     parser.add_argument("--vm-helper")
+    parser.add_argument("--ios-fixture-dir")
     args = vars(parser.parse_args())
     package_release(**args)
 
