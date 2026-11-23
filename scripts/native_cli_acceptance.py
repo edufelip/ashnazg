@@ -607,10 +607,10 @@ def _verified_candidate(directory: Path, binary: Path, fixture: Path, source_sha
         from scripts.runtime_release import verify_release
     else:
         from runtime_release import verify_release
-    verify_release(directory, source_sha=source_sha, version="0.3.0")
-    catalog_path = directory / "ashnazg-runtime-v0.3.0.json"
+    verify_release(directory, source_sha=source_sha, version="0.3.1")
+    catalog_path = directory / "ashnazg-runtime-v0.3.1.json"
     catalog = json.loads(catalog_path.read_text())
-    with zipfile.ZipFile(directory / "ashnazg-v0.3.0-macos-aarch64.zip") as archive:
+    with zipfile.ZipFile(directory / "ashnazg-v0.3.1-macos-aarch64.zip") as archive:
         metadata = json.loads(archive.read("manifest.json"))["files"]["bin/ashnazg"]
     if binary.stat().st_size != metadata["size"] or sha256_file(binary) != metadata["sha256"]:
         raise AcceptanceError("tested binary differs from source-bound candidate package")

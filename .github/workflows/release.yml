@@ -44,7 +44,7 @@ on:
         description: Successful Release prepare run ID (publish only)
         type: string
       acceptance_commit:
-        description: Main commit retaining docs/evidence/runtime-release-0.3.0/receipt.json (publish only)
+        description: Main commit retaining docs/evidence/runtime-release-0.3.1/receipt.json (publish only)
         type: string
 
 permissions:
@@ -87,7 +87,7 @@ jobs:
           set -euo pipefail
           [[ "$(git rev-parse HEAD)" == "$SOURCE_SHA" ]]
           version="$(sed -n 's/^version = "\([^"]*\)"$/\1/p' Cargo.toml | head -n1)"
-          [[ "$version" == 0.3.0 ]]
+          [[ "$version" == 0.3.1 ]]
           prepare=false
           publish=false
           guest_run_id=
@@ -103,7 +103,7 @@ jobs:
                 .head_branch == "main" and .status == "completed" and .conclusion == "success"' <<< "$run" >/dev/null
               SOURCE_SHA="$(jq -r .head_sha <<< "$run")"
               [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
-              [[ "$(git rev-parse 'v0.3.0^{commit}')" == "$SOURCE_SHA" ]]
+              [[ "$(git rev-parse 'v0.3.1^{commit}')" == "$SOURCE_SHA" ]]
               publish=true
             else
               [[ "$OPERATION" == prepare && -z "$PREPARED_RUN" && -z "$ACCEPTANCE_COMMIT" ]]
@@ -221,13 +221,13 @@ jobs:
             Linux:x86_64) platform=linux-x86_64 ;;
             Darwin:arm64)
               platform=macos-aarch64
-              cp platform/macos/.build/release/ashnazg-vm release-files/ashnazg-vm-v0.3.0-macos-aarch64
-              platform_args=(--vm-helper release-files/ashnazg-vm-v0.3.0-macos-aarch64 --ios-fixture-dir platform/ios)
+              cp platform/macos/.build/release/ashnazg-vm release-files/ashnazg-vm-v0.3.1-macos-aarch64
+              platform_args=(--vm-helper release-files/ashnazg-vm-v0.3.1-macos-aarch64 --ios-fixture-dir platform/ios)
               ;;
             *) echo 'Unsupported release runner architecture' >&2; exit 1 ;;
           esac
-          python3 scripts/package_release.py --version 0.3.0 --source-sha "$SOURCE_SHA" --platform "$platform" \
-            --output "release-files/ashnazg-v0.3.0-$platform.zip" --host-binary target/release/ashnazg \
+          python3 scripts/package_release.py --version 0.3.1 --source-sha "$SOURCE_SHA" --platform "$platform" \
+            --output "release-files/ashnazg-v0.3.1-$platform.zip" --host-binary target/release/ashnazg \
             --agent-apk android-apks/agent/build/outputs/apk/debug/agent-debug.apk \
             --fixture-apk android-apks/fixture/build/outputs/apk/debug/fixture-debug.apk \
             --license-file LICENSE --setup-file docs/releases.md \
@@ -308,16 +308,16 @@ jobs:
           PYTHON
           rustup toolchain install stable --profile minimal
           cargo +stable vendor --locked "$RUNNER_TEMP/runtime-vendor" > "$RUNNER_TEMP/vendor-config.toml"
-          cp guest-build/microvm-assets.tar.xz release-assets/ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz
-          cp android-apks/agent/build/outputs/apk/debug/agent-debug.apk release-assets/ashnazg-agent-v0.3.0.apk
-          cp android-apks/fixture/build/outputs/apk/debug/fixture-debug.apk release-assets/ashnazg-fixture-v0.3.0.apk
-          python3 scripts/runtime_sources.py --assets guest-assets --repo-root . --rust-vendor "$RUNNER_TEMP/runtime-vendor" --version 0.3.0 --source-sha "$SOURCE_SHA" \
-            --output release-assets/ashnazg-runtime-sources-v0.3.0-001.tar.xz
-          python3 scripts/runtime_release.py prepare --directory release-assets --source-sha "$SOURCE_SHA" --version 0.3.0
-          python3 scripts/runtime_release.py verify --directory release-assets --source-sha "$SOURCE_SHA" --version 0.3.0
+          cp guest-build/microvm-assets.tar.xz release-assets/ashnazg-microvm-v0.3.1-linux-aarch64.tar.xz
+          cp android-apks/agent/build/outputs/apk/debug/agent-debug.apk release-assets/ashnazg-agent-v0.3.1.apk
+          cp android-apks/fixture/build/outputs/apk/debug/fixture-debug.apk release-assets/ashnazg-fixture-v0.3.1.apk
+          python3 scripts/runtime_sources.py --assets guest-assets --repo-root . --rust-vendor "$RUNNER_TEMP/runtime-vendor" --version 0.3.1 --source-sha "$SOURCE_SHA" \
+            --output release-assets/ashnazg-runtime-sources-v0.3.1-001.tar.xz
+          python3 scripts/runtime_release.py prepare --directory release-assets --source-sha "$SOURCE_SHA" --version 0.3.1
+          python3 scripts/runtime_release.py verify --directory release-assets --source-sha "$SOURCE_SHA" --version 0.3.1
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: release-prepared-v0.3.0-${{ needs.validate-source.outputs.source_sha }}
+          name: release-prepared-v0.3.1-${{ needs.validate-source.outputs.source_sha }}
           if-no-files-found: error
           retention-days: 30
           path: release-assets/*
@@ -338,7 +338,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: release-prepared-v0.3.0-${{ needs.validate-source.outputs.source_sha }}
+          name: release-prepared-v0.3.1-${{ needs.validate-source.outputs.source_sha }}
           path: release-assets
           run-id: ${{ inputs.prepared_run_id }}
           github-token: ${{ github.token }}
@@ -350,11 +350,11 @@ jobs:
           PREPARED_RUN: ${{ inputs.prepared_run_id }}
         run: |
           set -euo pipefail
-          python3 scripts/runtime_release.py verify --directory release-assets --source-sha "$SOURCE_SHA" --version 0.3.0
+          python3 scripts/runtime_release.py verify --directory release-assets --source-sha "$SOURCE_SHA" --version 0.3.1
           git fetch origin main --tags
-          [[ "$(git rev-parse 'v0.3.0^{commit}')" == "$SOURCE_SHA" ]]
+          [[ "$(git rev-parse 'v0.3.1^{commit}')" == "$SOURCE_SHA" ]]
           git merge-base --is-ancestor "$ACCEPTANCE_COMMIT" origin/main
-          git show "$ACCEPTANCE_COMMIT:docs/evidence/runtime-release-0.3.0/receipt.json" > accepted.json
+          git show "$ACCEPTANCE_COMMIT:docs/evidence/runtime-release-0.3.1/receipt.json" > accepted.json
           python3 - <<'PYTHON'
           import hashlib, json, os
           from pathlib import Path
@@ -365,5 +365,5 @@ jobs:
           assert receipt['candidate_sha256'] == hashlib.sha256(Path('release-assets/candidate.json').read_bytes()).hexdigest()
           assert set(receipt['passed_modes']) >= {'eof', 'sigterm', 'sigterm-inflight'}
           PYTHON
-          gh release create v0.3.0 release-assets/* --repo "$GITHUB_REPOSITORY" \
-            --title 'Ashnazg v0.3.0 experimental native runtime' --notes-file docs/releases.md --verify-tag --prerelease
+          gh release create v0.3.1 release-assets/* --repo "$GITHUB_REPOSITORY" \
+            --title 'Ashnazg v0.3.1 experimental native runtime' --notes-file docs/releases.md --verify-tag --prerelease

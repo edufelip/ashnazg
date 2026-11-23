@@ -49,7 +49,7 @@ struct ValidatedAssets {
         do { manifest = try JSONDecoder().decode(AssetManifest.self, from: Data(contentsOf: manifestURL)) }
         catch { throw AssetError.invalid("cannot parse manifest.json: \(error.localizedDescription)") }
         guard manifest.schema_version == 1 else { throw AssetError.invalid("unsupported manifest schema_version; expected 1") }
-        guard manifest.version == "0.3.0",
+        guard manifest.version == "0.3.1",
               manifest.guest.kernel_version == "6.12.117",
               manifest.guest.base == "alpine-3.22.8-aarch64",
               manifest.guest.redroid_index == "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee" else {

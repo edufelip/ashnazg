@@ -38,7 +38,7 @@ exclude other users and serialize legitimate writers; hostile same-user
 mutation is outside this boundary.
 
 `runtime_acquire::acquire_runtime` is the library composition for the fixed
-`0.3.0` helper contract. It checks the requested version, 40-character source
+`0.3.1` helper contract. It checks the requested version, 40-character source
 SHA, cancellation state and absolute deadline before opening the cache. One
 blocking worker owns the lock and its stage from cache selection through
 download, extraction, validation, cleanup and no-replace promotion. On a miss,
@@ -71,7 +71,7 @@ there are no environment or arbitrary path/hash overrides. Startup rejects
 unsupported hosts before acquisition, ensures only these app-owned directory
 trees with descriptor-relative no-follow operations, and refuses unsafe
 existing directories without repairing or deleting them. It uses the fixed
-0.3.0 contract and 900-second acquisition deadline, checks returned version
+0.3.1 contract and 900-second acquisition deadline, checks returned version
 and source identity, then starts `NativeSession` with the helper and agent APK
 hashes retained from the validated catalog. The launch identity uses ports
 15555, 7777 and 17778 and a fresh 300-second helper startup deadline. A child
