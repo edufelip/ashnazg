@@ -11,7 +11,7 @@ use anyhow::{Context, bail};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::{
-    fs, io,
+    env, fs, io,
     path::{Path, PathBuf},
 };
 
@@ -465,6 +465,82 @@ fn copy_pinned(from: &Path, to: &Path, hasher: &mut Sha256, expected: u64) -> an
         bail!("{} changed size while it was staged", from.display());
     }
     Ok(())
+}
+
+/// Resolves the `platform/ios` fixture source directory for `--ios-fixture` and
+/// `--ios-app` sessions: an explicit `ASHNAZG_IOS_FIXTURE_SOURCE` override
+/// first, then packaged paths sibling to the executable (`../platform/ios` for
+/// release archives and `platform/ios` next to a flat binary), and finally the
+/// Cargo workspace checkout (`CARGO_MANIFEST_DIR/platform/ios`).
+pub fn resolve_fixture_source() -> anyhow::Result<PathBuf> {
+    let override_dir = env::var_os("ASHNAZG_IOS_FIXTURE_SOURCE")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from);
+    let current_exe = env::current_exe().ok();
+    let canonical_exe = current_exe
+        .as_deref()
+        .and_then(|exe| fs::canonicalize(exe).ok())
+        .filter(|resolved| current_exe.as_deref() != Some(resolved.as_path()));
+    let manifest_dir = option_env!("CARGO_MANIFEST_DIR").map(Path::new);
+    resolve_fixture_source_from(
+        override_dir.as_deref(),
+        current_exe.as_deref(),
+        canonical_exe.as_deref(),
+        manifest_dir,
+    )
+}
+
+pub fn resolve_fixture_source_from(
+    override_dir: Option<&Path>,
+    current_exe: Option<&Path>,
+    canonical_exe: Option<&Path>,
+    manifest_dir: Option<&Path>,
+) -> anyhow::Result<PathBuf> {
+    if let Some(source) = override_dir {
+        if source.join("project.yml").is_file() {
+            return Ok(source.to_path_buf());
+        }
+        bail!(
+            "iOS fixture sources are missing at {}; set ASHNAZG_IOS_FIXTURE_SOURCE",
+            source.display()
+        );
+    }
+
+    let mut candidates = Vec::new();
+    for exe in [current_exe, canonical_exe].into_iter().flatten() {
+        if let Some(root) = exe.parent().and_then(Path::parent) {
+            push_unique_path(&mut candidates, root.join("platform/ios"));
+        }
+        if let Some(dir) = exe.parent() {
+            push_unique_path(&mut candidates, dir.join("platform/ios"));
+        }
+    }
+    if let Some(dir) = manifest_dir {
+        push_unique_path(&mut candidates, dir.join("platform/ios"));
+    }
+
+    for candidate in &candidates {
+        if candidate.join("project.yml").is_file() {
+            return Ok(candidate.clone());
+        }
+    }
+
+    let searched = if candidates.is_empty() {
+        "none".to_owned()
+    } else {
+        candidates
+            .iter()
+            .map(|path| path.display().to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    bail!("iOS fixture sources are missing (searched: {searched}); set ASHNAZG_IOS_FIXTURE_SOURCE");
+}
+
+fn push_unique_path(candidates: &mut Vec<PathBuf>, candidate: PathBuf) {
+    if !candidates.contains(&candidate) {
+        candidates.push(candidate);
+    }
 }
 
 #[cfg(test)]
@@ -1022,5 +1098,90 @@ mod shape_tests {
             stage_tree_pinned(empty_source.path(), empty_staged.path()).is_err(),
             "an empty tree is not an app bundle"
         );
+    }
+
+    #[test]
+    fn fixture_source_resolution_prefers_override_then_packaged_sibling_then_manifest() {
+        let temp = tempfile::tempdir().unwrap();
+        let release_root = temp.path().join("release");
+        let bin_dir = release_root.join("bin");
+        let packaged_ios = release_root.join("platform/ios");
+        let dev_checkout = temp.path().join("checkout");
+        let dev_ios = dev_checkout.join("platform/ios");
+        let override_ios = temp.path().join("override-ios");
+
+        fs::create_dir_all(&bin_dir).unwrap();
+        fs::create_dir_all(&packaged_ios).unwrap();
+        fs::create_dir_all(&dev_ios).unwrap();
+        fs::create_dir_all(&override_ios).unwrap();
+        let exe = bin_dir.join("ashnazg");
+        fs::write(&exe, b"bin").unwrap();
+        fs::write(packaged_ios.join("project.yml"), b"name: Packaged\n").unwrap();
+        fs::write(dev_ios.join("project.yml"), b"name: Dev\n").unwrap();
+        fs::write(override_ios.join("project.yml"), b"name: Override\n").unwrap();
+
+        // Explicit override beats both packaged sibling and manifest checkout.
+        assert_eq!(
+            resolve_fixture_source_from(
+                Some(&override_ios),
+                Some(&exe),
+                None,
+                Some(&dev_checkout),
+            )
+            .unwrap(),
+            override_ios
+        );
+
+        // Missing override fails closed rather than silently falling back.
+        let missing = temp.path().join("missing-override");
+        assert!(
+            resolve_fixture_source_from(Some(&missing), Some(&exe), None, Some(&dev_checkout))
+                .is_err()
+        );
+
+        // Packaged archive layout resolves `../platform/ios` even with no checkout or when a checkout exists.
+        assert_eq!(
+            resolve_fixture_source_from(None, Some(&exe), None, None).unwrap(),
+            packaged_ios
+        );
+        assert_eq!(
+            resolve_fixture_source_from(None, Some(&exe), None, Some(&dev_checkout)).unwrap(),
+            packaged_ios
+        );
+
+        // Symlinked binary resolves via canonical path.
+        let symlink_path = temp.path().join("usr-local-bin/ashnazg");
+        assert_eq!(
+            resolve_fixture_source_from(None, Some(&symlink_path), Some(&exe), None).unwrap(),
+            packaged_ios
+        );
+
+        // Cargo target/debug/ashnazg falls back to manifest checkout when target/platform/ios is absent.
+        let dev_exe = dev_checkout.join("target/debug/ashnazg");
+        assert_eq!(
+            resolve_fixture_source_from(None, Some(&dev_exe), None, Some(&dev_checkout)).unwrap(),
+            dev_ios
+        );
+
+        // Flat layout `<dir>/ashnazg` + `<dir>/platform/ios` resolves cleanly.
+        let flat_dir = temp.path().join("flat");
+        let flat_ios = flat_dir.join("platform/ios");
+        fs::create_dir_all(&flat_ios).unwrap();
+        fs::write(flat_ios.join("project.yml"), b"name: Flat\n").unwrap();
+        let flat_exe = flat_dir.join("ashnazg");
+        assert_eq!(
+            resolve_fixture_source_from(None, Some(&flat_exe), None, None).unwrap(),
+            flat_ios
+        );
+
+        // When no candidate contains project.yml, error reports searched paths.
+        let empty_dir = temp.path().join("empty");
+        fs::create_dir_all(&empty_dir).unwrap();
+        let err =
+            resolve_fixture_source_from(None, Some(&empty_dir.join("bin/ashnazg")), None, None)
+                .unwrap_err()
+                .to_string();
+        assert!(err.contains("ASHNAZG_IOS_FIXTURE_SOURCE"));
+        assert!(err.contains("platform/ios"));
     }
 }

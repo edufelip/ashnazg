@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ashnazg Cross-Platform MCP & Runtime Comparison</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #171e26;
+      --surface-2: #1e2732;
+      --border: #2a3644;
+      --text: #e6edf3;
+      --muted: #91a1b3;
+      --accent-a: #38bdf8;
+      --accent-b: #f59e0b;
+      --accent-c: #34d399;
+      --accent-d: #a78bfa;
+      --warn-bg: rgba(245, 158, 11, 0.12);
+      --warn-border: rgba(245, 158, 11, 0.4);
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f8fa;
+        --surface: #ffffff;
+        --surface-2: #f0f3f7;
+        --border: #d0d7de;
+        --text: #1f2328;
+        --muted: #59636e;
+        --accent-a: #0284c7;
+        --accent-b: #d97706;
+        --accent-c: #059669;
+        --accent-d: #7c3aed;
+        --warn-bg: rgba(217, 119, 6, 0.10);
+        --warn-border: rgba(217, 119, 6, 0.35);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .container {
+      max-width: 1020px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    h1 { font-size: 1.35rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.88rem; }
+    .controls {
+      display: inline-flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .controls button {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .controls button.active {
+      background: var(--accent-a);
+      color: #ffffff;
+    }
+    .callout {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.83rem;
+      color: var(--text);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .card h2 {
+      margin: 0 0 4px;
+      font-size: 1.02rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .meta { margin: 0 0 14px; color: var(--muted); font-size: 0.8rem; }
+    .metric-group { margin-bottom: 14px; }
+    .metric-group:last-child { margin-bottom: 0; }
+    .metric-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .delta { color: var(--accent-c); font-weight: 600; font-size: 0.78rem; }
+    .delta.neutral { color: var(--accent-a); }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 112px 1fr 78px;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+      font-size: 0.8rem;
+    }
+    .bar-label { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar-track {
+      background: var(--surface-2);
+      border-radius: 5px;
+      height: 11px;
+      overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: 5px; transition: width 0.2s ease; }
+    .bar-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .android-real {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .stat-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .stat-label { color: var(--muted); font-size: 0.75rem; margin-bottom: 3px; }
+    .stat-value { font-size: 1.08rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .stat-sub { color: var(--muted); font-size: 0.73rem; margin-top: 2px; }
+    footer {
+      color: var(--muted);
+      font-size: 0.76rem;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Ashnazg Cross-Platform MCP &amp; Runtime Comparison</h1>
+        <p class="subtitle">Verified Android (ReDroid vs AVD) and iOS 26.5 Simulator (ashnazg-mcp vs direct-xctest) medians</p>
+      </div>
+      <div class="controls" role="group" aria-label="Boot condition">
+        <button id="btn-cold" class="active" type="button" onclick="setCondition('cold')">Cold Boot</button>
+        <button id="btn-warm" type="button" onclick="setCondition('warm')">Warm Reboot</button>
+      </div>
+    </header>
+
+    <div class="callout">
+      <strong>Scope &amp; Measurement Boundary:</strong> Android runs on Linux x86_64 (Intel Core i5-12600K, API 35, 2-CPU / 8 GiB cgroup v2 <code>memory.current</code>); iOS runs on Apple Silicon MacBook Air (macOS 27.2.1, Xcode 27.2, iOS 26.5, <code>proc_pid_rusage</code> <code>ri_phys_footprint</code>). Compare within each platform column rather than dividing raw wall clocks across distinct hosts and apps.
+    </div>
+
+    <div class="grid">
+      <section class="card" aria-labelledby="android-title">
+        <h2 id="android-title">Android Fixture MCP <span class="badge">N = 2 pairs · API 35</span></h2>
+        <p class="meta">ReDroid container vs Android Studio AVD (summary.json medians)</p>
+        <div id="android-bars"></div>
+      </section>
+
+      <section class="card" aria-labelledby="ios-title">
+        <h2 id="ios-title">iOS Meer App Journey <span class="badge">N = 3 trials · iOS 26.5</span></h2>
+        <p class="meta">ashnazg mcp --ios-app vs direct-xctest (1206×2622 PNG parity)</p>
+        <div id="ios-bars"></div>
+      </section>
+    </div>
+
+    <section class="android-real" aria-labelledby="highlights-title">
+      <h2 id="highlights-title" style="margin: 0 0 4px; font-size: 1.02rem;">Key Cross-Platform Verified Takeaways</h2>
+      <p class="meta" style="margin-bottom: 0;">Includes Android Meer Detox baseline (N = 20 runs/arm) and iOS 26.5 memory footprint</p>
+      <div class="summary-strip" id="summary-strip"></div>
+    </section>
+
+    <footer>
+      Sources: <code>docs/evidence/agent-session-comparison-2026-11-19/summary.json</code>, <code>docs/evidence/meer-runtime-comparison-2026-11-18/README.md</code>, and <code>docs/research/ios-mcp-comparison.md</code>. Apple mcpbridge excluded from matched Meer iOS 26.5 comparison (requires iOS 27.0+; signed Meer.app aborts on iOS 27.0 with libSystem.B.dylib).
+    </footer>
+  </div>
+
+  <script>
+    const DATA = {
+      cold: {
+        android: [
+          {
+            title: "Launch to First Snapshot (s)",
+            delta: "ReDroid 72.9% faster",
+            max: 75,
+            rows: [
+              { label: "ReDroid", value: 18.74, text: "18.74 s", color: "var(--accent-c)" },
+              { label: "Android AVD", value: 69.26, text: "69.26 s", color: "var(--accent-b)" }
+            ]
+          },
+          {
+            title: "Tap + Fresh Decoded PNG (ms)",
+            delta: "ReDroid 47.6% faster",
+            max: 1800,
+            rows: [
+              { label: "ReDroid", value: 771, text: "771 ms", color: "var(--accent-c)" },
+              { label: "Android AVD", value: 1471, text: "1,471 ms", color: "var(--accent-b)" }
+            ]
+          },
+          {
+            title: "Idle Runtime Memory (GiB)",
+            delta: "ReDroid 78.5% lower",
+            max: 7,
+            rows: [
+              { label: "ReDroid", value: 1.35, text: "1.35 GiB", color: "var(--accent-c)" },
+              { label: "Android AVD", value: 6.28, text: "6.28 GiB", color: "var(--accent-b)" }
+            ]
+          },
+          {
+            title: "Shutdown Cleanup (s)",
+            delta: "Both under 2s",
+            neutral: true,
+            max: 6,
+            rows: [
+              { label: "ReDroid", value: 1.76, text: "1.76 s", color: "var(--accent-c)" },
+              { label: "Android AVD", value: 1.35, text: "1.35 s", color: "var(--accent-b)" }
+            ]
+          }
+        ],
+        ios: [
+          {
+            title: "Whole Journey Elapsed (s)",
+            delta: "+7.92 s MCP setup overhead",
+            neutral: true,
+            max: 70,
+            rows: [
+              { label: "direct-xctest", value: 51.178, text: "51.18 s", color: "var(--accent-d)" },
+              { label: "ashnazg-mcp", value: 59.095, text: "59.10 s", color: "var(--accent-a)" }
+            ]
+          },
+          {
+            title: "Home -> Search Navigation (ms)",
+            delta: "+202 ms (+8.7%) via MCP",
+            neutral: true,
+            max: 3000,
+            rows: [
+              { label: "direct-xctest", value: 2318.2, text: "2,318 ms", color: "var(--accent-d)" },
+              { label: "ashnazg-mcp", value: 2520.3, text: "2,520 ms", color: "var(--accent-a)" }
+            ]
+          },
+          {
+            title: "Search -> Home + PNG (ms)",
+            delta: "+467 ms incl. 1206x2622 PNG",
+            neutral: true,
+            max: 3000,
+            rows: [
+              { label: "direct-xctest", value: 2247.5, text: "2,248 ms", color: "var(--accent-d)" },
+              { label: "ashnazg-mcp", value: 2714.4, text: "2,714 ms", color: "var(--accent-a)" }
+            ]
+          },
+          {
+            title: "Meer App + Simulator Footprint (MiB)",
+            delta: "Identical target footprint",
+            neutral: true,
+            max: 400,
+            rows: [
+              { label: "direct App+Sim", value: 366.3, text: "366.3 MiB", color: "var(--accent-d)" },
+              { label: "MCP App+Sim", value: 362.6, text: "362.6 MiB", color: "var(--accent-a)" }
+            ]
+          }
+        ]
+      },
+      warm: {
+        android: [
+          {
+            title: "Launch to First Snapshot (s)",
+            delta: "ReDroid 60.5% faster",
+            max: 75,
+            rows: [
+              { label: "ReDroid", value: 16.44, text: "16.44 s", color: "var(--accent-c)" },
+              { label: "Android AVD", value: 41.67, text: "41.67 s", color: "var(--accent-b)" }
+            ]
+          },
+          {
+            title: "Tap + Fresh Decoded PNG (ms)",
+            delta: "ReDroid 54.7% faster",
+            max: 1800,
+            rows: [
+              { label: "ReDroid", value: 774, text: "774 ms", color: "var(--accent-c)" },
+              { label: "Android AVD", value: 1709, text: "1,709 ms", color: "var(--accent-b)" }
+            ]
+          },
+          {
+            title: "Idle Runtime Memory (GiB)",
+            delta: "ReDroid 77.3% lower",
+            max: 7,
+            rows: [
+              { label: "ReDroid", value: 1.13, text: "1.13 GiB", color: "var(--accent-c)" },
+              { label: "Android AVD", value: 4.97, text: "4.97 GiB", color: "var(--accent-b)" }
+            ]
+          },
+          {
+            title: "Shutdown Cleanup (s)",
+            delta: "Both under 2s",
+            neutral: true,
+            max: 6,
+            rows: [
+              { label: "ReDroid", value: 1.65, text: "1.65 s", color: "var(--accent-c)" },
+              { label: "Android AVD", value: 1.89, text: "1.89 s", color: "var(--accent-b)" }
+            ]
+          }
+        ],
+        ios: [
+          {
+            title: "Whole Journey Elapsed (s)",
+            delta: "+8.24 s MCP setup overhead",
+            neutral: true,
+            max: 70,
+            rows: [
+              { label: "direct-xctest", value: 55.748, text: "55.75 s", color: "var(--accent-d)" },
+              { label: "ashnazg-mcp", value: 63.987, text: "63.99 s", color: "var(--accent-a)" }
+            ]
+          },
+          {
+            title: "Home -> Search Navigation (ms)",
+            delta: "+231 ms (+9.3%) via MCP",
+            neutral: true,
+            max: 3000,
+            rows: [
+              { label: "direct-xctest", value: 2481.6, text: "2,482 ms", color: "var(--accent-d)" },
+              { label: "ashnazg-mcp", value: 2712.7, text: "2,713 ms", color: "var(--accent-a)" }
+            ]
+          },
+          {
+            title: "Search -> Home + PNG (ms)",
+            delta: "+280 ms incl. 1206x2622 PNG",
+            neutral: true,
+            max: 3000,
+            rows: [
+              { label: "direct-xctest", value: 2411.0, text: "2,411 ms", color: "var(--accent-d)" },
+              { label: "ashnazg-mcp", value: 2691.3, text: "2,691 ms", color: "var(--accent-a)" }
+            ]
+          },
+          {
+            title: "Meer App + Simulator Footprint (MiB)",
+            delta: "Identical runner (~71 MiB)",
+            neutral: true,
+            max: 400,
+            rows: [
+              { label: "direct App+Sim", value: 317.7, text: "317.7 MiB", color: "var(--accent-d)" },
+              { label: "MCP App+Sim", value: 352.2, text: "352.2 MiB", color: "var(--accent-a)" }
+            ]
+          }
+        ]
+      }
+    };
+
+    const HIGHLIGHTS = [
+      { label: "Meer Detox (Android, N=20)", value: "5.87 s vs 10.18 s", sub: "ReDroid p50 vs AVD (-42.3%)" },
+      { label: "iOS Snapshot Batching", value: "0.163 s vs 29.28 s", sub: "Single XCUI snapshot() vs per-element" },
+      { label: "ashnazg Host Binary Overhead", value: "5.5 - 12.2 MiB", sub: "N=1 iOS footprint alongside 71 MiB runner" },
+      { label: "Screenshot Fidelity", value: "1206 x 2622 PNG", sub: "Verified byte parity cold & warm on iOS 26.5" }
+    ];
+
+    function renderGroup(group) {
+      return `
+        <div class="metric-group">
+          <div class="metric-title">
+            <span>${group.title}</span>
+            <span class="delta ${group.neutral ? 'neutral' : ''}">${group.delta}</span>
+          </div>
+          ${group.rows.map((row) => {
+            const pct = Math.min(100, (row.value / group.max) * 100).toFixed(1);
+            return `
+              <div class="bar-row">
+                <span class="bar-label">${row.label}</span>
+                <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${row.color};"></div></div>
+                <span class="bar-val">${row.text}</span>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function setCondition(condition) {
+      document.getElementById("btn-cold").classList.toggle("active", condition === "cold");
+      document.getElementById("btn-warm").classList.toggle("active", condition === "warm");
+      document.getElementById("android-bars").innerHTML = DATA[condition].android.map(renderGroup).join("");
+      document.getElementById("ios-bars").innerHTML = DATA[condition].ios.map(renderGroup).join("");
+    }
+
+    document.getElementById("summary-strip").innerHTML = HIGHLIGHTS.map((item) => `
+      <div class="stat-box">
+        <div class="stat-label">${item.label}</div>
+        <div class="stat-value">${item.value}</div>
+        <div class="stat-sub">${item.sub}</div>
+      </div>
+    `).join("");
+
+    setCondition("cold");
+  </script>
+</body>
+</html>

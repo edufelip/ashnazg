@@ -6,7 +6,20 @@ use std::time::Duration;
 
 use ashnazg::stdio_bridge::OwnedStdioBridge;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tokio_util::sync::CancellationToken;
+
+// Coordinates child spawns across parallel tests so tests that temporarily clear
+// FD_CLOEXEC never leak descriptors into concurrent forks in the same runner.
+static CHILD_SPAWN_BARRIER: RwLock<()> = RwLock::const_new(());
+
+async fn spawn_barrier_shared() -> RwLockReadGuard<'static, ()> {
+    CHILD_SPAWN_BARRIER.read().await
+}
+
+async fn spawn_barrier_exclusive() -> RwLockWriteGuard<'static, ()> {
+    CHILD_SPAWN_BARRIER.write().await
+}
 
 fn pipe() -> (OwnedFd, OwnedFd) {
     let mut fds = [-1; 2];
@@ -61,6 +74,7 @@ fn child_pid_for_fixture(bridge: &OwnedStdioBridge) -> Option<u32> {
 
 #[tokio::test]
 async fn idle_input_cancellation_reaps_child_without_cancelling_caller_token() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (input_reader, _input_writer) = pipe();
     let (_output_reader, output_writer) = pipe();
     let caller_cancel = CancellationToken::new();
@@ -88,6 +102,7 @@ async fn idle_input_cancellation_reaps_child_without_cancelling_caller_token() {
 
 #[tokio::test]
 async fn unrelated_inheritable_writer_is_closed_before_bridge_copies_data() {
+    let _exclusive_fd_window = spawn_barrier_exclusive().await;
     let (input_reader, input_writer) = pipe();
     let (_output_reader, output_writer) = pipe();
     let (unrelated_reader, unrelated_writer) = pipe();
@@ -137,6 +152,7 @@ async fn unrelated_inheritable_writer_is_closed_before_bridge_copies_data() {
 
 #[tokio::test]
 async fn partial_input_eof_preserves_order_and_output_can_still_drain() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (input_reader, input_writer) = pipe();
     let (output_reader, output_writer) = pipe();
     let mut bridge = OwnedStdioBridge::spawn(
@@ -180,6 +196,7 @@ async fn partial_input_eof_preserves_order_and_output_can_still_drain() {
 
 #[tokio::test]
 async fn ipc_output_eof_ends_child_without_joining_blocked_stdin_thread() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (input_reader, _input_writer) = pipe();
     let (_output_reader, output_writer) = pipe();
     let mut bridge = OwnedStdioBridge::spawn(
@@ -217,6 +234,7 @@ async fn ipc_output_eof_ends_child_without_joining_blocked_stdin_thread() {
 
 #[tokio::test]
 async fn test_owned_unix_stream_stdio_is_supported_by_the_isolated_child() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (stdio_socket, peer_socket) = unix_socket_pair(libc::SOCK_STREAM);
     let mut peer = std::os::unix::net::UnixStream::from(peer_socket);
     let mut bridge = OwnedStdioBridge::spawn(
@@ -245,6 +263,7 @@ async fn test_owned_unix_stream_stdio_is_supported_by_the_isolated_child() {
 
 #[tokio::test]
 async fn large_input_burst_is_ordered_across_paused_reader_backpressure() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (input_reader, input_writer) = pipe();
     let (output_reader, output_writer) = pipe();
     let before = unsafe { libc::fcntl(input_reader.as_fd().as_raw_fd(), libc::F_GETFL) };
@@ -280,6 +299,7 @@ async fn large_input_burst_is_ordered_across_paused_reader_backpressure() {
 
 #[tokio::test]
 async fn competing_reader_after_child_activity_does_not_block_cancellation() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (input_reader, input_writer) = pipe();
     let alias = input_reader.try_clone().unwrap();
     let (_output_reader, output_writer) = pipe();
@@ -367,6 +387,7 @@ async fn competing_reader_after_child_activity_does_not_block_cancellation() {
 
 #[tokio::test]
 async fn full_output_pipe_backpressure_is_cancelled_and_reaped() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (input_reader, input_writer) = pipe();
     let (output_reader, output_writer) = pipe();
     let output_fd = output_writer.as_fd().as_raw_fd();
@@ -446,6 +467,7 @@ async fn drive_output_until_backpressured(writer: &mut tokio::net::unix::OwnedWr
 
 #[tokio::test]
 async fn test_owned_canonical_xoff_terminal_is_cancelled_without_input_or_output_progress() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let mut master = -1;
     let mut slave = -1;
     // SAFETY: openpty writes two new descriptors into these variables.
@@ -536,6 +558,7 @@ async fn test_owned_canonical_xoff_terminal_is_cancelled_without_input_or_output
 
 #[tokio::test]
 async fn closed_output_reader_causes_bounded_child_failure_not_parent_sigpipe() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (input_reader, _input_writer) = pipe();
     let (output_reader, output_writer) = pipe();
     drop(output_reader);
@@ -572,6 +595,7 @@ async fn closed_output_reader_causes_bounded_child_failure_not_parent_sigpipe() 
 
 #[tokio::test]
 async fn rejects_regular_files_and_reversed_pipe_access_before_startup() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let mut file = tempfile::tempfile().unwrap();
     file.write_all(b"caller data must remain unchanged")
         .unwrap();
@@ -628,6 +652,7 @@ async fn rejects_regular_files_and_reversed_pipe_access_before_startup() {
 
 #[tokio::test]
 async fn output_pipe_status_flags_are_unchanged_after_bridge_lifecycle() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (input_reader, _input_writer) = pipe();
     let (_output_reader, output_writer) = pipe();
     let fd = output_writer.as_fd().as_raw_fd();
@@ -647,6 +672,7 @@ async fn output_pipe_status_flags_are_unchanged_after_bridge_lifecycle() {
 
 #[tokio::test]
 async fn caller_nonblocking_flags_survive_and_aliases_keep_the_same_status() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (input_reader, _input_writer) = pipe();
     let (_output_reader, output_writer) = pipe();
     let input_alias = input_reader.try_clone().unwrap();
@@ -688,6 +714,7 @@ async fn caller_nonblocking_flags_survive_and_aliases_keep_the_same_status() {
 
 #[tokio::test]
 async fn owner_drop_keeps_cleanup_running_while_runtime_is_alive() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let (input_reader, _input_writer) = pipe();
     let (_output_reader, output_writer) = pipe();
     let bridge = OwnedStdioBridge::spawn(
@@ -722,6 +749,7 @@ async fn assert_process_reaped(pid: u32) {
 
 #[tokio::test]
 async fn malformed_hidden_descriptor_is_rejected_by_actual_executable() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let output = std::process::Command::new(child_executable())
         .args(["--__ashnazg-stdio-bridge", "--fd", "0"])
         .output()
@@ -743,6 +771,7 @@ fn inherited_stdin_read_error_exits_child_with_failure_instead_of_eof() {
             let _ = self.0.wait();
         }
     }
+    let _spawn_guard = CHILD_SPAWN_BARRIER.blocking_read();
     let directory = tempfile::tempdir().unwrap();
     let (parent, child_socket) = unix_socket_pair(libc::SOCK_STREAM);
     let raw = child_socket.as_raw_fd();
@@ -796,6 +825,7 @@ fn inherited_stdin_read_error_exits_child_with_failure_instead_of_eof() {
 
 #[tokio::test]
 async fn public_help_does_not_expose_internal_bridge_mode() {
+    let _spawn_guard = spawn_barrier_shared().await;
     let output = std::process::Command::new(child_executable())
         .arg("--help")
         .output()

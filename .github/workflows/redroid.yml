@@ -44,6 +44,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '24.15.0'
@@ -60,8 +61,8 @@ jobs:
       - name: Build host and Android agent/framework fixtures
         run: |
           cargo build --release --locked
-          cd agent-android && ./gradlew test lint assembleDebug
-          cd ../fixtures && ./gradlew :compose:assembleDebug :reactnative:assembleDebug
+          python3 scripts/ci_gradle.py --workdir agent-android -- test lint assembleDebug
+          python3 scripts/ci_gradle.py --workdir fixtures -- :compose:assembleDebug :reactnative:assembleDebug
       - name: Run complete integration and 100-sample benchmark in ReDroid
         uses: ./
         with:
