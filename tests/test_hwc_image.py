@@ -176,6 +176,31 @@ class HwcImageTests(unittest.TestCase):
             build_hwc_image._probe_hal_path(docker="docker", platform="linux/amd64", runner=runner)
         self.assertFalse(any(command[1] == "rm" for command in commands))
 
+    def test_probe_create_allows_base_image_pull_timeout(self):
+        timeouts = {}
+
+        def runner(args, **kwargs):
+            timeouts[args[1]] = kwargs.get("timeout")
+            if args[1] == "create":
+                ownership_token = args[args.index("--label") + 1].split("=", 1)[1]
+                timeouts["token"] = ownership_token
+                return build_hwc_image.CommandResult(0, "d" * 64)
+            if args[1] == "inspect":
+                return build_hwc_image.CommandResult(0, json.dumps([{
+                    "Id": "d" * 64, "Config": {"Labels": {"org.ashnazg.hwc.probe-id": timeouts["token"]}}
+                }]))
+            if args[1] == "cp":
+                if args[2].endswith(build_hwc_image.ALLOWED_HAL_PATHS[0]):
+                    Path(args[3]).write_bytes(self.elf(62))
+                    return build_hwc_image.CommandResult(0)
+                return build_hwc_image.CommandResult(1, "", "not found")
+            if args[1] == "rm":
+                return build_hwc_image.CommandResult(0)
+            self.fail(f"unexpected command: {args}")
+
+        build_hwc_image._probe_hal_path(docker="docker", platform="linux/amd64", runner=runner)
+        self.assertGreaterEqual(timeouts["create"], 1800)
+
     def test_ambiguous_create_cleans_only_the_matching_label_and_immutable_id(self):
         ownership = {}
         removed = []

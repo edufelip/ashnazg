@@ -193,8 +193,10 @@ def _probe_hal_path(*, docker: str, platform: str, runner: Callable) -> str:
     token = uuid.uuid4().hex
     container_id = None
     try:
+        # Creating the probe container may pull the ~1 GiB base image on a cold runner,
+        # so keep _command's full 1800s budget instead of the 30s local inspect/rm cap.
         result = _command(runner, [docker, "create", "--platform", platform, "--name", name,
-                                   "--label", f"org.ashnazg.hwc.probe-id={token}", "--entrypoint", "/init", base.BASE_IMAGE], timeout=30)
+                                   "--label", f"org.ashnazg.hwc.probe-id={token}", "--entrypoint", "/init", base.BASE_IMAGE])
         value = result.stdout.strip()
         if not re.fullmatch(r"[0-9a-f]{64}", value):
             raise HwcImageBuildError("Docker did not return a valid ID for the owned pinned-base probe container")
