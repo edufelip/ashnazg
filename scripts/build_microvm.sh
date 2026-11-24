@@ -163,16 +163,20 @@ mkdir -p "$ROOTFS/usr/local/bin" "$ROOTFS/etc/profile.d" "$ROOTFS/var/log" "$ROO
 install -m 0644 "$REPO_ROOT/LICENSE" "$ROOTFS/usr/share/licenses/ashnazg/LICENSE"
 install -m 0755 "$REPO_ROOT/runtime/microvm/guest_bridge.py" "$ROOTFS/usr/local/bin/guest_bridge.py"
 mkdir -p "$ROOTFS/usr/local/lib/ashnazg/scripts" "$ROOTFS/var/lib/ashnazg/redroid" "$ROOTFS/run" "$ROOTFS/dev/binderfs"
-install -m 0644 "$REPO_ROOT/scripts/redroid.py" "$ROOTFS/usr/local/lib/ashnazg/scripts/redroid.py"
-install -m 0644 "$REPO_ROOT/scripts/ci_emulator.py" "$ROOTFS/usr/local/lib/ashnazg/scripts/ci_emulator.py"
-install -m 0644 "$REPO_ROOT/scripts/linux_binder.py" "$ROOTFS/usr/local/lib/ashnazg/scripts/linux_binder.py"
+for script in redroid.py ci_emulator.py linux_binder.py session_data.py; do
+  install -m 0644 "$REPO_ROOT/scripts/$script" "$ROOTFS/usr/local/lib/ashnazg/scripts/$script"
+done
 mkdir -p "$ROOTFS/usr/local/lib/ashnazg/runtime/microvm"
 for module in apk_stream agent_session agent_backend control_dispatch adb_agent_stream; do
   install -m 0644 "$REPO_ROOT/runtime/microvm/$module.py" "$ROOTFS/usr/local/lib/ashnazg/runtime/microvm/$module.py"
 done
-# Verify imports with the actual guest interpreter, without starting ADB or a VM.
+# Verify imports and standalone guest entrypoints with the actual guest interpreter, without starting ADB or a VM.
 chroot "$ROOTFS" /usr/bin/env PYTHONPATH=/usr/local/lib/ashnazg PYTHONDONTWRITEBYTECODE=1 \
-  /usr/bin/python3 -c 'from runtime.microvm import apk_stream, agent_session, agent_backend, control_dispatch, adb_agent_stream'
+  /usr/bin/python3 -c 'from scripts import linux_binder, redroid, ci_emulator, session_data; from runtime.microvm import apk_stream, agent_session, agent_backend, control_dispatch, adb_agent_stream'
+chroot "$ROOTFS" /usr/bin/env PYTHONPATH=/usr/local/lib/ashnazg PYTHONDONTWRITEBYTECODE=1 \
+  /usr/bin/python3 /usr/local/lib/ashnazg/scripts/redroid.py --help >/dev/null
+chroot "$ROOTFS" /usr/bin/env PYTHONPATH=/usr/local/lib/ashnazg PYTHONDONTWRITEBYTECODE=1 \
+  /usr/bin/python3 /usr/local/bin/guest_bridge.py --help >/dev/null
 
 cat > "$ROOTFS/etc/profile.d/ashnazg.sh" <<'EOF'
 export PYTHONPATH=/usr/local/lib/ashnazg
@@ -272,6 +276,8 @@ provenance = {
         "pid1": sha256(guest_init), "vsock_bridge": sha256(guest_bridge),
         "redroid_supervisor": sha256(redroid_supervisor),
         "readiness_parser": sha256(readiness_parser),
+        "linux_binder": sha256(repo_root / "scripts/linux_binder.py"),
+        "session_data": sha256(repo_root / "scripts/session_data.py"),
         **{name: sha256(repo_root / "runtime/microvm" / (name + ".py"))
            for name in ("apk_stream", "agent_session", "agent_backend", "control_dispatch", "adb_agent_stream")},
     },

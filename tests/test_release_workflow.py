@@ -42,6 +42,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
     def test_ordinary_quality_retains_path_scope(self):
         self.assertEqual(self.run_guest_scope('false', ['README.md']), 'required=false\n')
         self.assertEqual(self.run_guest_scope('false', ['runtime/microvm/sources.lock.json']), 'required=true\n')
+        self.assertEqual(self.run_guest_scope('false', ['scripts/session_data.py']), 'required=true\n')
 
     def test_invalid_source_fails_before_reporting_a_scope(self):
         with self.assertRaises(AssertionError):
