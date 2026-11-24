@@ -39,6 +39,50 @@ class GuestImageContractTests(unittest.TestCase):
         self.assertIsNotNone(pin)
         self.assertEqual(pin.group(1), self.runtime_index)
 
+    def test_builder_stages_self_contained_guest_scripts_and_entrypoints(self):
+        import shutil
+        import sys
+
+        root = Path(__file__).parents[1]
+        build = (root / 'scripts/build_microvm.sh').read_text()
+        script_loop = re.search(r'^for script in ([^;]+); do$', build, re.M)
+        script_files = set(script_loop.group(1).split()) if script_loop else set()
+        script_files.update(re.findall(r'"\$REPO_ROOT/scripts/([^"/]+\.py)"', build))
+        module_loop = re.search(r'^for module in ([^;]+); do$', build, re.M)
+        self.assertIsNotNone(module_loop)
+        microvm_modules = module_loop.group(1).split()
+        self.assertIn('session_data.py', script_files)
+
+        with tempfile.TemporaryDirectory() as directory:
+            staging = Path(directory)
+            lib_dir = staging / 'usr/local/lib/ashnazg'
+            (lib_dir / 'scripts').mkdir(parents=True)
+            (lib_dir / 'runtime/microvm').mkdir(parents=True)
+            (staging / 'usr/local/bin').mkdir(parents=True)
+            for name in script_files:
+                shutil.copy2(root / 'scripts' / name, lib_dir / 'scripts' / name)
+            for name in microvm_modules:
+                shutil.copy2(root / 'runtime/microvm' / f'{name}.py', lib_dir / 'runtime/microvm' / f'{name}.py')
+            bridge = staging / 'usr/local/bin/guest_bridge.py'
+            shutil.copy2(root / 'runtime/microvm/guest_bridge.py', bridge)
+
+            env = {'PYTHONPATH': str(lib_dir), 'PYTHONDONTWRITEBYTECODE': '1'}
+            imports = subprocess.run(
+                [
+                    sys.executable, '-s', '-c',
+                    'import scripts.linux_binder, scripts.redroid, scripts.ci_emulator, scripts.session_data; '
+                    'from runtime.microvm import apk_stream, agent_session, agent_backend, control_dispatch, adb_agent_stream',
+                ],
+                cwd=directory, env=env, capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(imports.returncode, 0, imports.stderr)
+            for entrypoint in (lib_dir / 'scripts/redroid.py', bridge):
+                result = subprocess.run(
+                    [sys.executable, '-s', str(entrypoint), '--help'],
+                    cwd=directory, env=env, capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(result.returncode, 0, f'{entrypoint.name} failed: {result.stderr}')
+
 
 class ManifestTests(unittest.TestCase):
     def setUp(self):

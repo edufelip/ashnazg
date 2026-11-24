@@ -44,7 +44,7 @@ jobs:
               paths = subprocess.check_output(['git', 'diff', '--name-only', '--no-renames', base, head], text=True).splitlines()
               exact = {'.github/workflows/microvm.yml', 'scripts/build_microvm.sh', 'scripts/guest_packages.py',
                        'scripts/redroid.py', 'scripts/linux_binder.py', 'scripts/ci_emulator.py',
-                       'scripts/runtime_inventory.py', 'tests/test_runtime_inventory.py'}
+                       'scripts/session_data.py', 'scripts/runtime_inventory.py', 'tests/test_runtime_inventory.py'}
               required = any(p.startswith('runtime/microvm/') or p in exact for p in paths)
           with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
               stream.write('required=' + str(required).lower() + '\n')
