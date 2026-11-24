@@ -375,10 +375,14 @@ func configureNoSIGPIPE(_ fd: Int32) {
     _ = setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &enabled, socklen_t(MemoryLayout<Int32>.size))
 }
 
+func configureReuseAddress(_ fd: Int32) {
+    var enabled: Int32 = 1
+    _ = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &enabled, socklen_t(MemoryLayout<Int32>.size))
+}
+
 final class RelayServer {
-    private let vm: VZVirtualMachine
     private let port: Int
-    private let guestPort: UInt32
+    private let connectGuest: @MainActor () async throws -> (fd: Int32, closeConnection: () -> Void)?
     private let queue = DispatchQueue(label: "dev.ashnazg.adb-relay", qos: .userInitiated)
     private let activeLock = NSLock()
     private let listenerLock = NSLock()
@@ -388,15 +392,30 @@ final class RelayServer {
     private var activeFDs = Set<Int32>()
     private var stopped = false
     private var shuttingDown = false
-    init(vm: VZVirtualMachine, port: Int, guestPort: UInt32 = 15555) { self.vm = vm; self.port = port; self.guestPort = guestPort }
+    convenience init(vm: VZVirtualMachine, port: Int, guestPort: UInt32 = 15555) {
+        self.init(port: port) {
+            guard let socketDevice = vm.socketDevices.first as? VZVirtioSocketDevice else { return nil }
+            let connection = try await connect(to: socketDevice, port: guestPort, deadline: StartupDeadline(after: .seconds(30)))
+            return (connection.fileDescriptor, { connection.close() })
+        }
+    }
+    init(port: Int, connectGuest: @escaping @MainActor () async throws -> (fd: Int32, closeConnection: () -> Void)? = { nil }) {
+        self.port = port
+        self.connectGuest = connectGuest
+    }
     func start() throws {
         listener = socket(AF_INET, SOCK_STREAM, 0)
         guard listener >= 0 else { throw AssetError.invalid("cannot create ADB listener socket") }
         configureNoSIGPIPE(listener)
+        configureReuseAddress(listener)
         var address = sockaddr_in(); address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size); address.sin_family = sa_family_t(AF_INET)
         address.sin_port = in_port_t(port).bigEndian; address.sin_addr = in_addr(s_addr: in_addr_t(0x7f000001).bigEndian)
         let bound = withUnsafePointer(to: &address) { $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(listener, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) } }
-        guard bound == 0, listen(listener, 16) == 0 else { close(); throw AssetError.invalid("cannot bind 127.0.0.1:\(port): \(String(cString: strerror(errno)))") }
+        guard bound == 0, listen(listener, 16) == 0 else {
+            let failureErrno = errno
+            close()
+            throw AssetError.invalid("cannot bind 127.0.0.1:\(port): \(String(cString: strerror(failureErrno)))")
+        }
         let listeningFD = listener; queue.async { self.acceptLoop(listeningFD) }
     }
     func close() {
@@ -442,12 +461,11 @@ final class RelayServer {
     @MainActor private func forward(_ client: Int32) async {
         defer { connectionFinished(client); Darwin.shutdown(client, SHUT_RDWR); Darwin.close(client) }
         guard !isStopped() else { return }
-        guard let socketDevice = vm.socketDevices.first as? VZVirtioSocketDevice else { return }
         do {
-            let connection = try await connect(to: socketDevice, port: guestPort, deadline: StartupDeadline(after: .seconds(30)))
-            defer { connection.close() }
-            let guestFD = connection.fileDescriptor; configureNoSIGPIPE(guestFD)
-            guard register(guestFD) else { connection.close(); return }
+            guard let guest = try await connectGuest() else { return }
+            defer { guest.closeConnection() }
+            let guestFD = guest.fd; configureNoSIGPIPE(guestFD)
+            guard register(guestFD) else { return }
             defer { unregister(guestFD) }
             let a = DispatchGroup(), b = DispatchGroup(); a.enter(); b.enter()
             DispatchQueue.global().async { Self.copy(client, guestFD); a.leave() }

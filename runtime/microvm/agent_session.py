@@ -61,6 +61,51 @@ class _InterruptibleConnection:
         return self._connection.close()
 
 
+class _PrefixedConnection:
+    """Replay one already-read leading byte before delegating further reads."""
+
+    def __init__(self, connection, prefix):
+        self._connection = connection
+        self._prefix = prefix
+
+    def settimeout(self, timeout):
+        return self._connection.settimeout(timeout)
+
+    def recv(self, size):
+        if self._prefix and size > 0:
+            chunk = self._prefix[:size]
+            self._prefix = self._prefix[size:]
+            return chunk
+        return self._connection.recv(size)
+
+    def sendall(self, data):
+        return self._connection.sendall(data)
+
+    def shutdown(self, how):
+        return self._connection.shutdown(how)
+
+    def close(self):
+        return self._connection.close()
+
+
+def _read_first_byte(connection, *, deadline, clock):
+    try:
+        now = float(clock())
+        requested = float(deadline)
+    except (TypeError, ValueError, OverflowError, OSError):
+        raise UploadError("invalid upload deadline") from None
+    if not math.isfinite(now) or not math.isfinite(requested):
+        raise UploadError("invalid upload deadline")
+    remaining = min(requested, now + MAX_OPERATION_SECONDS) - now
+    if remaining <= 0:
+        raise UploadError("upload deadline expired")
+    try:
+        connection.settimeout(remaining)
+        return connection.recv(1)
+    except (OSError, TimeoutError):
+        raise UploadError("upload read failed or timed out") from None
+
+
 class GuestSession:
     """Own one prepared agent and serialize all incoming APK uploads."""
 
@@ -122,7 +167,22 @@ class GuestSession:
         except _RequestFailure:
             pass
 
-    def _register(self, connection, operation):
+    def _admit(self, connection, operation):
+        with self._condition:
+            if self._closed:
+                return "closed"
+            if self._upload_active:
+                return "busy"
+            if operation == "prepare_agent" and self._state != "new":
+                return "busy"
+            if operation == "install" and self._state != "ready":
+                return "unauthorized"
+            self._inflight += 1
+            self._connections.add(connection)
+            self._interruptible[connection] = _InterruptibleConnection(connection)
+            return None
+
+    def _claim_upload(self, operation):
         with self._condition:
             if self._closed:
                 return "closed"
@@ -133,9 +193,6 @@ class GuestSession:
             if operation == "install" and self._state != "ready":
                 return "unauthorized"
             self._upload_active = True
-            self._inflight += 1
-            self._connections.add(connection)
-            self._interruptible[connection] = _InterruptibleConnection(connection)
             if operation == "prepare_agent":
                 self._state = "preparing"
             return None
@@ -179,7 +236,7 @@ class GuestSession:
             self._install_token = None
         self._close_backend_once()
 
-    def _finish(self, connection):
+    def _finish(self, connection, *, claimed_slot=False):
         try:
             connection.shutdown(socket.SHUT_RDWR)
         except (OSError, AttributeError):
@@ -191,7 +248,8 @@ class GuestSession:
         with self._condition:
             self._connections.discard(connection)
             self._interruptible.pop(connection, None)
-            self._upload_active = False
+            if claimed_slot:
+                self._upload_active = False
             self._inflight -= 1
             self._condition.notify_all()
 
@@ -220,7 +278,7 @@ class GuestSession:
                     pass
             return
 
-        rejection = self._register(connection, operation)
+        rejection = self._admit(connection, operation)
         if rejection:
             self._reply_error(connection, rejection, effective)
             try:
@@ -233,7 +291,8 @@ class GuestSession:
             protocol_connection = self._interruptible[connection]
 
         staged = None
-        prepare_attempt = operation == "prepare_agent"
+        claimed_slot = False
+        prepare_attempt = False
         try:
             upload_limit = effective
             if upload_deadline is not None:
@@ -241,7 +300,19 @@ class GuestSession:
                 # upload budget reading the shared channel's first frame.
                 upload_limit = self._deadline(upload_deadline)
                 upload_limit = min(effective, upload_limit)
-            header = read_upload_header(protocol_connection, deadline=upload_limit, clock=self._clock)
+            first_byte = _read_first_byte(protocol_connection, deadline=upload_limit, clock=self._clock)
+            if not first_byte:
+                return
+            claim_rejection = self._claim_upload(operation)
+            if claim_rejection:
+                raise _RequestFailure(claim_rejection)
+            claimed_slot = True
+            prepare_attempt = operation == "prepare_agent"
+            header = read_upload_header(
+                _PrefixedConnection(protocol_connection, first_byte),
+                deadline=upload_limit,
+                clock=self._clock,
+            )
             if header.op != operation:
                 raise _RequestFailure("invalid_request")
             if operation == "prepare_agent":
@@ -314,7 +385,7 @@ class GuestSession:
         finally:
             if staged is not None:
                 staged.close()
-            self._finish(connection)
+            self._finish(connection, claimed_slot=claimed_slot)
 
     def serve_prepare(self, connection, *, peer_cid, deadline, upload_deadline=None):
         """Serve one host-CID prepare request and close the borrowed connection."""
