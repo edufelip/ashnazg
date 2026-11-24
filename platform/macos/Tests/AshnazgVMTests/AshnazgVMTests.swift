@@ -171,7 +171,7 @@ final class AshnazgVMTests: XCTestCase {
         address.sin_addr = in_addr(s_addr: in_addr_t(0x7f000001).bigEndian)
         let seedBound = withUnsafePointer(to: &address) {
             $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                bind(seedListener, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+                Darwin.bind(seedListener, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
             }
         }
         XCTAssertEqual(seedBound, 0)
