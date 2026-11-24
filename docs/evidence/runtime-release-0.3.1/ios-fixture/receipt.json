@@ -1,0 +1,306 @@
+{
+  "artifacts": {
+    "raw_dir": "/private/tmp/ashnazg-v0.3.1-run/ios-fixture"
+  },
+  "binary": {
+    "path": "/private/tmp/ashnazg-v0.3.1-run/mac-package/bin/ashnazg",
+    "sha256": "845920614d5dc01cda43ed1561fc89ad6cc06dbb987dc7c42562b9b7fea3c884"
+  },
+  "cleanup": {
+    "process_exit_code": 0,
+    "simulator_deleted": true,
+    "stderr_tail": "\u001b[2m2026-11-24T16:57:17.316951Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mashnazg::ios_fixture\u001b[0m\u001b[2m:\u001b[0m ios-fixture-session {\"bridgePort\":57835,\"command\":\"xcodebuild test -project AshnazgSimulatorProbe.xcodeproj -scheme AshnazgSimulatorProbe -destination platform=iOS Simulator,id=B017158D-B818-4454-AE5B-BA24B5A6B55B -only-testing:FixtureUITests/McpBridgeTests -parallel-testing-enabled NO -resultBundlePath /var/folders/jn/8v9lm6fj7_zc1v_l3r9hxd740000gn/T/ashnazg-ios-fixture-d6564b5f89ebb7cc/Probe.xcresult\",\"fixtureApp\":\"dev.ashnazg.ios.fixture\",\"pid\":30824,\"simulator\":{\"deviceType\":\"com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro\",\"name\":\"ashnazg-mcp-fixture-2be936e2\",\"runtime\":\"com.apple.CoreSimulator.SimRuntime.iOS-27-0\",\"udid\":\"B017158D-B818-4454-AE5B-BA24B5A6B55B\"},\"workDir\":\"/var/folders/jn/8v9lm6fj7_zc1v_l3r9hxd740000gn/T/ashnazg-ios-fixture-d6564b5f89ebb7cc\"}\n\u001b[2m2026-11-24T16:58:13.637387Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[1mserve_inner\u001b[0m\u001b[2m:\u001b[0m \u001b[2mrmcp::service\u001b[0m\u001b[2m:\u001b[0m Service initialized as server \u001b[3mpeer_info\u001b[0m\u001b[2m=\u001b[0mSome(InitializeRequestParams { meta: None, protocol_version: ProtocolVersion(\"2024-11-05\"), capabilities: ClientCapabilities { experimental: None, extensions: None, roots: None, sampling: None, elicitation: None }, client_info: Implementation { name: \"ios-mcp-fixture-acceptance\", title: None, version: \"1\", description: None, icons: None, website_url: None } })\n\u001b[2m2026-11-24T16:58:13.638002Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[1mserve_inner\u001b[0m\u001b[2m:\u001b[0m \u001b[2mrmcp::service\u001b[0m\u001b[2m:\u001b[0m received notification \u001b[3mnotification\u001b[0m\u001b[2m=\u001b[0mInitializedNotification(NotificationNoParam { method: InitializedNotificationMethod, extensions: Extensions })\n\u001b[2m2026-11-24T16:58:13.638030Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[1mserve_inner\u001b[0m\u001b[2m:\u001b[0m \u001b[2mrmcp::handler::server\u001b[0m\u001b[2m:\u001b[0m client initialized\n\u001b[2m2026-11-24T16:58:29.056623Z\u001b[0m \u001b[33m WARN\u001b[0m \u001b[1mserve_inner\u001b[0m\u001b[2m:\u001b[0m \u001b[2mrmcp::service\u001b[0m\u001b[2m:\u001b[0m response error \u001b[3mid\u001b[0m\u001b[2m=\u001b[0m13 \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mErrorData { code: ErrorCode(-32602), message: \"selector testId fixture-increment is not an editable text element\", data: None }\n\u001b[2m2026-11-24T16:58:29.088296Z\u001b[0m \u001b[33m WARN\u001b[0m \u001b[1mserve_inner\u001b[0m\u001b[2m:\u001b[0m \u001b[2mrmcp::service\u001b[0m\u001b[2m:\u001b[0m response error \u001b[3mid\u001b[0m\u001b[2m=\u001b[0m14 \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mErrorData { code: ErrorCode(-32602), message: \"selector testId fixture-missing matched 0 elements, expected exactly one\", data: None }\n\u001b[2m2026-11-24T16:58:29.089064Z\u001b[0m \u001b[33m WARN\u001b[0m \u001b[1mserve_inner\u001b[0m\u001b[2m:\u001b[0m \u001b[2mrmcp::service\u001b[0m\u001b[2m:\u001b[0m response error \u001b[3mid\u001b[0m\u001b[2m=\u001b[0m15 \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mErrorData { code: ErrorCode(-32602), message: \"type requires text\", data: None }\n\u001b[2m2026-11-24T16:58:29.089400Z\u001b[0m \u001b[33m WARN\u001b[0m \u001b[1mserve_inner\u001b[0m\u001b[2m:\u001b[0m \u001b[2mrmcp::service\u001b[0m\u001b[2m:\u001b[0m response error \u001b[3mid\u001b[0m\u001b[2m=\u001b[0m16 \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mErrorData { code: ErrorCode(-32602), message: \"the iOS fixture bridge supports only the tap and type actions\", data: None }\n\u001b[2m2026-11-24T16:58:29.089639Z\u001b[0m \u001b[33m WARN\u001b[0m \u001b[1mserve_inner\u001b[0m\u001b[2m:\u001b[0m \u001b[2mrmcp::service\u001b[0m\u001b[2m:\u001b[0m response error \u001b[3mid\u001b[0m\u001b[2m=\u001b[0m17 \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mErrorData { code: ErrorCode(-32602), message: \"tool not found\", data: None }\n\u001b[2m2026-11-24T16:58:29.089945Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[1mserve_inner\u001b[0m\u001b[2m:\u001b[0m \u001b[2mrmcp::service\u001b[0m\u001b[2m:\u001b[0m input stream terminated\n\u001b[2m2026-11-24T16:58:29.089953Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[1mserve_inner\u001b[0m\u001b[2m:\u001b[0m \u001b[2mrmcp::service\u001b[0m\u001b[2m:\u001b[0m serve finished \u001b[3mquit_reason\u001b[0m\u001b[2m=\u001b[0mClosed\n",
+    "work_dir_removed": true
+  },
+  "elapsed_seconds": 77.776,
+  "environment": {
+    "fixture_app": "dev.ashnazg.ios.fixture",
+    "ios_runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+    "macos": "27.2.1",
+    "simulator": {
+      "deviceType": "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro",
+      "name": "ashnazg-mcp-fixture-2be936e2",
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+      "udid": "B017158D-B818-4454-AE5B-BA24B5A6B55B"
+    },
+    "xcode": "Xcode 27.2"
+  },
+  "fixture_timings": {
+    "child_launch_to_first_validated_snapshot": {
+      "end": "first ui_snapshot validated (Count: 0, one enabled fixture-increment)",
+      "seconds": 57.167,
+      "start": "immediately before spawning the mcp --ios-fixture child"
+    },
+    "note": "single-run monotonic observations on this host only",
+    "tap_to_verified_post_tap_png": {
+      "end": "post-tap PNG verified (valid, distinct, sequence-correlated, Count: 1)",
+      "seconds": 1.839,
+      "start": "immediately before the ui_act tap request"
+    }
+  },
+  "native_command": "xcodebuild test -project AshnazgSimulatorProbe.xcodeproj -scheme AshnazgSimulatorProbe -destination platform=iOS Simulator,id=B017158D-B818-4454-AE5B-BA24B5A6B55B -only-testing:FixtureUITests/McpBridgeTests -parallel-testing-enabled NO -resultBundlePath /var/folders/jn/8v9lm6fj7_zc1v_l3r9hxd740000gn/T/ashnazg-ios-fixture-d6564b5f89ebb7cc/Probe.xcresult",
+  "png_evidence": {
+    "after": {
+      "bytes": 79671,
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "sha256": "cb74241763ca6b09fdc295367d38a308576a8cef12da7ecd33f0921ad6e8611b"
+    },
+    "before": {
+      "bytes": 80869,
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "sha256": "cf6659f1e4c6a57dfa5bfcab18eb3046721f08fa467441add2f7deb266fcb461"
+    },
+    "correlated_state": {
+      "counter_label": "Count: 1",
+      "snapshot_id": 4
+    },
+    "distinct": true,
+    "mime": "image/png"
+  },
+  "schema_version": 1,
+  "session": {
+    "bridge_port": 57835,
+    "pid": 30824,
+    "work_dir": "/var/folders/jn/8v9lm6fj7_zc1v_l3r9hxd740000gn/T/ashnazg-ios-fixture-d6564b5f89ebb7cc"
+  },
+  "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc",
+  "state_evidence": {
+    "button_role": "button",
+    "count_after": "Count: 1",
+    "count_before": "Count: 0",
+    "counter_observations": {
+      "after_screenshot": "Count: 1",
+      "before_screenshot": "Count: 0"
+    },
+    "selector_from_snapshot": {
+      "testId": "fixture-increment"
+    },
+    "snapshot_ids": {
+      "after_screenshot": 4,
+      "after_tap": 3,
+      "before": 1
+    }
+  },
+  "status": "passed",
+  "text_evidence": {
+    "append_proof": {
+      "first": "Ashnazg",
+      "observed": "Ashnazg-fixture",
+      "observed_in": [
+        "second act response",
+        "empty-payload no-op response",
+        "direct fresh ui_snapshot"
+      ],
+      "second": "-fixture"
+    },
+    "secure_redaction": {
+      "native_diagnostics_unverified": "xcodebuild/xcresult diagnostics retained by Xcode were not scanned for the synthetic sentinel; this verifier only proves redaction of bridge snapshots and the evidence it owns",
+      "payload": "<redacted synthetic sentinel>",
+      "settled": true,
+      "target": {
+        "role": "securetextfield",
+        "testId": "fixture-secret"
+      },
+      "value_key_absent_from": [
+        "act response snapshot",
+        "direct fresh ui_snapshot",
+        "retained json artifacts",
+        "server stderr",
+        "this receipt"
+      ]
+    },
+    "selector_from_snapshot": {
+      "role": "textfield",
+      "testId": "fixture-input"
+    },
+    "sequence_advanced": {
+      "after_tap_screenshot": 4,
+      "first_type": 5,
+      "second_type": 6
+    },
+    "typed_values": [
+      "Ashnazg",
+      "-fixture",
+      ""
+    ]
+  },
+  "tool_sequence": [
+    {
+      "arguments": {
+        "includeInvisible": false
+      },
+      "content_kinds": [
+        "text"
+      ],
+      "elapsed_seconds": 0.03,
+      "tool": "ui_snapshot"
+    },
+    {
+      "arguments": {
+        "format": "png"
+      },
+      "content_kinds": [
+        "image",
+        "text"
+      ],
+      "elapsed_seconds": 0.182,
+      "tool": "ui_screenshot"
+    },
+    {
+      "arguments": {
+        "action": "tap",
+        "target": {
+          "testId": "fixture-increment"
+        }
+      },
+      "content_kinds": [
+        "text"
+      ],
+      "elapsed_seconds": 1.63,
+      "tool": "ui_act"
+    },
+    {
+      "arguments": {
+        "format": "png"
+      },
+      "content_kinds": [
+        "image",
+        "text"
+      ],
+      "elapsed_seconds": 0.208,
+      "tool": "ui_screenshot"
+    },
+    {
+      "arguments": {
+        "action": "type",
+        "target": {
+          "testId": "fixture-input"
+        },
+        "text": "Ashnazg"
+      },
+      "content_kinds": [
+        "text"
+      ],
+      "elapsed_seconds": 5.194,
+      "tool": "ui_act"
+    },
+    {
+      "arguments": {
+        "action": "type",
+        "target": {
+          "testId": "fixture-input"
+        },
+        "text": "-fixture"
+      },
+      "content_kinds": [
+        "text"
+      ],
+      "elapsed_seconds": 3.108,
+      "tool": "ui_act"
+    },
+    {
+      "arguments": {
+        "action": "type",
+        "target": {
+          "testId": "fixture-input"
+        },
+        "text": ""
+      },
+      "content_kinds": [
+        "text"
+      ],
+      "elapsed_seconds": 0.196,
+      "tool": "ui_act"
+    },
+    {
+      "arguments": {
+        "includeInvisible": false
+      },
+      "content_kinds": [
+        "text"
+      ],
+      "elapsed_seconds": 0.051,
+      "tool": "ui_snapshot"
+    },
+    {
+      "arguments": {
+        "action": "type",
+        "target": {
+          "testId": "fixture-secret"
+        },
+        "text": "<redacted synthetic secret>"
+      },
+      "content_kinds": [
+        "text"
+      ],
+      "elapsed_seconds": 4.337,
+      "tool": "ui_act"
+    },
+    {
+      "arguments": {
+        "includeInvisible": false
+      },
+      "content_kinds": [
+        "text"
+      ],
+      "elapsed_seconds": 0.04,
+      "tool": "ui_snapshot"
+    },
+    {
+      "arguments": {
+        "action": "type",
+        "target": {
+          "testId": "fixture-increment"
+        },
+        "text": "x"
+      },
+      "elapsed_seconds": 0.156,
+      "tool": "ui_act"
+    },
+    {
+      "arguments": {
+        "action": "type",
+        "target": {
+          "testId": "fixture-missing"
+        },
+        "text": "x"
+      },
+      "elapsed_seconds": 0.032,
+      "tool": "ui_act"
+    },
+    {
+      "arguments": {
+        "action": "type",
+        "target": {
+          "testId": "fixture-input"
+        }
+      },
+      "elapsed_seconds": 0.0,
+      "tool": "ui_act"
+    },
+    {
+      "arguments": {
+        "action": "clear",
+        "target": {
+          "testId": "fixture-increment"
+        }
+      },
+      "elapsed_seconds": 0.0,
+      "tool": "ui_act"
+    },
+    {
+      "arguments": {
+        "launch": false,
+        "path": "/nonexistent.apk"
+      },
+      "elapsed_seconds": 0.0,
+      "tool": "app_install"
+    }
+  ]
+}

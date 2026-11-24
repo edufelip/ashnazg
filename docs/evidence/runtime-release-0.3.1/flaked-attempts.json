@@ -1,0 +1,83 @@
+{
+  "attempts": [
+    {
+      "directory": "attempt-1-eof",
+      "error": "MCP tool result is malformed",
+      "helper_startup_ms": 117518,
+      "mode": "eof",
+      "ready_seconds": 120.576,
+      "retained": true,
+      "runtime_error": null,
+      "runtime_status": "stopped",
+      "serial_log_gz": true,
+      "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc",
+      "status": "failed"
+    },
+    {
+      "directory": "attempt-2-eof",
+      "error": "MCP tool result is malformed",
+      "helper_startup_ms": 29709,
+      "mode": "eof",
+      "ready_seconds": 32.051,
+      "retained": true,
+      "runtime_error": null,
+      "runtime_status": "stopped",
+      "serial_log_gz": true,
+      "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc",
+      "status": "failed"
+    },
+    {
+      "directory": "attempt-3-eof",
+      "error": "MCP tool result is malformed",
+      "helper_startup_ms": 28455,
+      "mode": "eof",
+      "ready_seconds": 29.777,
+      "retained": true,
+      "runtime_error": null,
+      "runtime_status": "stopped",
+      "serial_log_gz": true,
+      "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc",
+      "status": "failed"
+    },
+    {
+      "directory": "attempt-4-wrapper-sigterm-fail",
+      "error": "MCP tool result is malformed",
+      "helper_startup_ms": 28527,
+      "mode": "sigterm",
+      "ready_seconds": 29.147,
+      "retained": true,
+      "runtime_error": null,
+      "runtime_status": "stopped",
+      "serial_log_gz": true,
+      "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc",
+      "status": "failed"
+    },
+    {
+      "directory": "sigterm-inflight-failed-attempt-1",
+      "error": "MCP tool result is malformed",
+      "helper_startup_ms": 31223,
+      "mode": "sigterm-inflight",
+      "ready_seconds": 32.056,
+      "retained": true,
+      "runtime_error": null,
+      "runtime_status": "stopped",
+      "serial_log_gz": true,
+      "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc",
+      "status": "failed"
+    },
+    {
+      "directory": "diag-loop-attempt-05 (removed with the scratch loop before the accepted run)",
+      "error": "ui_snapshot never became ready; server answered native runtime failed to start",
+      "helper_startup_ms": 25973,
+      "mode": null,
+      "ready_seconds": null,
+      "retained": false,
+      "runtime_error": "cannot bind 127.0.0.1:7777: Socket is not connected",
+      "runtime_status": "failed",
+      "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc",
+      "status": "failed"
+    }
+  ],
+  "note": "Retained summaries of non-passing diagnostic boots on this host; see README. Only passing runs are accepted in receipt.json.",
+  "schema_version": 1
+}
