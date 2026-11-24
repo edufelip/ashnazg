@@ -1,0 +1,73 @@
+{
+  "artifact": {
+    "digest": "sha256:ae9c91583eedacd07fa7e89de75a59989daf731d6fee778b8488ab64ed4758d9",
+    "id": 14890215083,
+    "name": "release-prepared-v0.3.1-1f4f4d1749b13921dce937d3b25dd93efa5092ae",
+    "size_in_bytes": 726541070,
+    "zip_path": "/private/tmp/ashnazg-v0.3.1-accept-OECsBX/candidate-artifact.zip"
+  },
+  "extraction": {
+    "directory": "/private/tmp/ashnazg-v0.3.1-accept-OECsBX/candidate",
+    "expanded_bytes": 727485108,
+    "files": {
+      "SHA256SUMS": {
+        "sha256": "b5e090a2250633d1ed6f6fb163fbc98326ce8dcc66bcf3fdb74be385239254b5",
+        "size": 872
+      },
+      "ashnazg-agent-v0.3.1.apk": {
+        "sha256": "85a8531af610c68c8a9782fe0ca8e80368f67f27b0c4c137f2e556768796b253",
+        "size": 72129
+      },
+      "ashnazg-fixture-v0.3.1.apk": {
+        "sha256": "70785a09ba4f4f7bb8ef7faace530b270ddf016ab4912f7b7d17657fcb2240a0",
+        "size": 15257
+      },
+      "ashnazg-microvm-v0.3.1-linux-aarch64.tar.xz": {
+        "sha256": "a76539cc14430d1e7b20ade4d5d9c523915834f1512ed91801b2f08b2c4414ca",
+        "size": 230789540
+      },
+      "ashnazg-runtime-sources-v0.3.1-001.tar.xz": {
+        "sha256": "4f2063c88a37fce1031273337866d27966a132ea765d8a8a8540b53433ec0d2f",
+        "size": 481955676
+      },
+      "ashnazg-runtime-v0.3.1.json": {
+        "sha256": "453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a",
+        "size": 1547
+      },
+      "ashnazg-v0.3.1-linux-x86_64.zip": {
+        "sha256": "33e842c10fd98840812a399ce0d796f1060b7ca9459f58878ca7c0ef21b090fb",
+        "size": 7087069
+      },
+      "ashnazg-v0.3.1-macos-aarch64.zip": {
+        "sha256": "b4cef9e2f3dedb87db1971d9b1180264433c62787244d114c0216e1066039f12",
+        "size": 6924854
+      },
+      "ashnazg-vm-v0.3.1-macos-aarch64": {
+        "sha256": "1bfb402229dda94001bca78efcd88be90a70754a4a195844b847cbc1d196d9cc",
+        "size": 636688
+      },
+      "candidate.json": {
+        "sha256": "a9442df9f1c69cd1456b16a5fef6c3b6d2915d48cd8ea22a20acfc1efb8b52ed",
+        "size": 1476
+      }
+    },
+    "member_count": 10
+  },
+  "run": {
+    "attempt": 1,
+    "branch": "main",
+    "conclusion": "success",
+    "event": "workflow_dispatch",
+    "id": 45323159437,
+    "status": "completed",
+    "workflow": ".github/workflows/release.yml"
+  },
+  "source_sha": "1f4f4d1749b13921dce937d3b25dd93efa5092ae",
+  "verification": {
+    "command": "python3 scripts/runtime_release.py verify --directory /private/tmp/ashnazg-v0.3.1-accept-OECsBX/candidate --source-sha 1f4f4d1749b13921dce937d3b25dd93efa5092ae --version 0.3.1",
+    "exit_code": 0,
+    "result": "passed",
+    "trusted_script_matches_source_commit": true,
+    "trusted_script_sha256": "2213fb2db75de71a9b3891655f531150f16dd2a34fd7d8c91bd04820bd6c0ca9"
+  }
+}

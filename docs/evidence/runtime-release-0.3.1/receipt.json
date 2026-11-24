@@ -1,0 +1,157 @@
+{
+  "accepted": false,
+  "artifact_id": 14890215083,
+  "artifact_zip_sha256": "ae9c91583eedacd07fa7e89de75a59989daf731d6fee778b8488ab64ed4758d9",
+  "candidate_sha256": "a9442df9f1c69cd1456b16a5fef6c3b6d2915d48cd8ea22a20acfc1efb8b52ed",
+  "catalog_sha256": "453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a",
+  "driver_sha256": "0a8b468160d0f8ae82bec2c7cd3bd53c0d28430b12555bbe477e2da6423c9f71",
+  "driver_source_commit": "1f4f4d17",
+  "failure": {
+    "verdict": "candidate rejected; do not tag v0.3.1 or publish",
+    "root_cause": "guest rootfs lacks /usr/local/lib/ashnazg/scripts/session_data.py; scripts/redroid.py (import added in d1f69c7a501456f58f091bd79ab7b471de082683) crashes at import and the VM powers off before guest readiness",
+    "error": "native runtime failed to start",
+    "runtime_error": "virtual machine stopped before guest readiness",
+    "serial_excerpt": "Traceback (most recent call last):\n  File \"/usr/local/lib/ashnazg/scripts/redroid.py\", line 27, in <module>\n    from session_data import SessionData\nModuleNotFoundError: No module named 'session_data'\nAshnazg guest services exited with status 1; powering off",
+    "ios_fixture_independent": "passed; exit 0, work_dir_removed=true, simulator_deleted=true",
+    "remediation": "add scripts/session_data.py to the guest installs in scripts/build_microvm.sh, rebuild the guest image, and re-prepare the candidate before re-running this acceptance"
+  },
+  "limits": [
+    "Candidate rejected: all three native modes failed at guest readiness; no app_install, tool call, screenshot, or shutdown observation exists.",
+    "Runtime host/helper/guest/APKs are unchanged from source 1f4f4d17; the executed driver is retained and only captures evidence.",
+    "No session credential was ever created by the failing runs, so the secret scan scanned retained bytes with an empty live-token set.",
+    "The ios-fixture verification passed on the same packaged binary and is independent of the defective microvm rootfs.",
+    "Host package manifests declare source/platform/version; no intrinsic compiler-to-binary provenance or Developer ID/notarization is claimed.",
+    "Retained files cannot independently attest the external runtime environment."
+  ],
+  "passed_modes": [],
+  "payloads": [
+    {
+      "path": "README.md",
+      "sha256": "e5a9dd10e7a65ea88f142e61f48a0433d97b4289557725e5bc288c879dcd494e",
+      "size": 5903
+    },
+    {
+      "path": "eof/002-initialize.response.json",
+      "sha256": "f06b293bde73161543ce581e4c5f676fcb6478a24acc4271699833cefe6d5148",
+      "size": 213
+    },
+    {
+      "path": "eof/receipt.json",
+      "sha256": "88373dc591df2f14c2bdfc2dd15a28f712041c1fb9951c25416cad059a805c0a",
+      "size": 26376
+    },
+    {
+      "path": "eof/runtime.json",
+      "sha256": "da10e9748dd5eef486ac51db1951177386b54db25abc7dce06b686b6b1735e75",
+      "size": 598
+    },
+    {
+      "path": "guest/manifest.json",
+      "sha256": "180bf0cb1f1e96879c1c65d48bffa01bee2ff46186ddbec6c6db98dfcd471b63",
+      "size": 605
+    },
+    {
+      "path": "host-metadata.json",
+      "sha256": "39d1c8edcc146a4a97af1c5ee5be92c9f1dbed5bc13bcfe189ebb59c42cd5c6c",
+      "size": 280
+    },
+    {
+      "path": "ios-fixture/receipt.json",
+      "sha256": "d43d68deb3da9b3b2514d37105693de1251fffb704f92feb91becf2846f5b5fd",
+      "size": 11926
+    },
+    {
+      "path": "local-preflight.json",
+      "sha256": "fdfc241bd3962da3a98788d96bbe9c2df765c3d415d8e1782f00e5911ad48237",
+      "size": 2013
+    },
+    {
+      "path": "prepared-artifact.json",
+      "sha256": "803bcde47c35042a47b5c6b696488a7dbff3c749033974e9fbde2c7c32842c21",
+      "size": 2767
+    },
+    {
+      "path": "run_acceptance_modes.py",
+      "sha256": "0a8b468160d0f8ae82bec2c7cd3bd53c0d28430b12555bbe477e2da6423c9f71",
+      "size": 4834
+    },
+    {
+      "path": "sigterm/002-initialize.response.json",
+      "sha256": "f06b293bde73161543ce581e4c5f676fcb6478a24acc4271699833cefe6d5148",
+      "size": 213
+    },
+    {
+      "path": "sigterm/receipt.json",
+      "sha256": "a57b513667f0b68b17efaefbd7d49fa50408178d758ea460f39fb60bf808c573",
+      "size": 26384
+    },
+    {
+      "path": "sigterm/runtime.json",
+      "sha256": "d7173bc35886569658d1cfaf1f4dca0dc20797709cb13f8751d80b6546dc4263",
+      "size": 597
+    },
+    {
+      "path": "sigterm-inflight/002-initialize.response.json",
+      "sha256": "f06b293bde73161543ce581e4c5f676fcb6478a24acc4271699833cefe6d5148",
+      "size": 213
+    },
+    {
+      "path": "sigterm-inflight/receipt.json",
+      "sha256": "2d7af72bf702186cfc4165be7049710731d7a0db740b1dbdb6b8c854f56ce587",
+      "size": 26402
+    },
+    {
+      "path": "sigterm-inflight/runtime.json",
+      "sha256": "4827fc04aafbfdf0bb42cb29d578ef89f45668787fe1b7880d82c758f48eb8c0",
+      "size": 597
+    },
+    {
+      "path": "staging-receipt.json",
+      "sha256": "fad069f72bdcd3f5c30bde70d80084ea114099fab4a86af94b9561ea60f5c861",
+      "size": 336
+    }
+  ],
+  "prepared_run_attempt": 1,
+  "prepared_run_id": 45323159437,
+  "runs": [
+    {
+      "handshake_seconds": 0.038,
+      "helper_startup_ms": 7433,
+      "inflight": null,
+      "mode": "eof",
+      "passed": false,
+      "ready_seconds": null,
+      "error": "native runtime failed to start",
+      "runtime_error": "virtual machine stopped before guest readiness",
+      "exit_code": 1,
+      "tools_called": []
+    },
+    {
+      "handshake_seconds": 0.019,
+      "helper_startup_ms": 6344,
+      "inflight": null,
+      "mode": "sigterm",
+      "passed": false,
+      "ready_seconds": null,
+      "error": "native runtime failed to start",
+      "runtime_error": "virtual machine stopped before guest readiness",
+      "exit_code": 1,
+      "tools_called": []
+    },
+    {
+      "handshake_seconds": 0.019,
+      "helper_startup_ms": 6439,
+      "inflight": null,
+      "mode": "sigterm-inflight",
+      "passed": false,
+      "ready_seconds": null,
+      "error": "native runtime failed to start",
+      "runtime_error": "virtual machine stopped before guest readiness",
+      "exit_code": 1,
+      "tools_called": []
+    }
+  ],
+  "schema_version": 1,
+  "scope": "prepublication production CLI with explicitly staged catalog-verified cache; candidate rejected at guest readiness in all three modes",
+  "source_sha": "1f4f4d1749b13921dce937d3b25dd93efa5092ae"
+}

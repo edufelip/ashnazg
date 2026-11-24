@@ -1,0 +1,908 @@
+{
+  "cache": {
+    "after": {
+      ".": {
+        "device": 16777231,
+        "inode": 793477976,
+        "kind": "directory",
+        "mode": 448
+      },
+      "cache.json": {
+        "device": 16777231,
+        "inode": 793486148,
+        "kind": "file",
+        "mode": 384
+      },
+      "cache.lock": {
+        "device": 16777231,
+        "inode": 793486145,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries": {
+        "device": 16777231,
+        "inode": 793486146,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a": {
+        "device": 16777231,
+        "inode": 793486149,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/ashnazg-agent-v0.3.1.apk": {
+        "device": 16777231,
+        "inode": 793486153,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/ashnazg-fixture-v0.3.1.apk": {
+        "device": 16777231,
+        "inode": 793486154,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/ashnazg-vm-v0.3.1-macos-aarch64": {
+        "device": 16777231,
+        "inode": 793486152,
+        "kind": "file",
+        "mode": 448
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets": {
+        "device": 16777231,
+        "inode": 793486155,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/NOTICES.md": {
+        "device": 16777231,
+        "inode": 793486285,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/kernel": {
+        "device": 16777231,
+        "inode": 793486156,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/kernel.config": {
+        "device": 16777231,
+        "inode": 793486283,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/kernel.generated.config": {
+        "device": 16777231,
+        "inode": 793486284,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/linux-6.12.117.tar.xz": {
+        "device": 16777231,
+        "inode": 793486289,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/manifest.json": {
+        "device": 16777231,
+        "inode": 793486281,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/packages.lock.json": {
+        "device": 16777231,
+        "inode": 793486286,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/provenance.json": {
+        "device": 16777231,
+        "inode": 793486282,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/rootfs.ext4": {
+        "device": 16777231,
+        "inode": 793486158,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/runtime-components.json": {
+        "device": 16777231,
+        "inode": 793486287,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/runtime-installed.db": {
+        "device": 16777231,
+        "inode": 793486288,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/catalog.json": {
+        "device": 16777231,
+        "inode": 793486151,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/entry.json": {
+        "device": 16777231,
+        "inode": 793486312,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/integrity.json": {
+        "device": 16777231,
+        "inode": 793486311,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/stage.json": {
+        "device": 16777231,
+        "inode": 793486150,
+        "kind": "file",
+        "mode": 384
+      },
+      "staging": {
+        "device": 16777231,
+        "inode": 793486147,
+        "kind": "directory",
+        "mode": 448
+      }
+    },
+    "before": {
+      ".": {
+        "device": 16777231,
+        "inode": 793477976,
+        "kind": "directory",
+        "mode": 448
+      },
+      "cache.json": {
+        "device": 16777231,
+        "inode": 793486148,
+        "kind": "file",
+        "mode": 384
+      },
+      "cache.lock": {
+        "device": 16777231,
+        "inode": 793486145,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries": {
+        "device": 16777231,
+        "inode": 793486146,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a": {
+        "device": 16777231,
+        "inode": 793486149,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/ashnazg-agent-v0.3.1.apk": {
+        "device": 16777231,
+        "inode": 793486153,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/ashnazg-fixture-v0.3.1.apk": {
+        "device": 16777231,
+        "inode": 793486154,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/ashnazg-vm-v0.3.1-macos-aarch64": {
+        "device": 16777231,
+        "inode": 793486152,
+        "kind": "file",
+        "mode": 448
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets": {
+        "device": 16777231,
+        "inode": 793486155,
+        "kind": "directory",
+        "mode": 448
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/NOTICES.md": {
+        "device": 16777231,
+        "inode": 793486285,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/kernel": {
+        "device": 16777231,
+        "inode": 793486156,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/kernel.config": {
+        "device": 16777231,
+        "inode": 793486283,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/kernel.generated.config": {
+        "device": 16777231,
+        "inode": 793486284,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/linux-6.12.117.tar.xz": {
+        "device": 16777231,
+        "inode": 793486289,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/manifest.json": {
+        "device": 16777231,
+        "inode": 793486281,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/packages.lock.json": {
+        "device": 16777231,
+        "inode": 793486286,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/provenance.json": {
+        "device": 16777231,
+        "inode": 793486282,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/rootfs.ext4": {
+        "device": 16777231,
+        "inode": 793486158,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/runtime-components.json": {
+        "device": 16777231,
+        "inode": 793486287,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/assets/runtime-installed.db": {
+        "device": 16777231,
+        "inode": 793486288,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/catalog.json": {
+        "device": 16777231,
+        "inode": 793486151,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/entry.json": {
+        "device": 16777231,
+        "inode": 793486312,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/integrity.json": {
+        "device": 16777231,
+        "inode": 793486311,
+        "kind": "file",
+        "mode": 384
+      },
+      "entries/453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a/stage.json": {
+        "device": 16777231,
+        "inode": 793486150,
+        "kind": "file",
+        "mode": 384
+      },
+      "staging": {
+        "device": 16777231,
+        "inode": 793486147,
+        "kind": "directory",
+        "mode": 448
+      }
+    },
+    "claim": "not_observable",
+    "marker_after": {
+      "device": 16777231,
+      "inode": 793486148,
+      "kind": "file",
+      "mode": 384
+    },
+    "marker_before": {
+      "device": 16777231,
+      "inode": 793486148,
+      "kind": "file",
+      "mode": 384
+    },
+    "path": "/private/tmp/ashnazg-v0.3.1-accept-OECsBX/acceptance-home/Library/Caches/ashnazg/runtime"
+  },
+  "candidate": {
+    "candidate_sha256": "a9442df9f1c69cd1456b16a5fef6c3b6d2915d48cd8ea22a20acfc1efb8b52ed",
+    "catalog_sha256": "453c753406a4c3bcaf0fea6797acea3839c8b859ad869dc697b0a6236fa2a16a",
+    "provenance_scope": "verified prepared candidate metadata; not intrinsic binary-to-source attestation",
+    "source_sha": "1f4f4d1749b13921dce937d3b25dd93efa5092ae"
+  },
+  "cleanup": {
+    "cache_identity_preserved": true,
+    "credential_absent": true,
+    "credential_at_ready": {
+      "exists": false,
+      "mode": null
+    },
+    "listeners": {
+      "after": {
+        "15555": true,
+        "17778": true,
+        "7777": true
+      },
+      "at_ready": null,
+      "before": {
+        "15555": true,
+        "17778": true,
+        "7777": true
+      },
+      "closed_after": {
+        "15555": true,
+        "17778": true,
+        "7777": true
+      }
+    },
+    "mutable_state_diagnostics": [
+      "runtime.json",
+      "serial.log"
+    ],
+    "owned_descendants_after_shutdown": [],
+    "state_after": {
+      ".": {
+        "device": 16777231,
+        "inode": 793488675,
+        "kind": "directory",
+        "mode": 448
+      },
+      ".ashnazg-owned-state-v1": {
+        "device": 16777231,
+        "inode": 793488723,
+        "kind": "file",
+        "mode": 384
+      },
+      ".ashnazg.lock": {
+        "device": 16777231,
+        "inode": 793488722,
+        "kind": "file",
+        "mode": 384
+      },
+      "rootfs.ext4": {
+        "device": 16777231,
+        "inode": 793488725,
+        "kind": "file",
+        "mode": 384
+      },
+      "runtime.json": {
+        "device": 16777231,
+        "inode": 793519971,
+        "kind": "file",
+        "mode": 384
+      },
+      "serial.log": {
+        "device": 16777231,
+        "inode": 793488727,
+        "kind": "file",
+        "mode": 384
+      },
+      "template.json": {
+        "device": 16777231,
+        "inode": 793488724,
+        "kind": "file",
+        "mode": 384
+      }
+    },
+    "state_identity_preserved": true
+  },
+  "driver_sha256": "db8bf0b2573bff0d9a4af2858c8eca76375c45cba41864402cbd70747067ef4f",
+  "environment": {
+    "default_home_created": false,
+    "excluded_variables": [
+      "ASHNAZG_TOKEN",
+      "ANDROID_SERIAL",
+      "ADB",
+      "ASHNAZG_ADB",
+      "ASHNAZG_AAPT",
+      "AAPT",
+      "ANDROID_HOME",
+      "ANDROID_SDK_ROOT",
+      "ANDROID_SDK_HOME",
+      "ANDROID_SDK_PATH",
+      "SDKPATH"
+    ],
+    "home": "/private/tmp/ashnazg-v0.3.1-accept-OECsBX/acceptance-home",
+    "home_mode_700": true,
+    "passed_variables": [
+      "HOME",
+      "LANG",
+      "LC_ALL",
+      "PATH",
+      "TMPDIR"
+    ],
+    "path_is_private_empty_dir": true
+  },
+  "error": "native runtime failed to start",
+  "handshake": {
+    "credential_at_tools_list": {
+      "exists": false,
+      "mode": null
+    },
+    "elapsed_seconds": 0.019
+  },
+  "inputs": {
+    "binary": {
+      "path": "/private/tmp/ashnazg-v0.3.1-accept-OECsBX/mac-package/bin/ashnazg",
+      "sha256": "ed4296874571771fb1d75f2cb83cd338d71d3bd741d2ad2a9eb3f0cd27905ed1",
+      "size": 19030080
+    },
+    "fixture_apk": {
+      "path": "/private/tmp/ashnazg-v0.3.1-accept-OECsBX/candidate/ashnazg-fixture-v0.3.1.apk",
+      "sha256": "70785a09ba4f4f7bb8ef7faace530b270ddf016ab4912f7b7d17657fcb2240a0",
+      "size": 15257
+    }
+  },
+  "listeners_before": {
+    "15555": true,
+    "17778": true,
+    "7777": true
+  },
+  "mode": "sigterm-inflight",
+  "process": {
+    "exit_code": 1,
+    "pid": 95192,
+    "stderr_bytes": 431,
+    "stderr_sha256": "1a9b45d9391a96f62fb45c293cf57453b8f871a8d7782ceace98c3d9ce195491",
+    "stderr_truncated": false,
+    "stdout_bytes": 3101
+  },
+  "protocol": {
+    "payloads": [
+      {
+        "path": "001-initialize.request.json",
+        "sha256": "8243b23569975f6ddb42dec8670a09f3601fe919e0b9402da1162d04b76fc5cc",
+        "size": 226
+      },
+      {
+        "path": "002-initialize.response.json",
+        "sha256": "f06b293bde73161543ce581e4c5f676fcb6478a24acc4271699833cefe6d5148",
+        "size": 213
+      },
+      {
+        "path": "003-tools-list.request.json",
+        "sha256": "9d2c25011becd4610370daff19fb91cafe891394d20080993ce44a0f6b413da1",
+        "size": 76
+      },
+      {
+        "path": "004-tools-list.response.json",
+        "sha256": "8b3592b9b943a7e22c6d7ef6b5f2a2cd81d60a2a59ea19c96a03effbe950d1bf",
+        "size": 6135
+      },
+      {
+        "path": "003-readiness.request.json",
+        "sha256": "70dcd94552acb2b3fd134cbf8eab0b0f9b10100cc658922a3253a47b40737a32",
+        "size": 163
+      },
+      {
+        "path": "003-readiness.response.json",
+        "sha256": "caafcfd3f2badd1f007ccc12616fcbb751c562f8f9f3bfa1df24c216f30167cd",
+        "size": 120
+      }
+    ],
+    "requests": [
+      {
+        "id": 1,
+        "jsonrpc": "2.0",
+        "method": "initialize",
+        "params": {
+          "capabilities": {},
+          "clientInfo": {
+            "name": "native-cli-acceptance",
+            "version": "1"
+          },
+          "protocolVersion": "2024-11-05"
+        }
+      },
+      {
+        "jsonrpc": "2.0",
+        "method": "notifications/initialized"
+      },
+      {
+        "id": 2,
+        "jsonrpc": "2.0",
+        "method": "tools/list",
+        "params": {}
+      },
+      {
+        "id": 3,
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "arguments": {
+            "includeInvisible": false
+          },
+          "name": "ui_snapshot"
+        }
+      }
+    ],
+    "responses": [
+      {
+        "id": 1,
+        "jsonrpc": "2.0",
+        "result": {
+          "capabilities": {
+            "tools": {}
+          },
+          "protocolVersion": "2024-11-05",
+          "serverInfo": {
+            "name": "ashnazg",
+            "version": "0.3.1"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "jsonrpc": "2.0",
+        "result": {
+          "tools": [
+            {
+              "annotations": {
+                "destructiveHint": true
+              },
+              "description": "Install an APK on the selected Android session; optionally launch the package.",
+              "inputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "launch": {
+                    "default": null,
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "package": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "type": "object"
+              },
+              "name": "app_install",
+              "outputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema"
+              }
+            },
+            {
+              "annotations": {
+                "readOnlyHint": true
+              },
+              "description": "Return bounded Android agent log lines.",
+              "inputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "sinceMs": {
+                    "format": "uint64",
+                    "minimum": 0,
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "tagFilter": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              "name": "app_logs",
+              "outputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema"
+              }
+            },
+            {
+              "annotations": {
+                "destructiveHint": true
+              },
+              "description": "Perform a validated action on the Android UI and return a fresh snapshot.",
+              "inputSchema": {
+                "$defs": {
+                  "Action": {
+                    "enum": [
+                      "tap",
+                      "long_press",
+                      "type",
+                      "clear",
+                      "scroll_to",
+                      "back",
+                      "deep_link"
+                    ],
+                    "type": "string"
+                  },
+                  "Direction": {
+                    "enum": [
+                      "up",
+                      "down",
+                      "left",
+                      "right"
+                    ],
+                    "type": "string"
+                  },
+                  "Target": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "format": "uint64",
+                        "minimum": 0,
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "snapshotId": {
+                        "format": "uint64",
+                        "minimum": 0,
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "testId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "text": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "action": {
+                    "$ref": "#/$defs/Action"
+                  },
+                  "direction": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/Direction"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "target": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/Target"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "action"
+                ],
+                "type": "object"
+              },
+              "name": "ui_act",
+              "outputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema"
+              }
+            },
+            {
+              "annotations": {
+                "readOnlyHint": true
+              },
+              "description": "Capture a guest screenshot; returns both screenshot image content and metadata.",
+              "inputSchema": {
+                "$defs": {
+                  "ScreenshotFormat": {
+                    "enum": [
+                      "webp",
+                      "png"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "format": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/ScreenshotFormat"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "somOverlay": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "name": "ui_screenshot"
+            },
+            {
+              "annotations": {
+                "readOnlyHint": true
+              },
+              "description": "Return the current semantic Android UI snapshot.",
+              "inputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "includeInvisible": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "name": "ui_snapshot",
+              "outputSchema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "error": {
+          "code": -32603,
+          "message": "native runtime failed to start"
+        },
+        "id": 3,
+        "jsonrpc": "2.0"
+      }
+    ]
+  },
+  "schema_version": 1,
+  "shutdown": {
+    "direct_child_pid": 95192,
+    "exit_code": 1,
+    "joined": true,
+    "mode": "sigterm-inflight",
+    "stdin_open_at_signal": false
+  },
+  "source_sha": "1f4f4d1749b13921dce937d3b25dd93efa5092ae",
+  "state": {
+    "after": {
+      ".": {
+        "device": 16777231,
+        "inode": 793488675,
+        "kind": "directory",
+        "mode": 448
+      },
+      ".ashnazg-owned-state-v1": {
+        "device": 16777231,
+        "inode": 793488723,
+        "kind": "file",
+        "mode": 384
+      },
+      ".ashnazg.lock": {
+        "device": 16777231,
+        "inode": 793488722,
+        "kind": "file",
+        "mode": 384
+      },
+      "rootfs.ext4": {
+        "device": 16777231,
+        "inode": 793488725,
+        "kind": "file",
+        "mode": 384
+      },
+      "runtime.json": {
+        "device": 16777231,
+        "inode": 793519971,
+        "kind": "file",
+        "mode": 384
+      },
+      "serial.log": {
+        "device": 16777231,
+        "inode": 793488727,
+        "kind": "file",
+        "mode": 384
+      },
+      "template.json": {
+        "device": 16777231,
+        "inode": 793488724,
+        "kind": "file",
+        "mode": 384
+      }
+    },
+    "before": {
+      ".": {
+        "device": 16777231,
+        "inode": 793488675,
+        "kind": "directory",
+        "mode": 448
+      },
+      ".ashnazg-owned-state-v1": {
+        "device": 16777231,
+        "inode": 793488723,
+        "kind": "file",
+        "mode": 384
+      },
+      ".ashnazg.lock": {
+        "device": 16777231,
+        "inode": 793488722,
+        "kind": "file",
+        "mode": 384
+      },
+      "rootfs.ext4": {
+        "device": 16777231,
+        "inode": 793488725,
+        "kind": "file",
+        "mode": 384
+      },
+      "runtime.json": {
+        "device": 16777231,
+        "inode": 793519907,
+        "kind": "file",
+        "mode": 384
+      },
+      "serial.log": {
+        "device": 16777231,
+        "inode": 793488727,
+        "kind": "file",
+        "mode": 384
+      },
+      "template.json": {
+        "device": 16777231,
+        "inode": 793488724,
+        "kind": "file",
+        "mode": 384
+      }
+    },
+    "path": "/private/tmp/ashnazg-v0.3.1-accept-OECsBX/acceptance-home/Library/Application Support/ashnazg/native-mcp/1f4f4d1749b13921dce937d3b25dd93efa5092ae"
+  },
+  "status": "failed",
+  "tool_schema_sha256": "7cec67c72d850d22b5d0fcb85c464c2ce2cecc8dbc8d36e408890dd2a9d46b75",
+  "tools_called": [],
+  "tools_list": [
+    "app_install",
+    "app_logs",
+    "ui_act",
+    "ui_screenshot",
+    "ui_snapshot"
+  ]
+}
