@@ -381,7 +381,7 @@ def _tool_call(client: StdioClient, records: list[dict[str, Any]], output: Path,
     response = client.request(request)
     payload_error = None
     try:
-        payload = _tool_payload(response.get("result"))
+        payload = _tool_payload(_response_result(response, request_id))
     except AcceptanceError as exc:
         payload = None
         payload_error = exc

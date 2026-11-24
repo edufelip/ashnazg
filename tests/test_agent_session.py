@@ -237,6 +237,40 @@ class GuestSessionTests(unittest.TestCase):
         self.assertNotIn(b"ready_for_payload", response)
         self.assertEqual(len(self.backend.prepared), 1)
 
+    def test_zero_byte_probe_does_not_block_or_disturb_subsequent_operations(self):
+        # Probing prepare port before real prepare must leave session untouched.
+        response, error = self.run_request("serve_prepare", None)
+        self.assertIsNone(error)
+        self.assertEqual(response, b"")
+        self.assertFalse(self.backend.closed)
+
+        # Real prepare succeeds afterward.
+        response, error = self.run_request("serve_prepare", prepare_header())
+        self.assertIsNone(error)
+        self.assertIn(b"agent_ready", response)
+
+        # Hold a zero-byte idle/probe socket open across RelayServer/vsock while
+        # a real install connects immediately on another worker.
+        probe_server, probe_client = socket.socketpair()
+        probe_done = threading.Event()
+        probe_worker = threading.Thread(target=lambda: (
+            self.session.serve_install(probe_server, peer_cid=2, deadline=time.monotonic() + 3),
+            probe_done.set(),
+        ))
+        probe_worker.start()
+        time.sleep(0.02)
+
+        response, error = self.run_request("serve_install", install_header())
+        self.assertIsNone(error)
+        self.assertNotIn(b"busy", response)
+        self.assertIn(b"installed", response)
+        self.assertEqual(len(self.backend.installed), 1)
+
+        probe_client.shutdown(socket.SHUT_WR)
+        probe_worker.join(1)
+        self.assertTrue(probe_done.is_set())
+        probe_client.close()
+
     def test_one_upload_slot_covers_backend_call_and_second_live_prepare_is_refused(self):
         self.backend.block_prepare = True
         first = self.start_request("serve_prepare", prepare_header())

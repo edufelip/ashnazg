@@ -159,6 +159,63 @@ final class AshnazgVMTests: XCTestCase {
         XCTAssertThrowsError(try parseReadyResponse(Data(repeating: 65, count: 4097)))
     }
 
+    func testRelayServerRebindsAfterTimeWaitAndPreservesBindErrno() throws {
+        // Active close on accepted loopback TCP leaves the server tuple in TIME_WAIT.
+        let seedListener = socket(AF_INET, SOCK_STREAM, 0)
+        XCTAssertGreaterThanOrEqual(seedListener, 0)
+        configureReuseAddress(seedListener)
+        var address = sockaddr_in()
+        address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        address.sin_family = sa_family_t(AF_INET)
+        address.sin_port = 0
+        address.sin_addr = in_addr(s_addr: in_addr_t(0x7f000001).bigEndian)
+        let seedBound = withUnsafePointer(to: &address) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                bind(seedListener, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        XCTAssertEqual(seedBound, 0)
+        XCTAssertEqual(listen(seedListener, 4), 0)
+        var boundAddress = sockaddr_in()
+        var boundLength = socklen_t(MemoryLayout<sockaddr_in>.size)
+        XCTAssertEqual(withUnsafeMutablePointer(to: &boundAddress) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                getsockname(seedListener, $0, &boundLength)
+            }
+        }, 0)
+        let port = Int(UInt16(bigEndian: boundAddress.sin_port))
+
+        let client = socket(AF_INET, SOCK_STREAM, 0)
+        XCTAssertGreaterThanOrEqual(client, 0)
+        let connected = withUnsafePointer(to: &boundAddress) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                Darwin.connect(client, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        XCTAssertEqual(connected, 0)
+        let accepted = accept(seedListener, nil, nil)
+        XCTAssertGreaterThanOrEqual(accepted, 0)
+        Darwin.shutdown(accepted, SHUT_RDWR)
+        Darwin.close(accepted)
+        var eofByte: UInt8 = 0
+        _ = Darwin.read(client, &eofByte, 1)
+        Darwin.close(seedListener)
+        Darwin.close(client)
+
+        let relay = RelayServer(port: port)
+        XCTAssertNoThrow(try relay.start())
+        defer { relay.close() }
+
+        // A live listener on the same port must still fail with EADDRINUSE, not ENOTCONN.
+        let competing = RelayServer(port: port)
+        XCTAssertThrowsError(try competing.start()) { error in
+            let message = error.localizedDescription
+            XCTAssertTrue(message.contains("cannot bind 127.0.0.1:\(port):"), "unexpected message: \(message)")
+            XCTAssertTrue(message.contains(String(cString: strerror(EADDRINUSE))), "expected EADDRINUSE message, got: \(message)")
+            XCTAssertFalse(message.contains("Socket is not connected"), "close() clobbered errno: \(message)")
+        }
+    }
+
     private static func sha(_ data: Data) -> String {
         SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
     }

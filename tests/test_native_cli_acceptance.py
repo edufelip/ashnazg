@@ -122,6 +122,9 @@ for line in sys.stdin:
         if name == "ui_snapshot" and snapshots <= cfg.get("startup_failures", 0):
             emit({"jsonrpc":"2.0", "id":request["id"], "error":{"code":-32000,"message":"startup unavailable"}})
             continue
+        if name == cfg.get("rpc_error_tool"):
+            emit({"jsonrpc":"2.0","id":request["id"],"error":{"code":-32603,"message":cfg.get("rpc_error_message","MCP request failed")}})
+            continue
         if name == cfg.get("error_tool"):
             emit({"jsonrpc":"2.0","id":request["id"],"result":{"isError":True,"content":[{"type":"text","text":"privateToken=never-write-this"}]}})
             continue
@@ -267,6 +270,17 @@ class NativeCliAcceptanceTests(unittest.TestCase):
         receipt_text = (output / "receipt.json").read_text()
         self.assertNotIn("never-write-this", receipt_text)
         self.assertEqual(json.loads(receipt_text)["status"], "failed")
+
+    def test_jsonrpc_tool_error_surfaces_message_without_malformed_result(self):
+        code, output = self.run_driver(
+            rpc_error_tool="app_install",
+            rpc_error_message="native APK installation failed",
+        )
+        self.assertNotEqual(code, 0)
+        receipt = json.loads((output / "receipt.json").read_text())
+        self.assertEqual(receipt["status"], "failed")
+        self.assertIn("native APK installation failed", receipt["error"])
+        self.assertNotIn("malformed", receipt["error"])
 
     def test_oversized_stdout_frame_fails_with_a_joined_owned_child(self):
         self.configure_fake(oversize_initialize=True)
