@@ -152,12 +152,37 @@ final class McpBridgeTests: XCTestCase {
     /// app has no counter and settles on the observed foreground readback
     /// instead, returning fresh observed state — unchanged UI included —
     /// and never claiming the app's own journey succeeded.
+    /// Look up one unique Springboard prompt button across alerts, sheets, and
+    /// confirmation dialogs (such as "Open" / "Cancel" URL prompts).
+    @MainActor
+    private static func springboardPromptButton(
+        _ text: String,
+        in springboard: XCUIApplication
+    ) -> XCUIElement? {
+        let predicate = NSPredicate(format: "label == %@", text)
+        for query in [
+            springboard.alerts.buttons.matching(predicate),
+            springboard.sheets.buttons.matching(predicate),
+        ] where query.count == 1 {
+            return query.element(boundBy: 0)
+        }
+        if (text == "Open" || text == "Cancel")
+            && springboard.buttons["Open"].exists
+            && springboard.buttons["Cancel"].exists {
+            let direct = springboard.buttons.matching(predicate)
+            if direct.count == 1 {
+                return direct.element(boundBy: 0)
+            }
+        }
+        return nil
+    }
+
     /// External-app text tap with fresh-install system prompts in play.
     /// Strict uniqueness is kept for normal app UI; the one documented
     /// exception is the OS AutoFill "Not Now" sheet, whose button plus its
     /// inner static text can both match a text selector in the app's extra
     /// window, so that label falls back to a buttons-only query; a
-    /// Springboard alert button is the last resort.
+    /// Springboard alert or confirmation prompt button is the last resort.
     @MainActor
     private static func tapExternalText(_ text: String, in app: XCUIApplication) -> [String: Any] {
         let appQuery = app.descendants(matching: .any)
@@ -176,10 +201,7 @@ final class McpBridgeTests: XCTestCase {
         }
         if matches == 0 {
             let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-            let alertButtons = springboard.alerts.buttons
-                .matching(NSPredicate(format: "label == %@", text))
-            if alertButtons.count == 1 {
-                let button = alertButtons.element(boundBy: 0)
+            if let button = springboardPromptButton(text, in: springboard) {
                 guard button.isEnabled, button.isHittable else {
                     return [
                         "ok": false,
@@ -595,9 +617,32 @@ final class McpBridgeTests: XCTestCase {
             }
         }
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-        if springboard.alerts.firstMatch.exists,
-           let alertSnapshot = try? springboard.alerts.firstMatch.snapshot() {
-            appendNodes(of: alertSnapshot, into: &nodes)
+        for container in [springboard.alerts.firstMatch, springboard.sheets.firstMatch] {
+            if container.exists, let containerSnapshot = try? container.snapshot() {
+                appendNodes(of: containerSnapshot, into: &nodes)
+            }
+        }
+        if springboard.buttons["Open"].exists, springboard.buttons["Cancel"].exists {
+            for label in ["Open", "Cancel"] {
+                let button = springboard.buttons[label]
+                if button.isHittable,
+                   !nodes.contains(where: {
+                       ($0["role"] as? String) == "button" && ($0["text"] as? String) == label
+                   }) {
+                    let frame = button.frame
+                    if frame.width > 0, frame.height > 0,
+                       frame.minX.isFinite, frame.minY.isFinite,
+                       frame.maxX.isFinite, frame.maxY.isFinite {
+                        nodes.append([
+                            "testId": "",
+                            "role": "button",
+                            "text": label,
+                            "rect": [frame.minX, frame.minY, frame.maxX, frame.maxY],
+                            "enabled": button.isEnabled,
+                        ])
+                    }
+                }
+            }
         }
     }
 

@@ -87,4 +87,4 @@ In the matching `N = 1` per-stage profile breakdown, the `ashnazg` Rust host pro
 | Cold boot / ready time | `18.74 s` (fixture benchmark) | `69.26 s` (fixture benchmark) | `~23.1 s` cold (`arm_start + first_usable_snapshot`, Meer) |
 | Idle / peak runtime RAM | `1.35 GiB` cold idle cgroup | `6.28 GiB` cold idle cgroup | `33.6 MiB` `launchd_sim` + `329.0 MiB` app + `71.8 MiB` runner (`ri_phys_footprint`) |
 | Per-action MCP tax vs native | `771 ms` tap + fresh PNG (`29.7 ms` frame delta) | `1,471 ms` tap + fresh PNG (`413.9 ms` frame delta) | `+202–467 ms` per UI navigation step vs direct XCTest; `+7.9–8.2 s` total E2E overhead |
-| Key open limitation | Requires Linux KVM/Binderfs (or macOS experimental VM `ashnazg-vm`) | `~5–6.5 GiB` RAM pressure under cgroup limits | `expo-dev-launcher` under New Arch + `--initialUrl` intercepts custom deep links (use `--navigation ui`) |
+| Key open limitation | Requires Linux KVM/Binderfs (or macOS experimental VM `ashnazg-vm`) | `~5–6.5 GiB` RAM pressure under cgroup limits | Cold/unloaded `EXDevLauncher` (`reactHost == nil`); `Meer-Dev` aborts on `iOS 27.0` (`iOS 26.5` `--navigation deep-link` passes) |
