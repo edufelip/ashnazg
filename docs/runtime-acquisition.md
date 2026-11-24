@@ -1,9 +1,9 @@
 # Runtime artifact acquisition
 
 The Rust library exposes acquisition as a cancellable API and the native CLI
-bootstrap composes it with the owned helper session. The public `v0.3.0` catalog
-matches source `50434b8a056514fafd9fcb63cc534ce369880184`; the released host passed
-[cold acquisition and a network-denied warm restart](evidence/public-runtime-0.3.0/README.md).
+bootstrap composes it with the owned helper session. The public `v0.3.1` catalog
+matches source `509a74a329529f764f8fef955f45c04eed3e02cc`; the released host passed
+[cold acquisition and a network-denied warm restart](evidence/public-runtime-0.3.1/README.md).
 Other source stamps still require their own matching catalog and artifacts.
 
 `runtime_catalog` parses the producer's bounded schema-1 catalog against an
@@ -114,6 +114,6 @@ cargo run --release --locked --example stage_runtime_candidate -- \
 
 Use the source-matching packaged host for acceptance after staging. The helper still validates the kernel/rootfs before boot. The utility refuses an existing entry rather than replacing it; cache and persistent state remain owned by the acceptance home. Public cold acquisition must later use a different empty home without this staging step.
 
-The [50434b8 prepublication acceptance](evidence/runtime-release-0.3.0/README.md) now exercises this staging path with the actual packaged CLI and VM in all three shutdown modes. It does not establish public acquisition or network-denied warm reuse.
+The [509a74a prepublication acceptance](evidence/runtime-release-0.3.1/README.md) now exercises this staging path with the actual packaged CLI and VM in all three shutdown modes. It does not establish public acquisition or network-denied warm reuse.
 
-The separate [public-release acceptance](evidence/public-runtime-0.3.0/README.md) uses a different empty HOME without staging, then restarts that public cache with outbound IP denied for the CLI subtree. It does not claim whole-guest network isolation.
+The separate [public-release acceptance](evidence/public-runtime-0.3.1/README.md) uses a different empty HOME without staging, then restarts that public cache with outbound IP denied for the CLI subtree. It does not claim whole-guest network isolation.

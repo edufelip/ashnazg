@@ -1,6 +1,6 @@
 # Apple Silicon Linux VM backend
 
-The experimental Apple Silicon backend is distributed in the [public v0.3.0 release](https://github.com/edufelip/ashnazg/releases/tag/v0.3.0). The packaged native MCP CLI passed [public cold acquisition and a network-denied warm restart](evidence/public-runtime-0.3.0/README.md), including all five tools and joined shutdown. The source-specific sections below retain earlier qualification history. The existing Android device and Linux container paths remain usable independently.
+The experimental Apple Silicon backend is distributed in the [public v0.3.1 release](https://github.com/edufelip/ashnazg/releases/tag/v0.3.1). The packaged native MCP CLI passed [public cold acquisition and a network-denied warm restart](evidence/public-runtime-0.3.1/README.md), including all five tools and joined shutdown. The source-specific sections below retain earlier qualification history. The existing Android device and Linux container paths remain usable independently.
 
 ## Build and inputs
 
@@ -86,7 +86,7 @@ Host tests cover framing, ownership, cancellation, FIFO refusal, nonblocking
 upload deadlines and relay half-close behavior. The historical explicit-helper
 acceptance is recorded below. At that milestone, automatic acquisition and
 native MCP installation were outside its scope. The later [public-release
-acceptance](evidence/public-runtime-0.3.0/README.md) qualifies those flows through
+acceptance](evidence/public-runtime-0.3.1/README.md) qualifies those flows through
 the packaged MCP CLI; `up` retains its separate VM-only responsibility.
 
 The first matching hosted guest from source `4f130cc` passed its Linux build and
@@ -171,6 +171,6 @@ against the existing pinned guest, then joined orderly shutdown without host
 ADB. That source-specific acceptance did not establish automatic CLI/MCP
 setup or fresh-state startup with the new supervisor.
 
-The later [public-release qualification](evidence/public-runtime-0.3.0/README.md) establishes distribution, automatic acquisition and native MCP setup for its tested macOS host. Broader injected-failure and repeated-start coverage remains separate. No kernel-size, RAM, idle-CPU, boot-time or zero-copy screenshot target is established by compiling the helper. GitHub-hosted macOS builds cannot replace the local VM acceptance run.
+The later [public-release qualification](evidence/public-runtime-0.3.1/README.md) establishes distribution, automatic acquisition and native MCP setup for its tested macOS host. Broader injected-failure and repeated-start coverage remains separate. No kernel-size, RAM, idle-CPU, boot-time or zero-copy screenshot target is established by compiling the helper. GitHub-hosted macOS builds cannot replace the local VM acceptance run.
 
 [iOS research](research/ios.md) remains a separate track; the Linux guest does not provide iOS compatibility.
