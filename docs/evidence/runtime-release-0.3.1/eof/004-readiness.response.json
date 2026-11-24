@@ -1,0 +1,398 @@
+{
+  "id": 4,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"nodes\":[{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":1,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"android:id/content\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":2,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/launcher\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":3,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/drag_layer\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":4,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/scrim_view\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":5,\"longClickable\":false,\"password\":false,\"rect\":[0,0,720,1280],\"role\":\"scrollable\",\"scrollable\":true,\"selected\":false,\"testId\":\"com.android.launcher3:id/workspace\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":6,\"longClickable\":false,\"password\":false,\"rect\":[16,70,704,305],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/search_container_workspace\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"contentDescription\":\"Search\",\"enabled\":true,\"focused\":false,\"id\":7,\"longClickable\":false,\"password\":false,\"rect\":[16,70,704,305],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/qsb_widget\",\"text\":\"Search\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":8,\"longClickable\":false,\"password\":false,\"rect\":[16,113,704,262],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.quicksearchbox:id/search_plate\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":9,\"longClickable\":false,\"password\":false,\"rect\":[35,139,131,235],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.quicksearchbox:id/search_icon\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"enabled\":true,\"focused\":false,\"id\":10,\"longClickable\":false,\"password\":false,\"rect\":[131,144,676,231],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.quicksearchbox:id/search_widget_text\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"Gallery\",\"enabled\":true,\"focused\":false,\"id\":11,\"longClickable\":true,\"password\":false,\"rect\":[188,775,360,1010],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Gallery\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"contentDescription\":\"Home\",\"enabled\":true,\"focused\":false,\"id\":12,\"longClickable\":false,\"password\":false,\"rect\":[0,48,720,1184],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"text\":\"Home\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":13,\"longClickable\":false,\"password\":false,\"rect\":[0,944,720,1280],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/overview_actions_view\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":14,\"longClickable\":false,\"password\":false,\"rect\":[0,1012,720,1060],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/page_indicator\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":false,\"enabled\":true,\"focused\":false,\"id\":15,\"longClickable\":false,\"password\":false,\"rect\":[0,1051,720,1271],\"role\":\"view\",\"scrollable\":false,\"selected\":false,\"testId\":\"com.android.launcher3:id/hotseat\",\"text\":\"\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"Contacts\",\"enabled\":true,\"focused\":false,\"id\":16,\"longClickable\":true,\"password\":false,\"rect\":[16,1051,188,1173],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Contacts\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"WebView Browser Tester\",\"enabled\":true,\"focused\":false,\"id\":17,\"longClickable\":true,\"password\":false,\"rect\":[360,1051,532,1173],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"WebView Browser Tester\"},{\"checkable\":false,\"checked\":false,\"clickable\":true,\"contentDescription\":\"Camera\",\"enabled\":true,\"focused\":false,\"id\":18,\"longClickable\":true,\"password\":false,\"rect\":[532,1051,704,1173],\"role\":\"text\",\"scrollable\":false,\"selected\":false,\"text\":\"Camera\"}],\"snapshotId\":1,\"truncated\":false}",
+        "type": "text"
+      }
+    ],
+    "isError": false,
+    "structuredContent": {
+      "nodes": [
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 1,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "android:id/content",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 2,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.launcher3:id/launcher",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 3,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.launcher3:id/drag_layer",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 4,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.launcher3:id/scrim_view",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 5,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "role": "scrollable",
+          "scrollable": true,
+          "selected": false,
+          "testId": "com.android.launcher3:id/workspace",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 6,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            16,
+            70,
+            704,
+            305
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.launcher3:id/search_container_workspace",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "contentDescription": "Search",
+          "enabled": true,
+          "focused": false,
+          "id": 7,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            16,
+            70,
+            704,
+            305
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.launcher3:id/qsb_widget",
+          "text": "Search"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 8,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            16,
+            113,
+            704,
+            262
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.quicksearchbox:id/search_plate",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "enabled": true,
+          "focused": false,
+          "id": 9,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            35,
+            139,
+            131,
+            235
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.quicksearchbox:id/search_icon",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "enabled": true,
+          "focused": false,
+          "id": 10,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            131,
+            144,
+            676,
+            231
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.quicksearchbox:id/search_widget_text",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "contentDescription": "Gallery",
+          "enabled": true,
+          "focused": false,
+          "id": 11,
+          "longClickable": true,
+          "password": false,
+          "rect": [
+            188,
+            775,
+            360,
+            1010
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Gallery"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "contentDescription": "Home",
+          "enabled": true,
+          "focused": false,
+          "id": 12,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            48,
+            720,
+            1184
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "text": "Home"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 13,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            944,
+            720,
+            1280
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.launcher3:id/overview_actions_view",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 14,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            1012,
+            720,
+            1060
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.launcher3:id/page_indicator",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": false,
+          "enabled": true,
+          "focused": false,
+          "id": 15,
+          "longClickable": false,
+          "password": false,
+          "rect": [
+            0,
+            1051,
+            720,
+            1271
+          ],
+          "role": "view",
+          "scrollable": false,
+          "selected": false,
+          "testId": "com.android.launcher3:id/hotseat",
+          "text": ""
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "contentDescription": "Contacts",
+          "enabled": true,
+          "focused": false,
+          "id": 16,
+          "longClickable": true,
+          "password": false,
+          "rect": [
+            16,
+            1051,
+            188,
+            1173
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Contacts"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "contentDescription": "WebView Browser Tester",
+          "enabled": true,
+          "focused": false,
+          "id": 17,
+          "longClickable": true,
+          "password": false,
+          "rect": [
+            360,
+            1051,
+            532,
+            1173
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "WebView Browser Tester"
+        },
+        {
+          "checkable": false,
+          "checked": false,
+          "clickable": true,
+          "contentDescription": "Camera",
+          "enabled": true,
+          "focused": false,
+          "id": 18,
+          "longClickable": true,
+          "password": false,
+          "rect": [
+            532,
+            1051,
+            704,
+            1173
+          ],
+          "role": "text",
+          "scrollable": false,
+          "selected": false,
+          "text": "Camera"
+        }
+      ],
+      "snapshotId": 1,
+      "truncated": false
+    }
+  }
+}

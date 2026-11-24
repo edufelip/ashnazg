@@ -1,0 +1,507 @@
+{
+  "accepted": true,
+  "artifact_id": 14920143781,
+  "artifact_zip_sha256": "652e2363fda7986a2c9e4dcbdc3919ed6b89a75829bb2dc0037b438b344287f3",
+  "candidate_sha256": "ed62802837d56c54ba48bcd57790f5d297fdacd41f567fa12c2310766b3757ce",
+  "catalog_sha256": "9ae81a55867d0899176f1c0fae964a7192b431eb3c936cfc7157d04de60c8899",
+  "driver_sha256": "db8bf0b2573bff0d9a4af2858c8eca76375c45cba41864402cbd70747067ef4f",
+  "driver_source_commit": "509a74a",
+  "ios_fixture": {
+    "binary_sha256": "845920614d5dc01cda43ed1561fc89ad6cc06dbb987dc7c42562b9b7fea3c884",
+    "command": "env -u ASHNAZG_IOS_FIXTURE_SOURCE python3 platform/ios/verify_mcp_fixture.py --binary <packaged bin> --output-dir <private dir>",
+    "exit_code": 0,
+    "schema_contract": "packaged platform/ios sources match this commit byte-for-byte",
+    "simulator_deleted": true,
+    "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc",
+    "status": "passed",
+    "work_dir_removed": true
+  },
+  "limits": [
+    "No public cold acquisition or offline network-denial proof yet.",
+    "Runtime host/helper/guest/APKs are unchanged prepared bytes; helper relay rebind across rapid warm restarts failed intermittently on this host and passing runs followed settle delays and retries recorded as failed attempts.",
+    "In-flight evidence is a client-observed unanswered request at SIGTERM, not a server-entry timestamp.",
+    "State identity covers captured persistent entries; runtime.json and serial.log are mutable diagnostics. Disk contents may change.",
+    "Host package manifests declare source/platform/version; no intrinsic compiler-to-binary provenance or Developer ID/notarization is claimed.",
+    "Original source/notice evidence is retained in the sidecar without a legal-clearance claim.",
+    "Retained files cannot independently attest the external runtime environment or live secret values used by the scan.",
+    "Screenshot PNGs were decoded, dimension-checked and pixel-compared by the driver but are not retained in this evidence directory."
+  ],
+  "passed_modes": [
+    "eof",
+    "sigterm",
+    "sigterm-inflight"
+  ],
+  "payloads": [
+    {
+      "path": "README.md",
+      "sha256": "861ad3877eaafc10006f451178f5544bdad60f939fa37b3283ad75a3a47d84d9",
+      "size": 4106
+    },
+    {
+      "path": "eof/001-initialize.request.json",
+      "sha256": "8243b23569975f6ddb42dec8670a09f3601fe919e0b9402da1162d04b76fc5cc",
+      "size": 226
+    },
+    {
+      "path": "eof/002-initialize.response.json",
+      "sha256": "f06b293bde73161543ce581e4c5f676fcb6478a24acc4271699833cefe6d5148",
+      "size": 213
+    },
+    {
+      "path": "eof/003-readiness.request.json",
+      "sha256": "70dcd94552acb2b3fd134cbf8eab0b0f9b10100cc658922a3253a47b40737a32",
+      "size": 163
+    },
+    {
+      "path": "eof/003-readiness.response.json",
+      "sha256": "ac02f1f008870f0fcf722dedc8a441b4652c969ee3243ddcc6a183f0f8b99a36",
+      "size": 141
+    },
+    {
+      "path": "eof/003-tools-list.request.json",
+      "sha256": "9d2c25011becd4610370daff19fb91cafe891394d20080993ce44a0f6b413da1",
+      "size": 76
+    },
+    {
+      "path": "eof/004-readiness.request.json",
+      "sha256": "355de8191564cdf12dbf92018ca42cfe1bbfc1aaa7dc40af86777a297ebcc830",
+      "size": 163
+    },
+    {
+      "path": "eof/004-readiness.response.json",
+      "sha256": "17a3d3294f0b1df73bb406c1126767c91efd513a3d5f2140a62ea44ff399d75d",
+      "size": 14962
+    },
+    {
+      "path": "eof/004-tools-list.response.json",
+      "sha256": "8b3592b9b943a7e22c6d7ef6b5f2a2cd81d60a2a59ea19c96a03effbe950d1bf",
+      "size": 6135
+    },
+    {
+      "path": "eof/005-app_install.request.json",
+      "sha256": "bab005ac71c80618caa43405e8dda8ddbd18cfb996144c76fc8e65b4ba00c9ce",
+      "size": 238
+    },
+    {
+      "path": "eof/005-app_install.response.json",
+      "sha256": "25c93002b0c70a01ed58ccbfc0ce97e26e3511e30ddd237cd461b6c40cb55dbb",
+      "size": 377
+    },
+    {
+      "path": "eof/006-ui_snapshot.request.json",
+      "sha256": "88daef4f8071dcc0cad3e2a88fd65161ba92fe92adbbfc8171250a8bd32391d7",
+      "size": 163
+    },
+    {
+      "path": "eof/006-ui_snapshot.response.json",
+      "sha256": "5d4bab7d7ba3a473dbf7bb6fc9d14434d79849af4dcf69e674d65295002c4139",
+      "size": 14759
+    },
+    {
+      "path": "eof/007-ui_screenshot.request.json",
+      "sha256": "525e72952ffd364f7d3d583864bb3b388b5ae17604120bc64b7014469ca91105",
+      "size": 182
+    },
+    {
+      "path": "eof/007-ui_screenshot.response.json",
+      "sha256": "23d15acfdc8333895477da1dd4d6d6c7b8db5e19991d2a8ff97aea390f3d3484",
+      "size": 370
+    },
+    {
+      "path": "eof/008-ui_act.request.json",
+      "sha256": "9b46b93d9a0f715130963d676221f9b2b67cffd3de73427d6a18c89e09e3771c",
+      "size": 228
+    },
+    {
+      "path": "eof/008-ui_act.response.json",
+      "sha256": "d8139e4228ad0755208d14619495443e1e399e3c10eb68bac042d6ccb42373af",
+      "size": 14000
+    },
+    {
+      "path": "eof/009-ui_screenshot.request.json",
+      "sha256": "660966332932d2166ed011bed718f2be0aba901226442ac91601fe8dfc293ac8",
+      "size": 182
+    },
+    {
+      "path": "eof/009-ui_screenshot.response.json",
+      "sha256": "1abaa33472b0572becb613d9e2d4b67abc7262e1c788e366da0a4efff482a7aa",
+      "size": 370
+    },
+    {
+      "path": "eof/010-app_logs.request.json",
+      "sha256": "462a5ab38e589548d540d132341cef3926883a578e207b10a50add3d6c5048c3",
+      "size": 176
+    },
+    {
+      "path": "eof/010-app_logs.response.json",
+      "sha256": "a5ed9b4ba3efe88ff02f030ddade26c95e006735f736d3ad4cf5d424e4dd06ed",
+      "size": 248
+    },
+    {
+      "path": "eof/receipt.json",
+      "sha256": "25af201d26d2d72852b61acfe92ab0669df02e3c735d7be291fdcbbffe9bf507",
+      "size": 86001
+    },
+    {
+      "path": "eof/runtime.json",
+      "sha256": "70d1ffbe9de2c3fa7889d1ec25df610016d0d15a3935210ed6be2a1fe49c3fb4",
+      "size": 739
+    },
+    {
+      "path": "eof/secret-scan.json",
+      "sha256": "7bb41f525404aabf3e30582a40fd0de66d07634ef7610a8ccdf9d81ef3103a01",
+      "size": 187
+    },
+    {
+      "path": "eof/serial.log.gz",
+      "sha256": "fe925a0da7cf238cfd5b3a14cec233acf6430cd8caf5dbad720de2533951b1d4",
+      "size": 51055
+    },
+    {
+      "path": "executed-driver.py",
+      "sha256": "db8bf0b2573bff0d9a4af2858c8eca76375c45cba41864402cbd70747067ef4f",
+      "size": 50186
+    },
+    {
+      "path": "flaked-attempts.json",
+      "sha256": "37c32f56f9b55e8380b7b4aea920a9b5c3ec421961d5c1ae052266ecda377723",
+      "size": 2698
+    },
+    {
+      "path": "guest/kernel.config",
+      "sha256": "1d3f71c5cd4f4f5402136658877a4baa9c6973a55e236da26f03383b7d7967ae",
+      "size": 1945
+    },
+    {
+      "path": "guest/kernel.generated.config",
+      "sha256": "70960e57afb670d381ffde6284c48faf7934be7e0acdfd6ccdadfcb789718694",
+      "size": 302491
+    },
+    {
+      "path": "guest/manifest.json",
+      "sha256": "266378e906604a443c3af50faf0fda437354ec09a2c4575ee94e733c4d56f832",
+      "size": 605
+    },
+    {
+      "path": "guest/provenance.json",
+      "sha256": "b5f18a72bceb0acb040a599f41c9611945d5363e422bbb74e9eddff516d6b732",
+      "size": 321742
+    },
+    {
+      "path": "helper-entitlements.plist",
+      "sha256": "ca3c678fb76c21598af231adc0b839d2a776804a3b4dba93575776a6278651e7",
+      "size": 235
+    },
+    {
+      "path": "host-metadata.json",
+      "sha256": "c096c810da022cc1a35132c82f054d6807ee87dd8817d60a6fbd90e9cfe2c080",
+      "size": 222
+    },
+    {
+      "path": "ios-fixture/receipt.json",
+      "sha256": "ce6205a71333bdd61ed82847b0a80bd3241339c0536d9abe311798b6d115e23f",
+      "size": 11904
+    },
+    {
+      "path": "local-preflight.json",
+      "sha256": "3a16486b08e66902aa6a8df985a8ce51eefead06511cede3031a473a7389d38b",
+      "size": 2001
+    },
+    {
+      "path": "mcp-tools.schema.json",
+      "sha256": "7cec67c72d850d22b5d0fcb85c464c2ce2cecc8dbc8d36e408890dd2a9d46b75",
+      "size": 3513
+    },
+    {
+      "path": "prepared-artifact.json",
+      "sha256": "6a664f0d012d6b5ef2bf1b7839cabe030694cbac2129514022c5ffeb45ef2f67",
+      "size": 2735
+    },
+    {
+      "path": "run_acceptance_modes.py",
+      "sha256": "d898e8e5479c90e6db527b01d8b2dc09394506116f3926066b8f43310cd4c1e5",
+      "size": 5487
+    },
+    {
+      "path": "sigterm/001-initialize.request.json",
+      "sha256": "8243b23569975f6ddb42dec8670a09f3601fe919e0b9402da1162d04b76fc5cc",
+      "size": 226
+    },
+    {
+      "path": "sigterm/002-initialize.response.json",
+      "sha256": "f06b293bde73161543ce581e4c5f676fcb6478a24acc4271699833cefe6d5148",
+      "size": 213
+    },
+    {
+      "path": "sigterm/003-readiness.request.json",
+      "sha256": "70dcd94552acb2b3fd134cbf8eab0b0f9b10100cc658922a3253a47b40737a32",
+      "size": 163
+    },
+    {
+      "path": "sigterm/003-readiness.response.json",
+      "sha256": "ac02f1f008870f0fcf722dedc8a441b4652c969ee3243ddcc6a183f0f8b99a36",
+      "size": 141
+    },
+    {
+      "path": "sigterm/003-tools-list.request.json",
+      "sha256": "9d2c25011becd4610370daff19fb91cafe891394d20080993ce44a0f6b413da1",
+      "size": 76
+    },
+    {
+      "path": "sigterm/004-readiness.request.json",
+      "sha256": "355de8191564cdf12dbf92018ca42cfe1bbfc1aaa7dc40af86777a297ebcc830",
+      "size": 163
+    },
+    {
+      "path": "sigterm/004-readiness.response.json",
+      "sha256": "af2dd542109d1b26c0e8941ee13130361027a7376d4e2136b146a84fcb5827a9",
+      "size": 14962
+    },
+    {
+      "path": "sigterm/004-tools-list.response.json",
+      "sha256": "8b3592b9b943a7e22c6d7ef6b5f2a2cd81d60a2a59ea19c96a03effbe950d1bf",
+      "size": 6135
+    },
+    {
+      "path": "sigterm/005-app_install.request.json",
+      "sha256": "bab005ac71c80618caa43405e8dda8ddbd18cfb996144c76fc8e65b4ba00c9ce",
+      "size": 238
+    },
+    {
+      "path": "sigterm/005-app_install.response.json",
+      "sha256": "25c93002b0c70a01ed58ccbfc0ce97e26e3511e30ddd237cd461b6c40cb55dbb",
+      "size": 377
+    },
+    {
+      "path": "sigterm/006-ui_snapshot.request.json",
+      "sha256": "88daef4f8071dcc0cad3e2a88fd65161ba92fe92adbbfc8171250a8bd32391d7",
+      "size": 163
+    },
+    {
+      "path": "sigterm/006-ui_snapshot.response.json",
+      "sha256": "5d4bab7d7ba3a473dbf7bb6fc9d14434d79849af4dcf69e674d65295002c4139",
+      "size": 14759
+    },
+    {
+      "path": "sigterm/007-ui_screenshot.request.json",
+      "sha256": "525e72952ffd364f7d3d583864bb3b388b5ae17604120bc64b7014469ca91105",
+      "size": 182
+    },
+    {
+      "path": "sigterm/007-ui_screenshot.response.json",
+      "sha256": "23d15acfdc8333895477da1dd4d6d6c7b8db5e19991d2a8ff97aea390f3d3484",
+      "size": 370
+    },
+    {
+      "path": "sigterm/008-ui_act.request.json",
+      "sha256": "9b46b93d9a0f715130963d676221f9b2b67cffd3de73427d6a18c89e09e3771c",
+      "size": 228
+    },
+    {
+      "path": "sigterm/008-ui_act.response.json",
+      "sha256": "d8139e4228ad0755208d14619495443e1e399e3c10eb68bac042d6ccb42373af",
+      "size": 14000
+    },
+    {
+      "path": "sigterm/009-ui_screenshot.request.json",
+      "sha256": "660966332932d2166ed011bed718f2be0aba901226442ac91601fe8dfc293ac8",
+      "size": 182
+    },
+    {
+      "path": "sigterm/009-ui_screenshot.response.json",
+      "sha256": "1abaa33472b0572becb613d9e2d4b67abc7262e1c788e366da0a4efff482a7aa",
+      "size": 370
+    },
+    {
+      "path": "sigterm/010-app_logs.request.json",
+      "sha256": "462a5ab38e589548d540d132341cef3926883a578e207b10a50add3d6c5048c3",
+      "size": 176
+    },
+    {
+      "path": "sigterm/010-app_logs.response.json",
+      "sha256": "56a150522aced686a3a2828d354266964bef4dc32d36e9c1abc82982c7e47fd0",
+      "size": 248
+    },
+    {
+      "path": "sigterm/receipt.json",
+      "sha256": "f8b7bb57a571a6c33471fa2870b3312f54fb93a711ae0aaffb2fc8e443b6d38e",
+      "size": 86008
+    },
+    {
+      "path": "sigterm/runtime.json",
+      "sha256": "546b7fff1eeb88b939a4667890131bf8c9b017a06eeec4d5377598da27df85fb",
+      "size": 739
+    },
+    {
+      "path": "sigterm/secret-scan.json",
+      "sha256": "5f5b227cc2752e189c25358c149df95b9c6afd2969d288dc77c9922e3816e010",
+      "size": 187
+    },
+    {
+      "path": "sigterm/serial.log.gz",
+      "sha256": "10ff3a95e28a6f9c1d015dece5c305d50646c7be56ea1fa4b9f1e8dbf4be00b4",
+      "size": 54037
+    },
+    {
+      "path": "sigterm-inflight/001-initialize.request.json",
+      "sha256": "8243b23569975f6ddb42dec8670a09f3601fe919e0b9402da1162d04b76fc5cc",
+      "size": 226
+    },
+    {
+      "path": "sigterm-inflight/002-initialize.response.json",
+      "sha256": "f06b293bde73161543ce581e4c5f676fcb6478a24acc4271699833cefe6d5148",
+      "size": 213
+    },
+    {
+      "path": "sigterm-inflight/003-readiness.request.json",
+      "sha256": "70dcd94552acb2b3fd134cbf8eab0b0f9b10100cc658922a3253a47b40737a32",
+      "size": 163
+    },
+    {
+      "path": "sigterm-inflight/003-readiness.response.json",
+      "sha256": "85840a119e6e50611966ba885d71f7b5139e78f2f2099c8b3e0687cd14f19a45",
+      "size": 14962
+    },
+    {
+      "path": "sigterm-inflight/003-tools-list.request.json",
+      "sha256": "9d2c25011becd4610370daff19fb91cafe891394d20080993ce44a0f6b413da1",
+      "size": 76
+    },
+    {
+      "path": "sigterm-inflight/004-app_install.request.json",
+      "sha256": "32cd24c95f602f8e6ddf07c77ce988f564a9c829396b97300cefa37fb8cbdfb3",
+      "size": 238
+    },
+    {
+      "path": "sigterm-inflight/004-app_install.response.json",
+      "sha256": "adf7919c3c06454e58d4e3e630d07125f550c0ad13aa9726f615c334bf35d99a",
+      "size": 377
+    },
+    {
+      "path": "sigterm-inflight/004-tools-list.response.json",
+      "sha256": "8b3592b9b943a7e22c6d7ef6b5f2a2cd81d60a2a59ea19c96a03effbe950d1bf",
+      "size": 6135
+    },
+    {
+      "path": "sigterm-inflight/005-ui_snapshot.request.json",
+      "sha256": "b0162fa80ea0079de7ae8eb14db882e3cc2aee50c45751a6f22dd04b44a0f509",
+      "size": 163
+    },
+    {
+      "path": "sigterm-inflight/005-ui_snapshot.response.json",
+      "sha256": "9a635a617b0486e29c2b63c0356383056f470a90641f4675b05c9d896b354055",
+      "size": 14759
+    },
+    {
+      "path": "sigterm-inflight/006-ui_screenshot.request.json",
+      "sha256": "f6a8869b7e286ce76b03d7b51efb7c4e84798a5e78569dd1064839eafdee7b6b",
+      "size": 182
+    },
+    {
+      "path": "sigterm-inflight/006-ui_screenshot.response.json",
+      "sha256": "3e969d5433598fed125aa97ae199e6484980b8b99955bb2a104d93ebf2544628",
+      "size": 370
+    },
+    {
+      "path": "sigterm-inflight/007-ui_act.request.json",
+      "sha256": "a6e33bcd7ade2c527c26c0c42b3d882fde62b5dffc3bd2a84d7d378f99b2d897",
+      "size": 228
+    },
+    {
+      "path": "sigterm-inflight/007-ui_act.response.json",
+      "sha256": "82caf533161351bd5f835a10b2875916c3f30d2fe30c3b155e15800b2164a473",
+      "size": 14000
+    },
+    {
+      "path": "sigterm-inflight/008-ui_screenshot.request.json",
+      "sha256": "77a1f74448abb3c3e1bebdcfa205e868ea09ff0b74c379d17e6f67685e2c1de3",
+      "size": 182
+    },
+    {
+      "path": "sigterm-inflight/008-ui_screenshot.response.json",
+      "sha256": "e99968191d35a891fa762da8e5ae9467d450a3fd587420ca5a8a8a4a6f9e0cf6",
+      "size": 370
+    },
+    {
+      "path": "sigterm-inflight/009-app_logs.request.json",
+      "sha256": "9baee998fe5b315a7fea8c106089766f86dcb7bb718cfe463cf0974dc0f22aa3",
+      "size": 175
+    },
+    {
+      "path": "sigterm-inflight/009-app_logs.response.json",
+      "sha256": "66701210304504f7480a4c0af953239aea138bd91afc5d543f4ce851f7447084",
+      "size": 247
+    },
+    {
+      "path": "sigterm-inflight/inflight.request.json",
+      "sha256": "72e2e6b2e5566355b2cb67ba4e357d18feb3a3204a22fd0ffd277e16e058c264",
+      "size": 219
+    },
+    {
+      "path": "sigterm-inflight/receipt.json",
+      "sha256": "2f44f92a3ee8191bd117f74a9eb8983bcc52e2ae90f19545636be1190685c106",
+      "size": 85676
+    },
+    {
+      "path": "sigterm-inflight/runtime.json",
+      "sha256": "ebba6fcb74d72e789f7415dc282970a0f7840bfbd63aad522c53cc2d303cd6eb",
+      "size": 739
+    },
+    {
+      "path": "sigterm-inflight/secret-scan.json",
+      "sha256": "fa5f5ef3cd647e5048239a06ec8dd9238c6b8f0bb3326d4c91f1b7868123ada9",
+      "size": 187
+    },
+    {
+      "path": "sigterm-inflight/serial.log.gz",
+      "sha256": "313fffe6dd456dfddc73665ce5e8ba29182859b9742033242fb335dc85ae6cc2",
+      "size": 59968
+    },
+    {
+      "path": "staging-receipt.json",
+      "sha256": "f0d5c6d6c44daad52218403bb9b807a7b445e795653359499bab42c1fc91c4ae",
+      "size": 330
+    }
+  ],
+  "prepared_run_attempt": 1,
+  "prepared_run_id": 45392351351,
+  "runs": [
+    {
+      "attempt": 1,
+      "handshake_seconds": 0.019,
+      "helper_startup_ms": 31321,
+      "inflight": null,
+      "mode": "eof",
+      "passed": true,
+      "ready_seconds": 32.065
+    },
+    {
+      "attempt": 1,
+      "handshake_seconds": 0.018,
+      "helper_startup_ms": 33044,
+      "inflight": null,
+      "mode": "sigterm",
+      "passed": true,
+      "ready_seconds": 32.064
+    },
+    {
+      "attempt": 2,
+      "handshake_seconds": 0.018,
+      "helper_startup_ms": 30380,
+      "inflight": {
+        "claim": "client-observed submitted request without a response; no server-entry timestamp",
+        "observed_pending_seconds": 0.209,
+        "replies_after_signal": [],
+        "request_id": 10,
+        "request_written": true,
+        "unanswered_at_signal": true
+      },
+      "mode": "sigterm-inflight",
+      "passed": true,
+      "ready_seconds": 28.73
+    }
+  ],
+  "schema_version": 1,
+  "scope": "prepublication production CLI with explicitly staged catalog-verified cache; warm VM restarts after initial diagnostic boots",
+  "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc"
+}
