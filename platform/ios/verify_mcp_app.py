@@ -401,10 +401,11 @@ def run_acceptance(
         error aborts the stage instead of being retried."""
         ids: list = []
         deadline = time.monotonic() + bound
+        accepted_open_prompt = False
         while True:
             snap = snapshot(stage)
             sequence = snap.get("snapshotId")
-            previous_sequence = ids[-1] if ids else last_sequence[0]
+            previous_sequence = max(last_sequence[0], ids[-1] if ids else 0)
             if type(sequence) is not int or sequence <= previous_sequence:
                 fail(
                     stage, "polling-did-not-advance-sequence", uncertain=True,
@@ -412,6 +413,50 @@ def run_acceptance(
                 )
             ids.append(sequence)
             nodes = snap.get("nodes") or []
+            if (
+                not accepted_open_prompt
+                and stage in ("search/after-link", "home-return/after-link")
+                and any(
+                    node.get("role") == "button"
+                    and node.get("testId") == ""
+                    and node.get("text") == "Open"
+                    and node.get("enabled") is True
+                    for node in nodes
+                )
+                and any(
+                    node.get("role") == "button"
+                    and node.get("testId") == ""
+                    and node.get("text") == "Cancel"
+                    and node.get("enabled") is True
+                    for node in nodes
+                )
+            ):
+                accept_stage = f"{stage}/accept-open"
+                once(accept_stage)
+                accepted = call(
+                    "ui_act",
+                    {"action": "tap", "target": {"text": "Open"}},
+                    accept_stage,
+                    allow_error=True,
+                )
+                check_mutation_error(accepted, accept_stage)
+                try:
+                    acted = safe_structured(accepted)
+                except AcceptanceError:
+                    fail(accept_stage, "tool-result-without-structured-content", uncertain=True)
+                if acted.get("settled") is not True:
+                    fail(accept_stage, "dismiss-did-not-settle", uncertain=True)
+                acted_snap = acted.get("snapshot") or {}
+                acted_id = acted_snap.get("snapshotId")
+                if type(acted_id) is not int or acted_id <= sequence:
+                    fail(
+                        accept_stage, "dismiss-did-not-advance-sequence", uncertain=True,
+                        snapshot_id=acted_id if type(acted_id) is int else None,
+                    )
+                last_sequence[0] = acted_id
+                ids.append(acted_id)
+                accepted_open_prompt = True
+                continue
             matches = [node for node in nodes if node.get("testId") == test_id]
             if len(matches) == 1 and matches[0].get("role") == role and matches[0].get("enabled") is True:
                 return matches[0], snap, ids

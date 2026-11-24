@@ -143,18 +143,19 @@ the app must own the foreground and the ready selector must resolve to
 exactly one usable element. A tap settles on that observed foreground
 readback — there is no fixture counter in the external path — and
 `deep_link` opens the host-allowlisted URI through
-`XCUIDevice.shared.system.open`.
+`XCUIDevice.shared.system.open` (with Springboard confirmation prompts
+exposed when presented).
 
 ## Verify the mock Meer journey
 
 Start the loopback Metro and mock API for the pinned app. Set the manifest's
 `initialUrl` to that Metro URL and allowlist the exact Search and Home links.
 Keep the synthetic login in a separate local JSON file with `email` and
-`password` fields. For Expo Dev Client builds under React Native New
-Architecture / Bridgeless mode (such as `Meer-Dev`), pass `--navigation ui` to
-drive Search and return-to-Home through visible controls; see
-`docs/research/ios-mcp-comparison.md` for why external custom-scheme deep links
-are intercepted by `EXDevLauncherController` when launched with `--initialUrl`.
+`password` fields. Default `--navigation deep-link` verifies Search and
+return-to-Home URL routing on pre-warmed `Meer-Dev` builds on `iOS 26.5`;
+pass `--navigation ui` to exercise visible controls directly (or when the
+dev client has not yet loaded a React host); see
+`docs/research/ios-mcp-comparison.md`.
 
 ```sh
 python3 platform/ios/verify_mcp_app.py \
