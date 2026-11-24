@@ -1,0 +1,9 @@
+{
+  "authorization_or_cookies_sent": false,
+  "matches_accepted_candidate": true,
+  "schema_version": 1,
+  "sha256": "7178f3dcf4e77ecdfefecd8192693f3fdeeebc70b1001762a59c5c10241c0c4d",
+  "size": 6924844,
+  "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc",
+  "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/ashnazg-v0.3.1-macos-aarch64.zip"
+}

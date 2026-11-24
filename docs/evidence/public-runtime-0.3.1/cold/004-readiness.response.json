@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": -32603,
+    "message": "native runtime is still starting; retry the request"
+  },
+  "id": 4,
+  "jsonrpc": "2.0"
+}

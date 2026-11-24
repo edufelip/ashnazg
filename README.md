@@ -2,7 +2,7 @@
 
 **One Emulator to Rule Them All.** A native control layer for AI agents and Android test pipelines.
 
-This repository is public and MIT licensed. A Rust MCP host connects to a persistent Android UiAutomation agent. The [v0.3.0 experimental release](https://github.com/edufelip/ashnazg/releases/tag/v0.3.0) includes automatic Android VM setup on Apple Silicon macOS, with no host Android SDK required. External Android devices remain supported on Linux and macOS.
+This repository is public and MIT licensed. A Rust MCP host connects to a persistent Android UiAutomation agent. The [v0.3.1 experimental release](https://github.com/edufelip/ashnazg/releases/tag/v0.3.1) includes automatic Android VM setup on Apple Silicon macOS, with no host Android SDK required. External Android devices remain supported on Linux and macOS.
 
 ## Control tools
 
@@ -17,9 +17,9 @@ These describe the release scope. See CI and [validation evidence](docs/validati
 
 ## Install a packaged release
 
-Download the [macOS ARM64 package](https://github.com/edufelip/ashnazg/releases/download/v0.3.0/ashnazg-v0.3.0-macos-aarch64.zip) and follow the [release installation guide](docs/releases.md) for checksums and MCP client configuration. The released host downloads its matching runtime and owns VM/agent startup and shutdown. The helper is ad-hoc signed, without Developer ID signing or notarization.
+Download the [macOS ARM64 package](https://github.com/edufelip/ashnazg/releases/download/v0.3.1/ashnazg-v0.3.1-macos-aarch64.zip) and follow the [release installation guide](docs/releases.md) for checksums and MCP client configuration. The released host downloads its matching runtime and owns VM/agent startup and shutdown. The helper is ad-hoc signed, without Developer ID signing or notarization.
 
-[Real CLI/VM acceptance](docs/evidence/public-runtime-0.3.0/README.md) covers public cold acquisition and a network-denied warm restart. Linux packages use the external Android setup below. Building from source remains supported.
+[Real CLI/VM acceptance](docs/evidence/public-runtime-0.3.1/README.md) covers public cold acquisition and a network-denied warm restart. Linux packages use the external Android setup below. Building from source remains supported.
 
 On Ubuntu x86_64, the [development session guide](docs/ubuntu-development.md)
 shows how to run the published Linux CLI with an owned Android guest, keep app
@@ -51,7 +51,7 @@ export ANDROID_SERIAL=emulator-5554
 
 Configure a local MCP client to launch that command with the environment above. For Streamable HTTP, set `ASHNAZG_HTTP_TOKEN` and run `./target/release/ashnazg mcp --http 127.0.0.1:7778`; the endpoint is `/mcp` and requires `Authorization: Bearer …`. Stdio writes only MCP messages to stdout.
 
-On Apple Silicon macOS, the released host selects the [native MCP bootstrap](docs/native-cli.md) when `ASHNAZG_TOKEN` is absent. It initializes MCP before runtime readiness and owns signal cleanup. The public catalog matches the `v0.3.0` source stamp; unstamped development builds can use the external Android configuration above.
+On Apple Silicon macOS, the released host selects the [native MCP bootstrap](docs/native-cli.md) when `ASHNAZG_TOKEN` is absent. It initializes MCP before runtime readiness and owns signal cleanup. The public catalog matches the `v0.3.1` source stamp; unstamped development builds can use the external Android configuration above.
 
 Advertised tools are `ui_snapshot`, `ui_act`, `ui_screenshot`, `app_logs` and `app_install`. Native MCP owns VM startup; the tool set does not expose VM snapshot management or iOS control. Compose apps must opt in to `testTagsAsResourceId`; a hidden tag is not retrievable simply by including unimportant views.
 
@@ -72,6 +72,6 @@ Benchmarks compare persistent RPC with stock adb XML dump and screenshot command
 - [Original architecture proposal](docs/architecture-blueprint.md) — preserved as research targets, not implementation evidence.
 - [Contributing](CONTRIBUTING.md)
 
-The experimental Android VM is distributed for macOS in v0.3.0. The source
+The experimental Android VM is distributed for macOS in v0.3.1. The source
 tree also has a separate, opt-in iOS Simulator fixture experiment. Performance
 claims are scoped to the configurations in the linked evidence.

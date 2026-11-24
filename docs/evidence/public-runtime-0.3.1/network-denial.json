@@ -1,0 +1,17 @@
+{
+  "controller_outside_reason": "macOS setuid /bin/ps cannot execute under sandbox-exec; inventory remains external",
+  "probe_source": "import socket,json\nout=[]\nfor family,address in [(socket.AF_INET,('198.51.100.1',443)),(socket.AF_INET6,('2001:db8::1',443))]:\n s=socket.socket(family);s.settimeout(1)\n try:s.connect(address);out.append({'family':family,'connected':True})\n except OSError as e:out.append({'family':family,'errno':e.errno})\n finally:s.close()\nprint(json.dumps(out))\n",
+  "probes": [
+    {
+      "errno": 1,
+      "family": 2
+    },
+    {
+      "errno": 1,
+      "family": 30
+    }
+  ],
+  "profile_sha256": "dfc42c68e4c06ddb51dbe133d3496d737f1f20cbe832694669222b94633d1347",
+  "schema_version": 1,
+  "scope": "host CLI and descendants; controller remains outside; guest networking via external host services is not proven isolated"
+}

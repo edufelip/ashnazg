@@ -95,10 +95,10 @@ panic recovery remain fixture evidence. The driver reports its credential scan;
 retained files do not independently attest the external runtime environment or
 the secret values used by that scan.
 
-The separately retained [packaged CLI/VM acceptance](evidence/runtime-release-0.3.0/README.md)
-uses the unchanged `50434b8` candidate with an explicitly staged verified cache.
+The separately retained [packaged CLI/VM acceptance](evidence/runtime-release-0.3.1/README.md)
+uses the unchanged `509a74a` candidate with an explicitly staged verified cache.
 The actual stdio CLI initializes before guest readiness, exercises all five
 tools, and passes EOF, idle SIGTERM, and client-observed in-flight SIGTERM with
-joined helper/bridge cleanup. The later [public-release acceptance](evidence/public-runtime-0.3.0/README.md)
+joined helper/bridge cleanup. The later [public-release acceptance](evidence/public-runtime-0.3.1/README.md)
 separately verifies public cold acquisition and host-network-denied warm reuse
-of the published v0.3.0 assets.
+of the published v0.3.1 assets.

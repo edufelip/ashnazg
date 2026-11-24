@@ -1,0 +1,401 @@
+{
+  "anonymous_asset_bodies_verified": 10,
+  "anonymous_asset_bytes": 727503760,
+  "candidate_sha256": "ed62802837d56c54ba48bcd57790f5d297fdacd41f567fa12c2310766b3757ce",
+  "cold": {
+    "empty_cache_before": true,
+    "empty_state_before": true,
+    "helper_startup_ms": 114689,
+    "manual_staging": false,
+    "passed": true,
+    "ready_seconds": 213.163,
+    "startup_retries": 6
+  },
+  "driver_sha256": "db8bf0b2573bff0d9a4af2858c8eca76375c45cba41864402cbd70747067ef4f",
+  "ios_fixture": {
+    "binary_sha256": "845920614d5dc01cda43ed1561fc89ad6cc06dbb987dc7c42562b9b7fea3c884",
+    "command": "env -u ASHNAZG_IOS_FIXTURE_SOURCE python3 platform/ios/verify_mcp_fixture.py --binary <public packaged bin> --output-dir <private dir>",
+    "exit_code": 0,
+    "simulator_deleted": true,
+    "status": "passed",
+    "work_dir_removed": true
+  },
+  "limits": [
+    "Two observations plus one fixture run on one macOS host, not a startup distribution or performance claim.",
+    "Network policy covers the sandboxed CLI subtree; guest NAT may use external host services.",
+    "Developer ID signing, notarization, intrinsic compiler-to-binary provenance and legal clearance are not claimed.",
+    "Retained files cannot independently attest the external environment or actual token values used by the scan.",
+    "The cold run uses a fresh HOME and minimal environment, not a factory-reset machine.",
+    "Screenshot PNGs were decoded, dimension-checked and pixel-compared by the driver but are not retained."
+  ],
+  "payloads": [
+    {
+      "path": "README.md",
+      "sha256": "6920b7c29f85c4a47a582aa25f81744e321a39b22ae2cac3baa8526a1bc0e3cd",
+      "size": 4154
+    },
+    {
+      "path": "anonymous-assets.json",
+      "sha256": "6c2c07390be1aafbe4d8108b72ed9a6d9e5597700c54429386730002745dcff0",
+      "size": 4922
+    },
+    {
+      "path": "cold/001-initialize.request.json",
+      "sha256": "8243b23569975f6ddb42dec8670a09f3601fe919e0b9402da1162d04b76fc5cc",
+      "size": 226
+    },
+    {
+      "path": "cold/002-initialize.response.json",
+      "sha256": "f06b293bde73161543ce581e4c5f676fcb6478a24acc4271699833cefe6d5148",
+      "size": 213
+    },
+    {
+      "path": "cold/003-readiness.request.json",
+      "sha256": "70dcd94552acb2b3fd134cbf8eab0b0f9b10100cc658922a3253a47b40737a32",
+      "size": 163
+    },
+    {
+      "path": "cold/003-readiness.response.json",
+      "sha256": "ac02f1f008870f0fcf722dedc8a441b4652c969ee3243ddcc6a183f0f8b99a36",
+      "size": 141
+    },
+    {
+      "path": "cold/003-tools-list.request.json",
+      "sha256": "9d2c25011becd4610370daff19fb91cafe891394d20080993ce44a0f6b413da1",
+      "size": 76
+    },
+    {
+      "path": "cold/004-readiness.request.json",
+      "sha256": "355de8191564cdf12dbf92018ca42cfe1bbfc1aaa7dc40af86777a297ebcc830",
+      "size": 163
+    },
+    {
+      "path": "cold/004-readiness.response.json",
+      "sha256": "e7cbcd570f5ff3070155c265a2bef75b520ed9a58592054f7746fe04ba06b562",
+      "size": 141
+    },
+    {
+      "path": "cold/004-tools-list.response.json",
+      "sha256": "8b3592b9b943a7e22c6d7ef6b5f2a2cd81d60a2a59ea19c96a03effbe950d1bf",
+      "size": 6135
+    },
+    {
+      "path": "cold/005-readiness.request.json",
+      "sha256": "b0162fa80ea0079de7ae8eb14db882e3cc2aee50c45751a6f22dd04b44a0f509",
+      "size": 163
+    },
+    {
+      "path": "cold/005-readiness.response.json",
+      "sha256": "4d42a7ea40fb5d9243211b210cff38f6c00e67da31fd376bb79fc53f3efff40f",
+      "size": 141
+    },
+    {
+      "path": "cold/006-readiness.request.json",
+      "sha256": "88daef4f8071dcc0cad3e2a88fd65161ba92fe92adbbfc8171250a8bd32391d7",
+      "size": 163
+    },
+    {
+      "path": "cold/006-readiness.response.json",
+      "sha256": "9583ad7e1f900d68fb21c11337d967eac636b00e57efac09e2fe8f7de5fa0389",
+      "size": 141
+    },
+    {
+      "path": "cold/007-readiness.request.json",
+      "sha256": "e92b2fc3f028ad6f9b846ad9c7ec44a7f6191bb3f5a3519d3c68f4049178db9d",
+      "size": 163
+    },
+    {
+      "path": "cold/007-readiness.response.json",
+      "sha256": "c95e74537f1e471c688e73e031879a55f642500896af0c3ca60b2a22626beef6",
+      "size": 141
+    },
+    {
+      "path": "cold/008-readiness.request.json",
+      "sha256": "30497c558b8ede355b56e83e8388cda8da6d4cac7d33bc79e96dca993d181560",
+      "size": 163
+    },
+    {
+      "path": "cold/008-readiness.response.json",
+      "sha256": "1ee313d19525cfee906979eec2c6dd02b892a7d5fad3e4782ea9ebfc9c099137",
+      "size": 141
+    },
+    {
+      "path": "cold/009-readiness.request.json",
+      "sha256": "846baacfa6eabcc33db3b2f82b6dffc6107b569bee11a70819f3f8f697b2cfb5",
+      "size": 163
+    },
+    {
+      "path": "cold/009-readiness.response.json",
+      "sha256": "0e5a0e3e8987c3e247b07cd99a312319b212b914a743b246ccfaf59a58665b86",
+      "size": 14962
+    },
+    {
+      "path": "cold/010-app_install.request.json",
+      "sha256": "d55396cc8995c24073f1cac534bd634a04f102bdd94ab4f906780a9a34f99bed",
+      "size": 244
+    },
+    {
+      "path": "cold/010-app_install.response.json",
+      "sha256": "6c59e06e0c02446ab19c5b15d7f5f69977f6a751b06664b447fcd7416d11cbcb",
+      "size": 378
+    },
+    {
+      "path": "cold/011-ui_snapshot.request.json",
+      "sha256": "c012234747d212daec44e4f28e74c4e89158cc765276beb17e88ad8cf31bf495",
+      "size": 164
+    },
+    {
+      "path": "cold/011-ui_snapshot.response.json",
+      "sha256": "91a2673dd405153f93552e40383e20931a72746fafd4a8ebd89fb4c011b17a7d",
+      "size": 14760
+    },
+    {
+      "path": "cold/012-ui_screenshot.request.json",
+      "sha256": "32860e0d8f857c0739f6459b30d6b2a1adbe76d58aac83c97b22fa219b636c00",
+      "size": 183
+    },
+    {
+      "path": "cold/012-ui_screenshot.response.json",
+      "sha256": "d9a54883bb4a570320216d240d2cc344a9727c82e2037718f52459f75532ace6",
+      "size": 371
+    },
+    {
+      "path": "cold/013-ui_act.request.json",
+      "sha256": "b9cbdfbaae3e6103fa7980166c83ebf9362bc8efb48cfafec9048043f742c41c",
+      "size": 229
+    },
+    {
+      "path": "cold/013-ui_act.response.json",
+      "sha256": "a1ba258cd90e751aac9f38527f014156c037c279f8b3d3cb66951c9628046e55",
+      "size": 14001
+    },
+    {
+      "path": "cold/014-ui_screenshot.request.json",
+      "sha256": "8f3aa328ea025983731f55c5f591695ec7e85dd6361ff7d19261bcb4d7f3805e",
+      "size": 183
+    },
+    {
+      "path": "cold/014-ui_screenshot.response.json",
+      "sha256": "05145f6d3750a64ee88a7f2a86e95910f0a87841705794e20439401079e3b73f",
+      "size": 371
+    },
+    {
+      "path": "cold/015-app_logs.request.json",
+      "sha256": "187d8754333c7b782c2140e8909055beacb34f77b625d43eb33e04b6156f7798",
+      "size": 176
+    },
+    {
+      "path": "cold/015-app_logs.response.json",
+      "sha256": "a7ee2730317b439be81fd548b7abf69af5c3a94da169cdc4cb2a92cf0938db21",
+      "size": 248
+    },
+    {
+      "path": "cold/receipt.json",
+      "sha256": "811b6581cf872684b889e0d4ac7126968462a66a0c8ec5df8c91c1e845832c00",
+      "size": 83808
+    },
+    {
+      "path": "cold/runtime.json",
+      "sha256": "1eb8c2f6f5eba225d840a176ec418d1200d7c7a30f94a0b8e27d3ec3a74923e8",
+      "size": 741
+    },
+    {
+      "path": "cold/secret-scan.json",
+      "sha256": "ff0f087727edf48809781b9ed13f6f6551163a9b499f90ad03eee3e3f9dea886",
+      "size": 187
+    },
+    {
+      "path": "cold/serial.log.gz",
+      "sha256": "6381bb6142f3dacf16684ea3095a883a25405788881c3667a05c60bc49f23939",
+      "size": 6275
+    },
+    {
+      "path": "empty-home.json",
+      "sha256": "7a1c6151e131a06989ff9c3d491574b5f51ab0212754343e3d4ac8315909c634",
+      "size": 168
+    },
+    {
+      "path": "executed-driver.py",
+      "sha256": "db8bf0b2573bff0d9a4af2858c8eca76375c45cba41864402cbd70747067ef4f",
+      "size": 50186
+    },
+    {
+      "path": "host-metadata.json",
+      "sha256": "c096c810da022cc1a35132c82f054d6807ee87dd8817d60a6fbd90e9cfe2c080",
+      "size": 222
+    },
+    {
+      "path": "host-network-policy.sb",
+      "sha256": "dfc42c68e4c06ddb51dbe133d3496d737f1f20cbe832694669222b94633d1347",
+      "size": 228
+    },
+    {
+      "path": "ios-fixture/receipt.json",
+      "sha256": "63d8efc35a56a15eb0e33aeda74366f51ce30111802ab8ecb5d09c6f392a0fc7",
+      "size": 11904
+    },
+    {
+      "path": "mcp-tools.schema.json",
+      "sha256": "7cec67c72d850d22b5d0fcb85c464c2ce2cecc8dbc8d36e408890dd2a9d46b75",
+      "size": 3513
+    },
+    {
+      "path": "network-denial.json",
+      "sha256": "59e4c360315cbbf560e985effcd3252e4a40be847ce80f56dd7f554aee025a9d",
+      "size": 861
+    },
+    {
+      "path": "package-verification.json",
+      "sha256": "6ca685709b4b8c0e07228a9b98a36fc49d71c55011b3e6b4a0443ba915aa5efb",
+      "size": 4321
+    },
+    {
+      "path": "public-host-download.json",
+      "sha256": "c5852c07f32bb1aac714979e17b05b32a6f7baa90914d1bcb2895a2c1b5a4764",
+      "size": 371
+    },
+    {
+      "path": "publication.json",
+      "sha256": "20723528fdef072b033a6e21207be91374b64609bc32bbefda5cb7eb7a68b644",
+      "size": 5424
+    },
+    {
+      "path": "warm-offline/001-initialize.request.json",
+      "sha256": "8243b23569975f6ddb42dec8670a09f3601fe919e0b9402da1162d04b76fc5cc",
+      "size": 226
+    },
+    {
+      "path": "warm-offline/002-initialize.response.json",
+      "sha256": "f06b293bde73161543ce581e4c5f676fcb6478a24acc4271699833cefe6d5148",
+      "size": 213
+    },
+    {
+      "path": "warm-offline/003-readiness.request.json",
+      "sha256": "70dcd94552acb2b3fd134cbf8eab0b0f9b10100cc658922a3253a47b40737a32",
+      "size": 163
+    },
+    {
+      "path": "warm-offline/003-readiness.response.json",
+      "sha256": "85840a119e6e50611966ba885d71f7b5139e78f2f2099c8b3e0687cd14f19a45",
+      "size": 14962
+    },
+    {
+      "path": "warm-offline/003-tools-list.request.json",
+      "sha256": "9d2c25011becd4610370daff19fb91cafe891394d20080993ce44a0f6b413da1",
+      "size": 76
+    },
+    {
+      "path": "warm-offline/004-app_install.request.json",
+      "sha256": "dd61e000feab10f0a80d121f468618ff21f6dfd8b01df707e32effc76616d98d",
+      "size": 243
+    },
+    {
+      "path": "warm-offline/004-app_install.response.json",
+      "sha256": "adf7919c3c06454e58d4e3e630d07125f550c0ad13aa9726f615c334bf35d99a",
+      "size": 377
+    },
+    {
+      "path": "warm-offline/004-tools-list.response.json",
+      "sha256": "8b3592b9b943a7e22c6d7ef6b5f2a2cd81d60a2a59ea19c96a03effbe950d1bf",
+      "size": 6135
+    },
+    {
+      "path": "warm-offline/005-ui_snapshot.request.json",
+      "sha256": "b0162fa80ea0079de7ae8eb14db882e3cc2aee50c45751a6f22dd04b44a0f509",
+      "size": 163
+    },
+    {
+      "path": "warm-offline/005-ui_snapshot.response.json",
+      "sha256": "8128f213e62c9554f56a6429cce1592327da0b5d84799538b5625bb6343e1d7d",
+      "size": 13215
+    },
+    {
+      "path": "warm-offline/006-ui_screenshot.request.json",
+      "sha256": "f6a8869b7e286ce76b03d7b51efb7c4e84798a5e78569dd1064839eafdee7b6b",
+      "size": 182
+    },
+    {
+      "path": "warm-offline/006-ui_screenshot.response.json",
+      "sha256": "3e969d5433598fed125aa97ae199e6484980b8b99955bb2a104d93ebf2544628",
+      "size": 370
+    },
+    {
+      "path": "warm-offline/007-ui_act.request.json",
+      "sha256": "a6e33bcd7ade2c527c26c0c42b3d882fde62b5dffc3bd2a84d7d378f99b2d897",
+      "size": 228
+    },
+    {
+      "path": "warm-offline/007-ui_act.response.json",
+      "sha256": "82caf533161351bd5f835a10b2875916c3f30d2fe30c3b155e15800b2164a473",
+      "size": 14000
+    },
+    {
+      "path": "warm-offline/008-ui_screenshot.request.json",
+      "sha256": "77a1f74448abb3c3e1bebdcfa205e868ea09ff0b74c379d17e6f67685e2c1de3",
+      "size": 182
+    },
+    {
+      "path": "warm-offline/008-ui_screenshot.response.json",
+      "sha256": "e99968191d35a891fa762da8e5ae9467d450a3fd587420ca5a8a8a4a6f9e0cf6",
+      "size": 370
+    },
+    {
+      "path": "warm-offline/009-app_logs.request.json",
+      "sha256": "9baee998fe5b315a7fea8c106089766f86dcb7bb718cfe463cf0974dc0f22aa3",
+      "size": 175
+    },
+    {
+      "path": "warm-offline/009-app_logs.response.json",
+      "sha256": "7b7d83cebfa68e1ba012828f1b574195c323fe23236df9eb07e52657c9389571",
+      "size": 247
+    },
+    {
+      "path": "warm-offline/launch-policy.json",
+      "sha256": "d541125a8424cabc0b9382a25252c0381bcd3dd24b0081828275e1c7e16c9f65",
+      "size": 321
+    },
+    {
+      "path": "warm-offline/receipt.json",
+      "sha256": "0ef3b1c22b8efabeaa6cd921935ace392c20d80fd6713ec971550fe8e9478cf7",
+      "size": 83389
+    },
+    {
+      "path": "warm-offline/runtime.json",
+      "sha256": "303d70de2502b436cfcfa2850323bc80df132bbeed7dd876e2cfbe2c99b25a22",
+      "size": 739
+    },
+    {
+      "path": "warm-offline/secret-scan.json",
+      "sha256": "d6e3f961c228425ddee3cf84650ad77e1b7695489b557564d0eb39a89b6389dc",
+      "size": 187
+    },
+    {
+      "path": "warm-offline/serial.log.gz",
+      "sha256": "eed160de71d5a1a5592bb41e8b97f9a91b0ac3c4cb90e6d8983ab00b3578d3e3",
+      "size": 9435
+    },
+    {
+      "path": "wrapper.py",
+      "sha256": "0ead0832cf654fc448d58b8563b56efa386c4e2813d0e7937003190594abb69c",
+      "size": 5147
+    }
+  ],
+  "prepared_run_id": 45392351351,
+  "prepublication_acceptance_commit": "58d8b1fe71efe78d2fa827db48955e8cb92fbb78",
+  "public_verified": true,
+  "publication_run_id": 45464686984,
+  "release_url": "https://github.com/edufelip/ashnazg/releases/tag/v0.3.1",
+  "schema_version": 1,
+  "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc",
+  "warm_offline": {
+    "attempts": 1,
+    "cli_subtree_outbound_ip_denied": true,
+    "helper_startup_ms": 31169,
+    "passed": true,
+    "persistent_disk_identity_preserved_from_cold": true,
+    "profile_launch_bound": true,
+    "ready_seconds": 30.005,
+    "startup_retries": 0,
+    "whole_guest_network_isolation_claim": false
+  }
+}

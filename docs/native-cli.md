@@ -8,7 +8,7 @@ Without `ASHNAZG_TOKEN`, MCP selects the native backend on macOS with Apple Sili
 
 MCP transport initialization and `tools/list` do not wait for artifact acquisition or VM startup. One shared initializer acquires a catalog-bound runtime, launches the helper and authenticates readiness. All five tools use that shared state. A tool can wait up to thirty seconds for readiness; a timeout reports that startup is still in progress and can be retried. Cancelling that request does not cancel initialization. Failed initialization remains a failed state for that server lifetime, with details on stderr and a fixed error at the MCP boundary.
 
-Native acquisition uses the fixed runtime `0.3.1` contract and the host binary's validated build-source stamp (prior [public v0.3.0 release](https://github.com/edufelip/ashnazg/releases/tag/v0.3.0) matches source `50434b8a056514fafd9fcb63cc534ce369880184`). Use its matching released host or build that exact tag with its source stamp; another source tree needs its own matching catalog. An unstamped development build can still serve the external backend. A missing matching catalog or asset is an initialization failure. Cargo package and runtime contract both use `0.3.1`; installation is described in [releases](releases.md).
+Native acquisition uses the fixed runtime `0.3.1` contract and the host binary's validated build-source stamp ([public v0.3.1 release](https://github.com/edufelip/ashnazg/releases/tag/v0.3.1) matches source `509a74a329529f764f8fef955f45c04eed3e02cc`). Use its matching released host or build that exact tag with its source stamp; another source tree needs its own matching catalog. An unstamped development build can still serve the external backend. A missing matching catalog or asset is an initialization failure. Cargo package and runtime contract both use `0.3.1`; installation is described in [releases](releases.md).
 
 Default cache and state paths derive from the current user's existing home directory:
 
@@ -27,7 +27,7 @@ EOF, transport failure, SIGINT or SIGTERM cancels the server lifecycle. The owne
 
 ## Evidence boundary
 
-Host fixtures cover descriptor isolation and cancellation, source stamping, catalog-to-launch identity, shared readiness and CLI protocol behavior. Separate [packaged CLI/VM acceptance](evidence/runtime-release-0.3.0/README.md) passed all three shutdown modes. The subsequent [public-release acceptance](evidence/public-runtime-0.3.0/README.md) verified all ten anonymous asset bodies, automatic acquisition into an empty HOME, and a warm restart with outbound IP denied for the CLI subtree. These observations do not establish a startup distribution, performance savings, every macOS configuration, or whole-guest network isolation. The helper is ad-hoc signed rather than Developer ID signed/notarized.
+Host fixtures cover descriptor isolation and cancellation, source stamping, catalog-to-launch identity, shared readiness and CLI protocol behavior. Separate [packaged CLI/VM acceptance](evidence/runtime-release-0.3.1/README.md) passed all three shutdown modes. The subsequent [public-release acceptance](evidence/public-runtime-0.3.1/README.md) verified all ten anonymous asset bodies, automatic acquisition into an empty HOME, and a warm restart with outbound IP denied for the CLI subtree. These observations do not establish a startup distribution, performance savings, every macOS configuration, or whole-guest network isolation. The helper is ad-hoc signed rather than Developer ID signed/notarized.
 
 ## Release qualification
 

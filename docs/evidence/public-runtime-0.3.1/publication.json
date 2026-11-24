@@ -1,0 +1,123 @@
+{
+  "accepted_asset_match": true,
+  "provenance": {
+    "acceptance_commit": "58d8b1fe71efe78d2fa827db48955e8cb92fbb78",
+    "prepared_run_id": 45392351351,
+    "publication_branch": "main",
+    "publication_conclusion": "success",
+    "publication_event": "workflow_dispatch",
+    "publication_head_sha": "58d8b1fe71efe78d2fa827db48955e8cb92fbb78",
+    "publication_run_id": 45464686984,
+    "publication_workflow": ".github/workflows/release.yml",
+    "source_sha": "509a74a329529f764f8fef955f45c04eed3e02cc"
+  },
+  "release": {
+    "asset_count": 10,
+    "assets": [
+      {
+        "digest": "sha256:123f6f020985360f80570e7bc9d673318dfd3d5830f263a8443477e82b1f3d05",
+        "id": 788450404,
+        "matches_accepted_candidate": true,
+        "name": "SHA256SUMS",
+        "sha256": "123f6f020985360f80570e7bc9d673318dfd3d5830f263a8443477e82b1f3d05",
+        "size": 872,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/SHA256SUMS"
+      },
+      {
+        "digest": "sha256:7e05f471bb41b61c47e6bab59ba7d19c914a69ac6dcee2c0acbb199a8bc38c10",
+        "id": 788450407,
+        "matches_accepted_candidate": true,
+        "name": "ashnazg-agent-v0.3.1.apk",
+        "sha256": "7e05f471bb41b61c47e6bab59ba7d19c914a69ac6dcee2c0acbb199a8bc38c10",
+        "size": 72129,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/ashnazg-agent-v0.3.1.apk"
+      },
+      {
+        "digest": "sha256:406e8f97b1db15911308ac00c247ad93a5fce37ba47ee5f62a601b716f0b9acc",
+        "id": 788450406,
+        "matches_accepted_candidate": true,
+        "name": "ashnazg-fixture-v0.3.1.apk",
+        "sha256": "406e8f97b1db15911308ac00c247ad93a5fce37ba47ee5f62a601b716f0b9acc",
+        "size": 15257,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/ashnazg-fixture-v0.3.1.apk"
+      },
+      {
+        "digest": "sha256:e59aa945d4d32b280a0ce37a2aa111a78658728cb8d274c20b81f98b257838c1",
+        "id": 788450419,
+        "matches_accepted_candidate": true,
+        "name": "ashnazg-microvm-v0.3.1-linux-aarch64.tar.xz",
+        "sha256": "e59aa945d4d32b280a0ce37a2aa111a78658728cb8d274c20b81f98b257838c1",
+        "size": 230808228,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/ashnazg-microvm-v0.3.1-linux-aarch64.tar.xz"
+      },
+      {
+        "digest": "sha256:5865523ae2a23ea5e73984b15ab0529ff129c31d9730e2c3b52b39336e688611",
+        "id": 788450405,
+        "matches_accepted_candidate": true,
+        "name": "ashnazg-runtime-sources-v0.3.1-001.tar.xz",
+        "sha256": "5865523ae2a23ea5e73984b15ab0529ff129c31d9730e2c3b52b39336e688611",
+        "size": 481955648,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/ashnazg-runtime-sources-v0.3.1-001.tar.xz"
+      },
+      {
+        "digest": "sha256:9ae81a55867d0899176f1c0fae964a7192b431eb3c936cfc7157d04de60c8899",
+        "id": 788450453,
+        "matches_accepted_candidate": true,
+        "name": "ashnazg-runtime-v0.3.1.json",
+        "sha256": "9ae81a55867d0899176f1c0fae964a7192b431eb3c936cfc7157d04de60c8899",
+        "size": 1547,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/ashnazg-runtime-v0.3.1.json"
+      },
+      {
+        "digest": "sha256:c058e99dcc80c51e0a9000c786a62c03232f0827aa05d2d583071c57422838e8",
+        "id": 788450451,
+        "matches_accepted_candidate": true,
+        "name": "ashnazg-v0.3.1-linux-x86_64.zip",
+        "sha256": "c058e99dcc80c51e0a9000c786a62c03232f0827aa05d2d583071c57422838e8",
+        "size": 7087071,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/ashnazg-v0.3.1-linux-x86_64.zip"
+      },
+      {
+        "digest": "sha256:7178f3dcf4e77ecdfefecd8192693f3fdeeebc70b1001762a59c5c10241c0c4d",
+        "id": 788450466,
+        "matches_accepted_candidate": true,
+        "name": "ashnazg-v0.3.1-macos-aarch64.zip",
+        "sha256": "7178f3dcf4e77ecdfefecd8192693f3fdeeebc70b1001762a59c5c10241c0c4d",
+        "size": 6924844,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/ashnazg-v0.3.1-macos-aarch64.zip"
+      },
+      {
+        "digest": "sha256:ef7fd214becf2cd24a940ed36fcbf7378e007f93fd31e30a9a4b02091cf79f20",
+        "id": 788450501,
+        "matches_accepted_candidate": true,
+        "name": "ashnazg-vm-v0.3.1-macos-aarch64",
+        "sha256": "ef7fd214becf2cd24a940ed36fcbf7378e007f93fd31e30a9a4b02091cf79f20",
+        "size": 636688,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/ashnazg-vm-v0.3.1-macos-aarch64"
+      },
+      {
+        "digest": "sha256:ed62802837d56c54ba48bcd57790f5d297fdacd41f567fa12c2310766b3757ce",
+        "id": 788450564,
+        "matches_accepted_candidate": true,
+        "name": "candidate.json",
+        "sha256": "ed62802837d56c54ba48bcd57790f5d297fdacd41f567fa12c2310766b3757ce",
+        "size": 1476,
+        "url": "https://github.com/edufelip/ashnazg/releases/download/v0.3.1/candidate.json"
+      }
+    ],
+    "draft": false,
+    "id": 457201754,
+    "prerelease": true,
+    "published_at": "2026-11-24T18:57:22Z",
+    "url": "https://github.com/edufelip/ashnazg/releases/tag/v0.3.1"
+  },
+  "repository": {
+    "name": "edufelip/ashnazg",
+    "url": "https://github.com/edufelip/ashnazg",
+    "visibility": "public"
+  },
+  "tag": {
+    "commit": "509a74a329529f764f8fef955f45c04eed3e02cc",
+    "name": "v0.3.1"
+  }
+}

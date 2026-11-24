@@ -1,0 +1,12 @@
+{
+  "id": 15,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [],
+    "structuredContent": {
+      "line_count": 1041,
+      "result_sha256": "f20da2023754d0ee24efa48f98bc5774ca14e738892e8c91e27de47a493933e6",
+      "truncated": false
+    }
+  }
+}
