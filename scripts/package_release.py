@@ -9,7 +9,7 @@ import stat
 import zipfile
 from pathlib import Path
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 ARCHIVE_FILES = {
     "host_binary": "bin/ashnazg",

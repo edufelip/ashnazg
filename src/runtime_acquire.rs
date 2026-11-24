@@ -19,7 +19,7 @@ use std::{
 use tokio::io::AsyncWrite;
 use tokio_util::sync::CancellationToken;
 
-const VERSION: &str = "0.3.0";
+const VERSION: &str = "0.3.1";
 const MAX_CATALOG_BYTES: usize = 64 * 1024;
 const MAX_INTEGRITY_BYTES: usize = 64 * 1024;
 const IO_CHUNK: usize = 64 * 1024;
@@ -108,7 +108,7 @@ struct ValidationContext<'a> {
     promoted: bool,
 }
 
-/// Acquires the fixed 0.3.0 runtime, reusing a fully validated cache entry when available.
+/// Acquires the fixed 0.3.1 runtime, reusing a fully validated cache entry when available.
 pub async fn acquire_runtime(
     cache_root: PathBuf,
     expected_version: String,
@@ -1048,7 +1048,7 @@ mod tests {
     fn archive_fixture(source_sha: &str) -> Vec<u8> {
         let kernel = b"tiny kernel";
         let rootfs = b"tiny rootfs";
-        let manifest = format!(r#"{{"schema_version":1,"version":"0.3.0","source_sha":"{source_sha}","architecture":"aarch64","files":{{"kernel":{{"sha256":"{}","size":{}}},"rootfs.ext4":{{"sha256":"{}","size":{}}}}},"guest":{{"kernel_version":"6.12.117","base":"alpine-3.22.8-aarch64","redroid_index":"sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"}}}}"#, digest(kernel), kernel.len(), digest(rootfs), rootfs.len()).into_bytes();
+        let manifest = format!(r#"{{"schema_version":1,"version":"0.3.1","source_sha":"{source_sha}","architecture":"aarch64","files":{{"kernel":{{"sha256":"{}","size":{}}},"rootfs.ext4":{{"sha256":"{}","size":{}}}}},"guest":{{"kernel_version":"6.12.117","base":"alpine-3.22.8-aarch64","redroid_index":"sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"}}}}"#, digest(kernel), kernel.len(), digest(rootfs), rootfs.len()).into_bytes();
         let contents: BTreeMap<&str, Vec<u8>> = [
             ("kernel", kernel.to_vec()),
             ("rootfs.ext4", rootfs.to_vec()),
@@ -1091,15 +1091,15 @@ mod tests {
         let helper = b"helper bytes".to_vec();
         let agent = b"agent bytes".to_vec();
         let fixture = b"fixture bytes".to_vec();
-        let catalog = format!(r#"{{"schema_version":1,"version":"0.3.0","release_tag":"v0.3.0","source_sha":"{source_sha}","artifacts":{{"guest":{{"name":"ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz","platform":"linux-aarch64","source_sha":"{source_sha}","size":{},"sha256":"{}"}},"helper":{{"name":"ashnazg-vm-v0.3.0-macos-aarch64","platform":"macos-aarch64","source_sha":"{source_sha}","size":{},"sha256":"{}"}},"agent":{{"name":"ashnazg-agent-v0.3.0.apk","platform":"android","source_sha":"{source_sha}","size":{},"sha256":"{}"}},"fixture":{{"name":"ashnazg-fixture-v0.3.0.apk","platform":"android","source_sha":"{source_sha}","size":{},"sha256":"{}"}}}},"source_archives":[]}}"#, guest.len(), digest(&guest), helper.len(), digest(&helper), agent.len(), digest(&agent), fixture.len(), digest(&fixture)).into_bytes();
+        let catalog = format!(r#"{{"schema_version":1,"version":"0.3.1","release_tag":"v0.3.1","source_sha":"{source_sha}","artifacts":{{"guest":{{"name":"ashnazg-microvm-v0.3.1-linux-aarch64.tar.xz","platform":"linux-aarch64","source_sha":"{source_sha}","size":{},"sha256":"{}"}},"helper":{{"name":"ashnazg-vm-v0.3.1-macos-aarch64","platform":"macos-aarch64","source_sha":"{source_sha}","size":{},"sha256":"{}"}},"agent":{{"name":"ashnazg-agent-v0.3.1.apk","platform":"android","source_sha":"{source_sha}","size":{},"sha256":"{}"}},"fixture":{{"name":"ashnazg-fixture-v0.3.1.apk","platform":"android","source_sha":"{source_sha}","size":{},"sha256":"{}"}}}},"source_archives":[]}}"#, guest.len(), digest(&guest), helper.len(), digest(&helper), agent.len(), digest(&agent), fixture.len(), digest(&fixture)).into_bytes();
         let artifacts = [
             (
-                "ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz".to_owned(),
+                "ashnazg-microvm-v0.3.1-linux-aarch64.tar.xz".to_owned(),
                 guest,
             ),
-            ("ashnazg-vm-v0.3.0-macos-aarch64".to_owned(), helper),
-            ("ashnazg-agent-v0.3.0.apk".to_owned(), agent),
-            ("ashnazg-fixture-v0.3.0.apk".to_owned(), fixture),
+            ("ashnazg-vm-v0.3.1-macos-aarch64".to_owned(), helper),
+            ("ashnazg-agent-v0.3.1.apk".to_owned(), agent),
+            ("ashnazg-fixture-v0.3.1.apk".to_owned(), fixture),
         ]
         .into_iter()
         .collect();
@@ -1435,7 +1435,7 @@ mod tests {
         let before = fs::read(&first.helper).unwrap();
         let mut bad = fixture_source();
         bad.artifacts
-            .get_mut("ashnazg-agent-v0.3.0.apk")
+            .get_mut("ashnazg-agent-v0.3.1.apk")
             .unwrap()
             .push(0);
         assert!(
@@ -1494,9 +1494,9 @@ mod tests {
             let root = parent.path().canonicalize().unwrap().join("runtime-cache");
             let mut source = fixture_source();
             if failure == "missing" {
-                source.artifacts.remove("ashnazg-vm-v0.3.0-macos-aarch64");
+                source.artifacts.remove("ashnazg-vm-v0.3.1-macos-aarch64");
             } else {
-                let guest_name = "ashnazg-microvm-v0.3.0-linux-aarch64.tar.xz";
+                let guest_name = "ashnazg-microvm-v0.3.1-linux-aarch64.tar.xz";
                 let guest = if failure == "truncated" {
                     b"truncated XZ".to_vec()
                 } else {

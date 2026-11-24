@@ -48,7 +48,7 @@ class ManifestTests(unittest.TestCase):
         (self.assets / "rootfs.ext4").write_bytes(b"ext4-image")
         self.manifest = {
             "schema_version": 1,
-            "version": "0.3.0",
+            "version": "0.3.1",
             "source_sha": "a" * 40,
             "architecture": "aarch64",
             "files": {

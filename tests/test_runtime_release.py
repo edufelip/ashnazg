@@ -14,7 +14,7 @@ from scripts.package_release import IOS_FIXTURE_FILES
 from scripts.runtime_release import prepare_release, verify_release
 
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 SOURCE_SHA = "a" * 40
 OTHER_SHA = "b" * 40
 PAYLOAD_NAMES = {
