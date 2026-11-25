@@ -18,7 +18,7 @@ else:  # support direct `python scripts/runtime_release.py ...` execution
     import runtime_catalog
 
 
-DEFAULT_VERSION = "0.3.1"
+DEFAULT_VERSION = "0.3.2"
 SOURCE_SHA_RE = re.compile(r"[0-9a-f]{40}\Z")
 SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 CATALOG_NAME = "ashnazg-runtime-v{version}.json"

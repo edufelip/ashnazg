@@ -17,8 +17,8 @@ The Android guest uses the Android 15 64-bit-only `redroid/redroid` profile, pin
 digest `sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee`.
 It is downloaded at guest first boot and is not redistributed in this bundle.
 
-The matching 0.3.1 release candidate includes a separate
-`ashnazg-runtime-sources-v0.3.1-001.tar.xz` source and notice sidecar. Its manifest
+The matching 0.3.2 release candidate includes a separate
+`ashnazg-runtime-sources-v0.3.2-001.tar.xz` source and notice sidecar. Its manifest
 binds the actual guest image and installed package database to the exact package
 sources, pinned Alpine packaging recipes, original notice evidence, project
 sources and locked Rust dependency sources. The runtime catalog records the

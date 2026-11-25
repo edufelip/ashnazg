@@ -85,11 +85,11 @@ fn main() -> anyhow::Result<()> {
     let file = OpenOptions::new()
         .read(true)
         .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK | libc::O_CLOEXEC)
-        .open(directory.join("ashnazg-runtime-v0.3.1.json"))?;
+        .open(directory.join("ashnazg-runtime-v0.3.2.json"))?;
     ensure!(file.metadata()?.is_file(), "catalog must be regular");
     let mut bytes = Vec::new();
     file.take(64 * 1024 + 1).read_to_end(&mut bytes)?;
-    let catalog = RuntimeCatalog::parse(&bytes, "0.3.1", source)?;
+    let catalog = RuntimeCatalog::parse(&bytes, "0.3.2", source)?;
     let key = hex(&Sha256::digest(&bytes));
     let guard = CacheGuard::try_acquire(root)?.context("cache is busy")?;
     ensure!(
@@ -136,7 +136,7 @@ fn main() -> anyhow::Result<()> {
         })
         .collect();
     let receipt = serde_json::json!({
-        "schema_version": 1, "version": "0.3.1", "source_sha": source,
+        "schema_version": 1, "version": "0.3.2", "source_sha": source,
         "catalog_sha256": key, "guest_size": extracted.compressed_size,
         "guest_sha256": extracted.compressed_sha256, "members": members
     });

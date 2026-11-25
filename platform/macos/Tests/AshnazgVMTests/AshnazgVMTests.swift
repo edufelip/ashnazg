@@ -33,7 +33,7 @@ final class AshnazgVMTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: root) }
         let kernel = Data("kernel bytes".utf8), disk = Data("disk bytes".utf8)
         try kernel.write(to: root.appendingPathComponent("kernel")); try disk.write(to: root.appendingPathComponent("rootfs.ext4"))
-        let manifest: [String: Any] = ["schema_version": 1, "version": "0.3.1", "source_sha": String(repeating: "a", count: 40), "architecture": "aarch64", "files": ["kernel": ["sha256": Self.sha(kernel), "size": kernel.count], "rootfs.ext4": ["sha256": Self.sha(disk), "size": disk.count]], "guest": ["kernel_version": "6.12.117", "base": "alpine-3.22.8-aarch64", "redroid_index": "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"]]
+        let manifest: [String: Any] = ["schema_version": 1, "version": "0.3.2", "source_sha": String(repeating: "a", count: 40), "architecture": "aarch64", "files": ["kernel": ["sha256": Self.sha(kernel), "size": kernel.count], "rootfs.ext4": ["sha256": Self.sha(disk), "size": disk.count]], "guest": ["kernel_version": "6.12.117", "base": "alpine-3.22.8-aarch64", "redroid_index": "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"]]
         try JSONSerialization.data(withJSONObject: manifest).write(to: root.appendingPathComponent("manifest.json"))
         XCTAssertNoThrow(try ValidatedAssets.load(from: root))
         try Data("tampered".utf8).write(to: root.appendingPathComponent("kernel"))
@@ -226,7 +226,7 @@ final class AshnazgVMTests: XCTestCase {
         let kernel = Data("kernel bytes".utf8)
         try kernel.write(to: assetDirectory.appendingPathComponent("kernel"))
         try disk.write(to: assetDirectory.appendingPathComponent("rootfs.ext4"))
-        let manifest: [String: Any] = ["schema_version": 1, "version": "0.3.1", "source_sha": String(repeating: "a", count: 40), "architecture": "aarch64", "files": ["kernel": ["sha256": Self.sha(kernel), "size": kernel.count], "rootfs.ext4": ["sha256": Self.sha(disk), "size": disk.count]], "guest": ["kernel_version": "6.12.117", "base": "alpine-3.22.8-aarch64", "redroid_index": "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"]]
+        let manifest: [String: Any] = ["schema_version": 1, "version": "0.3.2", "source_sha": String(repeating: "a", count: 40), "architecture": "aarch64", "files": ["kernel": ["sha256": Self.sha(kernel), "size": kernel.count], "rootfs.ext4": ["sha256": Self.sha(disk), "size": disk.count]], "guest": ["kernel_version": "6.12.117", "base": "alpine-3.22.8-aarch64", "redroid_index": "sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"]]
         try JSONSerialization.data(withJSONObject: manifest).write(to: assetDirectory.appendingPathComponent("manifest.json"))
         return try ValidatedAssets.load(from: assetDirectory)
     }

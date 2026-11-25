@@ -52,7 +52,7 @@ def _fixture(root: Path):
     installed_db = b"P:demo\nV:1.0-r0\nA:aarch64\no:demo\nc:" + b"b" * 40 + b"\nL:MIT\n\n"
     guest_files = {"kernel": b"kernel", "rootfs.ext4": b"rootfs"}
     file_records = {name: {"size": len(data), "sha256": _sha(data)} for name, data in guest_files.items()}
-    manifest = {"schema_version": 1, "version": "0.3.1", "architecture": "aarch64",
+    manifest = {"schema_version": 1, "version": "0.3.2", "architecture": "aarch64",
                 "source_sha": source_sha, "guest": {"base": "alpine-3.22.8-aarch64",
                 "kernel_version": "6.12.117"}, "files": file_records}
     provenance = {"schema_version": 1, "source_sha": source_sha, "files": file_records,
@@ -221,8 +221,8 @@ class RuntimeSourcesTests(unittest.TestCase):
     def test_source_sidecar_is_deterministic_and_includes_bound_material(self):
         repo, assets, cache, vendor, lock, _, source_sha = _fixture(self.root)
         first, second = self.root / "first.tar.xz", self.root / "second.tar.xz"
-        build_source_sidecar(assets, repo, first, "0.3.1", source_sha, cache, vendor, lock)
-        build_source_sidecar(assets, repo, second, "0.3.1", source_sha, cache, vendor, lock)
+        build_source_sidecar(assets, repo, first, "0.3.2", source_sha, cache, vendor, lock)
+        build_source_sidecar(assets, repo, second, "0.3.2", source_sha, cache, vendor, lock)
         self.assertEqual(first.read_bytes(), second.read_bytes())
         with tarfile.open(first, "r:xz") as archive:
             names = archive.getnames()
@@ -261,11 +261,11 @@ class RuntimeSourcesTests(unittest.TestCase):
                 output = root / "out.tar.xz"
                 if case != "valid":
                     with self.assertRaisesRegex(ValueError, "notice candidate"):
-                        build_source_sidecar(assets, repo, output, "0.3.1", source_sha,
+                        build_source_sidecar(assets, repo, output, "0.3.2", source_sha,
                                              cache, vendor, lock)
                     self.assertFalse(output.exists())
                 else:
-                    build_source_sidecar(assets, repo, output, "0.3.1", source_sha,
+                    build_source_sidecar(assets, repo, output, "0.3.2", source_sha,
                                          cache, vendor, lock)
                     with tarfile.open(output, "r:xz") as archive:
                         retained = archive.getmember("notice-evidence/demo/candidate-000001.bin")
@@ -298,18 +298,18 @@ class RuntimeSourcesTests(unittest.TestCase):
                 if corruption == "missing":
                     with mock.patch("scripts.runtime_sources._download", side_effect=urllib.error.URLError("offline")):
                         with self.assertRaises(urllib.error.URLError):
-                            build_source_sidecar(assets, repo, case / "out.tar.xz", "0.3.1", source_sha,
+                            build_source_sidecar(assets, repo, case / "out.tar.xz", "0.3.2", source_sha,
                                                  cache, vendor, lock)
                 else:
                     with self.assertRaises(ValueError):
-                        build_source_sidecar(assets, repo, case / "out.tar.xz", "0.3.1", source_sha,
+                        build_source_sidecar(assets, repo, case / "out.tar.xz", "0.3.2", source_sha,
                                              cache, vendor, lock)
 
     def test_guest_digest_and_source_lock_binding_mismatches_are_rejected(self):
         repo, assets, cache, vendor, lock, _, source_sha = _fixture(self.root)
         (assets / "rootfs.ext4").write_bytes(b"changed")
         with self.assertRaisesRegex(ValueError, "rootfs digest"):
-            build_source_sidecar(assets, repo, self.root / "digest.tar.xz", "0.3.1", source_sha,
+            build_source_sidecar(assets, repo, self.root / "digest.tar.xz", "0.3.2", source_sha,
                                  cache, vendor, lock)
 
         case = self.root / "binding"
@@ -319,7 +319,7 @@ class RuntimeSourcesTests(unittest.TestCase):
         data["package_inputs"]["package_lock_sha256"] = "e" * 64
         lock.write_text(json.dumps(data))
         with self.assertRaisesRegex(ValueError, "package input binding"):
-            build_source_sidecar(assets, repo, case / "binding.tar.xz", "0.3.1", source_sha,
+            build_source_sidecar(assets, repo, case / "binding.tar.xz", "0.3.2", source_sha,
                                  cache, vendor, lock)
 
     def test_unrelated_source_group_is_rejected_even_with_unchanged_counts(self):
@@ -328,7 +328,7 @@ class RuntimeSourcesTests(unittest.TestCase):
         data['source_inputs'][0]['origin'] = 'unrelated'
         lock.write_text(json.dumps(data))
         with self.assertRaisesRegex(ValueError, 'source input.*group'):
-            build_source_sidecar(assets, repo, self.root / 'out.tar.xz', '0.3.1', source_sha, cache, vendor, lock)
+            build_source_sidecar(assets, repo, self.root / 'out.tar.xz', '0.3.2', source_sha, cache, vendor, lock)
 
     def test_cached_input_budget_is_checked_before_reading(self):
         import scripts.runtime_sources as module
@@ -343,7 +343,7 @@ class RuntimeSourcesTests(unittest.TestCase):
         output = self.root / 'caller-output.tar.xz'
         output.write_bytes(b'caller bytes')
         with self.assertRaises((ValueError, FileExistsError)):
-            build_source_sidecar(assets, repo, output, '0.3.1', source_sha, cache, vendor, lock)
+            build_source_sidecar(assets, repo, output, '0.3.2', source_sha, cache, vendor, lock)
         self.assertEqual(output.read_bytes(), b'caller bytes')
 
     def test_vendor_hash_or_lock_checksum_mismatch_is_rejected(self):

@@ -891,7 +891,7 @@ def main(argv=None):
     parser.add_argument("--input-dir", help="optional verified cache with lock-relative source/recipe/notice paths")
     parser.add_argument("--rust-vendor", required=True, help="directory produced by cargo vendor --locked")
     parser.add_argument("--output", required=True)
-    parser.add_argument("--version", default="0.3.1")
+    parser.add_argument("--version", default="0.3.2")
     parser.add_argument("--source-sha", required=True)
     args = parser.parse_args(argv)
     try:

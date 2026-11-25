@@ -16,7 +16,7 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
-const RUNTIME_VERSION: &str = "0.3.1";
+const RUNTIME_VERSION: &str = "0.3.2";
 const ACQUISITION_TIMEOUT: Duration = Duration::from_secs(900);
 const STARTUP_TIMEOUT: u16 = 300;
 
@@ -352,7 +352,7 @@ mod tests {
                 "Library/Application Support/ashnazg/native-mcp/{source}"
             ))
         );
-        assert_eq!(config.version, "0.3.1");
+        assert_eq!(config.version, "0.3.2");
         assert!(!config.cache_root.exists());
         assert!(!config.state_dir.exists());
     }
@@ -431,15 +431,15 @@ mod tests {
     fn acquired_artifact_identity_must_match_config() {
         let source = "0123456789abcdef0123456789abcdef01234567";
         let result = artifacts("0.2.0", source);
-        assert!(validate_artifact_identity(&result, "0.3.1", source).is_err());
-        let result = artifacts("0.3.1", "a123456789abcdef0123456789abcdef01234567");
-        assert!(validate_artifact_identity(&result, "0.3.1", source).is_err());
+        assert!(validate_artifact_identity(&result, "0.3.2", source).is_err());
+        let result = artifacts("0.3.2", "a123456789abcdef0123456789abcdef01234567");
+        assert!(validate_artifact_identity(&result, "0.3.2", source).is_err());
     }
 
     #[test]
     fn native_launch_uses_catalog_hashes_and_fixed_identity() {
         let source = "0123456789abcdef0123456789abcdef01234567";
-        let artifacts = artifacts("0.3.1", source);
+        let artifacts = artifacts("0.3.2", source);
         let launch = launch_from_artifacts(&artifacts, Path::new("state"));
         assert_eq!(launch.helper_sha256, artifacts.helper_sha256);
         assert_eq!(launch.agent_apk_sha256, artifacts.agent_apk_sha256);

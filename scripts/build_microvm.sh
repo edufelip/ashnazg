@@ -291,7 +291,7 @@ provenance = {
 (assets / "provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
 manifest = {
     "schema_version": 1,
-    "version": "0.3.1",
+    "version": "0.3.2",
     "source_sha": source_sha,
     "architecture": "aarch64",
     "files": files,
