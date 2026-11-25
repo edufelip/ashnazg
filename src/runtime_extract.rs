@@ -38,7 +38,7 @@ mod tests {
     fn manifest(kernel: &[u8], rootfs: &[u8]) -> Vec<u8> {
         let digest = |data: &[u8]| digest_hex(&Sha256::digest(data));
         format!(
-            "{{\"schema_version\":1,\"version\":\"0.3.1\",\"source_sha\":\"{SOURCE}\",\"architecture\":\"aarch64\",\"files\":{{\"kernel\":{{\"sha256\":\"{}\",\"size\":{}}},\"rootfs.ext4\":{{\"sha256\":\"{}\",\"size\":{}}}}},\"guest\":{{\"kernel_version\":\"6.12.117\",\"base\":\"alpine-3.22.8-aarch64\",\"redroid_index\":\"{REDROID}\"}}}}",
+            "{{\"schema_version\":1,\"version\":\"0.3.2\",\"source_sha\":\"{SOURCE}\",\"architecture\":\"aarch64\",\"files\":{{\"kernel\":{{\"sha256\":\"{}\",\"size\":{}}},\"rootfs.ext4\":{{\"sha256\":\"{}\",\"size\":{}}}}},\"guest\":{{\"kernel_version\":\"6.12.117\",\"base\":\"alpine-3.22.8-aarch64\",\"redroid_index\":\"{REDROID}\"}}}}",
             digest(kernel), kernel.len(), digest(rootfs), rootfs.len()
         ).into_bytes()
     }
@@ -103,18 +103,18 @@ mod tests {
     }
 
     fn catalog_with(_bytes: &[u8], declared_size: u64, digest: &str) -> RuntimeCatalog {
-        catalog_with_version(declared_size, digest, "0.3.1")
+        catalog_with_version(declared_size, digest, "0.3.2")
     }
 
     fn catalog_with_version(declared_size: u64, digest: &str, version: &str) -> RuntimeCatalog {
         let json = format!(
-            r#"{{"schema_version":1,"version":"0.3.1","release_tag":"v0.3.1","source_sha":"{SOURCE}","artifacts":{{"guest":{{"name":"ashnazg-microvm-v0.3.1-linux-aarch64.tar.xz","platform":"linux-aarch64","source_sha":"{SOURCE}","size":{},"sha256":"{digest}"}},"helper":{{"name":"ashnazg-vm-v0.3.1-macos-aarch64","platform":"macos-aarch64","source_sha":"{SOURCE}","size":1,"sha256":"{}"}},"agent":{{"name":"ashnazg-agent-v0.3.1.apk","platform":"android","source_sha":"{SOURCE}","size":1,"sha256":"{}"}},"fixture":{{"name":"ashnazg-fixture-v0.3.1.apk","platform":"android","source_sha":"{SOURCE}","size":1,"sha256":"{}"}}}},"source_archives":[]}}"#,
+            r#"{{"schema_version":1,"version":"0.3.2","release_tag":"v0.3.2","source_sha":"{SOURCE}","artifacts":{{"guest":{{"name":"ashnazg-microvm-v0.3.2-linux-aarch64.tar.xz","platform":"linux-aarch64","source_sha":"{SOURCE}","size":{},"sha256":"{digest}"}},"helper":{{"name":"ashnazg-vm-v0.3.2-macos-aarch64","platform":"macos-aarch64","source_sha":"{SOURCE}","size":1,"sha256":"{}"}},"agent":{{"name":"ashnazg-agent-v0.3.2.apk","platform":"android","source_sha":"{SOURCE}","size":1,"sha256":"{}"}},"fixture":{{"name":"ashnazg-fixture-v0.3.2.apk","platform":"android","source_sha":"{SOURCE}","size":1,"sha256":"{}"}}}},"source_archives":[]}}"#,
             declared_size,
             "0".repeat(64),
             "0".repeat(64),
             "0".repeat(64)
         );
-        let json = json.replace("0.3.1", version);
+        let json = json.replace("0.3.2", version);
         RuntimeCatalog::parse(json.as_bytes(), version, SOURCE).unwrap()
     }
 
@@ -281,7 +281,7 @@ mod tests {
             .is_err()
         );
         for (from, to) in [
-            ("0.3.1", "0.4.0"),
+            ("0.3.2", "0.4.0"),
             (SOURCE, "9999999999999999999999999999999999999999"),
             ("aarch64", "x86_64"),
             ("6.12.117", "6.12.118"),
@@ -321,7 +321,7 @@ mod tests {
     fn rejects_a_matching_catalog_and_manifest_outside_the_helper_version_contract() {
         let json = String::from_utf8(manifest(b"kernel bytes", b"filesystem bytes"))
             .unwrap()
-            .replace("0.3.1", "0.4.0");
+            .replace("0.3.2", "0.4.0");
         let bytes = replace_manifest(&json);
         let f = fixture(&bytes);
         let catalog = catalog_with_version(
@@ -873,7 +873,7 @@ pub(crate) fn validate_manifest(
         "runtime manifest schema_version must be 1"
     );
     ensure!(
-        manifest.version == "0.3.1" && manifest.version == catalog.version(),
+        manifest.version == "0.3.2" && manifest.version == catalog.version(),
         "runtime manifest version does not match the catalog and pinned helper contract"
     );
     ensure!(

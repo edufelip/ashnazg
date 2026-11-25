@@ -790,7 +790,7 @@ fn parse_receipt(line: &[u8], launch: &NativeSessionLaunch) -> Result<Receipt> {
             .rootfs_template_sha256
             .as_deref()
             .is_some_and(|v| valid_hex(v, 64))
-        || r.manifest_version.as_deref() != Some("0.3.1")
+        || r.manifest_version.as_deref() != Some("0.3.2")
         || r.manifest_source_sha.as_deref() != Some(&launch.source_sha)
         || r.agent_apk_sha256.as_deref() != Some(&launch.agent_apk_sha256)
         || r.adb_listen != format!("127.0.0.1:{}", launch.adb_port)
@@ -855,7 +855,7 @@ mod tests {
     use super::*;
     use sha2::{Digest, Sha256};
 
-    const READY: &str = r#"{"schema_version":1,"status":"agent_ready","architecture":"aarch64","cpu_count":4,"memory_bytes":8589934592,"adb_listen":"127.0.0.1:15555","android_serial":"emulator-5554","manifest_version":"0.3.1","manifest_source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kernel_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","rootfs_template_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","timings":{"total_startup_ms":1000,"vm_start_ms":500,"readiness_ms":500,"agent_startup_ms":250},"session_id":"6f6f1234-1234-4234-8234-123456789abc","agent_listen":"127.0.0.1:17777","install_listen":"127.0.0.1:17778","agent_apk_sha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}"#;
+    const READY: &str = r#"{"schema_version":1,"status":"agent_ready","architecture":"aarch64","cpu_count":4,"memory_bytes":8589934592,"adb_listen":"127.0.0.1:15555","android_serial":"emulator-5554","manifest_version":"0.3.2","manifest_source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kernel_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","rootfs_template_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","timings":{"total_startup_ms":1000,"vm_start_ms":500,"readiness_ms":500,"agent_startup_ms":250},"session_id":"6f6f1234-1234-4234-8234-123456789abc","agent_listen":"127.0.0.1:17777","install_listen":"127.0.0.1:17778","agent_apk_sha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}"#;
 
     // Short-deadline OS process fixtures run in isolation from this suite's
     // other helper launches; the production owner has no shared fixture gate.

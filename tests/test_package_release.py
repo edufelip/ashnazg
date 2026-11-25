@@ -49,7 +49,7 @@ class PackageReleaseTests(unittest.TestCase):
             self.inputs["ios_fixture"] if platform.startswith("macos-") else None,
         )
         return package_release(
-            version="0.3.1",
+            version="0.3.2",
             source_sha="a" * 40,
             platform=platform,
             output=self.root / "release.zip",
@@ -88,7 +88,7 @@ class PackageReleaseTests(unittest.TestCase):
             )
             self.assertFalse(any(name.startswith("/") or ".." in Path(name).parts for name in names))
             manifest = json.loads(archive.read("manifest.json"))
-            self.assertEqual(manifest["version"], "0.3.1")
+            self.assertEqual(manifest["version"], "0.3.2")
             self.assertEqual(manifest["source_sha"], "a" * 40)
             self.assertEqual(manifest["platform"], "linux-x86_64")
             payloads = manifest["files"]
@@ -119,7 +119,7 @@ class PackageReleaseTests(unittest.TestCase):
                             agent_apk=self.inputs["agent"], fixture_apk=self.inputs["fixture"],
                             license_file=self.inputs["license"], setup_file=self.inputs["setup"], third_party_notices=self.inputs["notices"])
         with self.assertRaisesRegex(ValueError, "source"):
-            package_release(version="0.3.1", source_sha="not-a-sha", platform="linux-x86_64",
+            package_release(version="0.3.2", source_sha="not-a-sha", platform="linux-x86_64",
                             output=self.root / "other.zip", host_binary=self.inputs["host"],
                             vm_helper=None,
                             agent_apk=self.inputs["agent"], fixture_apk=self.inputs["fixture"],

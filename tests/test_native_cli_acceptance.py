@@ -46,14 +46,14 @@ class ProcessInventoryTests(unittest.TestCase):
 
     def test_inventory_preserves_descendants_after_large_unrelated_prefix(self):
         rows = [f"{pid} 1 /unrelated/" + "x" * 90 for pid in range(1, 3001)]
-        rows += ["50001 50000 /owned/bin/ashnazg", "50002 50000 /owned/ashnazg-vm-v0.3.1-macos-aarch64"]
+        rows += ["50001 50000 /owned/bin/ashnazg", "50002 50000 /owned/ashnazg-vm-v0.3.2-macos-aarch64"]
         result = acceptance.subprocess.CompletedProcess([], 0, ("\n".join(rows) + "\n").encode())
         self.assertGreater(len(result.stdout), 128 * 1024)
         with patch.object(acceptance, "_bounded_ps_output", return_value=result.stdout):
             inventory = acceptance._process_descendants(50000)
         self.assertEqual(inventory, {"status": "available", "processes": [
             {"pid": 50001, "ppid": 50000, "command": "ashnazg"},
-            {"pid": 50002, "ppid": 50000, "command": "ashnazg-vm-v0.3.1-macos-aarch64"},
+            {"pid": 50002, "ppid": 50000, "command": "ashnazg-vm-v0.3.2-macos-aarch64"},
         ]})
 
     def test_inventory_refuses_rows_beyond_its_bound(self):
@@ -367,9 +367,9 @@ class NativeCliAcceptanceTests(unittest.TestCase):
         candidate.mkdir()
         binary_bytes = self.binary.read_bytes()
         metadata = {"files": {"bin/ashnazg": {"size": len(binary_bytes), "sha256": acceptance.sha256_bytes(binary_bytes)}}}
-        with zipfile.ZipFile(candidate / 'ashnazg-v0.3.1-macos-aarch64.zip', 'w') as archive:
+        with zipfile.ZipFile(candidate / 'ashnazg-v0.3.2-macos-aarch64.zip', 'w') as archive:
             archive.writestr('manifest.json', json.dumps(metadata))
-        (candidate / 'ashnazg-runtime-v0.3.1.json').write_text(json.dumps({"artifacts": {"fixture": {
+        (candidate / 'ashnazg-runtime-v0.3.2.json').write_text(json.dumps({"artifacts": {"fixture": {
             "size": self.apk.stat().st_size, "sha256": acceptance.sha256_file(self.apk)}}}))
         (candidate / 'candidate.json').write_text('{}')
         with patch('runtime_release.verify_release', return_value=True):

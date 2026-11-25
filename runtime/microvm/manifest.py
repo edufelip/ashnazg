@@ -59,8 +59,8 @@ def validate_manifest(assets_dir: Path, *, expected_architecture: str = "aarch64
         raise ManifestError(f"manifest.json is invalid: {exc}") from exc
     if not isinstance(manifest, dict) or manifest.get("schema_version") != 1:
         raise ManifestError("unsupported manifest schema_version")
-    if manifest.get("version") != "0.3.1":
-        raise ManifestError("manifest version must be 0.3.1")
+    if manifest.get("version") != "0.3.2":
+        raise ManifestError("manifest version must be 0.3.2")
     if manifest.get("architecture") != expected_architecture:
         raise ManifestError(f"unsupported architecture: {manifest.get('architecture')!r}")
     source_sha = manifest.get("source_sha")
